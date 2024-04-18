@@ -1,0 +1,19 @@
+.ScoresLayout {
+  --base-size: 2cqw;
+  position: absolute;
+  top: calc(var(--base-size) * 1.5);
+  left: calc(var(--base-size) * 1.5);
+  font-size: var(--base-size);
+}
+
+.ScoresLayout_item {
+  padding: calc(var(--base-size) / 10) calc(var(--base-size) / 2);
+}
+
+.ScoresLayout_scores {
+  min-width: calc(var(--base-size) * 4);
+}
+
+.ScoresLayout_time {
+  min-width: calc(var(--base-size) * 4);
+}

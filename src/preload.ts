@@ -10,7 +10,11 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.send(channel, data);
     }
   },
-  receive: (channel: string, func: (...args: any[]) => void) => {
+  receive: (channel: string, func: (...args: any[] | null) => void) => {
+    if (func === null) {
+      ipcRenderer.removeAllListeners(channel);
+      return;
+    }
     const validChannels = ["score-update", "time-update", "settings-update"];
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, (event, ...args) => func(...args));

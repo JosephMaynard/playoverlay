@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -6,8 +6,8 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
-let mainWindow;
-let displayWindow;
+let mainWindow: BrowserWindow;
+let displayWindow: BrowserWindow;
 
 const createWindow = () => {
   // Create the browser window.
@@ -48,6 +48,11 @@ const createWindow = () => {
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
   displayWindow.webContents.openDevTools();
+
+  ipcMain.on("score-update", (event, data) => {
+    displayWindow.webContents.send("score-update", data);
+    console.log("score-update", data);
+  });
 };
 
 // This method will be called when Electron has finished

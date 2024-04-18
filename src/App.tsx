@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
 import Dashboard from "./components/Dashboard/Dashboard";
 
-const root = createRoot(document.body);
+const root = createRoot(document.getElementById("root"));
 root.render(<Dashboard />);
