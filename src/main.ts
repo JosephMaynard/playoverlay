@@ -63,9 +63,19 @@ const createWindow = () => {
     displayWindow?.webContents.send('settings-updated', settings);
   });
 
+  ipcMain.on('toggle-fullscreen', () => {
+    const isFullScreen = displayWindow?.isFullScreen();
+    displayWindow?.setFullScreen(!isFullScreen);
+  });
+
+  ipcMain.handle('get-fullscreen-status', () => {
+    return displayWindow?.isFullScreen(); // Return the fullscreen status
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
   displayWindow.on('closed', () => {
     displayWindow = null;
   });

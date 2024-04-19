@@ -9,6 +9,8 @@ declare global {
       onTimeUpdated: (callback: (time: Time) => void) => void;
       updateSettings: (settings: Settings) => void;
       onSettingsUpdated: (callback: (settings: Settings) => void) => void;
+      toggleFullscreen: () => void;
+      getFullscreenStatus: () => boolean;
     };
   }
 }

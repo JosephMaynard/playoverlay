@@ -8,13 +8,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
   onScoreUpdated: (callback: (scores: Scores) => void) =>
     ipcRenderer.on('score-updated', (_, scores) => callback(scores)),
-
   updateTime: (time: Time) => ipcRenderer.send('update-time', time),
   onTimeUpdated: (callback: (time: Time) => void) =>
     ipcRenderer.on('time-updated', (_, time) => callback(time)),
-
   updateSettings: (settings: Settings) =>
     ipcRenderer.send('update-settings', settings),
   onSettingsUpdated: (callback: (settings: Settings) => void) =>
     ipcRenderer.on('settings-updated', (_, settings) => callback(settings)),
+  toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
+  getFullscreenStatus: () => ipcRenderer.invoke('get-fullscreen-status'),
 });
