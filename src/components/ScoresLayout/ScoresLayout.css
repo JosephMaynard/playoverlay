@@ -16,4 +16,5 @@
 
 .ScoresLayout_time {
   min-width: calc(var(--base-size) * 4);
+  font-variant-numeric: tabular-nums;
 }

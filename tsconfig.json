@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

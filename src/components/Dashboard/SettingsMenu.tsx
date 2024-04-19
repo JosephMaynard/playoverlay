@@ -1,9 +1,9 @@
-import { Fragment, useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Dialog, Transition } from "@headlessui/react";
-import ColourPicker from "../ColorPicker/ColorPicker";
-import { Settings } from "src/types";
-import TeamSettings from "./TeamSettings";
+import { Fragment, useState } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
+import ColourPicker from '../ColorPicker/ColorPicker';
+import { Settings } from 'src/types';
+import TeamSettings from './TeamSettings';
 
 export interface Props {
   sidebarOpen: boolean;
@@ -67,7 +67,7 @@ export default function SettingsMenu({
                     </div>
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">
-                        <h2 className="text-base font-semibold leading-7 text-gray-900 mt-6 mb-4">
+                        <h2 className="mb-4 mt-6 text-base font-semibold leading-7 text-gray-900">
                           System
                         </h2>
                         <ColourPicker

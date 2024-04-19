@@ -14,6 +14,6 @@ export interface Settings {
 }
 
 export interface Time {
-  time: string;
+  time?: string;
   additionalTime?: number;
 }

@@ -1,11 +1,5 @@
-import { Fragment, useState } from 'react';
-import {
-  Bars3Icon,
-  XMarkIcon,
-  Cog8ToothIcon,
-} from '@heroicons/react/24/outline';
-import { Dialog, Transition } from '@headlessui/react';
-import ColourPicker from '../ColorPicker/ColorPicker';
+import { useState, useEffect } from 'react';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 import { Scores, Settings, Time } from '../../types';
 
 // @ts-ignore
@@ -15,13 +9,38 @@ import SettingsMenu from './SettingsMenu';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import ScoreInput from './ScoreInput';
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
+export const times = {
+  firstHalf: {
+    title: 'First Half',
+    start: 0,
+    end: 45,
+  },
+  secondHalf: {
+    title: 'Second Half',
+    start: 45,
+    end: 90,
+  },
+  extraTimeFirstHalf: {
+    title: 'Extra Time First Half',
+    start: 90,
+    end: 105,
+  },
+  extraTimeSecondHalf: {
+    title: 'Extra Time Second Half',
+    start: 105,
+    end: 120,
+  },
+};
 
-const navigation = [
-  { name: 'Settings', href: '#', icon: Cog8ToothIcon, current: true },
-];
+let seconds: number = 0;
+
+export const timeToString = (timeInSeconds: number) => {
+  const minutes = Math.floor(timeInSeconds / 60);
+  const seconds = Math.floor(timeInSeconds % 60);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+};
+
+let interval: ReturnType<typeof setInterval>;
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,22 +54,59 @@ export default function Dashboard() {
     awayTeamTextColour: '#ffffff',
     awayTeamBackgroundColour: '#0000cc',
   });
-  const [time, setTime] = useState<Time>({ time: '0:00' });
+  const [time, setTime] = useState<Time>({});
 
-  const updateScore = (updatedScores: Partial<Scores>) => {
-    setScores({
+  useEffect(() => {
+    window.electronAPI.updateScores(scores);
+    window.electronAPI.updateSettings(settings);
+    window.electronAPI.updateTime(time);
+  }, []);
+
+  const updateScore = (scoreUpdates: Partial<Scores>) => {
+    const updatedScores = {
       ...scores,
-      ...updatedScores,
-    });
+      ...scoreUpdates,
+    };
+    setScores(updatedScores);
+    window.electronAPI.updateScores(updatedScores);
   };
 
-  const updateSettings = (updatedSettings: Partial<Settings>) => {
-    setSettings({
+  const updateSettings = (settingsUpdated: Partial<Settings>) => {
+    const updatedSettings = {
       ...settings,
-      ...updatedSettings,
-    });
+      ...settingsUpdated,
+    };
+    setSettings(updatedSettings);
+    window.electronAPI.updateSettings(updatedSettings);
+  };
 
-    (window as any).api.send('settings-update', settings);
+  const startTime = (
+    period:
+      | 'firstHalf'
+      | 'secondHalf'
+      | 'extraTimeFirstHalf'
+      | 'extraTimeSecondHalf'
+  ) => {
+    if (interval) {
+      clearInterval(interval);
+    }
+    seconds = times[period].start * 60;
+    const initialTime = { ...time, time: timeToString(seconds) };
+    setTime(initialTime);
+    window.electronAPI.updateTime(initialTime);
+    interval = setInterval(() => {
+      seconds = seconds + 1;
+      const updatedTime = { ...time, time: timeToString(seconds) };
+      setTime(updatedTime);
+      window.electronAPI.updateTime(updatedTime);
+    }, 1000);
+  };
+
+  const stopTime = () => {
+    if (interval) {
+      clearInterval(interval);
+    }
+    setTime({ ...time, time: undefined });
   };
 
   return (
@@ -81,20 +137,65 @@ export default function Dashboard() {
       <Preview keyColour={settings.keyColour}>
         <ScoresLayout settings={settings} scores={scores} time={time} />
       </Preview>
-      <main className="py-10 ">
-        <div className="mx-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <main className="p-4">
+        <div className="mx-auto mb-4 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <ScoreInput
             title="Home Team"
             score={scores.homeTeam}
             id="homeTeamScore"
             setScore={(homeTeam: number) => updateScore({ homeTeam })}
+            textColour={settings.homeTeamTextColour}
+            backgroundColour={settings.homeTeamBackgroundColour}
+            teamName={settings.homeTeamName}
           />
           <ScoreInput
             title="Away Team"
             score={scores.awayTeam}
             id="awayTeamScore"
             setScore={(awayTeam: number) => updateScore({ awayTeam })}
+            textColour={settings.awayTeamTextColour}
+            backgroundColour={settings.awayTeamBackgroundColour}
+            teamName={settings.awayTeamName}
           />
+        </div>
+        <div className="mx-auto grid max-w-2xl">
+          <span className="isolate inline-flex rounded-md shadow-sm">
+            <button
+              type="button"
+              className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              onClick={() => startTime('firstHalf')}
+            >
+              First Half
+            </button>
+            <button
+              type="button"
+              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              onClick={() => startTime('secondHalf')}
+            >
+              Second Half
+            </button>
+            <button
+              type="button"
+              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              onClick={() => startTime('extraTimeFirstHalf')}
+            >
+              Extra Time First Half
+            </button>
+            <button
+              type="button"
+              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              onClick={() => startTime('extraTimeSecondHalf')}
+            >
+              Extra Time Second Half
+            </button>
+            <button
+              type="button"
+              className="relative -ml-px inline-flex items-center rounded-r-md bg-red-700 px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-gray-300 hover:bg-red-900 focus:z-10"
+              onClick={() => stopTime()}
+            >
+              Stop
+            </button>
+          </span>
         </div>
       </main>
     </div>

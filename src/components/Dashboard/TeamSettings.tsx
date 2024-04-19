@@ -1,4 +1,5 @@
 import ColourPicker from '../ColorPicker/ColorPicker';
+import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
 
 export interface Props {
   title: string;
@@ -24,11 +25,12 @@ export default function TeamSettings({
       <h2 className="mb-4 mt-8 text-base font-semibold leading-7 text-gray-900">
         {title}
       </h2>
-      <div
-        style={{ backgroundColor: backgroundColour, color: textColour }}
-        className="mb-2 inline-block border border-gray-900 px-3 py-2 text-lg font-bold"
-      >
-        {teamName || '?'}
+      <div className="mb-2 inline-block border border-gray-900 [--base-size:2rem]">
+        <ScoresTeamName
+          teamName={teamName || '?'}
+          textColour={textColour}
+          backgroundColour={backgroundColour}
+        />
       </div>
       <div className="col-span-full mb-4">
         <label

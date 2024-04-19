@@ -1,31 +1,39 @@
-import React, { useState, useEffect } from "react";
-import { Scores, Settings, Time } from "../../types";
+import React, { useState, useEffect } from 'react';
+import { Scores, Settings, Time } from '../../types';
+import ScoresLayout from '../ScoresLayout/ScoresLayout';
 
 const Display = () => {
-  const [score, setScore] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
+  const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
+  const [time, setTime] = useState<Time>({});
   const [settings, setSettings] = useState<Settings>({
-    keyColour: "#0000FF",
-    homeTeamName: "HOM",
-    awayTeamName: "AWA",
+    keyColour: '',
+    homeTeamName: '',
+    awayTeamName: '',
   });
-  const [time, setTime] = useState<Time>({ time: "0:00" });
 
   useEffect(() => {
-    const receiveScore = (event: any, updatedScore: Scores) => {
-      setScore(updatedScore);
+    const handleScoreUpdate = (newScores: Scores) => {
+      setScores(newScores);
+      console.log(newScores);
+    };
+    const handleTimeUpdate = (newTime: Time) => {
+      setTime(newTime);
+      console.log(newTime);
+    };
+    const handleSettingsUpdate = (newSettings: Settings) => {
+      setSettings(newSettings);
+      console.log(newSettings);
     };
 
-    const receiveSettings = (event: any, updatedSettings: Settings) => {
-      setSettings(updatedSettings);
-    };
+    window.electronAPI.onScoreUpdated(handleScoreUpdate);
+    window.electronAPI.onTimeUpdated(handleTimeUpdate);
+    window.electronAPI.onSettingsUpdated(handleSettingsUpdate);
 
-    (window as any).api.receive("score-update", receiveScore);
-    (window as any).api.receive("settings-update", receiveSettings);
-
-    // Cleanup the listener when the component unmounts
+    // Cleanup listeners on component unmount
     return () => {
-      (window as any).api.receive("score-update", null);
-      (window as any).api.receive("settings-update", null);
+      window.electronAPI.onScoreUpdated(() => {});
+      window.electronAPI.onTimeUpdated(() => {});
+      window.electronAPI.onSettingsUpdated(() => {});
     };
   }, []);
 
@@ -34,7 +42,7 @@ const Display = () => {
       className="h-screen overflow-hidden"
       style={{ backgroundColor: settings.keyColour }}
     >
-      Home: {score.homeTeam} | Away: {score.awayTeam}
+      <ScoresLayout settings={settings} scores={scores} time={time} />
     </div>
   );
 };
