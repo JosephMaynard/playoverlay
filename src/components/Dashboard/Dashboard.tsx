@@ -57,9 +57,9 @@ export default function Dashboard() {
   const [time, setTime] = useState<Time>({});
 
   useEffect(() => {
-    window.electronAPI.updateScores(scores);
-    window.electronAPI.updateSettings(settings);
-    window.electronAPI.updateTime(time);
+    window?.electronAPI?.updateScores(scores);
+    window?.electronAPI?.updateSettings(settings);
+    window?.electronAPI?.updateTime(time);
   }, []);
 
   const updateScore = (scoreUpdates: Partial<Scores>) => {
@@ -68,7 +68,7 @@ export default function Dashboard() {
       ...scoreUpdates,
     };
     setScores(updatedScores);
-    window.electronAPI.updateScores(updatedScores);
+    window?.electronAPI?.updateScores(updatedScores);
   };
 
   const updateSettings = (settingsUpdated: Partial<Settings>) => {
@@ -77,7 +77,7 @@ export default function Dashboard() {
       ...settingsUpdated,
     };
     setSettings(updatedSettings);
-    window.electronAPI.updateSettings(updatedSettings);
+    window?.electronAPI?.updateSettings(updatedSettings);
   };
 
   const startTime = (
@@ -93,12 +93,12 @@ export default function Dashboard() {
     seconds = times[period].start * 60;
     const initialTime = { ...time, time: timeToString(seconds) };
     setTime(initialTime);
-    window.electronAPI.updateTime(initialTime);
+    window?.electronAPI?.updateTime(initialTime);
     interval = setInterval(() => {
       seconds = seconds + 1;
       const updatedTime = { ...time, time: timeToString(seconds) };
       setTime(updatedTime);
-      window.electronAPI.updateTime(updatedTime);
+      window?.electronAPI?.updateTime(updatedTime);
     }, 1000);
   };
 
@@ -106,7 +106,9 @@ export default function Dashboard() {
     if (interval) {
       clearInterval(interval);
     }
-    setTime({ ...time, time: undefined });
+    const updatedTime: Time = { ...time, time: undefined };
+    setTime(updatedTime);
+    window?.electronAPI?.updateTime(updatedTime);
   };
 
   return (
