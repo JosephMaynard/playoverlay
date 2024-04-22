@@ -26,6 +26,11 @@ const Display = () => {
 
   useEffect(() => {
     checkFullscreenStatus(); // Check status on component mount
+    window.addEventListener('resize', checkFullscreenStatus);
+
+    return () => {
+      window.removeEventListener('resize', checkFullscreenStatus);
+    };
   }, []);
 
   useEffect(() => {
