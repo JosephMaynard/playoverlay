@@ -47,10 +47,12 @@ export default function Dashboard() {
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
   const [settings, setSettings] = useState<Settings>({
     keyColour: '#0000FF',
-    homeTeamName: 'HOM',
+    homeTeamNameFull: 'Home Team',
+    homeTeamNameAbbreviated: 'HOM',
     homeTeamTextColour: '#ffffff',
     homeTeamBackgroundColour: '#cc0000',
-    awayTeamName: 'AWA',
+    awayTeamNameFull: 'Away Team',
+    awayTeamNameAbbreviated: 'AWA',
     awayTeamTextColour: '#ffffff',
     awayTeamBackgroundColour: '#0000cc',
   });
@@ -137,7 +139,7 @@ export default function Dashboard() {
       </div>
 
       <Preview keyColour={settings.keyColour}>
-        <ScoresLayout settings={settings} scores={scores} time={time} />
+        <ScoresLayout settings={settings} scores={scores} time={time} active />
       </Preview>
       <main className="p-4">
         <div className="mx-auto mb-4 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
@@ -148,7 +150,7 @@ export default function Dashboard() {
             setScore={(homeTeam: number) => updateScore({ homeTeam })}
             textColour={settings.homeTeamTextColour}
             backgroundColour={settings.homeTeamBackgroundColour}
-            teamName={settings.homeTeamName}
+            teamName={settings.homeTeamNameAbbreviated}
           />
           <ScoreInput
             title="Away Team"
@@ -157,7 +159,7 @@ export default function Dashboard() {
             setScore={(awayTeam: number) => updateScore({ awayTeam })}
             textColour={settings.awayTeamTextColour}
             backgroundColour={settings.awayTeamBackgroundColour}
-            teamName={settings.awayTeamName}
+            teamName={settings.awayTeamNameAbbreviated}
           />
         </div>
         <div className="mx-auto grid max-w-2xl">

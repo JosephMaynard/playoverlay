@@ -5,10 +5,12 @@ export interface Scores {
 
 export interface Settings {
   keyColour: string;
-  homeTeamName: string;
+  homeTeamNameFull: string;
+  homeTeamNameAbbreviated: string;
   homeTeamTextColour?: string;
   homeTeamBackgroundColour?: string;
-  awayTeamName: string;
+  awayTeamNameFull: string;
+  awayTeamNameAbbreviated: string;
   awayTeamTextColour?: string;
   awayTeamBackgroundColour?: string;
 }

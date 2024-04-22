@@ -8,8 +8,10 @@ const Display = () => {
   const [time, setTime] = useState<Time>({});
   const [settings, setSettings] = useState<Settings>({
     keyColour: '',
-    homeTeamName: '',
-    awayTeamName: '',
+    homeTeamNameFull: '',
+    homeTeamNameAbbreviated: '',
+    awayTeamNameFull: '',
+    awayTeamNameAbbreviated: '',
   });
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -64,7 +66,7 @@ const Display = () => {
       className={`h-screen overflow-hidden${isFullscreen ? ' cursor-none' : ''}`}
       style={{ backgroundColor: settings.keyColour }}
     >
-      <ScoresLayout settings={settings} scores={scores} time={time} />
+      <ScoresLayout settings={settings} scores={scores} time={time} active />
       {!isFullscreen && (
         <button
           type="button"

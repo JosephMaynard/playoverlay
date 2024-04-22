@@ -80,10 +80,14 @@ export default function SettingsMenu({
 
                         <TeamSettings
                           title="Home Team"
-                          teamName={settings.homeTeamName}
-                          setTeamName={(homeTeamName: string) =>
-                            updateSettings({ homeTeamName })
+                          teamNameFull={settings.homeTeamNameFull}
+                          setTeamNameFull={(homeTeamNameFull: string) =>
+                            updateSettings({ homeTeamNameFull })
                           }
+                          teamNameAbbreviated={settings.homeTeamNameAbbreviated}
+                          setTeamNameAbbreviated={(
+                            homeTeamNameAbbreviated: string
+                          ) => updateSettings({ homeTeamNameAbbreviated })}
                           textColour={settings.homeTeamTextColour}
                           setTextColour={(homeTeamTextColour: string) =>
                             updateSettings({ homeTeamTextColour })
@@ -95,10 +99,14 @@ export default function SettingsMenu({
                         />
                         <TeamSettings
                           title="Away Team"
-                          teamName={settings.awayTeamName}
-                          setTeamName={(awayTeamName: string) =>
-                            updateSettings({ awayTeamName })
+                          teamNameFull={settings.awayTeamNameFull}
+                          setTeamNameFull={(awayTeamNameFull: string) =>
+                            updateSettings({ awayTeamNameFull })
                           }
+                          teamNameAbbreviated={settings.awayTeamNameAbbreviated}
+                          setTeamNameAbbreviated={(
+                            awayTeamNameAbbreviated: string
+                          ) => updateSettings({ awayTeamNameAbbreviated })}
                           textColour={settings.awayTeamTextColour}
                           setTextColour={(awayTeamTextColour: string) =>
                             updateSettings({ awayTeamTextColour })
