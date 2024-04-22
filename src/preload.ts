@@ -17,4 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('settings-updated', (_, settings) => callback(settings)),
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
   getFullscreenStatus: () => ipcRenderer.invoke('get-fullscreen-status'),
+
+  startPowerSaveBlocker: () => ipcRenderer.invoke('start-power-save-blocker'),
+  stopPowerSaveBlocker: () => ipcRenderer.invoke('stop-power-save-blocker'),
+  getPowerSaveBlockerStatus: () =>
+    ipcRenderer.invoke('get-power-save-blocker-status'),
 });

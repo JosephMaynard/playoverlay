@@ -1,5 +1,12 @@
-import { app, BrowserWindow, ipcMain, Settings } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Settings,
+  powerSaveBlocker,
+} from 'electron';
 import path from 'path';
+
 import { Scores, Time } from './types';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -9,6 +16,7 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
+let powerSaveBlockerId: number | null = null;
 
 const createWindow = () => {
   // Create the browser window.
@@ -17,6 +25,7 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false,
     },
   });
 
@@ -25,6 +34,7 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false,
     },
   });
 
@@ -47,8 +57,8 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
-  displayWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
+  // displayWindow.webContents.openDevTools();
 
   // Handle IPC
   ipcMain.on('update-score', (_, scores: Scores) => {
@@ -70,6 +80,32 @@ const createWindow = () => {
 
   ipcMain.handle('get-fullscreen-status', () => {
     return displayWindow?.isFullScreen(); // Return the fullscreen status
+  });
+
+  ipcMain.handle('start-power-save-blocker', () => {
+    if (powerSaveBlockerId === null) {
+      // Ensuring it's not already started
+      powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
+    }
+    return powerSaveBlocker.isStarted(powerSaveBlockerId);
+  });
+
+  ipcMain.handle('stop-power-save-blocker', () => {
+    if (
+      powerSaveBlockerId !== null &&
+      powerSaveBlocker.isStarted(powerSaveBlockerId)
+    ) {
+      powerSaveBlocker.stop(powerSaveBlockerId);
+      powerSaveBlockerId = null;
+    }
+    return powerSaveBlockerId === null;
+  });
+
+  ipcMain.handle('get-power-save-blocker-status', () => {
+    return (
+      powerSaveBlockerId !== null &&
+      powerSaveBlocker.isStarted(powerSaveBlockerId)
+    );
   });
 
   mainWindow.on('closed', () => {

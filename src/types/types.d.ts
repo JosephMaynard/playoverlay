@@ -11,6 +11,9 @@ declare global {
       onSettingsUpdated: (callback: (settings: Settings) => void) => void;
       toggleFullscreen: () => void;
       getFullscreenStatus: () => boolean;
+      startPowerSaveBlocker: () => void;
+      stopPowerSaveBlocker: () => void;
+      getPowerSaveBlockerStatus: () => boolean;
     };
   }
 }
