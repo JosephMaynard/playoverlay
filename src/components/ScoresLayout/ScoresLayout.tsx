@@ -1,6 +1,6 @@
 import { Settings, Time, Scores } from 'src/types';
-import './ScoresLayout.css';
 import ScoresTeamName from './ScoresTeamName';
+import './ScoresLayout.css';
 
 export interface Props {
   scores: Scores;

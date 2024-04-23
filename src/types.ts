@@ -1,7 +1,11 @@
+import { MatchPhase } from './components/Dashboard/Dashboard';
+
 export interface Scores {
   homeTeam: number;
   awayTeam: number;
 }
+
+export type DisplayScreen = 'none' | 'scoreBug' | 'matchTitle' | 'penalties';
 
 export interface Settings {
   keyColour: string;
@@ -13,6 +17,8 @@ export interface Settings {
   awayTeamNameAbbreviated: string;
   awayTeamTextColour?: string;
   awayTeamBackgroundColour?: string;
+  matchPhase?: MatchPhase;
+  displayScreen: DisplayScreen;
 }
 
 export interface Time {

@@ -2,17 +2,13 @@ import { useState, useEffect } from 'react';
 import { Scores, Settings, Time } from '../../types';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import { defaultSettings } from '../Dashboard/Dashboard';
+import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 
 const Display = () => {
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
   const [time, setTime] = useState<Time>({});
-  const [settings, setSettings] = useState<Settings>({
-    keyColour: '',
-    homeTeamNameFull: '',
-    homeTeamNameAbbreviated: '',
-    awayTeamNameFull: '',
-    awayTeamNameAbbreviated: '',
-  });
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -63,10 +59,21 @@ const Display = () => {
 
   return (
     <div
-      className={`h-screen overflow-hidden${isFullscreen ? ' cursor-none' : ''}`}
+      className={`h-screen overflow-hidden relative${isFullscreen ? ' cursor-none' : ''}`}
       style={{ backgroundColor: settings.keyColour }}
     >
-      <ScoresLayout settings={settings} scores={scores} time={time} active />
+      <ScoresLayout
+        settings={settings}
+        scores={scores}
+        time={time}
+        active={settings.displayScreen === 'scoreBug'}
+      />
+      <MatchTitleLayout
+        settings={settings}
+        scores={scores}
+        time={time}
+        active={settings.displayScreen === 'matchTitle'}
+      />
       {!isFullscreen && (
         <button
           type="button"

@@ -1,0 +1,117 @@
+.MatchTitleLayout {
+  --base-size: 2.5cqw;
+  --animation-duration: 1.5s;
+  display: grid;
+  font-size: var(--base-size);
+  grid-template-columns: calc(var(--base-size) * 2) 1fr auto 1fr calc(
+      var(--base-size) * 2
+    );
+  grid-template-rows: 1fr auto calc(var(--base-size) * 3);
+  grid-template-areas:
+    'empty empty empty empty empty'
+    'leftPadding homeTeam score awayTeam rightPadding'
+    'bottom bottom bottom bottom bottom';
+}
+
+.MatchTitleLayout_active {
+  animation: layout_active var(--animation-duration) forwards;
+}
+
+.MatchTitleLayout_hidden {
+  animation: layout_hidden var(--animation-duration) forwards;
+}
+
+.MatchTitleLayout_homeTeam {
+  grid-area: homeTeam;
+}
+
+.MatchTitleLayout_score {
+  grid-area: score;
+  font-size: calc(var(--base-size) * 1.5);
+  padding: calc(var(--base-size) * 0.125) calc(var(--base-size) * 0.75);
+}
+
+.MatchTitleLayout_awayTeam {
+  grid-area: awayTeam;
+}
+
+.MatchTitleLayout_homeTeam_inner,
+.MatchTitleLayout_awayTeam_inner {
+  padding: calc(var(--base-size) * 0.125) calc(var(--base-size) * 0.75);
+}
+
+.MatchTitleLayout_homeTeam_inner_active {
+  animation: homeTeam_active var(--animation-duration) forwards;
+}
+
+.MatchTitleLayout_awayTeam_inner_active {
+  animation: awayTeam_active var(--animation-duration) forwards;
+}
+
+.MatchTitleLayout_homeTeam_inner_hidden {
+  animation: homeTeam_hidden var(--animation-duration) forwards;
+}
+
+.MatchTitleLayout_awayTeam_inner_hidden {
+  animation: awayTeam_hidden var(--animation-duration) forwards;
+}
+
+@keyframes layout_active {
+  0% {
+    transform: translateY(50%) translateZ(0);
+  }
+  50%,
+  100% {
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes layout_hidden {
+  0%,
+  50% {
+    transform: translateY(0) translateZ(0);
+  }
+  100% {
+    transform: translateY(50%) translateZ(0);
+  }
+}
+
+@keyframes homeTeam_active {
+  0%,
+  50% {
+    transform: translateX(100%) translateZ(0);
+  }
+  100% {
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+@keyframes awayTeam_active {
+  0%,
+  50% {
+    transform: translateX(-100%) translateZ(0);
+  }
+  100% {
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+@keyframes homeTeam_hidden {
+  0% {
+    transform: translateX(0) translateZ(0);
+  }
+  50%,
+  100% {
+    transform: translateX(100%) translateZ(0);
+  }
+}
+
+@keyframes awayTeam_hidden {
+  0% {
+    transform: translateX(0) translateZ(0);
+  }
+  50%,
+  100% {
+    transform: translateX(-100%) translateZ(0);
+  }
+}

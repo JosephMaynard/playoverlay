@@ -8,8 +8,9 @@ import Preview from '../Preview/Preview';
 import SettingsMenu from './SettingsMenu';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import ScoreInput from './ScoreInput';
+import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 
-export const times = {
+export const matchPhases = {
   firstHalf: {
     title: 'First Half',
     start: 0,
@@ -30,6 +31,21 @@ export const times = {
     start: 105,
     end: 120,
   },
+} as const;
+
+export type MatchPhase = keyof typeof matchPhases;
+
+export const defaultSettings: Settings = {
+  keyColour: '#0000FF',
+  homeTeamNameFull: 'Home Team',
+  homeTeamNameAbbreviated: 'HOM',
+  homeTeamTextColour: '#ffffff',
+  homeTeamBackgroundColour: '#cc0000',
+  awayTeamNameFull: 'Away Team',
+  awayTeamNameAbbreviated: 'AWA',
+  awayTeamTextColour: '#ffffff',
+  awayTeamBackgroundColour: '#0000cc',
+  displayScreen: 'scoreBug',
 };
 
 let seconds: number = 0;
@@ -45,17 +61,7 @@ let interval: ReturnType<typeof setInterval>;
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
-  const [settings, setSettings] = useState<Settings>({
-    keyColour: '#0000FF',
-    homeTeamNameFull: 'Home Team',
-    homeTeamNameAbbreviated: 'HOM',
-    homeTeamTextColour: '#ffffff',
-    homeTeamBackgroundColour: '#cc0000',
-    awayTeamNameFull: 'Away Team',
-    awayTeamNameAbbreviated: 'AWA',
-    awayTeamTextColour: '#ffffff',
-    awayTeamBackgroundColour: '#0000cc',
-  });
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [time, setTime] = useState<Time>({});
 
   useEffect(() => {
@@ -82,17 +88,11 @@ export default function Dashboard() {
     window?.electronAPI?.updateSettings(updatedSettings);
   };
 
-  const startTime = (
-    period:
-      | 'firstHalf'
-      | 'secondHalf'
-      | 'extraTimeFirstHalf'
-      | 'extraTimeSecondHalf'
-  ) => {
+  const startTime = (matchPhase: MatchPhase) => {
     if (interval) {
       clearInterval(interval);
     }
-    seconds = times[period].start * 60;
+    seconds = matchPhases[matchPhase].start * 60;
     const initialTime = { ...time, time: timeToString(seconds) };
     setTime(initialTime);
     window?.electronAPI?.updateTime(initialTime);
@@ -139,9 +139,45 @@ export default function Dashboard() {
       </div>
 
       <Preview keyColour={settings.keyColour}>
-        <ScoresLayout settings={settings} scores={scores} time={time} active />
+        <ScoresLayout
+          settings={settings}
+          scores={scores}
+          time={time}
+          active={settings.displayScreen === 'scoreBug'}
+        />
+        <MatchTitleLayout
+          settings={settings}
+          scores={scores}
+          time={time}
+          active={settings.displayScreen === 'matchTitle'}
+        />
       </Preview>
       <main className="p-4">
+        <div className="mx-auto mb-4 max-w-2xl ">
+          <span className="isolate inline-flex rounded-md shadow-sm">
+            <button
+              type="button"
+              className={`relative inline-flex items-center rounded-l-md ${settings.displayScreen === 'none' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
+              onClick={() => updateSettings({ displayScreen: 'none' })}
+            >
+              None
+            </button>
+            <button
+              type="button"
+              className={`relative -ml-px inline-flex items-center ${settings.displayScreen === 'matchTitle' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
+              onClick={() => updateSettings({ displayScreen: 'matchTitle' })}
+            >
+              Match title
+            </button>
+            <button
+              type="button"
+              className={`relative -ml-px inline-flex items-center rounded-r-md ${settings.displayScreen === 'scoreBug' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
+              onClick={() => updateSettings({ displayScreen: 'scoreBug' })}
+            >
+              Score Bug
+            </button>
+          </span>
+        </div>
         <div className="mx-auto mb-4 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <ScoreInput
             title="Home Team"
