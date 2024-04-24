@@ -23,6 +23,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,
@@ -32,6 +33,7 @@ const createWindow = () => {
   displayWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,
@@ -104,6 +106,10 @@ const createWindow = () => {
       powerSaveBlockerId !== null &&
       powerSaveBlocker.isStarted(powerSaveBlockerId)
     );
+  });
+
+  ipcMain.on('get-version', (event) => {
+    event.returnValue = app.getVersion();
   });
 
   mainWindow.on('closed', () => {

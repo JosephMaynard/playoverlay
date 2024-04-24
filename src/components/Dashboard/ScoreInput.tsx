@@ -45,7 +45,7 @@ export default function ScoreInput({
         >
           Score
         </label>
-        <div className="mt-2 flex rounded-md shadow-sm">
+        <div className="mb-4 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <button
               type="button"
@@ -87,6 +87,14 @@ export default function ScoreInput({
             />
           </button>
         </div>
+        <button
+          type="button"
+          className="block w-full rounded-md bg-indigo-600 px-3.5 py-4 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          style={{ backgroundColor: backgroundColour }}
+          onClick={() => setScore(score + 1)}
+        >
+          {title} Scored
+        </button>
       </div>
     </div>
   );

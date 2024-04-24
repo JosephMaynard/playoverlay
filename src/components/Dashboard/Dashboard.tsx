@@ -10,6 +10,8 @@ import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import ScoreInput from './ScoreInput';
 import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 import TimeControl from './TimeControl';
+import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import ButtonGrid from '../ButtonGrid/ButtonGrid';
 
 export const matchPhases = {
   firstHalf: {
@@ -70,6 +72,11 @@ export default function Dashboard() {
     window?.electronAPI?.updateScores(scores);
     window?.electronAPI?.updateSettings(settings);
     window?.electronAPI?.updateTime(time);
+    window?.electronAPI?.startPowerSaveBlocker();
+
+    return () => {
+      window?.electronAPI?.stopPowerSaveBlocker();
+    };
   }, []);
 
   const updateScore = (scoreUpdates: Partial<Scores>) => {
@@ -92,9 +99,11 @@ export default function Dashboard() {
 
   const incrementTime = () => {
     seconds = seconds + 1;
-    const updatedTime = { ...time, time: timeToString(seconds) };
-    setTime((currentTime) => ({ ...currentTime, time: timeToString(seconds) }));
-    window?.electronAPI?.updateTime(updatedTime);
+    setTime((currentTime) => {
+      const updatedTime = { ...currentTime, time: timeToString(seconds) };
+      window?.electronAPI?.updateTime(updatedTime);
+      return updatedTime;
+    });
   };
 
   const startTime = (matchPhase: MatchPhase) => {
@@ -162,107 +171,89 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <Preview keyColour={settings.keyColour}>
-        <ScoresLayout
-          settings={settings}
-          scores={scores}
-          time={time}
-          active={settings.displayScreen === 'scoreBug'}
-        />
-        <MatchTitleLayout
-          settings={settings}
-          scores={scores}
-          time={time}
-          active={settings.displayScreen === 'matchTitle'}
-        />
-      </Preview>
-      <main className="p-4">
-        <div className="mx-auto mb-4 max-w-2xl ">
-          <span className="isolate inline-flex rounded-md shadow-sm">
-            <button
-              type="button"
-              className={`relative inline-flex items-center rounded-l-md ${settings.displayScreen === 'none' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
-              onClick={() => updateSettings({ displayScreen: 'none' })}
-            >
-              None
-            </button>
-            <button
-              type="button"
-              className={`relative -ml-px inline-flex items-center ${settings.displayScreen === 'matchTitle' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
-              onClick={() => updateSettings({ displayScreen: 'matchTitle' })}
-            >
-              Match title
-            </button>
-            <button
-              type="button"
-              className={`relative -ml-px inline-flex items-center rounded-r-md ${settings.displayScreen === 'scoreBug' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:z-10`}
-              onClick={() => updateSettings({ displayScreen: 'scoreBug' })}
-            >
-              Score Bug
-            </button>
-          </span>
-        </div>
-        <div className="mx-auto mb-4 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
-          <ScoreInput
-            title="Home Team"
-            score={scores.homeTeam}
-            id="homeTeamScore"
-            setScore={(homeTeam: number) => updateScore({ homeTeam })}
-            textColour={settings.homeTeamTextColour}
-            backgroundColour={settings.homeTeamBackgroundColour}
-            teamName={settings.homeTeamNameAbbreviated}
-          />
-          <ScoreInput
-            title="Away Team"
-            score={scores.awayTeam}
-            id="awayTeamScore"
-            setScore={(awayTeam: number) => updateScore({ awayTeam })}
-            textColour={settings.awayTeamTextColour}
-            backgroundColour={settings.awayTeamBackgroundColour}
-            teamName={settings.awayTeamNameAbbreviated}
-          />
-        </div>
-        <div className="mx-auto mb-4 grid max-w-2xl">
-          <span className="isolate inline-flex rounded-md shadow-sm">
-            <button
-              type="button"
-              className={`relative inline-flex items-center rounded-l-md  ${settings.matchPhase === 'firstHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
-              onClick={() => startTime('firstHalf')}
-            >
-              First Half
-            </button>
-            <button
-              type="button"
-              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'secondHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
-              onClick={() => startTime('secondHalf')}
-            >
-              Second Half
-            </button>
-            <button
-              type="button"
-              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'extraTimeFirstHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
-              onClick={() => startTime('extraTimeFirstHalf')}
-            >
-              Extra Time First Half
-            </button>
-            <button
-              type="button"
-              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'extraTimeSecondHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
-              onClick={() => startTime('extraTimeSecondHalf')}
-            >
-              Extra Time Second Half
-            </button>
-            <button
-              type="button"
-              className="relative -ml-px inline-flex items-center rounded-r-md bg-red-700 px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-gray-300 hover:bg-red-900 focus:z-10"
-              onClick={() => stopTime()}
-            >
-              Stop
-            </button>
-          </span>
-        </div>
+      <main className="grid grid-cols-1 lg:grid-cols-2">
+        <div>
+          <Preview keyColour={settings.keyColour}>
+            <ScoresLayout
+              settings={settings}
+              scores={scores}
+              time={time}
+              active={settings.displayScreen === 'scoreBug'}
+            />
+            <MatchTitleLayout
+              settings={settings}
+              scores={scores}
+              time={time}
+              active={settings.displayScreen === 'matchTitle'}
+            />
+          </Preview>
 
-        <div className="mx-auto max-w-2xl">
+          <div className="p-4">
+            <CollapsiblePanel
+              title="Display Controls"
+              className="mx-auto max-w-4xl"
+              panelClassName="p-4"
+            >
+              <ButtonGrid
+                className="mb-4"
+                buttons={[
+                  {
+                    label: 'None',
+                    onClick: () => updateSettings({ displayScreen: 'none' }),
+                    selected: settings.displayScreen === 'none',
+                  },
+                  {
+                    label: 'Match title',
+                    onClick: () =>
+                      updateSettings({ displayScreen: 'matchTitle' }),
+                    selected: settings.displayScreen === 'matchTitle',
+                  },
+                  {
+                    label: 'Score Bug',
+                    onClick: () =>
+                      updateSettings({ displayScreen: 'scoreBug' }),
+                    selected: settings.displayScreen === 'scoreBug',
+                  },
+                ]}
+              />
+              <button
+                type="button"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                onClick={() => window.electronAPI.toggleFullscreen()}
+              >
+                Toggle Fullscreen
+              </button>
+            </CollapsiblePanel>
+          </div>
+        </div>
+        <div className="lg:p-4">
+          <CollapsiblePanel
+            title="Scores"
+            className="mx-auto max-w-4xl"
+            panelClassName="p-4"
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ScoreInput
+                title="Home Team"
+                score={scores.homeTeam}
+                id="homeTeamScore"
+                setScore={(homeTeam: number) => updateScore({ homeTeam })}
+                textColour={settings.homeTeamTextColour}
+                backgroundColour={settings.homeTeamBackgroundColour}
+                teamName={settings.homeTeamNameAbbreviated}
+              />
+              <ScoreInput
+                title="Away Team"
+                score={scores.awayTeam}
+                id="awayTeamScore"
+                setScore={(awayTeam: number) => updateScore({ awayTeam })}
+                textColour={settings.awayTeamTextColour}
+                backgroundColour={settings.awayTeamBackgroundColour}
+                teamName={settings.awayTeamNameAbbreviated}
+              />
+            </div>
+          </CollapsiblePanel>
+
           <TimeControl
             time={time}
             pause={pause}
@@ -273,16 +264,15 @@ export default function Dashboard() {
             }}
             isPaused={paused}
             setAdditionalTime={(additionalTime: number) =>
-              setTime({ ...time, additionalTime: additionalTime || undefined })
+              setTime({
+                ...time,
+                additionalTime: additionalTime || undefined,
+              })
             }
+            startTime={startTime}
+            stopTime={stopTime}
+            matchPhase={settings.matchPhase}
           />
-          <button
-            type="button"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            onClick={() => window.electronAPI.toggleFullscreen()}
-          >
-            Toggle Fullscreen
-          </button>
         </div>
       </main>
     </div>

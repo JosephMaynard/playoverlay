@@ -4,6 +4,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import { Settings } from 'src/types';
 import TeamSettings from './TeamSettings';
+import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 
 export interface Props {
   sidebarOpen: boolean;
@@ -67,16 +68,15 @@ export default function SettingsMenu({
                     </div>
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">
-                        <h2 className="mb-4 mt-6 text-base font-semibold leading-7 text-gray-900">
-                          System
-                        </h2>
-                        <ColourPicker
-                          label="Key Colour"
-                          onChange={(keyColour: string) => {
-                            updateSettings({ keyColour });
-                          }}
-                          value={settings.keyColour}
-                        />
+                        <CollapsiblePanel title="System" panelClassName="p-4">
+                          <ColourPicker
+                            label="Key Colour"
+                            onChange={(keyColour: string) => {
+                              updateSettings({ keyColour });
+                            }}
+                            value={settings.keyColour}
+                          />
+                        </CollapsiblePanel>
 
                         <TeamSettings
                           title="Home Team"
@@ -117,6 +117,11 @@ export default function SettingsMenu({
                           ) => updateSettings({ awayTeamBackgroundColour })}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <p className="text-center text-xs">
+                        Version: {window?.electronAPI?.getVersion() || '1.0.0'}
+                      </p>
                     </div>
                   </div>
                 </Dialog.Panel>

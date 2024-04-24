@@ -22,4 +22,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopPowerSaveBlocker: () => ipcRenderer.invoke('stop-power-save-blocker'),
   getPowerSaveBlockerStatus: () =>
     ipcRenderer.invoke('get-power-save-blocker-status'),
+  getVersion: () => ipcRenderer.sendSync('get-version'),
 });

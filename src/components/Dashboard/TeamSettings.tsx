@@ -1,3 +1,4 @@
+import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
 
@@ -25,10 +26,7 @@ export default function TeamSettings({
   setBackgroundColour,
 }: Props) {
   return (
-    <div>
-      <h2 className="mb-4 mt-8 text-base font-semibold leading-7 text-gray-900">
-        {title}
-      </h2>
+    <CollapsiblePanel title={title} panelClassName="p-4">
       <div className="col-span-full mb-4">
         <label
           htmlFor="teamNameFull"
@@ -85,6 +83,6 @@ export default function TeamSettings({
         onChange={setBackgroundColour}
         value={backgroundColour}
       />
-    </div>
+    </CollapsiblePanel>
   );
 }

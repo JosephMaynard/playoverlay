@@ -14,6 +14,7 @@ declare global {
       startPowerSaveBlocker: () => void;
       stopPowerSaveBlocker: () => void;
       getPowerSaveBlockerStatus: () => boolean;
+      getVersion: () => string;
     };
   }
 }
