@@ -28,9 +28,9 @@ export default function TimeControl({
   matchPhase,
 }: Props) {
   return (
-    <CollapsiblePanel title="Time" className="mx-auto max-w-4xl">
-      <div className="mb-4 bg-black py-2">
-        <p className="my-8 text-center text-4xl font-semibold text-white">
+    <CollapsiblePanel title="Time" className="mx-auto max-w-4xl" noPanelPadding>
+      <div className="bg-black py-1">
+        <p className="my-6 text-center text-5xl font-semibold text-white">
           {time.time || 'Not running'}
         </p>
         <div className="mx-auto mb-4 text-center">
@@ -38,7 +38,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(-600)}
             >
               -10m
@@ -46,7 +46,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(-60)}
             >
               -1m
@@ -54,7 +54,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(-10)}
             >
               -10s
@@ -62,7 +62,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(-1)}
             >
               -1s
@@ -71,7 +71,7 @@ export default function TimeControl({
               <button
                 type="button"
                 disabled={!time.time}
-                className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
                 onClick={() => resume()}
               >
                 <PlayIcon className="h-5 w-5" aria-hidden="true" />
@@ -80,7 +80,7 @@ export default function TimeControl({
               <button
                 type="button"
                 disabled={!time.time}
-                className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
                 onClick={() => pause()}
               >
                 <PauseIcon className="h-5 w-5" aria-hidden="true" />
@@ -89,7 +89,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(1)}
             >
               +1s
@@ -97,7 +97,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(10)}
             >
               +10s
@@ -105,7 +105,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center  bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center  bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(60)}
             >
               +1m
@@ -113,7 +113,7 @@ export default function TimeControl({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
               onClick={() => adjustTime(600)}
             >
               +10m
@@ -123,7 +123,7 @@ export default function TimeControl({
       </div>
       <div className="p-4">
         <ButtonGrid
-          className="mb-8"
+          className="mb-4"
           buttons={[
             {
               label: 'First Half',
@@ -160,13 +160,13 @@ export default function TimeControl({
           >
             Additional Time
           </label>
-          <div className="mt-2 flex rounded-md shadow-sm">
+          <div className="mb-2 mt-2 flex rounded-md shadow-sm">
             <div className="relative flex flex-grow items-stretch focus-within:z-10">
               <input
                 type="number"
                 name="additionalTime"
                 id="additionalTime"
-                className="block w-full rounded-none rounded-l-md border-0 py-1.5  text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 onChange={(e) => setAdditionalTime(Number(e.target.value))}
                 value={time.additionalTime || ''}
               />
@@ -181,6 +181,17 @@ export default function TimeControl({
                 />
               </button>
             </div>
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+            {Array.from(new Array(12)).map((_, index) => (
+              <button
+                key={index}
+                className="rounded-lg bg-white px-2 py-3.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                onClick={() => setAdditionalTime(index + 1)}
+              >
+                {index + 1}min
+              </button>
+            ))}
           </div>
         </div>
       </div>

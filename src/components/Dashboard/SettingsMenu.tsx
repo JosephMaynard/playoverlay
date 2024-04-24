@@ -68,7 +68,7 @@ export default function SettingsMenu({
                     </div>
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">
-                        <CollapsiblePanel title="System" panelClassName="p-4">
+                        <CollapsiblePanel title="System">
                           <ColourPicker
                             label="Key Colour"
                             onChange={(keyColour: string) => {

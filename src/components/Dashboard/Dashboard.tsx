@@ -100,7 +100,10 @@ export default function Dashboard() {
   const incrementTime = () => {
     seconds = seconds + 1;
     setTime((currentTime) => {
-      const updatedTime = { ...currentTime, time: timeToString(seconds) };
+      const updatedTime = {
+        ...currentTime,
+        time: timeToString(seconds),
+      };
       window?.electronAPI?.updateTime(updatedTime);
       return updatedTime;
     });
@@ -192,7 +195,6 @@ export default function Dashboard() {
             <CollapsiblePanel
               title="Display Controls"
               className="mx-auto max-w-4xl"
-              panelClassName="p-4"
             >
               <ButtonGrid
                 className="mb-4"
@@ -227,11 +229,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="lg:p-4">
-          <CollapsiblePanel
-            title="Scores"
-            className="mx-auto max-w-4xl"
-            panelClassName="p-4"
-          >
+          <CollapsiblePanel title="Scores" className="mx-auto max-w-4xl">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <ScoreInput
                 title="Home Team"

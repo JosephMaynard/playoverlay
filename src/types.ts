@@ -25,4 +25,5 @@ export interface Time {
   time?: string;
   additionalTime?: number;
   paused?: boolean;
+  showAdditionalTime?: boolean;
 }

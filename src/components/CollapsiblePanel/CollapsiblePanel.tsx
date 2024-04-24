@@ -7,7 +7,7 @@ export interface Props {
   children?: React.ReactNode;
   defaultOpen?: boolean;
   className?: string;
-  panelClassName?: string;
+  noPanelPadding?: boolean;
 }
 
 export default function CollapsiblePanel({
@@ -15,7 +15,7 @@ export default function CollapsiblePanel({
   children,
   defaultOpen = true,
   className,
-  panelClassName,
+  noPanelPadding,
 }: Props) {
   return (
     <div
@@ -35,7 +35,7 @@ export default function CollapsiblePanel({
               />
             </Disclosure.Button>
             <Disclosure.Panel
-              className={`border-t border-gray-200${panelClassName ? ` ${panelClassName}` : ''}`}
+              className={`border-t border-gray-200${noPanelPadding ? '' : ' p-4'}`}
             >
               {children}
             </Disclosure.Panel>

@@ -26,7 +26,7 @@ export default function TeamSettings({
   setBackgroundColour,
 }: Props) {
   return (
-    <CollapsiblePanel title={title} panelClassName="p-4">
+    <CollapsiblePanel title={title}>
       <div className="col-span-full mb-4">
         <label
           htmlFor="teamNameFull"
