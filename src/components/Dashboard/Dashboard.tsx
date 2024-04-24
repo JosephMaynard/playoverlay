@@ -9,6 +9,7 @@ import SettingsMenu from './SettingsMenu';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import ScoreInput from './ScoreInput';
 import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
+import TimeControl from './TimeControl';
 
 export const matchPhases = {
   firstHalf: {
@@ -62,7 +63,8 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [time, setTime] = useState<Time>({});
+  const [time, setTime] = useState<Time>({ paused: false });
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
@@ -88,29 +90,51 @@ export default function Dashboard() {
     window?.electronAPI?.updateSettings(updatedSettings);
   };
 
+  const incrementTime = () => {
+    seconds = seconds + 1;
+    const updatedTime = { ...time, time: timeToString(seconds) };
+    setTime((currentTime) => ({ ...currentTime, time: timeToString(seconds) }));
+    window?.electronAPI?.updateTime(updatedTime);
+  };
+
   const startTime = (matchPhase: MatchPhase) => {
     if (interval) {
       clearInterval(interval);
     }
+    setPaused(false);
     seconds = matchPhases[matchPhase].start * 60;
     const initialTime = { ...time, time: timeToString(seconds) };
     setTime(initialTime);
+    updateSettings({ matchPhase });
     window?.electronAPI?.updateTime(initialTime);
-    interval = setInterval(() => {
-      seconds = seconds + 1;
-      const updatedTime = { ...time, time: timeToString(seconds) };
-      setTime(updatedTime);
-      window?.electronAPI?.updateTime(updatedTime);
-    }, 1000);
+    interval = setInterval(incrementTime, 1000);
   };
 
   const stopTime = () => {
     if (interval) {
       clearInterval(interval);
     }
-    const updatedTime: Time = { ...time, time: undefined };
+    const updatedTime: Time = {
+      ...time,
+      time: undefined,
+      additionalTime: undefined,
+    };
+    setPaused(false);
     setTime(updatedTime);
+    updateSettings({ matchPhase: undefined });
     window?.electronAPI?.updateTime(updatedTime);
+  };
+
+  const pause = () => {
+    if (interval) {
+      clearInterval(interval);
+      setPaused(true);
+    }
+  };
+
+  const resume = () => {
+    interval = setInterval(incrementTime, 1000);
+    setPaused(false);
   };
 
   return (
@@ -198,32 +222,32 @@ export default function Dashboard() {
             teamName={settings.awayTeamNameAbbreviated}
           />
         </div>
-        <div className="mx-auto grid max-w-2xl">
+        <div className="mx-auto mb-4 grid max-w-2xl">
           <span className="isolate inline-flex rounded-md shadow-sm">
             <button
               type="button"
-              className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className={`relative inline-flex items-center rounded-l-md  ${settings.matchPhase === 'firstHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
               onClick={() => startTime('firstHalf')}
             >
               First Half
             </button>
             <button
               type="button"
-              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'secondHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
               onClick={() => startTime('secondHalf')}
             >
               Second Half
             </button>
             <button
               type="button"
-              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'extraTimeFirstHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
               onClick={() => startTime('extraTimeFirstHalf')}
             >
               Extra Time First Half
             </button>
             <button
               type="button"
-              className="relative -ml-px inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+              className={`relative -ml-px inline-flex items-center  ${settings.matchPhase === 'extraTimeSecondHalf' ? 'bg-green-300' : 'bg-white hover:bg-gray-50'}  ring-gray-30 px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset focus:z-10`}
               onClick={() => startTime('extraTimeSecondHalf')}
             >
               Extra Time Second Half
@@ -237,13 +261,29 @@ export default function Dashboard() {
             </button>
           </span>
         </div>
-        <button
-          type="button"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          onClick={() => window.electronAPI.toggleFullscreen()}
-        >
-          Toggle Fullscreen
-        </button>
+
+        <div className="mx-auto max-w-2xl">
+          <TimeControl
+            time={time}
+            pause={pause}
+            resume={resume}
+            adjustTime={(difference: number) => {
+              seconds = Math.max(seconds + difference - 1, -1);
+              incrementTime();
+            }}
+            isPaused={paused}
+            setAdditionalTime={(additionalTime: number) =>
+              setTime({ ...time, additionalTime: additionalTime || undefined })
+            }
+          />
+          <button
+            type="button"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            onClick={() => window.electronAPI.toggleFullscreen()}
+          >
+            Toggle Fullscreen
+          </button>
+        </div>
       </main>
     </div>
   );

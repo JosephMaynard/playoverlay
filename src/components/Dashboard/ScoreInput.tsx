@@ -21,7 +21,7 @@ export default function ScoreInput({
   backgroundColour,
 }: Props) {
   return (
-    <div className="overflow-hidden border border-gray-200 bg-white shadow  sm:rounded-md ">
+    <div className="overflow-hidden border border-gray-200 bg-white shadow sm:rounded-md">
       <div className="border-b border-gray-200 bg-white p-3 sm:px-6">
         <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
           <div className="ml-4 mt-2">
