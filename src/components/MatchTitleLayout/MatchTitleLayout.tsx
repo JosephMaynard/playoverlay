@@ -1,9 +1,9 @@
-import { Settings, Time, Scores } from 'src/types';
+import { TeamSettingsInterface, Time, Scores } from 'src/types';
 import './MatchTitleLayout.css';
 
 export interface Props {
   scores: Scores;
-  settings: Settings;
+  settings: TeamSettingsInterface;
   time: Time;
   active: boolean;
 }

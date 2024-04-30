@@ -1,8 +1,15 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { Settings, contextBridge, ipcRenderer } from 'electron';
-import { Scores, Time } from './types';
+import { contextBridge, ipcRenderer } from 'electron';
+import {
+  Scores,
+  TeamSettingsInterface,
+  Time,
+  AppSettings,
+  MatchSettings,
+} from './types';
+import { getAppSettings, getTeamSettings } from './storage';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
@@ -11,10 +18,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateTime: (time: Time) => ipcRenderer.send('update-time', time),
   onTimeUpdated: (callback: (time: Time) => void) =>
     ipcRenderer.on('time-updated', (_, time) => callback(time)),
-  updateSettings: (settings: Settings) =>
-    ipcRenderer.send('update-settings', settings),
-  onSettingsUpdated: (callback: (settings: Settings) => void) =>
-    ipcRenderer.on('settings-updated', (_, settings) => callback(settings)),
+  updateTeamSettings: (teamSettings: TeamSettingsInterface) =>
+    ipcRenderer.send('update-team-settings', teamSettings),
+  onTeamSettingsUpdated: (
+    callback: (teamSettings: TeamSettingsInterface) => void
+  ) =>
+    ipcRenderer.on('team-settings-updated', (_, teamSettings) =>
+      callback(teamSettings)
+    ),
+  updateAppSettings: (appSettings: AppSettings) =>
+    ipcRenderer.send('update-app-settings', appSettings),
+  onAppSettingsUpdated: (callback: (appSettings: AppSettings) => void) =>
+    ipcRenderer.on('app-settings-updated', (_, appSettings) =>
+      callback(appSettings)
+    ),
+  updateMatchSettings: (matchSettings: MatchSettings) =>
+    ipcRenderer.send('update-match-settings', matchSettings),
+  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) =>
+    ipcRenderer.on('match-settings-updated', (_, matchSettings) =>
+      callback(matchSettings)
+    ),
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
   getFullscreenStatus: () => ipcRenderer.invoke('get-fullscreen-status'),
 
@@ -23,4 +46,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPowerSaveBlockerStatus: () =>
     ipcRenderer.invoke('get-power-save-blocker-status'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
+  getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
+  getTeamSettings: () => ipcRenderer.invoke('get-team-settings'),
 });

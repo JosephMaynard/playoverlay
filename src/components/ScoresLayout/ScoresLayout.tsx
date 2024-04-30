@@ -1,10 +1,10 @@
-import { Settings, Time, Scores } from 'src/types';
+import { TeamSettingsInterface, Time, Scores } from 'src/types';
 import ScoresTeamName from './ScoresTeamName';
 import './ScoresLayout.css';
 
 export interface Props {
   scores: Scores;
-  settings: Settings;
+  settings: TeamSettingsInterface;
   time: Time;
   active: boolean;
 }

@@ -7,7 +7,25 @@ import {
 } from 'electron';
 import path from 'path';
 
-import { Scores, Time } from './types';
+import {
+  AppSettings,
+  MatchSettings,
+  Scores,
+  TeamSettingsInterface,
+  Time,
+} from './types';
+import {
+  DISPLAY_WINDOW,
+  MAIN_WINDOW,
+  getAppSettings,
+  getTeamSettings,
+  getWindowPosition,
+  getWindowSize,
+  setAppSettings,
+  setTeamSettings,
+  setWindowPosition,
+  setWindowSize,
+} from './storage';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -19,10 +37,15 @@ let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 
 const createWindow = () => {
-  // Create the browser window.
+  // Create the mainWindow.
+  const mainWindowSize = getWindowSize(MAIN_WINDOW);
+  const mainWindowPosition = getWindowPosition(MAIN_WINDOW);
+
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: mainWindowSize[0],
+    height: mainWindowSize[1],
+    x: mainWindowPosition?.[0],
+    y: mainWindowPosition?.[1],
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -30,15 +53,36 @@ const createWindow = () => {
     },
   });
 
+  mainWindow.on('resized', () =>
+    setWindowSize(MAIN_WINDOW, mainWindow.getSize())
+  );
+
+  mainWindow.on('moved', () =>
+    setWindowPosition(MAIN_WINDOW, mainWindow.getPosition())
+  );
+
+  // Create display window
+  const displayWindowSize = getWindowSize(DISPLAY_WINDOW);
+  const displayWindowPosition = getWindowPosition(DISPLAY_WINDOW);
   displayWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: displayWindowSize[0],
+    height: displayWindowSize[1],
+    x: displayWindowPosition?.[0],
+    y: displayWindowPosition?.[1],
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,
     },
   });
+
+  displayWindow.on('resized', () =>
+    setWindowSize(DISPLAY_WINDOW, displayWindow.getSize())
+  );
+
+  displayWindow.on('moved', () =>
+    setWindowPosition(DISPLAY_WINDOW, displayWindow.getPosition())
+  );
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -71,6 +115,23 @@ const createWindow = () => {
 
   ipcMain.on('update-settings', (_, settings: Settings) => {
     displayWindow?.webContents.send('settings-updated', settings);
+  });
+
+  ipcMain.on(
+    'update-team-settings',
+    (_, teamSettings: TeamSettingsInterface) => {
+      setTeamSettings(teamSettings);
+      displayWindow?.webContents.send('team-settings-updated', teamSettings);
+    }
+  );
+
+  ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
+    setAppSettings(appSettings);
+    displayWindow?.webContents.send('app-settings-updated', appSettings);
+  });
+
+  ipcMain.on('update-match-settings', (_, matchSettings: MatchSettings) => {
+    displayWindow?.webContents.send('match-settings-updated', matchSettings);
   });
 
   ipcMain.on('toggle-fullscreen', () => {
@@ -110,6 +171,14 @@ const createWindow = () => {
 
   ipcMain.on('get-version', (event) => {
     event.returnValue = app.getVersion();
+  });
+
+  ipcMain.handle('get-app-settings', async () => {
+    return getAppSettings();
+  });
+
+  ipcMain.handle('get-team-settings', async () => {
+    return getTeamSettings();
   });
 
   mainWindow.on('closed', () => {

@@ -1,14 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Scores, Settings, Time } from '../../types';
+import {
+  AppSettings,
+  MatchSettings,
+  Scores,
+  TeamSettingsInterface,
+  Time,
+} from '../../types';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
-import { defaultSettings } from '../Dashboard/Dashboard';
+import {
+  defaultAppSettings,
+  defaultMatchSettings,
+  defaultTeamSettings,
+} from '../Dashboard/Dashboard';
 import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 
 const Display = () => {
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
   const [time, setTime] = useState<Time>({});
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [teamSettings, setTeamSettings] =
+    useState<TeamSettingsInterface>(defaultTeamSettings);
+  const [matchSettings, setMatchSettings] =
+    useState<MatchSettings>(defaultMatchSettings);
+  const [appSettings, setAppSettings] =
+    useState<AppSettings>(defaultAppSettings);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -34,45 +49,52 @@ const Display = () => {
   useEffect(() => {
     const handleScoreUpdate = (newScores: Scores) => {
       setScores(newScores);
-      console.log(newScores);
     };
     const handleTimeUpdate = (newTime: Time) => {
       setTime(newTime);
-      console.log(newTime);
     };
-    const handleSettingsUpdate = (newSettings: Settings) => {
-      setSettings(newSettings);
-      console.log(newSettings);
+    const handleTeamSettingsUpdate = (newSettings: TeamSettingsInterface) => {
+      setTeamSettings(newSettings);
+    };
+    const handleAppSettingsUpdate = (newSettings: AppSettings) => {
+      setAppSettings(newSettings);
+    };
+    const handleMatchSettingsUpdate = (newSettings: MatchSettings) => {
+      setMatchSettings(newSettings);
     };
 
     window.electronAPI.onScoreUpdated(handleScoreUpdate);
     window.electronAPI.onTimeUpdated(handleTimeUpdate);
-    window.electronAPI.onSettingsUpdated(handleSettingsUpdate);
+    window.electronAPI.onTeamSettingsUpdated(handleTeamSettingsUpdate);
+    window.electronAPI.onAppSettingsUpdated(handleAppSettingsUpdate);
+    window.electronAPI.onMatchSettingsUpdated(handleMatchSettingsUpdate);
 
     // Cleanup listeners on component unmount
     return () => {
       window.electronAPI.onScoreUpdated(() => {});
       window.electronAPI.onTimeUpdated(() => {});
-      window.electronAPI.onSettingsUpdated(() => {});
+      window.electronAPI.onMatchSettingsUpdated(() => {});
+      window.electronAPI.onAppSettingsUpdated(() => {});
+      window.electronAPI.onMatchSettingsUpdated(() => {});
     };
   }, []);
 
   return (
     <div
       className={`h-screen overflow-hidden relative${isFullscreen ? ' cursor-none' : ''}`}
-      style={{ backgroundColor: settings.keyColour }}
+      style={{ backgroundColor: appSettings.keyColour }}
     >
       <ScoresLayout
-        settings={settings}
+        settings={teamSettings}
         scores={scores}
         time={time}
-        active={settings.displayScreen === 'scoreBug'}
+        active={matchSettings.displayScreen === 'scoreBug'}
       />
       <MatchTitleLayout
-        settings={settings}
+        settings={teamSettings}
         scores={scores}
         time={time}
-        active={settings.displayScreen === 'matchTitle'}
+        active={matchSettings.displayScreen === 'matchTitle'}
       />
       {!isFullscreen && (
         <button

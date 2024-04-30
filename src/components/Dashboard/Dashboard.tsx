@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
-import { Scores, Settings, Time } from '../../types';
+import {
+  Scores,
+  TeamSettingsInterface,
+  Time,
+  AppSettings,
+  MatchSettings,
+} from '../../types';
 
 // @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
@@ -38,8 +44,11 @@ export const matchPhases = {
 
 export type MatchPhase = keyof typeof matchPhases;
 
-export const defaultSettings: Settings = {
+export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
+};
+
+export const defaultTeamSettings: TeamSettingsInterface = {
   homeTeamNameFull: 'Home Team',
   homeTeamNameAbbreviated: 'HOM',
   homeTeamTextColour: '#ffffff',
@@ -48,6 +57,9 @@ export const defaultSettings: Settings = {
   awayTeamNameAbbreviated: 'AWA',
   awayTeamTextColour: '#ffffff',
   awayTeamBackgroundColour: '#0000cc',
+};
+
+export const defaultMatchSettings: MatchSettings = {
   displayScreen: 'scoreBug',
 };
 
@@ -64,15 +76,44 @@ let interval: ReturnType<typeof setInterval>;
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [teamSettings, setTeamSettings] =
+    useState<TeamSettingsInterface>(defaultTeamSettings);
+  const [matchSettings, setMatchSettings] =
+    useState<MatchSettings>(defaultMatchSettings);
+  const [appSettings, setAppSettings] =
+    useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
-    window?.electronAPI?.updateSettings(settings);
+    window?.electronAPI?.updateMatchSettings(matchSettings);
     window?.electronAPI?.updateTime(time);
     window?.electronAPI?.startPowerSaveBlocker();
+
+    window?.electronAPI
+      ?.getTeamSettings()
+      .then((settings) => {
+        setTeamSettings(settings);
+        window?.electronAPI?.updateTeamSettings(settings);
+        console.log('Team Settings: ', settings);
+      })
+      .catch((error: any) => {
+        window?.electronAPI?.updateTeamSettings(teamSettings);
+        console.error('Failed to load team settings:', error);
+      });
+
+    window?.electronAPI
+      ?.getAppSettings()
+      .then((settings) => {
+        setAppSettings(settings);
+        window?.electronAPI?.updateAppSettings(settings);
+        console.log('App Settings: ', settings);
+      })
+      .catch((error: any) => {
+        window?.electronAPI?.updateAppSettings(appSettings);
+        console.error('Failed to load app settings:', error);
+      });
 
     return () => {
       window?.electronAPI?.stopPowerSaveBlocker();
@@ -88,13 +129,33 @@ export default function Dashboard() {
     window?.electronAPI?.updateScores(updatedScores);
   };
 
-  const updateSettings = (settingsUpdated: Partial<Settings>) => {
+  const updateTeamSettings = (
+    settingsUpdated: Partial<TeamSettingsInterface>
+  ) => {
     const updatedSettings = {
-      ...settings,
+      ...teamSettings,
       ...settingsUpdated,
     };
-    setSettings(updatedSettings);
-    window?.electronAPI?.updateSettings(updatedSettings);
+    setTeamSettings(updatedSettings);
+    window?.electronAPI?.updateTeamSettings(updatedSettings);
+  };
+
+  const updateMatchSettings = (settingsUpdated: Partial<MatchSettings>) => {
+    const updatedSettings = {
+      ...matchSettings,
+      ...settingsUpdated,
+    };
+    setMatchSettings(updatedSettings);
+    window?.electronAPI?.updateMatchSettings(updatedSettings);
+  };
+
+  const updateAppSettings = (settingsUpdated: Partial<AppSettings>) => {
+    const updatedSettings = {
+      ...appSettings,
+      ...settingsUpdated,
+    };
+    setAppSettings(updatedSettings);
+    window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
   const incrementTime = () => {
@@ -117,7 +178,7 @@ export default function Dashboard() {
     seconds = matchPhases[matchPhase].start * 60;
     const initialTime = { ...time, time: timeToString(seconds) };
     setTime(initialTime);
-    updateSettings({ matchPhase });
+    updateMatchSettings({ matchPhase });
     window?.electronAPI?.updateTime(initialTime);
     interval = setInterval(incrementTime, 1000);
   };
@@ -133,7 +194,7 @@ export default function Dashboard() {
     };
     setPaused(false);
     setTime(updatedTime);
-    updateSettings({ matchPhase: undefined });
+    updateMatchSettings({ matchPhase: undefined });
     window?.electronAPI?.updateTime(updatedTime);
   };
 
@@ -154,8 +215,10 @@ export default function Dashboard() {
       <SettingsMenu
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        settings={settings}
-        updateSettings={updateSettings}
+        teamSettings={teamSettings}
+        updateTeamSettings={updateTeamSettings}
+        appSettings={appSettings}
+        updateAppSettings={updateAppSettings}
       />
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6">
         <div className="flex  items-center gap-x-4">
@@ -176,18 +239,18 @@ export default function Dashboard() {
 
       <main className="grid grid-cols-1 lg:grid-cols-2">
         <div>
-          <Preview keyColour={settings.keyColour}>
+          <Preview keyColour={appSettings.keyColour}>
             <ScoresLayout
-              settings={settings}
+              settings={teamSettings}
               scores={scores}
               time={time}
-              active={settings.displayScreen === 'scoreBug'}
+              active={matchSettings.displayScreen === 'scoreBug'}
             />
             <MatchTitleLayout
-              settings={settings}
+              settings={teamSettings}
               scores={scores}
               time={time}
-              active={settings.displayScreen === 'matchTitle'}
+              active={matchSettings.displayScreen === 'matchTitle'}
             />
           </Preview>
 
@@ -201,20 +264,21 @@ export default function Dashboard() {
                 buttons={[
                   {
                     label: 'None',
-                    onClick: () => updateSettings({ displayScreen: 'none' }),
-                    selected: settings.displayScreen === 'none',
+                    onClick: () =>
+                      updateMatchSettings({ displayScreen: 'none' }),
+                    selected: matchSettings.displayScreen === 'none',
                   },
                   {
                     label: 'Match title',
                     onClick: () =>
-                      updateSettings({ displayScreen: 'matchTitle' }),
-                    selected: settings.displayScreen === 'matchTitle',
+                      updateMatchSettings({ displayScreen: 'matchTitle' }),
+                    selected: matchSettings.displayScreen === 'matchTitle',
                   },
                   {
                     label: 'Score Bug',
                     onClick: () =>
-                      updateSettings({ displayScreen: 'scoreBug' }),
-                    selected: settings.displayScreen === 'scoreBug',
+                      updateMatchSettings({ displayScreen: 'scoreBug' }),
+                    selected: matchSettings.displayScreen === 'scoreBug',
                   },
                 ]}
               />
@@ -236,18 +300,18 @@ export default function Dashboard() {
                 score={scores.homeTeam}
                 id="homeTeamScore"
                 setScore={(homeTeam: number) => updateScore({ homeTeam })}
-                textColour={settings.homeTeamTextColour}
-                backgroundColour={settings.homeTeamBackgroundColour}
-                teamName={settings.homeTeamNameAbbreviated}
+                textColour={teamSettings.homeTeamTextColour}
+                backgroundColour={teamSettings.homeTeamBackgroundColour}
+                teamName={teamSettings.homeTeamNameAbbreviated}
               />
               <ScoreInput
                 title="Away Team"
                 score={scores.awayTeam}
                 id="awayTeamScore"
                 setScore={(awayTeam: number) => updateScore({ awayTeam })}
-                textColour={settings.awayTeamTextColour}
-                backgroundColour={settings.awayTeamBackgroundColour}
-                teamName={settings.awayTeamNameAbbreviated}
+                textColour={teamSettings.awayTeamTextColour}
+                backgroundColour={teamSettings.awayTeamBackgroundColour}
+                teamName={teamSettings.awayTeamNameAbbreviated}
               />
             </div>
           </CollapsiblePanel>
@@ -269,7 +333,7 @@ export default function Dashboard() {
             }
             startTime={startTime}
             stopTime={stopTime}
-            matchPhase={settings.matchPhase}
+            matchPhase={matchSettings.matchPhase}
           />
         </div>
       </main>

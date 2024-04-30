@@ -2,22 +2,26 @@ import { Fragment, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import ColourPicker from '../ColorPicker/ColorPicker';
-import { Settings } from 'src/types';
+import { AppSettings, TeamSettingsInterface } from 'src/types';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 
 export interface Props {
   sidebarOpen: boolean;
   setSidebarOpen: (sidebarOpen: boolean) => void;
-  settings: Settings;
-  updateSettings: (updatedSettings: Partial<Settings>) => void;
+  teamSettings: TeamSettingsInterface;
+  updateTeamSettings: (updatedSettings: Partial<TeamSettingsInterface>) => void;
+  appSettings: AppSettings;
+  updateAppSettings: (updatedSettings: Partial<AppSettings>) => void;
 }
 
 export default function SettingsMenu({
   sidebarOpen,
   setSidebarOpen,
-  settings,
-  updateSettings,
+  teamSettings,
+  updateTeamSettings,
+  appSettings,
+  updateAppSettings,
 }: Props) {
   return (
     <Transition.Root show={sidebarOpen} as={Fragment}>
@@ -72,49 +76,57 @@ export default function SettingsMenu({
                           <ColourPicker
                             label="Key Colour"
                             onChange={(keyColour: string) => {
-                              updateSettings({ keyColour });
+                              updateAppSettings({ keyColour });
                             }}
-                            value={settings.keyColour}
+                            value={appSettings.keyColour}
                           />
                         </CollapsiblePanel>
 
                         <TeamSettings
                           title="Home Team"
-                          teamNameFull={settings.homeTeamNameFull}
+                          teamNameFull={teamSettings.homeTeamNameFull}
                           setTeamNameFull={(homeTeamNameFull: string) =>
-                            updateSettings({ homeTeamNameFull })
+                            updateTeamSettings({ homeTeamNameFull })
                           }
-                          teamNameAbbreviated={settings.homeTeamNameAbbreviated}
+                          teamNameAbbreviated={
+                            teamSettings.homeTeamNameAbbreviated
+                          }
                           setTeamNameAbbreviated={(
                             homeTeamNameAbbreviated: string
-                          ) => updateSettings({ homeTeamNameAbbreviated })}
-                          textColour={settings.homeTeamTextColour}
+                          ) => updateTeamSettings({ homeTeamNameAbbreviated })}
+                          textColour={teamSettings.homeTeamTextColour}
                           setTextColour={(homeTeamTextColour: string) =>
-                            updateSettings({ homeTeamTextColour })
+                            updateTeamSettings({ homeTeamTextColour })
                           }
-                          backgroundColour={settings.homeTeamBackgroundColour}
+                          backgroundColour={
+                            teamSettings.homeTeamBackgroundColour
+                          }
                           setBackgroundColour={(
                             homeTeamBackgroundColour: string
-                          ) => updateSettings({ homeTeamBackgroundColour })}
+                          ) => updateTeamSettings({ homeTeamBackgroundColour })}
                         />
                         <TeamSettings
                           title="Away Team"
-                          teamNameFull={settings.awayTeamNameFull}
+                          teamNameFull={teamSettings.awayTeamNameFull}
                           setTeamNameFull={(awayTeamNameFull: string) =>
-                            updateSettings({ awayTeamNameFull })
+                            updateTeamSettings({ awayTeamNameFull })
                           }
-                          teamNameAbbreviated={settings.awayTeamNameAbbreviated}
+                          teamNameAbbreviated={
+                            teamSettings.awayTeamNameAbbreviated
+                          }
                           setTeamNameAbbreviated={(
                             awayTeamNameAbbreviated: string
-                          ) => updateSettings({ awayTeamNameAbbreviated })}
-                          textColour={settings.awayTeamTextColour}
+                          ) => updateTeamSettings({ awayTeamNameAbbreviated })}
+                          textColour={teamSettings.awayTeamTextColour}
                           setTextColour={(awayTeamTextColour: string) =>
-                            updateSettings({ awayTeamTextColour })
+                            updateTeamSettings({ awayTeamTextColour })
                           }
-                          backgroundColour={settings.awayTeamBackgroundColour}
+                          backgroundColour={
+                            teamSettings.awayTeamBackgroundColour
+                          }
                           setBackgroundColour={(
                             awayTeamBackgroundColour: string
-                          ) => updateSettings({ awayTeamBackgroundColour })}
+                          ) => updateTeamSettings({ awayTeamBackgroundColour })}
                         />
                       </div>
                     </div>

@@ -7,8 +7,11 @@ export interface Scores {
 
 export type DisplayScreen = 'none' | 'scoreBug' | 'matchTitle' | 'penalties';
 
-export interface Settings {
+export interface AppSettings {
   keyColour: string;
+}
+
+export interface TeamSettingsInterface {
   homeTeamNameFull: string;
   homeTeamNameAbbreviated: string;
   homeTeamTextColour?: string;
@@ -17,6 +20,9 @@ export interface Settings {
   awayTeamNameAbbreviated: string;
   awayTeamTextColour?: string;
   awayTeamBackgroundColour?: string;
+}
+
+export interface MatchSettings {
   matchPhase?: MatchPhase;
   displayScreen: DisplayScreen;
 }
