@@ -17,6 +17,7 @@ import {
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
+  WindowName,
   getAppSettings,
   getTeamSettings,
   getWindowPosition,
@@ -36,53 +37,50 @@ let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 
+function createAppWindow(windowName: WindowName) {
+  const commonOptions = {
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  };
+
+  const size = getWindowSize(windowName);
+  const position = getWindowPosition(windowName);
+  const specificOptions = {
+    width: size[0],
+    height: size[1],
+    x: position?.[0],
+    y: position?.[1],
+  };
+
+  const window = new BrowserWindow({ ...commonOptions, ...specificOptions });
+
+  window.on('resized', () => {
+    try {
+      setWindowSize(windowName, window.getSize());
+    } catch (error) {
+      console.error(`Error when resizing ${windowName}:`, error);
+    }
+  });
+
+  window.on('moved', () => {
+    try {
+      setWindowPosition(windowName, window.getPosition());
+    } catch (error) {
+      console.error(`Error when moving ${windowName}:`, error);
+    }
+  });
+
+  return window;
+}
+
 const createWindow = () => {
-  // Create the mainWindow.
-  const mainWindowSize = getWindowSize(MAIN_WINDOW);
-  const mainWindowPosition = getWindowPosition(MAIN_WINDOW);
-
-  mainWindow = new BrowserWindow({
-    width: mainWindowSize[0],
-    height: mainWindowSize[1],
-    x: mainWindowPosition?.[0],
-    y: mainWindowPosition?.[1],
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      backgroundThrottling: false,
-    },
-  });
-
-  mainWindow.on('resized', () =>
-    setWindowSize(MAIN_WINDOW, mainWindow.getSize())
-  );
-
-  mainWindow.on('moved', () =>
-    setWindowPosition(MAIN_WINDOW, mainWindow.getPosition())
-  );
-
-  // Create display window
-  const displayWindowSize = getWindowSize(DISPLAY_WINDOW);
-  const displayWindowPosition = getWindowPosition(DISPLAY_WINDOW);
-  displayWindow = new BrowserWindow({
-    width: displayWindowSize[0],
-    height: displayWindowSize[1],
-    x: displayWindowPosition?.[0],
-    y: displayWindowPosition?.[1],
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      backgroundThrottling: false,
-    },
-  });
-
-  displayWindow.on('resized', () =>
-    setWindowSize(DISPLAY_WINDOW, displayWindow.getSize())
-  );
-
-  displayWindow.on('moved', () =>
-    setWindowPosition(DISPLAY_WINDOW, displayWindow.getPosition())
-  );
+  mainWindow = createAppWindow(MAIN_WINDOW);
+  displayWindow = createAppWindow(DISPLAY_WINDOW);
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -174,11 +172,19 @@ const createWindow = () => {
   });
 
   ipcMain.handle('get-app-settings', async () => {
-    return getAppSettings();
+    try {
+      return await getAppSettings();
+    } catch (error) {
+      console.error('Error getting app settings:', error);
+    }
   });
 
   ipcMain.handle('get-team-settings', async () => {
-    return getTeamSettings();
+    try {
+      return await getTeamSettings();
+    } catch (error) {
+      console.error('Error getting team settings:', error);
+    }
   });
 
   mainWindow.on('closed', () => {
