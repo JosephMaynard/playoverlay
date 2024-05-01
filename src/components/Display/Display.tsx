@@ -12,11 +12,12 @@ import {
   defaultAppSettings,
   defaultMatchSettings,
   defaultTeamSettings,
-} from '../Dashboard/Dashboard';
+  defaultScores,
+} from '../../constants';
 import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 
 const Display = () => {
-  const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
+  const [scores, setScores] = useState<Scores>(defaultScores);
   const [time, setTime] = useState<Time>({});
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);

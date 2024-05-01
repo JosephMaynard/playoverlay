@@ -1,8 +1,14 @@
-import { MatchPhase } from './components/Dashboard/Dashboard';
+import { MatchPhase } from './constants';
+
+export interface Penalty {
+  team: 'home' | 'away';
+  result: 'scored' | 'missed';
+}
 
 export interface Scores {
   homeTeam: number;
   awayTeam: number;
+  penalties: Penalty[];
 }
 
 export type DisplayScreen = 'none' | 'scoreBug' | 'matchTitle' | 'penalties';
@@ -25,6 +31,7 @@ export interface TeamSettingsInterface {
 export interface MatchSettings {
   matchPhase?: MatchPhase;
   displayScreen: DisplayScreen;
+  penaltiesFirstTeam: 'home' | 'away';
 }
 
 export interface Time {

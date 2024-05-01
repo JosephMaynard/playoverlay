@@ -1,8 +1,8 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Time } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import { MatchPhase } from './Dashboard';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
+import { MatchPhase } from 'src/constants';
 
 export interface Props {
   time: Time;

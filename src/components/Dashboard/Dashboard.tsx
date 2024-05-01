@@ -6,6 +6,7 @@ import {
   Time,
   AppSettings,
   MatchSettings,
+  Penalty,
 } from '../../types';
 
 // @ts-ignore
@@ -18,50 +19,14 @@ import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 import TimeControl from './TimeControl';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-
-export const matchPhases = {
-  firstHalf: {
-    title: 'First Half',
-    start: 0,
-    end: 45,
-  },
-  secondHalf: {
-    title: 'Second Half',
-    start: 45,
-    end: 90,
-  },
-  extraTimeFirstHalf: {
-    title: 'Extra Time First Half',
-    start: 90,
-    end: 105,
-  },
-  extraTimeSecondHalf: {
-    title: 'Extra Time Second Half',
-    start: 105,
-    end: 120,
-  },
-} as const;
-
-export type MatchPhase = keyof typeof matchPhases;
-
-export const defaultAppSettings: AppSettings = {
-  keyColour: '#0000FF',
-};
-
-export const defaultTeamSettings: TeamSettingsInterface = {
-  homeTeamNameFull: 'Home Team',
-  homeTeamNameAbbreviated: 'HOM',
-  homeTeamTextColour: '#ffffff',
-  homeTeamBackgroundColour: '#cc0000',
-  awayTeamNameFull: 'Away Team',
-  awayTeamNameAbbreviated: 'AWA',
-  awayTeamTextColour: '#ffffff',
-  awayTeamBackgroundColour: '#0000cc',
-};
-
-export const defaultMatchSettings: MatchSettings = {
-  displayScreen: 'scoreBug',
-};
+import {
+  MatchPhase,
+  defaultAppSettings,
+  defaultMatchSettings,
+  defaultScores,
+  defaultTeamSettings,
+  matchPhases,
+} from '../../constants';
 
 let seconds: number = 0;
 
@@ -75,7 +40,7 @@ let interval: ReturnType<typeof setInterval>;
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [scores, setScores] = useState<Scores>({ homeTeam: 0, awayTeam: 0 });
+  const [scores, setScores] = useState<Scores>(defaultScores);
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
   const [matchSettings, setMatchSettings] =
@@ -214,6 +179,20 @@ export default function Dashboard() {
   const resume = () => {
     interval = setInterval(incrementTime, 1000);
     setPaused(false);
+  };
+
+  const addPenalty = (penalty: Penalty) => {
+    setScores({
+      ...scores,
+      penalties: [...scores.penalties, penalty],
+    });
+  };
+
+  const undoPenalty = () => {
+    setScores({
+      ...scores,
+      penalties: scores.penalties.slice(0, -1),
+    });
   };
 
   return (
