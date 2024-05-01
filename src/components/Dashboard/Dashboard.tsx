@@ -94,9 +94,12 @@ export default function Dashboard() {
     window?.electronAPI
       ?.getTeamSettings()
       .then((settings) => {
-        setTeamSettings(settings);
-        window?.electronAPI?.updateTeamSettings(settings);
-        console.log('Team Settings: ', settings);
+        if (settings) {
+          setTeamSettings(settings);
+          window?.electronAPI?.updateTeamSettings(settings);
+        } else {
+          window?.electronAPI?.updateTeamSettings(teamSettings);
+        }
       })
       .catch((error: any) => {
         window?.electronAPI?.updateTeamSettings(teamSettings);
@@ -106,9 +109,12 @@ export default function Dashboard() {
     window?.electronAPI
       ?.getAppSettings()
       .then((settings) => {
-        setAppSettings(settings);
-        window?.electronAPI?.updateAppSettings(settings);
-        console.log('App Settings: ', settings);
+        if (settings) {
+          setAppSettings(settings);
+          window?.electronAPI?.updateAppSettings(settings);
+        } else {
+          window?.electronAPI?.updateAppSettings(appSettings);
+        }
       })
       .catch((error: any) => {
         window?.electronAPI?.updateAppSettings(appSettings);
