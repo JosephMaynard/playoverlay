@@ -36,6 +36,7 @@ declare global {
       onDisplayChange: (callback: (displays: Display[]) => void) => () => void;
       getScreenInfo: () => void;
       onScreenInfo: (callback: (displays: Display[]) => void) => () => void;
+      resetWindows: () => void;
     };
   }
 }

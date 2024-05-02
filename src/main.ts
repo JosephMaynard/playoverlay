@@ -273,11 +273,49 @@ ipcMain.handle('move-window-to-screen', (event, screenId) => {
   const displays = screen.getAllDisplays();
   const display = displays.find((d) => d.id === screenId);
   if (display && mainWindow) {
-    mainWindow.setBounds({
+    displayWindow.setBounds({
       x: display.bounds.x,
       y: display.bounds.y,
-      width: mainWindow.getBounds().width,
-      height: mainWindow.getBounds().height,
+      width: displayWindow.getBounds().width,
+      height: displayWindow.getBounds().height,
     });
   }
+});
+
+const resetWindow = (
+  window: BrowserWindow,
+  windowName: WindowName,
+  offset: number = 0,
+  windowWidth: number = 800,
+  windowHeight: number = 600
+) => {
+  if (window) {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+    const x =
+      Math.floor(primaryDisplay.bounds.x + (width - windowWidth) / 2) + offset;
+    const y =
+      Math.floor(primaryDisplay.bounds.y + (height - windowHeight) / 2) +
+      offset;
+
+    if (window.isMinimized()) window.restore(); // Restore the window if it's minimized
+    window.focus(); // Focus the window
+    window.setAlwaysOnTop(true); // Temporarily make it top-most
+    window.setAlwaysOnTop(false); // Then set it back to normal
+    window.setBounds({
+      x,
+      y,
+      width: windowWidth,
+      height: windowHeight,
+    });
+
+    setWindowPosition(windowName, window.getPosition());
+    setWindowSize(windowName, window.getSize());
+  }
+};
+
+ipcMain.on('reset-windows', () => {
+  displayWindow?.setFullScreen(false);
+  resetWindow(displayWindow, DISPLAY_WINDOW, 50);
+  resetWindow(mainWindow, MAIN_WINDOW, -50);
 });

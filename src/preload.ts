@@ -65,4 +65,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     );
     return () => ipcRenderer.removeAllListeners('screens-info');
   },
+  resetWindows: () => ipcRenderer.send('reset-windows'),
 });

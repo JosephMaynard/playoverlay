@@ -45,6 +45,12 @@ const WindowControlsPanel: React.FC = () => {
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
           },
+          {
+            label: 'Reset positions',
+            onClick: () => window?.electronAPI?.resetWindows(),
+            color: 'text-white',
+            backgroundColor: 'bg-indigo-600',
+          },
         ]}
       />
     </CollapsiblePanel>
