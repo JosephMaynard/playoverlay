@@ -19,7 +19,7 @@ export default function CollapsiblePanel({
 }: Props) {
   return (
     <div
-      className={`mb-4 overflow-hidden rounded-md border border-gray-200 bg-white shadow ${className ? ` ${className}` : ''}`}
+      className={`mx-4 mb-4 overflow-hidden rounded-md border border-gray-200 bg-white shadow lg:mx-auto ${className ? ` ${className}` : ''}`}
     >
       <Disclosure defaultOpen={defaultOpen}>
         {({ open }) => (

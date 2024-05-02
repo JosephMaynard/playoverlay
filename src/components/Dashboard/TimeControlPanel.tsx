@@ -16,7 +16,7 @@ export interface Props {
   matchPhase?: MatchPhase;
 }
 
-export default function TimeControl({
+export default function TimeControlPanel({
   time,
   pause,
   resume,

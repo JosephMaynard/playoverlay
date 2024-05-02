@@ -6,7 +6,6 @@ import {
   TeamSettingsInterface,
   Time,
 } from '../../types';
-import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
   defaultAppSettings,
@@ -14,7 +13,7 @@ import {
   defaultTeamSettings,
   defaultScores,
 } from '../../constants';
-import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
+import Screens from '../Screens/Screens';
 
 const Display = () => {
   const [scores, setScores] = useState<Scores>(defaultScores);
@@ -85,17 +84,11 @@ const Display = () => {
       className={`h-screen overflow-hidden relative${isFullscreen ? ' cursor-none' : ''}`}
       style={{ backgroundColor: appSettings.keyColour }}
     >
-      <ScoresLayout
-        settings={teamSettings}
+      <Screens
+        teamSettings={teamSettings}
         scores={scores}
         time={time}
-        active={matchSettings.displayScreen === 'scoreBug'}
-      />
-      <MatchTitleLayout
-        settings={teamSettings}
-        scores={scores}
-        time={time}
-        active={matchSettings.displayScreen === 'matchTitle'}
+        matchSettings={matchSettings}
       />
       {!isFullscreen && (
         <button

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+
 import {
   Scores,
   TeamSettingsInterface,
@@ -8,17 +9,9 @@ import {
   MatchSettings,
   Penalty,
 } from '../../types';
-
-// @ts-ignore
-import logo from '../../assets/playoverlay-logo.svg';
 import Preview from '../Preview/Preview';
 import SettingsMenu from './SettingsMenu';
-import ScoresLayout from '../ScoresLayout/ScoresLayout';
-import ScoreInput from './ScoreInput';
-import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
-import TimeControl from './TimeControl';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import ButtonGrid from '../ButtonGrid/ButtonGrid';
+import TimeControlPanel from './TimeControlPanel';
 import {
   MatchPhase,
   defaultAppSettings,
@@ -27,6 +20,12 @@ import {
   defaultTeamSettings,
   matchPhases,
 } from '../../constants';
+import Screens from '../Screens/Screens';
+
+// @ts-ignore
+import logo from '../../assets/playoverlay-logo.svg';
+import ScoresPanel from './ScoresPanel';
+import DisplayControlsPanel from './DisplayControlsPanel';
 
 let seconds: number = 0;
 
@@ -223,85 +222,30 @@ export default function Dashboard() {
       </div>
 
       <main className="grid grid-cols-1 lg:grid-cols-2">
-        <div>
+        <div className="lg:overflow-y-auto lg:[height:calc(100vh-3.75rem)]">
           <Preview keyColour={appSettings.keyColour}>
-            <ScoresLayout
-              settings={teamSettings}
+            <Screens
+              teamSettings={teamSettings}
               scores={scores}
               time={time}
-              active={matchSettings.displayScreen === 'scoreBug'}
-            />
-            <MatchTitleLayout
-              settings={teamSettings}
-              scores={scores}
-              time={time}
-              active={matchSettings.displayScreen === 'matchTitle'}
+              matchSettings={matchSettings}
             />
           </Preview>
-
-          <div className="p-4">
-            <CollapsiblePanel
-              title="Display Controls"
-              className="mx-auto max-w-4xl"
-            >
-              <ButtonGrid
-                className="mb-4"
-                buttons={[
-                  {
-                    label: 'None',
-                    onClick: () =>
-                      updateMatchSettings({ displayScreen: 'none' }),
-                    selected: matchSettings.displayScreen === 'none',
-                  },
-                  {
-                    label: 'Match title',
-                    onClick: () =>
-                      updateMatchSettings({ displayScreen: 'matchTitle' }),
-                    selected: matchSettings.displayScreen === 'matchTitle',
-                  },
-                  {
-                    label: 'Score Bug',
-                    onClick: () =>
-                      updateMatchSettings({ displayScreen: 'scoreBug' }),
-                    selected: matchSettings.displayScreen === 'scoreBug',
-                  },
-                ]}
-              />
-              <button
-                type="button"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                onClick={() => window.electronAPI.toggleFullscreen()}
-              >
-                Toggle Fullscreen
-              </button>
-            </CollapsiblePanel>
+          <div className="lg:px-4">
+            <DisplayControlsPanel
+              updateMatchSettings={updateMatchSettings}
+              matchSettings={matchSettings}
+            />
           </div>
         </div>
-        <div className="lg:p-4">
-          <CollapsiblePanel title="Scores" className="mx-auto max-w-4xl">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <ScoreInput
-                title="Home Team"
-                score={scores.homeTeam}
-                id="homeTeamScore"
-                setScore={(homeTeam: number) => updateScore({ homeTeam })}
-                textColour={teamSettings.homeTeamTextColour}
-                backgroundColour={teamSettings.homeTeamBackgroundColour}
-                teamName={teamSettings.homeTeamNameAbbreviated}
-              />
-              <ScoreInput
-                title="Away Team"
-                score={scores.awayTeam}
-                id="awayTeamScore"
-                setScore={(awayTeam: number) => updateScore({ awayTeam })}
-                textColour={teamSettings.awayTeamTextColour}
-                backgroundColour={teamSettings.awayTeamBackgroundColour}
-                teamName={teamSettings.awayTeamNameAbbreviated}
-              />
-            </div>
-          </CollapsiblePanel>
-
-          <TimeControl
+        <div className="lg:overflow-y-auto lg:p-4 lg:[height:calc(100vh-3.75rem)]">
+          <ScoresPanel
+            teamSettings={teamSettings}
+            scores={scores}
+            time={time}
+            updateScore={updateScore}
+          />
+          <TimeControlPanel
             time={time}
             pause={pause}
             resume={resume}
