@@ -12,7 +12,7 @@ export default function DisplayControlsPanel({
   matchSettings,
 }: Props) {
   return (
-    <CollapsiblePanel title="Display Controls" className="mx-auto max-w-4xl">
+    <CollapsiblePanel title="Display Controls">
       <ButtonGrid
         className="mb-4"
         buttons={[

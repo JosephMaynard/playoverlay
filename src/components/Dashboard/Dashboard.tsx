@@ -226,7 +226,7 @@ export default function Dashboard() {
               matchSettings={matchSettings}
             />
           </Preview>
-          <div className="lg:overflow-y-auto lg:px-4 ">
+          <div className="lg:overflow-y-auto lg:p-4">
             <DisplayControlsPanel
               updateMatchSettings={updateMatchSettings}
               matchSettings={matchSettings}

@@ -28,10 +28,7 @@ const WindowControlsPanel: React.FC = () => {
   };
 
   return (
-    <CollapsiblePanel
-      title="Display Window Controls"
-      className="mx-auto max-w-4xl"
-    >
+    <CollapsiblePanel title="Display Window Controls">
       <ButtonGrid
         className="mb-4"
         buttons={[
