@@ -1,7 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { contextBridge, ipcRenderer } from 'electron';
+import { Display, contextBridge, ipcRenderer } from 'electron';
 import {
   Scores,
   TeamSettingsInterface,
@@ -48,4 +48,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: () => ipcRenderer.sendSync('get-version'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
   getTeamSettings: () => ipcRenderer.invoke('get-team-settings'),
+  moveWindowToScreen: (screenId: number) =>
+    ipcRenderer.invoke('move-window-to-screen', screenId),
+  onDisplayChange: (callback: (displays: Display[]) => void) => {
+    ipcRenderer.on('display-change', (_, displays: Display[]) =>
+      callback(displays)
+    );
+    return () => ipcRenderer.removeAllListeners('display-change'); // Return a cleanup function
+  },
+  getScreenInfo: () => {
+    ipcRenderer.send('get-screens');
+  },
+  onScreenInfo: (callback: (displays: Display[]) => void) => {
+    ipcRenderer.on('screens-info', (_, displays: Display[]) =>
+      callback(displays)
+    );
+    return () => ipcRenderer.removeAllListeners('screens-info');
+  },
 });

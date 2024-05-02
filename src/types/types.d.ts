@@ -4,6 +4,7 @@ import {
   TeamSettingsInterface,
   Time,
   MatchSettings,
+  Display,
 } from '../types';
 
 declare global {
@@ -31,6 +32,10 @@ declare global {
       getVersion: () => string;
       getAppSettings: () => Promise<AppSettings | undefined>;
       getTeamSettings: () => Promise<TeamSettingsInterface | undefined>;
+      moveWindowToScreen: (screenId: number) => Promise<void>;
+      onDisplayChange: (callback: (displays: Display[]) => void) => () => void;
+      getScreenInfo: () => void;
+      onScreenInfo: (callback: (displays: Display[]) => void) => () => void;
     };
   }
 }

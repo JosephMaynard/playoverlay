@@ -26,15 +26,10 @@ import Screens from '../Screens/Screens';
 import logo from '../../assets/playoverlay-logo.svg';
 import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
+import { timeToString } from '../../utils';
+import WindowControlsPanel from './WindowControlsPanel';
 
 let seconds: number = 0;
-
-export const timeToString = (timeInSeconds: number) => {
-  const minutes = Math.floor(timeInSeconds / 60);
-  const seconds = Math.floor(timeInSeconds % 60);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-};
-
 let interval: ReturnType<typeof setInterval>;
 
 export default function Dashboard() {
@@ -222,7 +217,7 @@ export default function Dashboard() {
       </div>
 
       <main className="grid grid-cols-1 lg:grid-cols-2">
-        <div className="lg:overflow-y-auto lg:[height:calc(100vh-3.75rem)]">
+        <div className="lg:grid lg:grid-cols-1 lg:grid-rows-2 lg:[height:calc(100vh-3.75rem)]">
           <Preview keyColour={appSettings.keyColour}>
             <Screens
               teamSettings={teamSettings}
@@ -231,11 +226,12 @@ export default function Dashboard() {
               matchSettings={matchSettings}
             />
           </Preview>
-          <div className="lg:px-4">
+          <div className="lg:overflow-y-auto lg:px-4 ">
             <DisplayControlsPanel
               updateMatchSettings={updateMatchSettings}
               matchSettings={matchSettings}
             />
+            <WindowControlsPanel />
           </div>
         </div>
         <div className="lg:overflow-y-auto lg:p-4 lg:[height:calc(100vh-3.75rem)]">

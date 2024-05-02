@@ -93,7 +93,9 @@ export default function ScoreInput({
           style={{ backgroundColor: backgroundColour }}
           onClick={() => setScore(score + 1)}
         >
-          {title} Scored
+          <span className="inline-block rounded bg-black/50 px-4 py-1">
+            {title} Scored
+          </span>
         </button>
       </div>
     </div>

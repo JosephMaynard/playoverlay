@@ -1,3 +1,4 @@
+import { AppSettings } from 'src/types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
@@ -12,6 +13,7 @@ export interface Props {
   setTextColour: (textColour: string) => void;
   backgroundColour: string;
   setBackgroundColour: (backgroundColour: string) => void;
+  appSettings: AppSettings;
 }
 
 export default function TeamSettings({
@@ -24,6 +26,7 @@ export default function TeamSettings({
   setTextColour,
   backgroundColour,
   setBackgroundColour,
+  appSettings,
 }: Props) {
   return (
     <CollapsiblePanel title={title}>
@@ -77,11 +80,13 @@ export default function TeamSettings({
         label={`${title} Text Colour`}
         onChange={setTextColour}
         value={textColour}
+        keyColour={appSettings.keyColour}
       />
       <ColourPicker
         label={`${title} Background Colour`}
         onChange={setBackgroundColour}
         value={backgroundColour}
+        keyColour={appSettings.keyColour}
       />
     </CollapsiblePanel>
   );

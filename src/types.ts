@@ -40,3 +40,13 @@ export interface Time {
   paused?: boolean;
   showAdditionalTime?: boolean;
 }
+
+export interface Display {
+  id: number;
+  bounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}

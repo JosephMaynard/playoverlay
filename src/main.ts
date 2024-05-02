@@ -4,6 +4,7 @@ import {
   ipcMain,
   Settings,
   powerSaveBlocker,
+  screen,
 } from 'electron';
 import path from 'path';
 
@@ -199,7 +200,11 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  setupScreenHandling();
+  setupDisplayListeners();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -220,3 +225,59 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+function setupDisplayListeners() {
+  screen.on('display-added', (_, newDisplay) => {
+    mainWindow?.webContents.send('display-change', screen.getAllDisplays());
+  });
+
+  screen.on('display-removed', (_, oldDisplay) => {
+    mainWindow?.webContents.send('display-change', screen.getAllDisplays());
+  });
+}
+
+function getAllScreens(): Electron.Display[] {
+  return screen.getAllDisplays();
+}
+
+function sendToScreen(
+  window: BrowserWindow | null,
+  display: Electron.Display
+): void {
+  if (window) {
+    const { bounds } = display;
+    window.setBounds({
+      x: bounds.x,
+      y: bounds.y,
+      width: window.getBounds().width,
+      height: window.getBounds().height,
+    });
+  }
+}
+
+function setupScreenHandling() {
+  ipcMain.on('get-screens', (event) => {
+    event.reply('screens-info', getAllScreens());
+  });
+
+  ipcMain.on('move-window-to-screen', (_, screenId) => {
+    const displays = getAllScreens();
+    const display = displays.find((d) => d.id === screenId);
+    if (display) {
+      sendToScreen(displayWindow, display);
+    }
+  });
+}
+
+ipcMain.handle('move-window-to-screen', (event, screenId) => {
+  const displays = screen.getAllDisplays();
+  const display = displays.find((d) => d.id === screenId);
+  if (display && mainWindow) {
+    mainWindow.setBounds({
+      x: display.bounds.x,
+      y: display.bounds.y,
+      width: mainWindow.getBounds().width,
+      height: mainWindow.getBounds().height,
+    });
+  }
+});

@@ -104,6 +104,7 @@ export default function SettingsMenu({
                           setBackgroundColour={(
                             homeTeamBackgroundColour: string
                           ) => updateTeamSettings({ homeTeamBackgroundColour })}
+                          appSettings={appSettings}
                         />
                         <TeamSettings
                           title="Away Team"
@@ -127,6 +128,7 @@ export default function SettingsMenu({
                           setBackgroundColour={(
                             awayTeamBackgroundColour: string
                           ) => updateTeamSettings({ awayTeamBackgroundColour })}
+                          appSettings={appSettings}
                         />
                       </div>
                     </div>
