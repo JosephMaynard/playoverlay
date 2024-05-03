@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Penalty, homeOrAway } from '../../types';
+import { Penalty, TeamSettingsInterface, homeOrAway } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ConfirmModal from '../ConfirmModal/ConfirmModal';
+import PenaltiesBoard from '../PenaltiesLayout/PenaltiesBoard';
 
 export interface Props {
   penalties: Penalty[];
   setPenalties: (penalties: Penalty[]) => void;
   penaltiesFirstTeam: homeOrAway;
   setPenaltiesFirstTeam: (team: homeOrAway) => void;
+  teamSettings: TeamSettingsInterface;
 }
 
 export default function PenaltiesPanel({
@@ -16,6 +18,7 @@ export default function PenaltiesPanel({
   setPenalties,
   penaltiesFirstTeam,
   setPenaltiesFirstTeam,
+  teamSettings,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const nextPenalyTeam: homeOrAway =
@@ -44,7 +47,14 @@ export default function PenaltiesPanel({
           ]}
         />
       )}
-      <p>{penalties.map((pen) => pen.result).join(' - ')}</p>
+      <div className="mb-4 [--base-size:1.25rem]">
+        <PenaltiesBoard
+          className="border border-gray-600"
+          teamSettings={teamSettings}
+          penalties={penalties}
+          penaltiesFirstTeam={penaltiesFirstTeam}
+        />
+      </div>
       <h3 className="text-base font-semibold leading-6 text-gray-900">
         Next Penalty {nextPenalyTeam === 'home' ? 'Home' : 'Away'} Team:
       </h3>

@@ -1,0 +1,12 @@
+.PenaltiesBoard {
+  display: inline-grid;
+  grid-template-columns:
+    calc(var(--base-size) * 3.5) calc(var(--base-size) * 9.25)
+    calc(var(--base-size) * 2.75);
+  grid-template-rows: auto auto;
+  font-size: var(--base-size);
+}
+
+.PenaltiesBoard_score {
+  padding: calc(var(--base-size) / 10) calc(var(--base-size) / 2);
+}

@@ -32,8 +32,8 @@ const WindowControlsPanel: React.FC = () => {
       <ButtonGrid
         className="mb-4"
         buttons={[
-          ...displays.map((display) => ({
-            label: `Move to Screen ${display.id}`,
+          ...displays.map((display, index) => ({
+            label: `Move to Screen ${index + 1}`,
             onClick: () => handleMoveWindow(display.id),
           })),
           {

@@ -31,6 +31,11 @@ export default function DisplayControlsPanel({
             onClick: () => updateMatchSettings({ displayScreen: 'scoreBug' }),
             selected: matchSettings.displayScreen === 'scoreBug',
           },
+          {
+            label: 'Penalties',
+            onClick: () => updateMatchSettings({ displayScreen: 'penalties' }),
+            selected: matchSettings.displayScreen === 'penalties',
+          },
         ]}
       />
     </CollapsiblePanel>

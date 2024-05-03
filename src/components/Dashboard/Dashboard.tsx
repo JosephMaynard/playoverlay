@@ -265,6 +265,7 @@ export default function Dashboard() {
             setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
               updateMatchSettings({ penaltiesFirstTeam })
             }
+            teamSettings={teamSettings}
           />
         </div>
       </main>

@@ -299,6 +299,7 @@ const resetWindow = (
       offset;
 
     if (window.isMinimized()) window.restore(); // Restore the window if it's minimized
+    if (window.isFullScreen) window.setFullScreen(false);
     window.focus(); // Focus the window
     window.setAlwaysOnTop(true); // Temporarily make it top-most
     window.setAlwaysOnTop(false); // Then set it back to normal

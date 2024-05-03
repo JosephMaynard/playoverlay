@@ -1,0 +1,13 @@
+.PenaltyRow {
+  padding: calc(var(--base-size) / 3) calc(var(--base-size) * 0.75);
+  display: flex;
+  gap: calc(var(--base-size) * 0.75);
+  align-items: center;
+  justify-content: center;
+}
+.PenaltyRow_item {
+  width: var(--base-size);
+  height: var(--base-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
