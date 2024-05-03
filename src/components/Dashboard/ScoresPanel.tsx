@@ -15,7 +15,7 @@ export default function ScoresPanel({
   updateScore,
 }: Props) {
   return (
-    <CollapsiblePanel title="Scores" className="mx-auto max-w-4xl">
+    <CollapsiblePanel title="Scores">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <ScoreInput
           title="Home Team"

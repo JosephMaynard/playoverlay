@@ -1,7 +1,9 @@
 import { MatchPhase } from './constants';
 
+export type homeOrAway = 'home' | 'away';
+
 export interface Penalty {
-  team: 'home' | 'away';
+  team: homeOrAway;
   result: 'scored' | 'missed';
 }
 
@@ -31,7 +33,7 @@ export interface TeamSettingsInterface {
 export interface MatchSettings {
   matchPhase?: MatchPhase;
   displayScreen: DisplayScreen;
-  penaltiesFirstTeam: 'home' | 'away';
+  penaltiesFirstTeam: homeOrAway;
 }
 
 export interface Time {

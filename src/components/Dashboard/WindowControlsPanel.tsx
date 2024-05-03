@@ -28,7 +28,7 @@ const WindowControlsPanel: React.FC = () => {
   };
 
   return (
-    <CollapsiblePanel title="Display Window Controls">
+    <CollapsiblePanel title="Window Controls">
       <ButtonGrid
         className="mb-4"
         buttons={[

@@ -28,7 +28,7 @@ export default function TimeControlPanel({
   matchPhase,
 }: Props) {
   return (
-    <CollapsiblePanel title="Time" className="mx-auto max-w-4xl" noPanelPadding>
+    <CollapsiblePanel title="Time" noPanelPadding>
       <div className="bg-black py-1">
         <p className="my-6 text-center text-5xl font-semibold text-white">
           {time.time || 'Not running'}

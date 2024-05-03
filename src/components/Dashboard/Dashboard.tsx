@@ -8,6 +8,7 @@ import {
   AppSettings,
   MatchSettings,
   Penalty,
+  homeOrAway,
 } from '../../types';
 import Preview from '../Preview/Preview';
 import SettingsMenu from './SettingsMenu';
@@ -28,6 +29,7 @@ import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import { timeToString } from '../../utils';
 import WindowControlsPanel from './WindowControlsPanel';
+import PenaltiesPanel from './PenaltiesPanel';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -175,18 +177,14 @@ export default function Dashboard() {
     setPaused(false);
   };
 
-  const addPenalty = (penalty: Penalty) => {
-    setScores({
+  const setPenalties = (penalties: Penalty[]) => {
+    const updatedScores: Scores = {
       ...scores,
-      penalties: [...scores.penalties, penalty],
-    });
-  };
-
-  const undoPenalty = () => {
-    setScores({
-      ...scores,
-      penalties: scores.penalties.slice(0, -1),
-    });
+      penalties,
+    };
+    setScores(updatedScores);
+    window?.electronAPI?.updateScores(updatedScores);
+    console.log(updatedScores);
   };
 
   return (
@@ -259,6 +257,14 @@ export default function Dashboard() {
             startTime={startTime}
             stopTime={stopTime}
             matchPhase={matchSettings.matchPhase}
+          />
+          <PenaltiesPanel
+            penalties={scores.penalties}
+            setPenalties={setPenalties}
+            penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
+            setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
+              updateMatchSettings({ penaltiesFirstTeam })
+            }
           />
         </div>
       </main>
