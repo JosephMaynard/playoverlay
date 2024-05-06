@@ -33,6 +33,11 @@ export default function TimeControlPanel({
         <p className="my-6 text-center text-5xl font-semibold text-white">
           {time.time || 'Not running'}
         </p>
+        {time.remainingTime && (
+          <p className="text-center text-white">
+            Time remaining: {time.remainingTime}
+          </p>
+        )}
         <div className="mx-auto mb-4 text-center">
           <span className="text-s isolate mx-auto inline-flex rounded-md shadow-sm">
             <button

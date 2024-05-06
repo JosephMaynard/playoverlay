@@ -38,9 +38,11 @@ export interface MatchSettings {
 
 export interface Time {
   time?: string;
+  remainingTime?: string;
   additionalTime?: number;
   paused?: boolean;
   showAdditionalTime?: boolean;
+  matchPhase?: MatchPhase;
 }
 
 export interface Display {

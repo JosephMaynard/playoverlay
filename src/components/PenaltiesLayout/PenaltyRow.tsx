@@ -14,7 +14,6 @@ export default function PenaltyRow({ penalties, penaltiesTaken }: Props) {
       result: 'not-taken',
     })),
   ];
-  console.log('PEN', penaltiesToDisplay, 5 - (penalties.length % 5));
   return (
     <div className="PenaltyRow bg-black">
       {(penaltiesToDisplay.length

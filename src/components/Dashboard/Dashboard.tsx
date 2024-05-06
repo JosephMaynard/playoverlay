@@ -128,9 +128,19 @@ export default function Dashboard() {
   const incrementTime = () => {
     seconds = seconds + 1;
     setTime((currentTime) => {
+      console.log(
+        currentTime.matchPhase,
+        matchPhases?.[currentTime.matchPhase]?.end * 60 - seconds
+      );
       const updatedTime = {
         ...currentTime,
         time: timeToString(seconds),
+        remainingTime: timeToString(
+          Math.max(
+            (matchPhases?.[currentTime.matchPhase]?.end || 0) * 60 - seconds,
+            0
+          )
+        ),
       };
       window?.electronAPI?.updateTime(updatedTime);
       return updatedTime;
@@ -141,11 +151,11 @@ export default function Dashboard() {
     if (interval) {
       clearInterval(interval);
     }
+    updateMatchSettings({ matchPhase });
     setPaused(false);
     seconds = matchPhases[matchPhase].start * 60;
-    const initialTime = { ...time, time: timeToString(seconds) };
+    const initialTime = { ...time, time: timeToString(seconds), matchPhase };
     setTime(initialTime);
-    updateMatchSettings({ matchPhase });
     window?.electronAPI?.updateTime(initialTime);
     interval = setInterval(incrementTime, 1000);
   };
@@ -158,6 +168,8 @@ export default function Dashboard() {
       ...time,
       time: undefined,
       additionalTime: undefined,
+      matchPhase: undefined,
+      remainingTime: undefined,
     };
     setPaused(false);
     setTime(updatedTime);
