@@ -41,6 +41,8 @@ let powerSaveBlockerId: number | null = null;
 function createAppWindow(windowName: WindowName) {
   const commonOptions = {
     autoHideMenuBar: true,
+    minWidth: 700,
+    minHeight: 500,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,

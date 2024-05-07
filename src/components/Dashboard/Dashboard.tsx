@@ -211,7 +211,7 @@ export default function Dashboard() {
         appSettings={appSettings}
         updateAppSettings={updateAppSettings}
       />
-      <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6">
+      <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
         <div className="flex  items-center gap-x-4">
           <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
           <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
@@ -228,8 +228,28 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2">
-        <div className="lg:grid lg:grid-cols-1 lg:grid-rows-2 lg:[height:calc(100vh-3.75rem)]">
+      <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-white lg:pb-4">
+        <div className="flex h-16 shrink-0 items-center justify-center">
+          <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+        </div>
+        <nav className="mt-8">
+          <ul role="list" className="flex flex-col items-center space-y-1">
+            <li>
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-700"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <span className="sr-only">Open sidebar</span>
+                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
+        <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
           <Preview keyColour={appSettings.keyColour}>
             <Screens
               teamSettings={teamSettings}
@@ -246,7 +266,7 @@ export default function Dashboard() {
             <WindowControlsPanel />
           </div>
         </div>
-        <div className="lg:overflow-y-auto lg:p-4 lg:[height:calc(100vh-3.75rem)]">
+        <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
           <TimeControlPanel
             time={time}
             pause={pause}
