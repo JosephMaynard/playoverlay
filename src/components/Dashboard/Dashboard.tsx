@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Bars3Icon, Cog8ToothIcon } from '@heroicons/react/24/outline';
 
 import {
   Scores,
@@ -28,8 +28,8 @@ import logo from '../../assets/playoverlay-logo.svg';
 import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import { timeToString } from '../../utils';
-import WindowControlsPanel from './WindowControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
+import AppSettingsModal from './AppSettingsModal';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -45,6 +45,7 @@ export default function Dashboard() {
     useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
   const [paused, setPaused] = useState(false);
+  const [showAppSettings, setShowAppSettings] = useState(false);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
@@ -220,20 +221,28 @@ export default function Dashboard() {
         </div>
         <button
           type="button"
-          className="-m-2.5 p-2.5 text-gray-700"
+          className="-m-2.5 ml-auto mr-4  p-2.5 text-gray-700"
           onClick={() => setSidebarOpen(true)}
         >
           <span className="sr-only">Open sidebar</span>
           <Bars3Icon className="h-6 w-6" aria-hidden="true" />
         </button>
+        <button
+          type="button"
+          className="-m-2.5 p-2.5 text-gray-700"
+          onClick={() => setShowAppSettings(true)}
+        >
+          <span className="sr-only">Open App Settings</span>
+          <Cog8ToothIcon className="h-6 w-6" aria-hidden="true" />
+        </button>
       </div>
 
-      <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-white lg:pb-4">
+      <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
         <div className="flex h-16 shrink-0 items-center justify-center">
           <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
         </div>
-        <nav className="mt-8">
-          <ul role="list" className="flex flex-col items-center space-y-1">
+        <nav className="mt-8 flex grow flex-col">
+          <ul role="list" className="flex flex-1 flex-col items-center">
             <li>
               <button
                 type="button"
@@ -241,7 +250,23 @@ export default function Dashboard() {
                 onClick={() => setSidebarOpen(true)}
               >
                 <span className="sr-only">Open sidebar</span>
-                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                <Bars3Icon
+                  className="h-8 w-8 text-gray-500"
+                  aria-hidden="true"
+                />
+              </button>
+            </li>
+            <li className="mt-auto">
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-700"
+                onClick={() => setShowAppSettings(true)}
+              >
+                <span className="sr-only">Open App Settings</span>
+                <Cog8ToothIcon
+                  className="h-8 w-8 text-gray-500"
+                  aria-hidden="true"
+                />
               </button>
             </li>
           </ul>
@@ -263,7 +288,6 @@ export default function Dashboard() {
               updateMatchSettings={updateMatchSettings}
               matchSettings={matchSettings}
             />
-            <WindowControlsPanel />
           </div>
         </div>
         <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
@@ -303,6 +327,12 @@ export default function Dashboard() {
           />
         </div>
       </main>
+      <AppSettingsModal
+        open={showAppSettings}
+        setOpen={() => setShowAppSettings(false)}
+        appSettings={appSettings}
+        updateAppSettings={updateAppSettings}
+      />
     </div>
   );
 }

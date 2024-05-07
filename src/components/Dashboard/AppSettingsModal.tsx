@@ -1,9 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import { Display } from '../../types';
+import { useEffect, useState } from 'react';
+import { AppSettings, Display } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
+import ColourPicker from '../ColorPicker/ColorPicker';
+import WideModal from '../Modal/WideModal';
 
-const WindowControlsPanel: React.FC = () => {
+export interface Props {
+  open: boolean;
+  setOpen: () => void;
+  appSettings: AppSettings;
+  updateAppSettings: (updatedSettings: Partial<AppSettings>) => void;
+}
+
+export default function AppSettingsModal({
+  open,
+  setOpen,
+  appSettings,
+  updateAppSettings,
+}: Props) {
   const [displays, setDisplays] = useState<Display[]>([]);
 
   useEffect(() => {
@@ -26,11 +39,17 @@ const WindowControlsPanel: React.FC = () => {
   const handleMoveWindow = (screenId: number) => {
     window?.electronAPI?.moveWindowToScreen(screenId);
   };
-
   return (
-    <CollapsiblePanel title="Window Controls">
+    <WideModal open={open} setOpen={setOpen} title="App Settings">
+      <ColourPicker
+        label="Key Colour"
+        onChange={(keyColour: string) => {
+          updateAppSettings({ keyColour });
+        }}
+        value={appSettings.keyColour}
+      />
       <ButtonGrid
-        className="mb-4"
+        className="mt-4"
         buttons={[
           ...displays.map((display, index) => ({
             label: `Move to Screen ${index + 1}`,
@@ -50,8 +69,6 @@ const WindowControlsPanel: React.FC = () => {
           },
         ]}
       />
-    </CollapsiblePanel>
+    </WideModal>
   );
-};
-
-export default WindowControlsPanel;
+}

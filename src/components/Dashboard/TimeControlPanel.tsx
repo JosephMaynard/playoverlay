@@ -85,7 +85,7 @@ export default function TimeControlPanel({
                   type="number"
                   name="additionalTime"
                   id="additionalTime"
-                  className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   onChange={(e) => setAdditionalTime(Number(e.target.value))}
                   value={time.additionalTime || ''}
                 />
@@ -95,7 +95,7 @@ export default function TimeControlPanel({
                   onClick={() => setAdditionalTime()}
                 >
                   <XMarkIcon
-                    className="-ml-0.5 h-5 w-5 text-gray-400"
+                    className="-ml-0.5 h-5 w-5 text-gray-900"
                     aria-hidden="true"
                   />
                 </button>
@@ -137,12 +137,12 @@ export default function TimeControlPanel({
       >
         <TimeDisplay time={time} />
 
-        <div className="mx-auto mb-4 text-center">
+        <div className="mx-auto mt-8 text-center">
           <span className="text-s isolate mx-auto inline-flex rounded-md shadow-sm">
             <button
               type="button"
               disabled={!time.time}
-              className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-600)}
             >
               -10m
@@ -150,7 +150,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-60)}
             >
               -1m
@@ -158,7 +158,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-10)}
             >
               -10s
@@ -166,7 +166,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-1)}
             >
               -1s
@@ -175,7 +175,7 @@ export default function TimeControlPanel({
               <button
                 type="button"
                 disabled={!time.time}
-                className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+                className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
                 onClick={() => resume()}
               >
                 <PlayIcon className="h-5 w-5" aria-hidden="true" />
@@ -184,7 +184,7 @@ export default function TimeControlPanel({
               <button
                 type="button"
                 disabled={!time.time}
-                className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+                className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
                 onClick={() => pause()}
               >
                 <PauseIcon className="h-5 w-5" aria-hidden="true" />
@@ -193,7 +193,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(1)}
             >
               +1s
@@ -201,7 +201,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(10)}
             >
               +10s
@@ -209,7 +209,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex  items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(60)}
             >
               +1m
@@ -217,7 +217,7 @@ export default function TimeControlPanel({
             <button
               type="button"
               disabled={!time.time}
-              className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
+              className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(600)}
             >
               +10m

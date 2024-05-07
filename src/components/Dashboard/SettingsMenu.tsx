@@ -55,7 +55,7 @@ export default function SettingsMenu({
                     <div className="px-4 sm:px-6">
                       <div className="flex items-start justify-between">
                         <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
-                          Settings
+                          Team Settings
                         </Dialog.Title>
                         <div className="ml-3 flex h-7 items-center">
                           <button
@@ -72,16 +72,6 @@ export default function SettingsMenu({
                     </div>
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">
-                        <CollapsiblePanel title="System">
-                          <ColourPicker
-                            label="Key Colour"
-                            onChange={(keyColour: string) => {
-                              updateAppSettings({ keyColour });
-                            }}
-                            value={appSettings.keyColour}
-                          />
-                        </CollapsiblePanel>
-
                         <TeamSettings
                           title="Home Team"
                           teamNameFull={teamSettings.homeTeamNameFull}
