@@ -1,5 +1,6 @@
 import { TeamSettingsInterface, Time, Scores } from 'src/types';
 import './MatchTitleLayout.css';
+import { calculatePenalties } from '../../utils';
 
 export interface Props {
   scores: Scores;
@@ -14,6 +15,8 @@ export default function MatchTitleLayout({
   time,
   active,
 }: Props) {
+  const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
+    calculatePenalties(scores.penalties);
   return (
     <div
       className={`MatchTitleLayout ${active ? 'MatchTitleLayout_active' : 'MatchTitleLayout_hidden'} absolute left-0 top-0 h-full w-full`}
@@ -26,7 +29,12 @@ export default function MatchTitleLayout({
         </div>
       </div>
       <div className="MatchTitleLayout_score bg-white text-center font-bold tabular-nums text-black">
-        {scores.homeTeam} - {scores.awayTeam}
+        <div>
+          {scores.homeTeam} - {scores.awayTeam}
+        </div>
+        {scores.penalties.length > 0 && (
+          <div className="MatchTitleLayout_penalties">{`(Pens ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored})`}</div>
+        )}
       </div>
       <div className="MatchTitleLayout_awayTeam flex items-center overflow-hidden">
         <div

@@ -56,6 +56,11 @@
   animation: awayTeam_hidden var(--animation-duration) forwards;
 }
 
+.MatchTitleLayout_penalties {
+  font-size: calc(var(--base-size) * 0.85);
+  margin-bottom: calc(var(--base-size) * 0.25);
+}
+
 @keyframes layout_active {
   0% {
     transform: translateY(50%) translateZ(0);

@@ -3,6 +3,7 @@ import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
 import PenaltyRow from './PenaltyRow';
 
 import './PenaltiesBoard.css';
+import { calculatePenalties } from '../../utils';
 
 export interface Props {
   penalties: Penalty[];
@@ -17,12 +18,8 @@ export default function PenaltiesBoard({
   teamSettings,
   className,
 }: Props) {
-  const homeTeamPenaltiesScored = penalties.filter(
-    (penalty) => penalty.team === 'home' && penalty.result === 'scored'
-  ).length;
-  const awayTeamPenaltiesScored = penalties.filter(
-    (penalty) => penalty.team === 'away' && penalty.result === 'scored'
-  ).length;
+  const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
+    calculatePenalties(penalties);
   return (
     <div className={`PenaltiesBoard${className ? ` ${className}` : ''}`}>
       <ScoresTeamName

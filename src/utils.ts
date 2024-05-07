@@ -1,3 +1,5 @@
+import { Penalty } from './types';
+
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
   const seconds = Math.floor(timeInSeconds % 60);
@@ -42,3 +44,16 @@ export function checkColors(
 
 // Example usage
 // console.log(checkColors('#FF0000', '#FF0100')); // => false
+
+export function calculatePenalties(penalties: Penalty[]) {
+  const homeTeamPenaltiesScored = penalties.filter(
+    (penalty) => penalty.team === 'home' && penalty.result === 'scored'
+  ).length;
+  const awayTeamPenaltiesScored = penalties.filter(
+    (penalty) => penalty.team === 'away' && penalty.result === 'scored'
+  ).length;
+  return {
+    homeTeamPenaltiesScored,
+    awayTeamPenaltiesScored,
+  };
+}
