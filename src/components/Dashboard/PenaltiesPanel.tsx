@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Penalty, TeamSettingsInterface, homeOrAway } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import ConfirmModal from '../ConfirmModal/ConfirmModal';
+import Modal from '../Modal/Modal';
 import PenaltiesBoard from '../PenaltiesLayout/PenaltiesBoard';
 
 export interface Props {
@@ -112,17 +112,21 @@ export default function PenaltiesPanel({
           },
         ]}
       />
-      <ConfirmModal
+      <Modal
         open={modalOpen}
         setOpen={setModalOpen}
         title="Reset the penalties?"
-        body="Are you sure you want to reset the penalties?"
         actionButtonLabel="Reset penalties"
+        icon="warning"
         action={() => {
           setPenalties([]);
           setModalOpen(false);
         }}
-      />
+      >
+        <p className="text-sm text-gray-500">
+          Are you sure you want to reset the penalties?
+        </p>
+      </Modal>
     </CollapsiblePanel>
   );
 }

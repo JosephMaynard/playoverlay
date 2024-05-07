@@ -128,10 +128,6 @@ export default function Dashboard() {
   const incrementTime = () => {
     seconds = seconds + 1;
     setTime((currentTime) => {
-      console.log(
-        currentTime.matchPhase,
-        matchPhases?.[currentTime.matchPhase]?.end * 60 - seconds
-      );
       const updatedTime = {
         ...currentTime,
         time: timeToString(seconds),
@@ -154,7 +150,14 @@ export default function Dashboard() {
     updateMatchSettings({ matchPhase });
     setPaused(false);
     seconds = matchPhases[matchPhase].start * 60;
-    const initialTime = { ...time, time: timeToString(seconds), matchPhase };
+    const initialTime = {
+      ...time,
+      time: timeToString(seconds),
+      matchPhase,
+      remainingTime: timeToString(
+        Math.max((matchPhases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
+      ),
+    };
     setTime(initialTime);
     window?.electronAPI?.updateTime(initialTime);
     interval = setInterval(incrementTime, 1000);
@@ -196,7 +199,6 @@ export default function Dashboard() {
     };
     setScores(updatedScores);
     window?.electronAPI?.updateScores(updatedScores);
-    console.log(updatedScores);
   };
 
   return (
@@ -226,7 +228,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <main className="grid grid-cols-1 lg:grid-cols-2">
+      <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2">
         <div className="lg:grid lg:grid-cols-1 lg:grid-rows-2 lg:[height:calc(100vh-3.75rem)]">
           <Preview keyColour={appSettings.keyColour}>
             <Screens
@@ -245,12 +247,6 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="lg:overflow-y-auto lg:p-4 lg:[height:calc(100vh-3.75rem)]">
-          <ScoresPanel
-            teamSettings={teamSettings}
-            scores={scores}
-            time={time}
-            updateScore={updateScore}
-          />
           <TimeControlPanel
             time={time}
             pause={pause}
@@ -269,6 +265,12 @@ export default function Dashboard() {
             startTime={startTime}
             stopTime={stopTime}
             matchPhase={matchSettings.matchPhase}
+          />
+          <ScoresPanel
+            teamSettings={teamSettings}
+            scores={scores}
+            time={time}
+            updateScore={updateScore}
           />
           <PenaltiesPanel
             penalties={scores.penalties}

@@ -26,7 +26,7 @@ export default function ScoreInput({
         <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
           <div className="ml-4 mt-2">
             <h3 className="text-base font-semibold leading-6 text-gray-900">
-              {title}
+              {title} Score
             </h3>
           </div>
           <div className="ml-4 mt-2 flex-shrink-0 [--base-size:1rem]">
@@ -39,11 +39,8 @@ export default function ScoreInput({
         </div>
       </div>
       <div className="p-3">
-        <label
-          htmlFor={id}
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          Score
+        <label htmlFor={id} className="sr-only">
+          {title} Score
         </label>
         <div className="mb-4 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
