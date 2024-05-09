@@ -33,7 +33,12 @@ export default function MatchTitleLayout({
           {scores.homeTeam} - {scores.awayTeam}
         </div>
         {scores.penalties.length > 0 && (
-          <div className="MatchTitleLayout_penalties">{`(Pens ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored})`}</div>
+          <div className="MatchTitleLayout_penalties">
+            <div className="MatchTitleLayout_penalties_title bg-black  text-center text-white">
+              Penalties
+            </div>
+            <div>{`( ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored} )`}</div>
+          </div>
         )}
       </div>
       <div className="MatchTitleLayout_awayTeam flex items-center overflow-hidden">
