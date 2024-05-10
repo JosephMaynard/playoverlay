@@ -1,6 +1,8 @@
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig, mergeConfig } from 'vite';
 import { getBuildConfig, external, pluginHotRestart } from './vite.base.config';
+import { bytecodePlugin } from 'electron-vite';
+import { obfuscator } from 'rollup-obfuscator';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -20,9 +22,10 @@ export default defineConfig((env) => {
           chunkFileNames: '[name].js',
           assetFileNames: '[name].[ext]',
         },
+        plugins: [obfuscator()],
       },
     },
-    plugins: [pluginHotRestart('reload')],
+    plugins: [pluginHotRestart('reload'), bytecodePlugin()],
   };
 
   return mergeConfig(getBuildConfig(forgeEnv), config);
