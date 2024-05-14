@@ -1,6 +1,13 @@
 import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig, mergeConfig } from 'vite';
-import { getBuildConfig, getBuildDefine, external, pluginHotRestart } from './vite.base.config';
+import {
+  getBuildConfig,
+  getBuildDefine,
+  external,
+  pluginHotRestart,
+} from './vite.base.config';
+import { bytecodePlugin } from 'electron-vite';
+import { obfuscator } from 'rollup-obfuscator';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -16,9 +23,10 @@ export default defineConfig((env) => {
       },
       rollupOptions: {
         external,
+        plugins: [obfuscator()],
       },
     },
-    plugins: [pluginHotRestart('restart')],
+    plugins: [pluginHotRestart('restart'), bytecodePlugin()],
     define,
     resolve: {
       // Load the Node.js entry.
