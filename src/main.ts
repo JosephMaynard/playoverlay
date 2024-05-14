@@ -5,6 +5,7 @@ import {
   Settings,
   powerSaveBlocker,
   screen,
+  Menu,
 } from 'electron';
 import path from 'path';
 
@@ -102,8 +103,10 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
-  // displayWindow.webContents.openDevTools();
+  // if (process.env.NODE_ENV !== 'production') {
+  //   mainWindow.webContents.openDevTools();
+  //   displayWindow.webContents.openDevTools();
+  // }
 
   // Handle IPC
   ipcMain.on('update-score', (_, scores: Scores) => {
@@ -206,6 +209,13 @@ app.on('ready', () => {
   createWindow();
   setupScreenHandling();
   setupDisplayListeners();
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'PlayOverlay',
+      submenu: [{ role: 'quit' }, { role: 'about' }],
+    },
+  ]);
+  Menu.setApplicationMenu(menu);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -322,3 +332,23 @@ ipcMain.on('reset-windows', () => {
   resetWindow(displayWindow, DISPLAY_WINDOW, 50);
   resetWindow(mainWindow, MAIN_WINDOW, -50);
 });
+
+// Prevent DevTools being opened
+if (process.env.NODE_ENV === 'production') {
+  app.on('browser-window-created', (_, window) => {
+    window.webContents.on('before-input-event', (event, input) => {
+      // Disable Developer Tools on Ctrl+Shift+I or F12
+      if (
+        ((input.control || input.meta) &&
+          input.shift &&
+          input.key.toLowerCase() === 'i') ||
+        input.key === 'F12'
+      ) {
+        event.preventDefault();
+      }
+    });
+    window.webContents.on('devtools-opened', () => {
+      window.webContents.closeDevTools();
+    });
+  });
+}
