@@ -37,6 +37,9 @@ declare global {
       getScreenInfo: () => void;
       onScreenInfo: (callback: (displays: Display[]) => void) => () => void;
       resetWindows: () => void;
+      lockWindows: () => void;
+      unlockWindows: () => void;
+      getLockStatus: () => Promise<boolean>;
     };
   }
 }

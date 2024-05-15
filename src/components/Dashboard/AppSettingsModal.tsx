@@ -3,6 +3,11 @@ import { AppSettings, Display } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import WideModal from '../Modal/WideModal';
+import {
+  ArrowsPointingOutIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+} from '@heroicons/react/24/outline';
 
 export interface Props {
   open: boolean;
@@ -18,6 +23,7 @@ export default function AppSettingsModal({
   updateAppSettings,
 }: Props) {
   const [displays, setDisplays] = useState<Display[]>([]);
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     // Request initial screens information on component mount
@@ -29,6 +35,9 @@ export default function AppSettingsModal({
     const cleanupDisplayChange =
       window?.electronAPI?.onDisplayChange(setDisplays);
 
+    // Fetch initial lock status
+    window?.electronAPI?.getLockStatus().then(setIsLocked);
+
     // Cleanup both listeners when the component unmounts
     return () => {
       cleanupScreensInfo();
@@ -39,6 +48,17 @@ export default function AppSettingsModal({
   const handleMoveWindow = (screenId: number) => {
     window?.electronAPI?.moveWindowToScreen(screenId);
   };
+
+  const handleLockWindows = () => {
+    window?.electronAPI?.lockWindows();
+    setIsLocked(true);
+  };
+
+  const handleUnlockWindows = () => {
+    window?.electronAPI?.unlockWindows();
+    setIsLocked(false);
+  };
+
   return (
     <WideModal open={open} setOpen={setOpen} title="App Settings">
       <ColourPicker
@@ -55,6 +75,12 @@ export default function AppSettingsModal({
             ...displays.map((display, index) => ({
               label: `Move to Screen ${index + 1}`,
               onClick: () => handleMoveWindow(display.id),
+              icon: (
+                <ArrowsPointingOutIcon
+                  className="-ml-0.5 h-5 w-5"
+                  aria-hidden="true"
+                />
+              ),
             })),
           ]}
         />
@@ -75,6 +101,17 @@ export default function AppSettingsModal({
             onClick: () => window?.electronAPI?.resetWindows(),
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
+          },
+          {
+            label: isLocked ? 'Unlock Windows' : 'Lock Windows',
+            onClick: isLocked ? handleUnlockWindows : handleLockWindows,
+            color: 'text-white',
+            backgroundColor: isLocked ? 'bg-red-600' : 'bg-green-600',
+            icon: isLocked ? (
+              <LockOpenIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+            ) : (
+              <LockClosedIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+            ),
           },
         ]}
       />

@@ -9,7 +9,6 @@ import {
   AppSettings,
   MatchSettings,
 } from './types';
-import { getAppSettings, getTeamSettings } from './storage';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
@@ -66,4 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeAllListeners('screens-info');
   },
   resetWindows: () => ipcRenderer.send('reset-windows'),
+  lockWindows: () => ipcRenderer.send('lock-windows'),
+  unlockWindows: () => ipcRenderer.send('unlock-windows'),
+  getLockStatus: () => ipcRenderer.invoke('get-lock-status'),
 });
