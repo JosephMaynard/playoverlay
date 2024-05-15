@@ -51,7 +51,6 @@ export default function Dashboard() {
     window?.electronAPI?.updateScores(scores);
     window?.electronAPI?.updateMatchSettings(matchSettings);
     window?.electronAPI?.updateTime(time);
-    window?.electronAPI?.startPowerSaveBlocker();
 
     window?.electronAPI
       ?.getTeamSettings()
@@ -82,10 +81,7 @@ export default function Dashboard() {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
       });
-
-    return () => {
-      window?.electronAPI?.stopPowerSaveBlocker();
-    };
+    0;
   }, []);
 
   const updateScore = (scoreUpdates: Partial<Scores>) => {

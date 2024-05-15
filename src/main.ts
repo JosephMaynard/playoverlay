@@ -39,6 +39,22 @@ let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 
+// Prevent more than one instance of the app running
+const additionalData = { playOverlay: 'PlayOverlay' };
+const gotTheLock = app.requestSingleInstanceLock(additionalData);
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 function createAppWindow(windowName: WindowName) {
   const commonOptions = {
     autoHideMenuBar: true,
@@ -264,6 +280,9 @@ function sendToScreen(
       width: window.getBounds().width,
       height: window.getBounds().height,
     });
+    window.focus(); // Focus the window
+    window.setAlwaysOnTop(true); // Temporarily make it top-most
+    window.setAlwaysOnTop(false); // Then set it back to normal
   }
 }
 

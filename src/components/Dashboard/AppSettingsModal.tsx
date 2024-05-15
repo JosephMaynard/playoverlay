@@ -48,13 +48,22 @@ export default function AppSettingsModal({
         }}
         value={appSettings.keyColour}
       />
+      {displays.length > 1 ? (
+        <ButtonGrid
+          className="mt-4"
+          buttons={[
+            ...displays.map((display, index) => ({
+              label: `Move to Screen ${index + 1}`,
+              onClick: () => handleMoveWindow(display.id),
+            })),
+          ]}
+        />
+      ) : (
+        <p>No external displays detected.</p>
+      )}
       <ButtonGrid
         className="mt-4"
         buttons={[
-          ...displays.map((display, index) => ({
-            label: `Move to Screen ${index + 1}`,
-            onClick: () => handleMoveWindow(display.id),
-          })),
           {
             label: 'Toggle Fullscreen',
             onClick: () => window?.electronAPI?.toggleFullscreen(),
