@@ -67,5 +67,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   resetWindows: () => ipcRenderer.send('reset-windows'),
   lockWindows: () => ipcRenderer.send('lock-windows'),
   unlockWindows: () => ipcRenderer.send('unlock-windows'),
-  getLockStatus: () => ipcRenderer.invoke('get-lock-status'),
+  getLockStatus: () => ipcRenderer.send('get-lock-status'),
+  onLockStatus: (callback: (isLocked: boolean) => void) => {
+    ipcRenderer.on('lock-status-info', (_, isLocked: boolean) =>
+      callback(isLocked)
+    );
+    return () => ipcRenderer.removeAllListeners('lock-status-info');
+  },
 });

@@ -46,7 +46,7 @@ let isLocked = false; // Track lock status
 const additionalData = { playOverlay: 'PlayOverlay' };
 const gotTheLock = app.requestSingleInstanceLock(additionalData);
 
-if (!gotTheLock) {
+if (!gotTheLock && process.env.NODE_ENV === 'production') {
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -122,7 +122,7 @@ const createWindows = () => {
     );
   }
 
-  // Open the DevTools.
+  // Open the DevTools in dev mode
   // if (process.env.NODE_ENV !== 'production') {
   //   mainWindow.webContents.openDevTools();
   //   displayWindow.webContents.openDevTools();
@@ -267,8 +267,8 @@ function setupIPCHandlers() {
     unlockWindows();
   });
 
-  ipcMain.handle('get-lock-status', () => {
-    return getLockStatus();
+  ipcMain.on('get-lock-status', (event) => {
+    event.reply('lock-status-info', getLockStatus());
   });
 }
 
@@ -281,6 +281,9 @@ function resetWindow(
   windowHeight: number = 600
 ) {
   if (window) {
+    if (window.isMinimized()) window.restore();
+    if (window.isFullScreen()) window.setFullScreen(false);
+
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     const x =
@@ -289,8 +292,6 @@ function resetWindow(
       Math.floor(primaryDisplay.bounds.y + (height - windowHeight) / 2) +
       offset;
 
-    if (window.isMinimized()) window.restore();
-    if (window.isFullScreen()) window.setFullScreen(false);
     window.focus();
     window.setAlwaysOnTop(true);
     window.setAlwaysOnTop(false);
@@ -323,10 +324,12 @@ function sendToScreen(
 // Setup display listeners
 function setupDisplayListeners() {
   screen.on('display-added', (_, newDisplay) => {
+    ensureWindowsAreVisible(); // Ensure windows are visible when a display is added
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 
   screen.on('display-removed', (_, oldDisplay) => {
+    ensureWindowsAreVisible(); // Ensure windows are visible when a display is removed
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 }
@@ -335,6 +338,7 @@ function setupDisplayListeners() {
 app.on('ready', () => {
   createWindows();
   setupDisplayListeners();
+  ensureWindowsAreVisible(); // Ensure windows are visible on startup
   const menu = Menu.buildFromTemplate([
     {
       label: 'PlayOverlay',
@@ -408,4 +412,43 @@ function unlockWindows() {
 
 function getLockStatus() {
   return isLocked;
+}
+
+function ensureWindowsAreVisible() {
+  const displays = screen.getAllDisplays();
+  const visibleBounds = displays.reduce(
+    (acc, display) => {
+      return {
+        x: Math.min(acc.x, display.bounds.x),
+        y: Math.min(acc.y, display.bounds.y),
+        width: Math.max(acc.width, display.bounds.x + display.bounds.width),
+        height: Math.max(acc.height, display.bounds.y + display.bounds.height),
+      };
+    },
+    { x: Infinity, y: Infinity, width: -Infinity, height: -Infinity }
+  );
+
+  const checkAndMoveWindow = (
+    window: BrowserWindow | null,
+    windowName: WindowName
+  ) => {
+    if (window) {
+      const [windowX, windowY] = window.getPosition();
+      const windowBounds = window.getBounds();
+
+      const isVisible =
+        windowX >= visibleBounds.x &&
+        windowY >= visibleBounds.y &&
+        windowX + windowBounds.width <= visibleBounds.width &&
+        windowY + windowBounds.height <= visibleBounds.height;
+
+      if (!isVisible) {
+        resetWindow(window, windowName);
+        unlockWindows(); // Unlock windows if they are moved
+      }
+    }
+  };
+
+  checkAndMoveWindow(mainWindow, MAIN_WINDOW);
+  checkAndMoveWindow(displayWindow, DISPLAY_WINDOW);
 }

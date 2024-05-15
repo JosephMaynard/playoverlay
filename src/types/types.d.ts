@@ -39,7 +39,8 @@ declare global {
       resetWindows: () => void;
       lockWindows: () => void;
       unlockWindows: () => void;
-      getLockStatus: () => Promise<boolean>;
+      getLockStatus: () => void;
+      onLockStatus: (callback: (lockStatus: boolean) => void) => () => void;
     };
   }
 }

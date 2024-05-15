@@ -36,12 +36,15 @@ export default function AppSettingsModal({
       window?.electronAPI?.onDisplayChange(setDisplays);
 
     // Fetch initial lock status
-    window?.electronAPI?.getLockStatus().then(setIsLocked);
+    window?.electronAPI?.getLockStatus();
+    // Set up the listener for dynamic display changes
+    const cleanupLockStatus = window?.electronAPI?.onLockStatus(setIsLocked);
 
     // Cleanup both listeners when the component unmounts
     return () => {
       cleanupScreensInfo();
       cleanupDisplayChange();
+      cleanupLockStatus();
     };
   }, []);
 
@@ -67,6 +70,7 @@ export default function AppSettingsModal({
           updateAppSettings({ keyColour });
         }}
         value={appSettings.keyColour}
+        disabled={isLocked}
       />
       {displays.length > 1 ? (
         <ButtonGrid
@@ -75,6 +79,7 @@ export default function AppSettingsModal({
             ...displays.map((display, index) => ({
               label: `Move to Screen ${index + 1}`,
               onClick: () => handleMoveWindow(display.id),
+              disabled: isLocked,
               icon: (
                 <ArrowsPointingOutIcon
                   className="-ml-0.5 h-5 w-5"
@@ -95,12 +100,14 @@ export default function AppSettingsModal({
             onClick: () => window?.electronAPI?.toggleFullscreen(),
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
+            disabled: isLocked,
           },
           {
             label: 'Reset positions',
             onClick: () => window?.electronAPI?.resetWindows(),
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
+            disabled: isLocked,
           },
           {
             label: isLocked ? 'Unlock Windows' : 'Lock Windows',
