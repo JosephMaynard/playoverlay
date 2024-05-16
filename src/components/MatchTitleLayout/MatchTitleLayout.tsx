@@ -25,7 +25,11 @@ export default function MatchTitleLayout({
         <div
           className={`MatchTitleLayout_homeTeam_inner ${active ? 'MatchTitleLayout_homeTeam_inner_active' : 'MatchTitleLayout_homeTeam_inner_hidden'} w-full max-w-full truncate bg-black text-center text-white`}
         >
-          {settings.homeTeamNameFull}
+          <div>{settings.homeTeamNameFull}</div>
+          <div
+            className="MatchTitleLayout_teamColour"
+            style={{ backgroundColor: settings.homeTeamBackgroundColour }}
+          />
         </div>
       </div>
       <div className="MatchTitleLayout_score bg-white text-center font-bold tabular-nums text-black">
@@ -45,7 +49,11 @@ export default function MatchTitleLayout({
         <div
           className={`MatchTitleLayout_awayTeam_inner ${active ? 'MatchTitleLayout_awayTeam_inner_active' : 'MatchTitleLayout_awayTeam_inner_hidden'} w-full max-w-full truncate bg-black  text-center text-white`}
         >
-          {settings.awayTeamNameFull}
+          <div>{settings.awayTeamNameFull}</div>
+          <div
+            className="MatchTitleLayout_teamColour"
+            style={{ backgroundColor: settings.awayTeamBackgroundColour }}
+          />
         </div>
       </div>
     </div>

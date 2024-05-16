@@ -28,7 +28,7 @@
 .MatchTitleLayout_score {
   grid-area: score;
   font-size: calc(var(--base-size) * 1.5);
-  padding: calc(var(--base-size) * 0.25) calc(var(--base-size) * 0.75);
+  padding: calc(var(--base-size) * 0.375) calc(var(--base-size) * 0.75);
 }
 
 .MatchTitleLayout_awayTeam {
@@ -65,6 +65,11 @@
   font-size: calc(var(--base-size) * 0.5);
   padding: calc(var(--base-size) * 0.0625) calc(var(--base-size) * 0.125);
   margin: calc(var(--base-size) * 0.125) 0 calc(var(--base-size) * 0.25);
+}
+
+.MatchTitleLayout_teamColour {
+  height: calc(var(--base-size) * 0.25);
+  margin: calc(var(--base-size) * 0.125) 0 calc(var(--base-size) * 0.25) 0;
 }
 
 @keyframes layout_active {
