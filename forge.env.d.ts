@@ -10,6 +10,9 @@ declare global {
   const DISPLAY_WINDOW_VITE_DEV_SERVER_URL: string;
   const DISPLAY_WINDOW_VITE_NAME: string;
 
+  const ACTIVATION_WINDOW_VITE_DEV_SERVER_URL: string;
+  const ACTIVATION_WINDOW_VITE_NAME: string;
+
   namespace NodeJS {
     interface Process {
       // Used for hot reload after preload scripts.

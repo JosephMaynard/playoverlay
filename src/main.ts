@@ -22,13 +22,13 @@ import {
   WindowName,
   getAppSettings,
   getTeamSettings,
-  getWindowPosition,
-  getWindowSize,
   setAppSettings,
   setTeamSettings,
-  setWindowPosition,
-  setWindowSize,
 } from './storage';
+import createAppWindow from './main-functions/createAppWindow';
+import resetWindow from './main-functions/resetWindow';
+import sendToScreen from './main-functions/sendToScreen';
+import isLicensed from './main-functions/isLicensed';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -39,6 +39,7 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
+let activationWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
 
@@ -57,48 +58,36 @@ if (!gotTheLock && process.env.NODE_ENV === 'production') {
   });
 }
 
-// Function to create windows
-function createAppWindow(windowName: WindowName) {
-  const commonOptions = {
+// Function to create the registration window
+function createActivationWindow() {
+  activationWindow = new BrowserWindow({
     autoHideMenuBar: true,
-    minWidth: 700,
-    minHeight: 500,
+    minWidth: 400,
+    minHeight: 300,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
     },
-  };
-
-  const size = getWindowSize(windowName);
-  const position = getWindowPosition(windowName);
-  const specificOptions = {
-    width: size[0],
-    height: size[1],
-    x: position?.[0],
-    y: position?.[1],
-  };
-
-  const window = new BrowserWindow({ ...commonOptions, ...specificOptions });
-
-  window.on('resized', () => {
-    try {
-      setWindowSize(windowName, window.getSize());
-    } catch (error) {
-      console.error(`Error when resizing ${windowName}:`, error);
-    }
   });
 
-  window.on('moved', () => {
-    try {
-      setWindowPosition(windowName, window.getPosition());
-    } catch (error) {
-      console.error(`Error when moving ${windowName}:`, error);
-    }
+  // Load the registration HTML or URL
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    activationWindow.loadURL(
+      `${ACTIVATION_WINDOW_VITE_DEV_SERVER_URL}/activation.html`
+    );
+  } else {
+    activationWindow.loadFile(
+      `../renderer/${ACTIVATION_WINDOW_VITE_NAME}/activation.html`
+    );
+  }
+
+  activationWindow.on('closed', () => {
+    activationWindow = null;
   });
 
-  return window;
+  return activationWindow;
 }
 
 // Function to create main and display windows
@@ -139,6 +128,28 @@ const createWindows = () => {
     displayWindow = null;
   });
 };
+
+// Function to open main and display windows
+function openMainAndDisplayWindows() {
+  if (activationWindow) {
+    activationWindow.close();
+    activationWindow = null;
+  }
+  createWindows();
+}
+
+// Function to open registration window and close main & display windows
+function openactivationWindow() {
+  if (mainWindow) {
+    mainWindow.close();
+    mainWindow = null;
+  }
+  if (displayWindow) {
+    displayWindow.close();
+    displayWindow = null;
+  }
+  createActivationWindow();
+}
 
 // Setup IPC handlers
 function setupIPCHandlers() {
@@ -272,55 +283,6 @@ function setupIPCHandlers() {
   });
 }
 
-// Reset window to default position
-function resetWindow(
-  window: BrowserWindow | null,
-  windowName: WindowName,
-  offset: number = 0,
-  windowWidth: number = 800,
-  windowHeight: number = 600
-) {
-  if (window) {
-    if (window.isMinimized()) window.restore();
-    if (window.isFullScreen()) window.setFullScreen(false);
-
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
-    const x =
-      Math.floor(primaryDisplay.bounds.x + (width - windowWidth) / 2) + offset;
-    const y =
-      Math.floor(primaryDisplay.bounds.y + (height - windowHeight) / 2) +
-      offset;
-
-    window.focus();
-    window.setAlwaysOnTop(true);
-    window.setAlwaysOnTop(false);
-    window.setBounds({ x, y, width: windowWidth, height: windowHeight });
-
-    setWindowPosition(windowName, window.getPosition());
-    setWindowSize(windowName, window.getSize());
-  }
-}
-
-// Send window to a specific screen
-function sendToScreen(
-  window: BrowserWindow | null,
-  display: Electron.Display
-): void {
-  if (window) {
-    const { bounds } = display;
-    window.setBounds({
-      x: bounds.x,
-      y: bounds.y,
-      width: window.getBounds().width,
-      height: window.getBounds().height,
-    });
-    window.focus();
-    window.setAlwaysOnTop(true);
-    window.setAlwaysOnTop(false);
-  }
-}
-
 // Setup display listeners
 function setupDisplayListeners() {
   screen.on('display-added', (_, newDisplay) => {
@@ -336,9 +298,13 @@ function setupDisplayListeners() {
 
 // App ready event
 app.on('ready', () => {
-  createWindows();
-  setupDisplayListeners();
-  ensureWindowsAreVisible(); // Ensure windows are visible on startup
+  if (isLicensed()) {
+    createWindows();
+    setupDisplayListeners();
+    ensureWindowsAreVisible(); // Ensure windows are visible on startup
+  } else {
+    createActivationWindow();
+  }
   const menu = Menu.buildFromTemplate([
     {
       label: 'PlayOverlay',

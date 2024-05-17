@@ -1,7 +1,7 @@
 {
   "name": "playoverlay",
   "productName": "PlayOverlay",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "PlayOverlay, sports video overlay",
   "main": ".vite/build/main.js",
   "scripts": {
