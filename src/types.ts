@@ -17,6 +17,7 @@ export type DisplayScreen = 'none' | 'scoreBug' | 'matchTitle' | 'penalties';
 
 export interface AppSettings {
   keyColour: string;
+  autoSwitchToScoreBug: boolean;
 }
 
 export interface TeamSettingsInterface {

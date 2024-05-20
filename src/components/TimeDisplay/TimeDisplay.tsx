@@ -1,4 +1,4 @@
-import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { PencilIcon } from '@heroicons/react/24/outline';
 import { matchPhases } from '../..//constants';
 import { Time } from '../../types';
 
@@ -29,6 +29,14 @@ export default function TimeDisplay({ time, openAdjustmentsModal }: Props) {
                 <span className="tabular-nums">{time.remainingTime}</span>
               </p>
             )}
+            {time.additionalTime && (
+              <p className="mt-1 text-center font-light text-white">
+                Additional time:{' '}
+                <span className="font-semibold tabular-nums">
+                  {time.additionalTime} minutes
+                </span>
+              </p>
+            )}
           </div>
         </div>
       ) : (
@@ -38,13 +46,13 @@ export default function TimeDisplay({ time, openAdjustmentsModal }: Props) {
           </p>
         </div>
       )}
-      {openAdjustmentsModal && (
+      {openAdjustmentsModal && time.time && (
         <button
           type="button"
           className="absolute right-4 top-4 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           onClick={() => openAdjustmentsModal()}
         >
-          <AdjustmentsHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+          <PencilIcon className="h-5 w-5" aria-hidden="true" />
         </button>
       )}
     </div>

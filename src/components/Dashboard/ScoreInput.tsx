@@ -1,12 +1,15 @@
-import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
+import { useState } from 'react';
+import Modal from '../Modal/Modal';
 
 export interface Props {
   title: string;
   score: number;
   setScore: (score: number) => void;
   id: string;
-  teamName: string;
+  teamNameFull: string;
+  teamNameAbbreviated: string;
   textColour: string;
   backgroundColour: string;
 }
@@ -16,32 +19,66 @@ export default function ScoreInput({
   id,
   score,
   setScore,
-  teamName,
+  teamNameFull,
+  teamNameAbbreviated,
   textColour,
   backgroundColour,
 }: Props) {
+  const [editScoreModalOpen, setEditScoreModalOpen] = useState(false);
   return (
-    <div className="overflow-hidden border border-gray-200 bg-white shadow sm:rounded-md">
-      <div className="border-b border-gray-200 bg-white p-3 sm:px-6">
-        <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
-          <div className="ml-4 mt-2">
-            <h3 className="text-base font-semibold leading-6 text-gray-900">
-              {title} Score
-            </h3>
-          </div>
-          <div className="ml-4 mt-2 flex-shrink-0 [--base-size:1rem]">
-            <ScoresTeamName
-              teamName={teamName}
-              textColour={textColour}
-              backgroundColour={backgroundColour}
-            />
+    <>
+      <div className="overflow-hidden border border-gray-200 bg-white shadow sm:rounded-md">
+        <div className="border-b border-gray-200 bg-white p-3 sm:px-6">
+          <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
+            <div className="ml-4 mt-2">
+              <h3 className="text-base font-semibold leading-6 text-gray-900">
+                {teamNameFull}
+              </h3>
+            </div>
+            <div className="ml-4 mt-2 flex-shrink-0 [--base-size:1rem]">
+              <ScoresTeamName
+                teamName={teamNameAbbreviated}
+                textColour={textColour}
+                backgroundColour={backgroundColour}
+              />
+            </div>
           </div>
         </div>
+
+        <div className="relative flex min-h-16 flex-col items-center justify-center  bg-black py-1">
+          <div className="flex h-full items-center justify-center">
+            <p className="text-center text-4xl font-semibold text-white">
+              {score}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="absolute right-3 top-3 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            onClick={() => setEditScoreModalOpen(true)}
+          >
+            <PencilIcon className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="p-3">
+          <button
+            type="button"
+            className="block w-full rounded-md bg-indigo-600 px-2 py-3.5 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            style={{ backgroundColor: backgroundColour }}
+            onClick={() => setScore(score + 1)}
+          >
+            <span className="inline-block rounded bg-black/50 px-2 py-0.5">
+              {title} Scored
+            </span>
+          </button>
+        </div>
       </div>
-      <div className="p-3">
-        <label htmlFor={id} className="sr-only">
-          {title} Score
-        </label>
+      <Modal
+        open={editScoreModalOpen}
+        setOpen={setEditScoreModalOpen}
+        title="Edit Score"
+        icon="edit"
+      >
+        <label htmlFor={id}>{teamNameFull} score</label>
         <div className="mb-4 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <button
@@ -84,17 +121,7 @@ export default function ScoreInput({
             />
           </button>
         </div>
-        <button
-          type="button"
-          className="block w-full rounded-md bg-indigo-600 px-3.5 py-4 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          style={{ backgroundColor: backgroundColour }}
-          onClick={() => setScore(score + 1)}
-        >
-          <span className="inline-block rounded bg-black/50 px-4 py-1">
-            {title} Scored
-          </span>
-        </button>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 }

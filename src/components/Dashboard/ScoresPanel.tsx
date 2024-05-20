@@ -24,7 +24,8 @@ export default function ScoresPanel({
           setScore={(homeTeam: number) => updateScore({ homeTeam })}
           textColour={teamSettings.homeTeamTextColour}
           backgroundColour={teamSettings.homeTeamBackgroundColour}
-          teamName={teamSettings.homeTeamNameAbbreviated}
+          teamNameFull={teamSettings.homeTeamNameFull}
+          teamNameAbbreviated={teamSettings.homeTeamNameAbbreviated}
         />
         <ScoreInput
           title="Away Team"
@@ -33,7 +34,8 @@ export default function ScoresPanel({
           setScore={(awayTeam: number) => updateScore({ awayTeam })}
           textColour={teamSettings.awayTeamTextColour}
           backgroundColour={teamSettings.awayTeamBackgroundColour}
-          teamName={teamSettings.awayTeamNameAbbreviated}
+          teamNameFull={teamSettings.awayTeamNameFull}
+          teamNameAbbreviated={teamSettings.awayTeamNameAbbreviated}
         />
       </div>
     </CollapsiblePanel>

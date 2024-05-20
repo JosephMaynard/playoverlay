@@ -9,6 +9,7 @@ import {
   MatchSettings,
   Penalty,
   homeOrAway,
+  DisplayScreen,
 } from '../../types';
 import Preview from '../Preview/Preview';
 import SettingsMenu from './SettingsMenu';
@@ -304,7 +305,13 @@ export default function Dashboard() {
             }
             startTime={startTime}
             stopTime={stopTime}
-            matchPhase={matchSettings.matchPhase}
+            autoSwitchToScoreBug={appSettings.autoSwitchToScoreBug}
+            setAutoSwitchToScoreBug={(autoSwitchToScoreBug: boolean) =>
+              updateAppSettings({ autoSwitchToScoreBug })
+            }
+            setDisplayScreen={(displayScreen: DisplayScreen) =>
+              updateMatchSettings({ displayScreen })
+            }
           />
           <ScoresPanel
             teamSettings={teamSettings}

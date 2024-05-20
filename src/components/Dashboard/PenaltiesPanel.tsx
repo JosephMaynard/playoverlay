@@ -30,7 +30,15 @@ export default function PenaltiesPanel({
 
   return (
     <CollapsiblePanel title="Penalties">
-      {penalties.length === 0 && (
+      <div className="mb-4 grid grid-cols-2">
+        <div className=" [--base-size:1.25rem]">
+          <PenaltiesBoard
+            className="border border-gray-600"
+            teamSettings={teamSettings}
+            penalties={penalties}
+            penaltiesFirstTeam={penaltiesFirstTeam}
+          />
+        </div>
         <ButtonGrid
           className="mb-4"
           buttons={[
@@ -38,25 +46,23 @@ export default function PenaltiesPanel({
               label: 'Home Team First',
               onClick: () => setPenaltiesFirstTeam('home'),
               selected: penaltiesFirstTeam === 'home',
+              disabled: penalties.length > 0,
             },
             {
               label: 'Away Team First',
               onClick: () => setPenaltiesFirstTeam('away'),
               selected: penaltiesFirstTeam === 'away',
+              disabled: penalties.length > 0,
             },
           ]}
         />
-      )}
-      <div className="mb-4 [--base-size:1.25rem]">
-        <PenaltiesBoard
-          className="border border-gray-600"
-          teamSettings={teamSettings}
-          penalties={penalties}
-          penaltiesFirstTeam={penaltiesFirstTeam}
-        />
       </div>
-      <h3 className="text-base font-semibold leading-6 text-gray-900">
-        Next Penalty {nextPenalyTeam === 'home' ? 'Home' : 'Away'} Team:
+      <h3 className="my-4 text-base font-semibold leading-6 text-gray-900">
+        Next Penalty{' '}
+        {nextPenalyTeam === 'home'
+          ? teamSettings.homeTeamNameFull
+          : teamSettings.awayTeamNameFull}{' '}
+        ({nextPenalyTeam === 'home' ? 'Home' : 'Away'} Team):
       </h3>
 
       <ButtonGrid

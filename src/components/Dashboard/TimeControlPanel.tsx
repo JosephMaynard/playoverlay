@@ -1,11 +1,13 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Time } from '../../types';
+import { DisplayScreen, Time } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { MatchPhase } from 'src/constants';
 import { useState } from 'react';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
+import { Switch } from '@headlessui/react';
+import { classNames } from '../..//utils';
 
 export interface Props {
   time: Time;
@@ -16,7 +18,9 @@ export interface Props {
   setAdditionalTime: (additionalTime?: number) => void;
   startTime: (matchPhase: MatchPhase) => void;
   stopTime: () => void;
-  matchPhase?: MatchPhase;
+  autoSwitchToScoreBug: boolean;
+  setAutoSwitchToScoreBug: (autoSwitchToScoreBug: boolean) => void;
+  setDisplayScreen: (displayScreen: DisplayScreen) => void;
 }
 
 export default function TimeControlPanel({
@@ -28,11 +32,19 @@ export default function TimeControlPanel({
   setAdditionalTime,
   startTime,
   stopTime,
-  matchPhase,
+  autoSwitchToScoreBug,
+  setAutoSwitchToScoreBug,
+  setDisplayScreen,
 }: Props) {
   const [modal, setModal] = useState<
     'adjustTime' | 'additionaTime' | undefined
   >();
+  const handleStartTime = (matchPhase: MatchPhase) => {
+    startTime(matchPhase);
+    if (autoSwitchToScoreBug === true) {
+      setDisplayScreen('scoreBug');
+    }
+  };
   return (
     <CollapsiblePanel title="Time" noPanelPadding>
       <TimeDisplay
@@ -45,71 +57,66 @@ export default function TimeControlPanel({
           buttons={[
             {
               label: 'First Half',
-              onClick: () => startTime('firstHalf'),
-              selected: matchPhase === 'firstHalf',
+              onClick: () => handleStartTime('firstHalf'),
+              selected: time.matchPhase === 'firstHalf',
             },
             {
               label: 'Second Half',
-              onClick: () => startTime('secondHalf'),
-              selected: matchPhase === 'secondHalf',
+              onClick: () => handleStartTime('secondHalf'),
+              selected: time.matchPhase === 'secondHalf',
             },
             {
               label: 'Extra Time First Half',
-              onClick: () => startTime('extraTimeFirstHalf'),
-              selected: matchPhase === 'extraTimeFirstHalf',
+              onClick: () => handleStartTime('extraTimeFirstHalf'),
+              selected: time.matchPhase === 'extraTimeFirstHalf',
             },
             {
               label: 'Extra Time Second Half',
-              onClick: () => startTime('extraTimeSecondHalf'),
-              selected: matchPhase === 'extraTimeSecondHalf',
+              onClick: () => handleStartTime('extraTimeSecondHalf'),
+              selected: time.matchPhase === 'extraTimeSecondHalf',
             },
             {
               label: 'Stop',
-              onClick: () => stopTime(),
+              onClick: () => {
+                stopTime();
+                if (autoSwitchToScoreBug === true) {
+                  setDisplayScreen('matchTitle');
+                }
+              },
               backgroundColor: 'bg-red-700',
+              color: 'text-white',
+            },
+            {
+              label: 'Set Additional Time',
+              onClick: () => setModal('additionaTime'),
+              backgroundColor: 'bg-indigo-600',
               color: 'text-white',
             },
           ]}
         />
-        <div>
-          <label
-            htmlFor="additionalTime"
-            className="block text-sm font-medium leading-6 text-gray-900"
+        <Switch.Group as="div" className="mx-3 ml-2 flex items-center">
+          <Switch
+            checked={autoSwitchToScoreBug}
+            onChange={setAutoSwitchToScoreBug}
+            className={classNames(
+              autoSwitchToScoreBug ? 'bg-indigo-600' : 'bg-gray-200',
+              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
+            )}
           >
-            Additional Time
-          </label>
-          <div className="flex gap-4">
-            <div className="mb-2 mt-2 flex rounded-md shadow-sm">
-              <div className="relative flex flex-grow items-stretch focus-within:z-10">
-                <input
-                  type="number"
-                  name="additionalTime"
-                  id="additionalTime"
-                  className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  onChange={(e) => setAdditionalTime(Number(e.target.value))}
-                  value={time.additionalTime || ''}
-                />
-                <button
-                  type="button"
-                  className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                  onClick={() => setAdditionalTime()}
-                >
-                  <XMarkIcon
-                    className="-ml-0.5 h-5 w-5 text-gray-900"
-                    aria-hidden="true"
-                  />
-                </button>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={() => setModal('additionaTime')}
-            >
-              Set Additional Time
-            </button>
-          </div>
-        </div>
+            <span
+              aria-hidden="true"
+              className={classNames(
+                autoSwitchToScoreBug ? 'translate-x-5' : 'translate-x-0',
+                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+              )}
+            />
+          </Switch>
+          <Switch.Label as="span" className="ml-3 text-sm">
+            <span className="font-medium text-gray-900">
+              Auto switch screens on start and stop
+            </span>
+          </Switch.Label>
+        </Switch.Group>
       </div>
       <WideModal
         open={modal === 'additionaTime'}
@@ -118,14 +125,47 @@ export default function TimeControlPanel({
         }}
         title="Set Additional Time"
       >
+        <div className="mb-2 mt-2 flex rounded-md shadow-sm">
+          <div className="relative flex flex-grow items-stretch focus-within:z-10">
+            <input
+              type="number"
+              name="additionalTime"
+              id="additionalTime"
+              className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              onChange={(e) => setAdditionalTime(Number(e.target.value))}
+              value={time.additionalTime || ''}
+            />
+            <button
+              type="button"
+              className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              onClick={() => setAdditionalTime()}
+            >
+              <XMarkIcon
+                className="-ml-0.5 h-5 w-5 text-gray-900"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+        </div>
         <ButtonGrid
-          buttons={Array.from(new Array(15)).map((_, index) => ({
-            label: `${index + 1}min`,
-            onClick: () => {
-              setAdditionalTime(index + 1);
-              setModal(undefined);
+          buttons={[
+            ...Array.from(new Array(17)).map((_, index) => ({
+              label: `${index + 1}min`,
+              onClick: () => {
+                setAdditionalTime(index + 1);
+                setModal(undefined);
+              },
+            })),
+            {
+              label: 'Clear',
+              onClick: () => {
+                setAdditionalTime();
+                setModal(undefined);
+              },
+              backgroundColor: 'bg-red-700',
+              color: 'text-white',
             },
-          }))}
+          ]}
         />
       </WideModal>
       <WideModal
