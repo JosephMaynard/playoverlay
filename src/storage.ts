@@ -8,6 +8,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 
 const APP_SETTINGS = 'APP_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS';
+const LICENCE_KEY = 'LICENCE_KEY';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
 
@@ -64,4 +65,15 @@ export function getTeamSettings() {
   if (teamSettings) {
     return teamSettings;
   }
+}
+
+export function getLicenceKey() {
+  const licenceKey = storage.get(LICENCE_KEY);
+  if (licenceKey) {
+    return licenceKey;
+  }
+}
+
+export function setLicenceKey(licenceKey: string) {
+  storage.set(LICENCE_KEY, licenceKey);
 }

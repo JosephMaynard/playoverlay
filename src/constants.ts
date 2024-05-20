@@ -32,6 +32,7 @@ export type MatchPhase = keyof typeof matchPhases;
 
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
+  autoSwitchToScoreBug: true,
 };
 
 export const defaultTeamSettings: TeamSettingsInterface = {
