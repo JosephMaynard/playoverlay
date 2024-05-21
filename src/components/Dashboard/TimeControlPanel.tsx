@@ -18,8 +18,8 @@ export interface Props {
   setAdditionalTime: (additionalTime?: number) => void;
   startTime: (matchPhase: MatchPhase) => void;
   stopTime: () => void;
-  autoSwitchToScoreBug: boolean;
-  setAutoSwitchToScoreBug: (autoSwitchToScoreBug: boolean) => void;
+  autoSwitchScreens: boolean;
+  setAutoSwitchScreens: (autoSwitchScreens: boolean) => void;
   setDisplayScreen: (displayScreen: DisplayScreen) => void;
 }
 
@@ -32,8 +32,8 @@ export default function TimeControlPanel({
   setAdditionalTime,
   startTime,
   stopTime,
-  autoSwitchToScoreBug,
-  setAutoSwitchToScoreBug,
+  autoSwitchScreens,
+  setAutoSwitchScreens,
   setDisplayScreen,
 }: Props) {
   const [modal, setModal] = useState<
@@ -41,7 +41,7 @@ export default function TimeControlPanel({
   >();
   const handleStartTime = (matchPhase: MatchPhase) => {
     startTime(matchPhase);
-    if (autoSwitchToScoreBug === true) {
+    if (autoSwitchScreens === true) {
       setDisplayScreen('scoreBug');
     }
   };
@@ -79,7 +79,7 @@ export default function TimeControlPanel({
               label: 'Stop',
               onClick: () => {
                 stopTime();
-                if (autoSwitchToScoreBug === true) {
+                if (autoSwitchScreens === true) {
                   setDisplayScreen('matchTitle');
                 }
               },
@@ -96,17 +96,17 @@ export default function TimeControlPanel({
         />
         <Switch.Group as="div" className="mx-3 ml-2 flex items-center">
           <Switch
-            checked={autoSwitchToScoreBug}
-            onChange={setAutoSwitchToScoreBug}
+            checked={autoSwitchScreens}
+            onChange={setAutoSwitchScreens}
             className={classNames(
-              autoSwitchToScoreBug ? 'bg-indigo-600' : 'bg-gray-200',
+              autoSwitchScreens ? 'bg-indigo-600' : 'bg-gray-200',
               'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
             )}
           >
             <span
               aria-hidden="true"
               className={classNames(
-                autoSwitchToScoreBug ? 'translate-x-5' : 'translate-x-0',
+                autoSwitchScreens ? 'translate-x-5' : 'translate-x-0',
                 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
               )}
             />

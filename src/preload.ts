@@ -8,6 +8,7 @@ import {
   Time,
   AppSettings,
   MatchSettings,
+  CustomScreen,
 } from './types';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -73,5 +74,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback(isLocked)
     );
     return () => ipcRenderer.removeAllListeners('lock-status-info');
+  },
+  uploadImage: async (file: File, title: string) => {
+    const arrayBuffer = await file.arrayBuffer();
+    return ipcRenderer.invoke(
+      'upload-image',
+      Buffer.from(arrayBuffer),
+      file.name,
+      title
+    );
+  },
+  deleteImage: (filePath: string) =>
+    ipcRenderer.invoke('delete-image', filePath),
+  getCustomScreens: (): Promise<CustomScreen[]> =>
+    ipcRenderer.invoke('get-custom-screens'),
+  onCustomScreensUpdated: (
+    callback: (customScreens: CustomScreen[]) => void
+  ) => {
+    const listener = (_: any, screens: CustomScreen[]) => callback(screens);
+    ipcRenderer.on('custom-screens-updated', listener);
+    return () => ipcRenderer.removeListener('custom-screens-updated', listener);
   },
 });

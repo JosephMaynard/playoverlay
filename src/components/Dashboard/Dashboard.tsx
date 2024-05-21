@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Bars3Icon, Cog8ToothIcon } from '@heroicons/react/24/outline';
+import {
+  Bars3Icon,
+  Cog8ToothIcon,
+  ComputerDesktopIcon,
+  PhotoIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 
 import {
   Scores,
@@ -31,12 +37,15 @@ import DisplayControlsPanel from './DisplayControlsPanel';
 import { timeToString } from '../../utils';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsModal from './AppSettingsModal';
+import CustomScreens from '../CustomScreens/CustomScreens';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAppSettings, setShowAppSettings] = useState(false);
+  const [showCustomScreens, setShowCustomScreens] = useState(false);
   const [scores, setScores] = useState<Scores>(defaultScores);
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
@@ -46,7 +55,6 @@ export default function Dashboard() {
     useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
   const [paused, setPaused] = useState(false);
-  const [showAppSettings, setShowAppSettings] = useState(false);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
@@ -207,7 +215,6 @@ export default function Dashboard() {
         teamSettings={teamSettings}
         updateTeamSettings={updateTeamSettings}
         appSettings={appSettings}
-        updateAppSettings={updateAppSettings}
       />
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
         <div className="flex  items-center gap-x-4">
@@ -218,19 +225,30 @@ export default function Dashboard() {
         </div>
         <button
           type="button"
-          className="-m-2.5 ml-auto mr-4  p-2.5 text-gray-700"
+          className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
           onClick={() => setSidebarOpen(true)}
+          title="Team Settings"
         >
-          <span className="sr-only">Open sidebar</span>
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+          <span className="sr-only">Open Team Settings</span>
+          <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="-m-2.5 mr-4 p-2.5 text-gray-700"
+          onClick={() => setShowCustomScreens(true)}
+          title="Custom Screens"
+        >
+          <span className="sr-only">Open Custom Screens</span>
+          <PhotoIcon className="h-6 w-6" aria-hidden="true" />
         </button>
         <button
           type="button"
           className="-m-2.5 p-2.5 text-gray-700"
           onClick={() => setShowAppSettings(true)}
+          title="Window Settings"
         >
-          <span className="sr-only">Open App Settings</span>
-          <Cog8ToothIcon className="h-6 w-6" aria-hidden="true" />
+          <span className="sr-only">Open Window Settings</span>
+          <ComputerDesktopIcon className="h-6 w-6" aria-hidden="true" />
         </button>
       </div>
 
@@ -239,28 +257,47 @@ export default function Dashboard() {
           <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
         </div>
         <nav className="mt-8 flex grow flex-col">
-          <ul role="list" className="flex flex-1 flex-col items-center">
-            <li>
+          <ul
+            role="list"
+            className="flex h-full flex-1 flex-col items-center gap-6 pb-2"
+          >
+            <li className="mt-auto">
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
                 onClick={() => setSidebarOpen(true)}
+                title="Team Settings"
               >
-                <span className="sr-only">Open sidebar</span>
-                <Bars3Icon
+                <span className="sr-only">Open Team Settings</span>
+                <UserGroupIcon
                   className="h-8 w-8 text-gray-500"
                   aria-hidden="true"
                 />
               </button>
             </li>
-            <li className="mt-auto">
+            <li>
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-700"
+                onClick={() => setShowCustomScreens(true)}
+                title="Custom Screens"
+              >
+                <span className="sr-only">Open Custom Screens</span>
+                <PhotoIcon
+                  className="h-8 w-8 text-gray-500"
+                  aria-hidden="true"
+                />
+              </button>
+            </li>
+            <li>
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
                 onClick={() => setShowAppSettings(true)}
+                title="Window Settings"
               >
-                <span className="sr-only">Open App Settings</span>
-                <Cog8ToothIcon
+                <span className="sr-only">Open Window Settings</span>
+                <ComputerDesktopIcon
                   className="h-8 w-8 text-gray-500"
                   aria-hidden="true"
                 />
@@ -305,9 +342,9 @@ export default function Dashboard() {
             }
             startTime={startTime}
             stopTime={stopTime}
-            autoSwitchToScoreBug={appSettings.autoSwitchToScoreBug}
-            setAutoSwitchToScoreBug={(autoSwitchToScoreBug: boolean) =>
-              updateAppSettings({ autoSwitchToScoreBug })
+            autoSwitchScreens={appSettings.autoSwitchScreens}
+            setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
+              updateAppSettings({ autoSwitchScreens })
             }
             setDisplayScreen={(displayScreen: DisplayScreen) =>
               updateMatchSettings({ displayScreen })
@@ -330,6 +367,11 @@ export default function Dashboard() {
           />
         </div>
       </main>
+      <CustomScreens
+        open={showCustomScreens}
+        setOpen={() => setShowCustomScreens(false)}
+        keyColour={appSettings.keyColour}
+      />
       <AppSettingsModal
         open={showAppSettings}
         setOpen={() => setShowAppSettings(false)}

@@ -21,6 +21,7 @@ import {
   MAIN_WINDOW,
   WindowName,
   getAppSettings,
+  getCustomScreens,
   getTeamSettings,
   setAppSettings,
   setTeamSettings,
@@ -29,6 +30,10 @@ import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
 import sendToScreen from './main-functions/sendToScreen';
 import isLicensed from './main-functions/isLicensed';
+import {
+  handleFileDeletion,
+  handleFileUpload,
+} from './main-functions/fileHandler';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -112,10 +117,10 @@ const createWindows = () => {
   }
 
   // Open the DevTools in dev mode
-  // if (process.env.NODE_ENV !== 'production') {
-  //   mainWindow.webContents.openDevTools();
-  //   displayWindow.webContents.openDevTools();
-  // }
+  if (process.env.NODE_ENV !== 'production') {
+    mainWindow.webContents.openDevTools();
+    displayWindow.webContents.openDevTools();
+  }
 
   // IPC Handlers
   setupIPCHandlers();
@@ -281,6 +286,26 @@ function setupIPCHandlers() {
   ipcMain.on('get-lock-status', (event) => {
     event.reply('lock-status-info', getLockStatus());
   });
+
+  ipcMain.handle(
+    'upload-image',
+    async (_, buffer: Buffer, fileName: string, title: string) => {
+      return await handleFileUpload(buffer, fileName, title);
+    }
+  );
+
+  ipcMain.handle('delete-image', async (_, filePath: string) => {
+    return handleFileDeletion(filePath);
+  });
+
+  ipcMain.handle('get-custom-screens', () => {
+    return getCustomScreens();
+  });
+
+  ipcMain.on('custom-screens-updated', (event, screens) => {
+    mainWindow?.webContents.send('custom-screens-updated', screens);
+    displayWindow?.webContents.send('custom-screens-updated', screens);
+  });
 }
 
 // Setup display listeners
@@ -329,23 +354,23 @@ app.on('activate', () => {
 });
 
 // Prevent DevTools in production
-if (isDev) {
-  app.on('browser-window-created', (_, window) => {
-    window.webContents.on('before-input-event', (event, input) => {
-      if (
-        ((input.control || input.meta) &&
-          input.shift &&
-          input.key.toLowerCase() === 'i') ||
-        input.key === 'F12'
-      ) {
-        event.preventDefault();
-      }
-    });
-    window.webContents.on('devtools-opened', () => {
-      window.webContents.closeDevTools();
-    });
-  });
-}
+// if (isDev) {
+//   app.on('browser-window-created', (_, window) => {
+//     window.webContents.on('before-input-event', (event, input) => {
+//       if (
+//         ((input.control || input.meta) &&
+//           input.shift &&
+//           input.key.toLowerCase() === 'i') ||
+//         input.key === 'F12'
+//       ) {
+//         event.preventDefault();
+//       }
+//     });
+//     window.webContents.on('devtools-opened', () => {
+//       window.webContents.closeDevTools();
+//     });
+//   });
+// }
 
 // App lock functions
 function lockWindows() {

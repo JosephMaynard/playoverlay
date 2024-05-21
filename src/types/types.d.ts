@@ -41,6 +41,12 @@ declare global {
       unlockWindows: () => void;
       getLockStatus: () => void;
       onLockStatus: (callback: (lockStatus: boolean) => void) => () => void;
+      uploadImage: (file: File, title: string) => Promise<string | null>;
+      deleteImage: (filePath: string) => Promise<boolean>;
+      getCustomScreens: () => Promise<CustomScreen[]>;
+      onCustomScreensUpdated: (
+        callback: (customScreens: CustomScreen[]) => void
+      ) => () => void;
     };
   }
 }

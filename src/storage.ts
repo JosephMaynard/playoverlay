@@ -1,5 +1,5 @@
 import Store from './electron-store';
-import { AppSettings, TeamSettingsInterface } from './types';
+import { AppSettings, TeamSettingsInterface, CustomScreen } from './types';
 
 const storage = new Store();
 
@@ -9,6 +9,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 const APP_SETTINGS = 'APP_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS';
 const LICENCE_KEY = 'LICENCE_KEY';
+const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
 
@@ -76,4 +77,17 @@ export function getLicenceKey() {
 
 export function setLicenceKey(licenceKey: string) {
   storage.set(LICENCE_KEY, licenceKey);
+}
+
+export function getCustomScreens() {
+  const customScreens = storage.get(CUSTOM_SCREENS);
+  if (customScreens) {
+    return customScreens;
+  } else {
+    return [];
+  }
+}
+
+export function setCustomScreens(customScreens: CustomScreen[]) {
+  storage.set(CUSTOM_SCREENS, customScreens);
 }

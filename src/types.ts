@@ -13,11 +13,16 @@ export interface Scores {
   penalties: Penalty[];
 }
 
-export type DisplayScreen = 'none' | 'scoreBug' | 'matchTitle' | 'penalties';
+export type DisplayScreen =
+  | 'none'
+  | 'scoreBug'
+  | 'matchTitle'
+  | 'penalties'
+  | 'custom';
 
 export interface AppSettings {
   keyColour: string;
-  autoSwitchToScoreBug: boolean;
+  autoSwitchScreens: boolean;
 }
 
 export interface TeamSettingsInterface {
@@ -35,6 +40,7 @@ export interface MatchSettings {
   matchPhase?: MatchPhase;
   displayScreen: DisplayScreen;
   penaltiesFirstTeam: homeOrAway;
+  customScreenImageUrl?: string;
 }
 
 export interface Time {
@@ -54,4 +60,9 @@ export interface Display {
     width: number;
     height: number;
   };
+}
+
+export interface CustomScreen {
+  title: string;
+  filePath: string | null;
 }

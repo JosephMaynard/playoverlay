@@ -7,6 +7,7 @@ import {
   Time,
 } from '../../types';
 import PenaltiesLayout from '../PenaltiesLayout/PenaltiesLayout';
+import CustomScreenLayout from '../CustomScreenLayout/CustomScreenLayout';
 
 export interface Props {
   teamSettings: TeamSettingsInterface;
@@ -40,6 +41,10 @@ export default function Screens({
         active={matchSettings.displayScreen === 'penalties'}
         penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
         teamSettings={teamSettings}
+      />
+      <CustomScreenLayout
+        active={matchSettings.displayScreen === 'custom'}
+        customScreenImageUrl={matchSettings.customScreenImageUrl}
       />
     </>
   );

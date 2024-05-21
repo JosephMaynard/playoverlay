@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { AppSettings, Display } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import ColourPicker from '../ColorPicker/ColorPicker';
-import WideModal from '../Modal/WideModal';
 import {
   ArrowsPointingOutIcon,
   LockClosedIcon,
   LockOpenIcon,
 } from '@heroicons/react/24/outline';
+import SideMenu from '../SideMenu/SideMenu';
 
 export interface Props {
   open: boolean;
@@ -63,7 +63,7 @@ export default function AppSettingsModal({
   };
 
   return (
-    <WideModal open={open} setOpen={setOpen} title="App Settings">
+    <SideMenu open={open} setOpen={setOpen} title="Window Settings">
       <ColourPicker
         label="Key Colour"
         onChange={(keyColour: string) => {
@@ -74,6 +74,7 @@ export default function AppSettingsModal({
       />
       {displays.length > 1 ? (
         <ButtonGrid
+          compact
           className="mt-4"
           buttons={[
             ...displays.map((display, index) => ({
@@ -122,6 +123,6 @@ export default function AppSettingsModal({
           },
         ]}
       />
-    </WideModal>
+    </SideMenu>
   );
 }

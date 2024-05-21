@@ -1,31 +1,27 @@
+import Button, { Props as ButtonProps } from './Button';
+
 export interface Props {
   className?: string;
-  buttons: {
-    label: string;
-    onClick: () => void;
-    color?: string;
-    backgroundColor?: string;
-    selected?: boolean;
-    disabled?: boolean;
-    icon?: React.ReactNode;
-  }[];
+  buttons: ButtonProps[];
+  compact?: boolean;
 }
 
-export default function ButtonGrid({ className, buttons }: Props) {
+export default function ButtonGrid({ className, buttons, compact }: Props) {
   return (
     <div
-      className={`grid w-full grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 auto-rows-fr${className ? ` ${className}` : ''}`}
+      className={`grid w-full grid-cols-1 gap-2 ${compact ? 'md:grid-cols-2' : 'sm:grid-cols-2 md:grid-cols-3'} auto-rows-fr${className ? ` ${className}` : ''}`}
     >
       {buttons.map((button, index) => (
-        <button
-          className={`${button.icon ? 'inline-flex items-center gap-x-1.5 ' : ''}rounded-lg ${button.backgroundColor ? button.backgroundColor : button.selected ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} ${button.icon ? 'px-3.5' : 'px-2'} py-3.5 font-semibold disabled:bg-gray-200 disabled:text-gray-400 ${button.color || 'text-gray-900'} shadow-sm ring-1 ring-inset ring-gray-300`}
+        <Button
           onClick={button.onClick}
           key={`${button.label}-${index}`}
           disabled={button.disabled}
-        >
-          {button.icon}
-          {button.label}
-        </button>
+          icon={button.icon}
+          label={button.label}
+          color={button.color}
+          backgroundColor={button.backgroundColor}
+          selected={button.selected}
+        />
       ))}
     </div>
   );

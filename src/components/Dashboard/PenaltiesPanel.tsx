@@ -39,6 +39,7 @@ export default function PenaltiesPanel({
         />
       </div>
       <ButtonGrid
+        compact
         className="mb-4"
         buttons={[
           {
@@ -64,6 +65,7 @@ export default function PenaltiesPanel({
       </h3>
 
       <ButtonGrid
+        compact
         className="mb-4"
         buttons={[
           {
@@ -97,6 +99,7 @@ export default function PenaltiesPanel({
         ]}
       />
       <ButtonGrid
+        compact
         buttons={[
           {
             label: 'Undo Penalty',
