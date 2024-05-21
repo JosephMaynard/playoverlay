@@ -4,6 +4,7 @@ import SideMenu from '../SideMenu/SideMenu';
 import DragAndDropUploader from './DragAndDropUploader';
 import { CustomScreen } from 'src/types';
 import { TrashIcon } from '@heroicons/react/24/outline';
+import Modal from '../Modal/Modal';
 
 export interface Props {
   open: boolean;
@@ -14,7 +15,12 @@ export interface Props {
 export default function CustomScreens({ open, setOpen, keyColour }: Props) {
   const [showAddCustomScreenModal, setShowAddCustomScreenModal] =
     useState(false);
+  const [showAddConfirmDeleteModal, setShowAddConfirmDeleteModal] =
+    useState(false);
   const [customScreens, setCustomScreens] = useState<CustomScreen[]>([]);
+  const [customScreenToDelete, setCustomScreenToDelete] = useState<
+    CustomScreen | undefined
+  >();
 
   useEffect(() => {
     const fetchScreens = async () => {
@@ -41,6 +47,11 @@ export default function CustomScreens({ open, setOpen, keyColour }: Props) {
       unsubscribe();
     };
   }, []);
+
+  const handleDelete = (customScreen: CustomScreen) => {
+    setShowAddConfirmDeleteModal(true);
+    setCustomScreenToDelete(customScreen);
+  };
 
   return (
     <SideMenu open={open} setOpen={setOpen} title="Custom Screens">
@@ -84,6 +95,7 @@ export default function CustomScreens({ open, setOpen, keyColour }: Props) {
               <button
                 type="button"
                 className="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                onClick={() => handleDelete(customScreen)}
               >
                 <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
                 Delete
@@ -103,6 +115,22 @@ export default function CustomScreens({ open, setOpen, keyColour }: Props) {
           keyColour={keyColour}
         />
       </WideModal>
+      <Modal
+        open={showAddConfirmDeleteModal}
+        setOpen={setShowAddConfirmDeleteModal}
+        title="Delete custom screen?"
+        actionButtonLabel="Delete custom screen"
+        icon="warning"
+        action={() => {
+          window?.electronAPI?.deleteImage(customScreenToDelete.filePath);
+          setShowAddConfirmDeleteModal(false);
+        }}
+      >
+        <p className="text-sm text-gray-500">
+          Are you sure you want to delete the custom screen "
+          {customScreenToDelete?.title}"?
+        </p>
+      </Modal>
     </SideMenu>
   );
 }
