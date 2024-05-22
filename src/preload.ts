@@ -95,4 +95,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('custom-screens-updated', listener);
     return () => ipcRenderer.removeListener('custom-screens-updated', listener);
   },
+  getDemoMode: () => ipcRenderer.invoke('get-demo-mode'),
 });

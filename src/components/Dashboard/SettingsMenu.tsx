@@ -1,6 +1,3 @@
-import { Fragment } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Dialog, Transition } from '@headlessui/react';
 import { AppSettings, TeamSettingsInterface } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
@@ -11,6 +8,7 @@ export interface Props {
   teamSettings: TeamSettingsInterface;
   updateTeamSettings: (updatedSettings: Partial<TeamSettingsInterface>) => void;
   appSettings: AppSettings;
+  isDemoMode: boolean;
 }
 
 export default function SettingsMenu({
@@ -19,6 +17,7 @@ export default function SettingsMenu({
   teamSettings,
   updateTeamSettings,
   appSettings,
+  isDemoMode,
 }: Props) {
   return (
     <SideMenu title="Team Settings" open={sidebarOpen} setOpen={setSidebarOpen}>
@@ -61,6 +60,7 @@ export default function SettingsMenu({
           updateTeamSettings({ awayTeamBackgroundColour })
         }
         appSettings={appSettings}
+        disabled={isDemoMode}
       />
     </SideMenu>
   );

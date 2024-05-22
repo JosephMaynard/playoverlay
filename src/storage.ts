@@ -1,4 +1,5 @@
 import Store from './electron-store';
+import isDemoMode from './main-functions/isDemoMode';
 import { AppSettings, TeamSettingsInterface, CustomScreen } from './types';
 
 const storage = new Store();
@@ -62,8 +63,17 @@ export function setTeamSettings(teamSettings: TeamSettingsInterface) {
 }
 
 export function getTeamSettings() {
-  const teamSettings = storage.get(TEAM_SETTINGS);
+  let teamSettings: TeamSettingsInterface = storage.get(TEAM_SETTINGS);
   if (teamSettings) {
+    if (isDemoMode() === true) {
+      teamSettings = {
+        ...teamSettings,
+        awayTeamNameAbbreviated: 'DEMO',
+        awayTeamNameFull: 'PlayOverlay Demo',
+        awayTeamBackgroundColour: '#0000CC',
+        awayTeamTextColour: '#FFFFFF',
+      };
+    }
     return teamSettings;
   }
 }

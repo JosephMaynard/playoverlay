@@ -32,7 +32,7 @@ export default function ColourPicker({
           id={id}
           onChange={(e) => onChange(e.target.value)}
           value={value}
-          className="h-6 w-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+          className="h-6 w-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 disabled:cursor-not-allowed"
           disabled={disabled}
         />
       </div>

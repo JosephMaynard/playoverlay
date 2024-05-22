@@ -14,6 +14,7 @@ export interface Props {
   backgroundColour: string;
   setBackgroundColour: (backgroundColour: string) => void;
   appSettings: AppSettings;
+  disabled?: boolean;
 }
 
 export default function TeamSettings({
@@ -27,6 +28,7 @@ export default function TeamSettings({
   backgroundColour,
   setBackgroundColour,
   appSettings,
+  disabled,
 }: Props) {
   return (
     <CollapsiblePanel title={title}>
@@ -42,8 +44,14 @@ export default function TeamSettings({
             type="text"
             name="teamNameFull"
             id="teamNameFull"
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            onChange={(e) => setTeamNameFull(e.target.value)}
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
+            onChange={(e) => {
+              if (disabled !== true) {
+                setTeamNameFull(e.target.value);
+              }
+            }}
+            disabled={disabled}
+            readOnly={disabled}
             value={teamNameFull}
           />
         </div>
@@ -67,12 +75,16 @@ export default function TeamSettings({
             type="text"
             name="homeTeamNameAbbreviated"
             id="homeTeamNameAbbreviated"
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
             maxLength={3}
-            onChange={(e) =>
-              setTeamNameAbbreviated(e.target.value.toLocaleUpperCase())
-            }
+            onChange={(e) => {
+              if (disabled !== true) {
+                setTeamNameAbbreviated(e.target.value.toLocaleUpperCase());
+              }
+            }}
             value={teamNameAbbreviated}
+            disabled={disabled}
+            readOnly={disabled}
           />
         </div>
       </div>
@@ -81,12 +93,14 @@ export default function TeamSettings({
         onChange={setTextColour}
         value={textColour}
         keyColour={appSettings.keyColour}
+        disabled={disabled}
       />
       <ColourPicker
         label={`${title} Background Colour`}
         onChange={setBackgroundColour}
         value={backgroundColour}
         keyColour={appSettings.keyColour}
+        disabled={disabled}
       />
     </CollapsiblePanel>
   );

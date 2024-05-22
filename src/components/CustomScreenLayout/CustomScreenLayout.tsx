@@ -12,7 +12,7 @@ export default function CustomScreenLayout({
       style={{
         backgroundImage: `url("${customScreenImageUrl}")`,
       }}
-      className="h-full bg-contain bg-center bg-no-repeat"
+      className="absolute left-0 top-0 h-full w-full bg-contain bg-center bg-no-repeat"
     />
   ) : null;
 }

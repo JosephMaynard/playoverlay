@@ -47,6 +47,7 @@ declare global {
       onCustomScreensUpdated: (
         callback: (customScreens: CustomScreen[]) => void
       ) => () => void;
+      getDemoMode: () => boolean;
     };
   }
 }

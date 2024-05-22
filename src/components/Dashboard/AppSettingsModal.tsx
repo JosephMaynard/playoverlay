@@ -64,14 +64,16 @@ export default function AppSettingsModal({
 
   return (
     <SideMenu open={open} setOpen={setOpen} title="Window Settings">
-      <ColourPicker
-        label="Key Colour"
-        onChange={(keyColour: string) => {
-          updateAppSettings({ keyColour });
-        }}
-        value={appSettings.keyColour}
-        disabled={isLocked}
-      />
+      <div className="my-4 max-w-64 rounded-md border border-gray-200 bg-white p-4 shadow">
+        <ColourPicker
+          label="Key Colour"
+          onChange={(keyColour: string) => {
+            updateAppSettings({ keyColour });
+          }}
+          value={appSettings.keyColour}
+          disabled={isLocked}
+        />
+      </div>
       {displays.length > 1 ? (
         <ButtonGrid
           compact
@@ -91,7 +93,7 @@ export default function AppSettingsModal({
           ]}
         />
       ) : (
-        <p>No external displays detected.</p>
+        <p className="my-12">No external displays detected.</p>
       )}
       <ButtonGrid
         className="mt-4"

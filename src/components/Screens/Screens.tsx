@@ -8,6 +8,8 @@ import {
 } from '../../types';
 import PenaltiesLayout from '../PenaltiesLayout/PenaltiesLayout';
 import CustomScreenLayout from '../CustomScreenLayout/CustomScreenLayout';
+import { useEffect, useState } from 'react';
+import BouncingLogo from '../BouncingLogo/BouncingLogo';
 
 export interface Props {
   teamSettings: TeamSettingsInterface;
@@ -22,8 +24,30 @@ export default function Screens({
   time,
   matchSettings,
 }: Props) {
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  useEffect(() => {
+    const checkDemoMode = async () => {
+      const demoMode = await window.electronAPI.getDemoMode();
+      setIsDemoMode(demoMode);
+    };
+
+    checkDemoMode();
+
+    const interval = setInterval(() => {
+      const logoElement = document.querySelector('#bouncing-logo');
+      if (isDemoMode && !logoElement) {
+        // Re-render BouncingLogo component if it's not found
+        setIsDemoMode(false);
+        setTimeout(() => setIsDemoMode(true), 0);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isDemoMode]);
   return (
     <>
+      {isDemoMode && <BouncingLogo />}
       <ScoresLayout
         settings={teamSettings}
         scores={scores}

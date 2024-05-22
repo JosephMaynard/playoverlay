@@ -7,6 +7,7 @@ import {
   setWindowPosition,
   WindowName,
 } from '../storage';
+import { isDev } from '../main';
 
 export default function createAppWindow(windowName: WindowName): BrowserWindow {
   const commonOptions = {
@@ -18,7 +19,7 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
       backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false,
+      webSecurity: !isDev,
     },
   };
 

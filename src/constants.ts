@@ -46,6 +46,13 @@ export const defaultTeamSettings: TeamSettingsInterface = {
   awayTeamBackgroundColour: '#0000cc',
 };
 
+export const demoModeTeamSettingsOverrides: Partial<TeamSettingsInterface> = {
+  awayTeamNameFull: 'PlayOverlay Demo',
+  awayTeamNameAbbreviated: 'DEMO',
+  awayTeamTextColour: '#ffffff',
+  awayTeamBackgroundColour: '#0000cc',
+};
+
 export const defaultMatchSettings: MatchSettings = {
   displayScreen: 'scoreBug',
   penaltiesFirstTeam: 'home',

@@ -34,8 +34,9 @@ import {
   handleFileDeletion,
   handleFileUpload,
 } from './main-functions/fileHandler';
+import isDemoMode from './main-functions/isDemoMode';
 
-const isDev = process.env.NODE_ENV !== 'production';
+export const isDev = process.env.NODE_ENV !== 'production';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -306,6 +307,8 @@ function setupIPCHandlers() {
     mainWindow?.webContents.send('custom-screens-updated', screens);
     displayWindow?.webContents.send('custom-screens-updated', screens);
   });
+
+  ipcMain.handle('get-demo-mode', () => isDemoMode());
 }
 
 // Setup display listeners

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Bars3Icon,
-  Cog8ToothIcon,
   ComputerDesktopIcon,
   PhotoIcon,
   UserGroupIcon,
@@ -55,6 +53,17 @@ export default function Dashboard() {
     useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
   const [paused, setPaused] = useState(false);
+
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  useEffect(() => {
+    const checkDemoMode = async () => {
+      const demoMode = await window.electronAPI.getDemoMode();
+      setIsDemoMode(demoMode);
+    };
+
+    checkDemoMode();
+  }, [isDemoMode]);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
@@ -215,6 +224,7 @@ export default function Dashboard() {
         teamSettings={teamSettings}
         updateTeamSettings={updateTeamSettings}
         appSettings={appSettings}
+        isDemoMode={isDemoMode}
       />
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
         <div className="flex  items-center gap-x-4">
