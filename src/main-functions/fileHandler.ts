@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { getCustomScreens, setCustomScreens } from '../storage';
 import { CustomScreen } from '../types';
+import convertFilePathToUrl from './convertFilePathToUrl';
 
 const userDataPath = app.getPath('userData');
 const imagesPath = path.join(userDataPath, 'images');
@@ -37,7 +38,11 @@ export async function handleFileUpload(
   try {
     fs.writeFileSync(destination, buffer);
     const screens = getCustomScreens();
-    screens.push({ title, filePath: destination });
+    screens.push({
+      title,
+      filePath: destination,
+      url: convertFilePathToUrl(destination),
+    });
     setCustomScreens(screens);
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('custom-screens-updated', screens);

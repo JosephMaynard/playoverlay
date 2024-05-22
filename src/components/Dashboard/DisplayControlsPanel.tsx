@@ -91,10 +91,9 @@ export default function DisplayControlsPanel({
             onClick: () =>
               updateMatchSettings({
                 displayScreen: 'custom',
-                customScreenImageUrl: customScreen.filePath,
+                customScreenImageUrl: customScreen.url,
               }),
-            selected:
-              matchSettings.customScreenImageUrl === customScreen.filePath,
+            selected: matchSettings.customScreenImageUrl === customScreen.url,
           }))}
         />
       )}

@@ -10,7 +10,7 @@ export default function CustomScreenLayout({
   return active ? (
     <div
       style={{
-        backgroundImage: `url("file://${customScreenImageUrl}")`,
+        backgroundImage: `url("${customScreenImageUrl}")`,
       }}
       className="h-full bg-contain bg-center bg-no-repeat"
     />

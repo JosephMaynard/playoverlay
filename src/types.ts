@@ -65,4 +65,5 @@ export interface Display {
 export interface CustomScreen {
   title: string;
   filePath: string | null;
+  url: string | null;
 }

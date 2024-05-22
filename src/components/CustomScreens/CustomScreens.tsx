@@ -81,7 +81,7 @@ export default function CustomScreens({ open, setOpen, keyColour }: Props) {
               <div className="flex min-w-0 gap-x-6">
                 <div
                   style={{
-                    backgroundImage: `url("file://${customScreen.filePath}")`,
+                    backgroundImage: `url("${customScreen.url}")`,
                     backgroundColor: keyColour,
                   }}
                   className="aspect-video w-32 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm"

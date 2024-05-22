@@ -117,10 +117,10 @@ const createWindows = () => {
   }
 
   // Open the DevTools in dev mode
-  // if (process.env.NODE_ENV !== 'production') {
-  //   mainWindow.webContents.openDevTools();
-  //   displayWindow.webContents.openDevTools();
-  // }
+  if (process.env.NODE_ENV !== 'production') {
+    mainWindow.webContents.openDevTools();
+    displayWindow.webContents.openDevTools();
+  }
 
   // IPC Handlers
   setupIPCHandlers();
@@ -354,23 +354,23 @@ app.on('activate', () => {
 });
 
 // Prevent DevTools in production
-if (isDev) {
-  app.on('browser-window-created', (_, window) => {
-    window.webContents.on('before-input-event', (event, input) => {
-      if (
-        ((input.control || input.meta) &&
-          input.shift &&
-          input.key.toLowerCase() === 'i') ||
-        input.key === 'F12'
-      ) {
-        event.preventDefault();
-      }
-    });
-    window.webContents.on('devtools-opened', () => {
-      window.webContents.closeDevTools();
-    });
-  });
-}
+// if (isDev) {
+//   app.on('browser-window-created', (_, window) => {
+//     window.webContents.on('before-input-event', (event, input) => {
+//       if (
+//         ((input.control || input.meta) &&
+//           input.shift &&
+//           input.key.toLowerCase() === 'i') ||
+//         input.key === 'F12'
+//       ) {
+//         event.preventDefault();
+//       }
+//     });
+//     window.webContents.on('devtools-opened', () => {
+//       window.webContents.closeDevTools();
+//     });
+//   });
+// }
 
 // App lock functions
 function lockWindows() {
