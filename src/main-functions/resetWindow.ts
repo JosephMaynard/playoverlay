@@ -11,6 +11,7 @@ export default function resetWindow(
   if (window) {
     if (window.isMinimized()) window.restore();
     if (window.isFullScreen()) window.setFullScreen(false);
+    if (window.isMaximized()) window.unmaximize();
 
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;

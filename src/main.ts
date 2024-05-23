@@ -36,7 +36,22 @@ import {
 } from './main-functions/fileHandler';
 import isDemoMode from './main-functions/isDemoMode';
 
+const SHOW_DEV_TOOLS = true;
+
 export const isDev = process.env.NODE_ENV !== 'production';
+
+// const protocolName = 'playoverlay';
+
+// function validateSender(frame: Electron.WebFrameMain): boolean {
+//   // Assuming your custom protocol is 'playoverlay://'
+//   const url = new URL(frame.url);
+//   return url.origin === 'playoverlay://-'; // Validate against your app's origin
+// }
+
+// // Register the custom protocol
+// protocol.registerSchemesAsPrivileged([
+//   { scheme: protocolName, privileges: { secure: true, standard: true } },
+// ]);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -53,7 +68,7 @@ let isLocked = false; // Track lock status
 const additionalData = { playOverlay: 'PlayOverlay' };
 const gotTheLock = app.requestSingleInstanceLock(additionalData);
 
-if (!gotTheLock && process.env.NODE_ENV === 'production') {
+if (!gotTheLock && !isDev) {
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -118,10 +133,10 @@ const createWindows = () => {
   }
 
   // Open the DevTools in dev mode
-  // if (process.env.NODE_ENV !== 'production') {
-  //   mainWindow.webContents.openDevTools();
-  //   displayWindow.webContents.openDevTools();
-  // }
+  if (SHOW_DEV_TOOLS && process.env.NODE_ENV !== 'production') {
+    mainWindow.webContents.openDevTools();
+    displayWindow.webContents.openDevTools();
+  }
 
   // IPC Handlers
   setupIPCHandlers();
@@ -223,7 +238,7 @@ function setupIPCHandlers() {
   });
 
   ipcMain.on('get-version', (event) => {
-    event.returnValue = app.getVersion();
+    event.returnValue = `${app.getVersion()}${isDemoMode() ? ' DEMO MODE' : ''}`;
   });
 
   ipcMain.handle('get-app-settings', async () => {
@@ -357,7 +372,7 @@ app.on('activate', () => {
 });
 
 // Prevent DevTools in production
-if (isDev) {
+if (!isDev) {
   app.on('browser-window-created', (_, window) => {
     window.webContents.on('before-input-event', (event, input) => {
       if (
