@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+
+// @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
 
 const BouncingLogo: React.FC = () => {
@@ -44,12 +46,20 @@ const BouncingLogo: React.FC = () => {
     <div className="absolute left-0 top-0 h-full w-full" ref={containerRef}>
       <div
         ref={logoRef}
-        style={{ position: 'absolute', top: position.top, left: position.left }}
+        style={{
+          position: 'absolute',
+          top: position.top,
+          left: position.left,
+          height: '25cqw',
+          width: '25cqw',
+          backgroundColor: 'black',
+          borderRadius: '50%',
+        }}
       >
         <img
           src={logo}
           alt="PlayOverlay Logo"
-          className="[height:25cqw] [width:25cqw]"
+          style={{ height: '25cqw', width: '25cqw' }}
           id="bouncing-logo"
         />
       </div>

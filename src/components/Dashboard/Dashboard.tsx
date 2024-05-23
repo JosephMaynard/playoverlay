@@ -36,6 +36,7 @@ import { timeToString } from '../../utils';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsModal from './AppSettingsModal';
 import CustomScreens from '../CustomScreens/CustomScreens';
+import AppNotification from '../AppNotification/AppNotification';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -217,177 +218,188 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
-      <SettingsMenu
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        teamSettings={teamSettings}
-        updateTeamSettings={updateTeamSettings}
-        appSettings={appSettings}
-        isDemoMode={isDemoMode}
-      />
-      <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-        <div className="flex  items-center gap-x-4">
-          <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
-          <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
-            PlayOverlay
+    <>
+      <div className="select-none">
+        <SettingsMenu
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          teamSettings={teamSettings}
+          updateTeamSettings={updateTeamSettings}
+          appSettings={appSettings}
+          isDemoMode={isDemoMode}
+        />
+        <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+          <div className="flex  items-center gap-x-4">
+            <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
+            <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
+              PlayOverlay
+            </div>
           </div>
-        </div>
-        <button
-          type="button"
-          className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
-          onClick={() => setSidebarOpen(true)}
-          title="Team Settings"
-        >
-          <span className="sr-only">Open Team Settings</span>
-          <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="-m-2.5 mr-4 p-2.5 text-gray-700"
-          onClick={() => setShowCustomScreens(true)}
-          title="Custom Screens"
-        >
-          <span className="sr-only">Open Custom Screens</span>
-          <PhotoIcon className="h-6 w-6" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="-m-2.5 p-2.5 text-gray-700"
-          onClick={() => setShowAppSettings(true)}
-          title="Window Settings"
-        >
-          <span className="sr-only">Open Window Settings</span>
-          <ComputerDesktopIcon className="h-6 w-6" aria-hidden="true" />
-        </button>
-      </div>
-
-      <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
-        <div className="flex h-16 shrink-0 items-center justify-center">
-          <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-        </div>
-        <nav className="mt-8 flex grow flex-col">
-          <ul
-            role="list"
-            className="flex h-full flex-1 flex-col items-center gap-6 pb-2"
+          <button
+            type="button"
+            className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
+            onClick={() => setSidebarOpen(true)}
+            title="Team Settings"
           >
-            <li className="mt-auto">
-              <button
-                type="button"
-                className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setSidebarOpen(true)}
-                title="Team Settings"
-              >
-                <span className="sr-only">Open Team Settings</span>
-                <UserGroupIcon
-                  className="h-8 w-8 text-gray-500"
-                  aria-hidden="true"
-                />
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setShowCustomScreens(true)}
-                title="Custom Screens"
-              >
-                <span className="sr-only">Open Custom Screens</span>
-                <PhotoIcon
-                  className="h-8 w-8 text-gray-500"
-                  aria-hidden="true"
-                />
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setShowAppSettings(true)}
-                title="Window Settings"
-              >
-                <span className="sr-only">Open Window Settings</span>
-                <ComputerDesktopIcon
-                  className="h-8 w-8 text-gray-500"
-                  aria-hidden="true"
-                />
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
+            <span className="sr-only">Open Team Settings</span>
+            <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="-m-2.5 mr-4 p-2.5 text-gray-700"
+            onClick={() => setShowCustomScreens(true)}
+            title="Custom Screens"
+          >
+            <span className="sr-only">Open Custom Screens</span>
+            <PhotoIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="-m-2.5 p-2.5 text-gray-700"
+            onClick={() => setShowAppSettings(true)}
+            title="Window Settings"
+          >
+            <span className="sr-only">Open Window Settings</span>
+            <ComputerDesktopIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
+        </div>
 
-      <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
-        <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
-          <Preview keyColour={appSettings.keyColour}>
-            <Screens
+        <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
+          <div className="flex h-16 shrink-0 items-center justify-center">
+            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+          </div>
+          <nav className="mt-8 flex grow flex-col">
+            <ul
+              role="list"
+              className="flex h-full flex-1 flex-col items-center gap-6 pb-2"
+            >
+              <li className="mt-auto">
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-700"
+                  onClick={() => setSidebarOpen(true)}
+                  title="Team Settings"
+                >
+                  <span className="sr-only">Open Team Settings</span>
+                  <UserGroupIcon
+                    className="h-8 w-8 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-700"
+                  onClick={() => setShowCustomScreens(true)}
+                  title="Custom Screens"
+                >
+                  <span className="sr-only">Open Custom Screens</span>
+                  <PhotoIcon
+                    className="h-8 w-8 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-700"
+                  onClick={() => setShowAppSettings(true)}
+                  title="Window Settings"
+                >
+                  <span className="sr-only">Open Window Settings</span>
+                  <ComputerDesktopIcon
+                    className="h-8 w-8 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
+          <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
+            <Preview keyColour={appSettings.keyColour}>
+              <Screens
+                teamSettings={teamSettings}
+                scores={scores}
+                time={time}
+                matchSettings={matchSettings}
+              />
+            </Preview>
+            <div className="lg:overflow-y-auto lg:p-4">
+              <DisplayControlsPanel
+                updateMatchSettings={updateMatchSettings}
+                matchSettings={matchSettings}
+              />
+            </div>
+          </div>
+          <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
+            <TimeControlPanel
+              time={time}
+              pause={pause}
+              resume={resume}
+              adjustTime={(difference: number) => {
+                seconds = Math.max(seconds + difference - 1, -1);
+                incrementTime();
+              }}
+              isPaused={paused}
+              setAdditionalTime={(additionalTime: number) =>
+                setTime({
+                  ...time,
+                  additionalTime: additionalTime || undefined,
+                })
+              }
+              startTime={startTime}
+              stopTime={stopTime}
+              autoSwitchScreens={appSettings.autoSwitchScreens}
+              setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
+                updateAppSettings({ autoSwitchScreens })
+              }
+              setDisplayScreen={(displayScreen: DisplayScreen) =>
+                updateMatchSettings({ displayScreen })
+              }
+            />
+            <ScoresPanel
               teamSettings={teamSettings}
               scores={scores}
               time={time}
-              matchSettings={matchSettings}
+              updateScore={updateScore}
             />
-          </Preview>
-          <div className="lg:overflow-y-auto lg:p-4">
-            <DisplayControlsPanel
-              updateMatchSettings={updateMatchSettings}
-              matchSettings={matchSettings}
+            <PenaltiesPanel
+              penalties={scores.penalties}
+              setPenalties={setPenalties}
+              penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
+              setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
+                updateMatchSettings({ penaltiesFirstTeam })
+              }
+              teamSettings={teamSettings}
             />
           </div>
-        </div>
-        <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
-          <TimeControlPanel
-            time={time}
-            pause={pause}
-            resume={resume}
-            adjustTime={(difference: number) => {
-              seconds = Math.max(seconds + difference - 1, -1);
-              incrementTime();
-            }}
-            isPaused={paused}
-            setAdditionalTime={(additionalTime: number) =>
-              setTime({
-                ...time,
-                additionalTime: additionalTime || undefined,
-              })
-            }
-            startTime={startTime}
-            stopTime={stopTime}
-            autoSwitchScreens={appSettings.autoSwitchScreens}
-            setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
-              updateAppSettings({ autoSwitchScreens })
-            }
-            setDisplayScreen={(displayScreen: DisplayScreen) =>
-              updateMatchSettings({ displayScreen })
-            }
-          />
-          <ScoresPanel
-            teamSettings={teamSettings}
-            scores={scores}
-            time={time}
-            updateScore={updateScore}
-          />
-          <PenaltiesPanel
-            penalties={scores.penalties}
-            setPenalties={setPenalties}
-            penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
-            setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-              updateMatchSettings({ penaltiesFirstTeam })
-            }
-            teamSettings={teamSettings}
-          />
-        </div>
-      </main>
-      <CustomScreens
-        open={showCustomScreens}
-        setOpen={() => setShowCustomScreens(false)}
-        keyColour={appSettings.keyColour}
-      />
-      <AppSettingsModal
-        open={showAppSettings}
-        setOpen={() => setShowAppSettings(false)}
-        appSettings={appSettings}
-        updateAppSettings={updateAppSettings}
-      />
-    </div>
+        </main>
+        <CustomScreens
+          open={showCustomScreens}
+          setOpen={() => setShowCustomScreens(false)}
+          keyColour={appSettings.keyColour}
+        />
+        <AppSettingsModal
+          open={showAppSettings}
+          setOpen={() => setShowAppSettings(false)}
+          appSettings={appSettings}
+          updateAppSettings={updateAppSettings}
+        />
+      </div>
+      {isDemoMode && (
+        <AppNotification
+          title="PlayOverlay Demo"
+          text="This is a pre-release demo version of PlayOverlay. Some features are unfinished and some features have been disabled. You will be able to visit playoverlay.com to purchase the full version when it is finished."
+          icon={
+            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+          }
+        />
+      )}
+    </>
   );
 }
