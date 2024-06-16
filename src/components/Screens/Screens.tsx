@@ -34,17 +34,26 @@ export default function Screens({
 
     checkDemoMode();
 
-    const interval = setInterval(() => {
-      const logoElement = document.querySelector('#bouncing-logo');
-      if (isDemoMode && !logoElement) {
-        // Re-render BouncingLogo component if it's not found
-        setIsDemoMode(false);
-        setTimeout(() => setIsDemoMode(true), 0);
-      }
-    }, 1000);
+    let interval: ReturnType<typeof setInterval> | null = null;
 
-    return () => clearInterval(interval);
+    if (isDemoMode === true) {
+      interval = setInterval(() => {
+        const logoElement = document.querySelector('#bouncing-logo');
+        if (!logoElement) {
+          // Re-render BouncingLogo component if it's not found
+          setIsDemoMode(false);
+          setTimeout(() => setIsDemoMode(true), 0);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [isDemoMode]);
+
   return (
     <>
       {isDemoMode && <BouncingLogo />}

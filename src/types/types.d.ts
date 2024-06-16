@@ -5,6 +5,7 @@ import {
   Time,
   MatchSettings,
   Display,
+  SystemInfo,
 } from '../types';
 
 declare global {
@@ -48,6 +49,7 @@ declare global {
         callback: (customScreens: CustomScreen[]) => void
       ) => () => void;
       getDemoMode: () => boolean;
+      getSystemInfo: () => Promise<SystemInfo>;
     };
   }
 }

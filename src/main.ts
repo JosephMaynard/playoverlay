@@ -35,8 +35,9 @@ import {
   handleFileUpload,
 } from './main-functions/fileHandler';
 import isDemoMode from './main-functions/isDemoMode';
+import getSystemInfo from './main-functions/getSystemInfo';
 
-const SHOW_DEV_TOOLS = true;
+const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV !== 'production';
 
@@ -144,7 +145,11 @@ const createWindows = () => {
   // Window closed event
   mainWindow.on('closed', () => {
     mainWindow = null;
+    if (isLicensed() === true) {
+      app.quit();
+    }
   });
+
   displayWindow.on('closed', () => {
     displayWindow = null;
   });
@@ -239,6 +244,11 @@ function setupIPCHandlers() {
 
   ipcMain.on('get-version', (event) => {
     event.returnValue = `${app.getVersion()}${isDemoMode() ? ' DEMO MODE' : ''}`;
+  });
+
+  ipcMain.handle('get-system-info', async () => {
+    const systemInfo = await getSystemInfo();
+    return systemInfo;
   });
 
   ipcMain.handle('get-app-settings', async () => {

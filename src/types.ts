@@ -67,3 +67,10 @@ export interface CustomScreen {
   filePath: string | null;
   url: string | null;
 }
+
+interface SystemInfo {
+  machine_description: string;
+  machine_id: string;
+  app_name: string;
+  app_version: string;
+}
