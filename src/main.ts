@@ -8,7 +8,7 @@ import {
   Menu,
 } from 'electron';
 import path from 'path';
-
+import * as dotenv from 'dotenv';
 import {
   AppSettings,
   MatchSettings,
@@ -25,7 +25,7 @@ import {
   getTeamSettings,
   setAppSettings,
   setTeamSettings,
-} from './storage';
+} from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
 import sendToScreen from './main-functions/sendToScreen';
@@ -35,11 +35,20 @@ import {
   handleFileUpload,
 } from './main-functions/fileHandler';
 import isDemoMode from './main-functions/isDemoMode';
-import getSystemInfo from './main-functions/getSystemInfo';
+import {
+  getSystemInfo,
+  getEncodedSystemInfo,
+} from './main-functions/getSystemInfo';
+import { LicenceKeyData } from './main-functions/validateJWT';
+import saveLicenceKey from './main-functions/saveLicenceKey';
 
-const SHOW_DEV_TOOLS = false;
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+const SHOW_DEV_TOOLS = true;
 
 export const isDev = process.env.NODE_ENV !== 'production';
+
+let licencedData: LicenceKeyData;
 
 // const protocolName = 'playoverlay';
 
@@ -91,6 +100,7 @@ function createActivationWindow() {
       backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
+      webSecurity: !isDev,
     },
   });
 
@@ -108,6 +118,22 @@ function createActivationWindow() {
   activationWindow.on('closed', () => {
     activationWindow = null;
   });
+
+  ipcMain.handle('get-encoded-system-info', async () => {
+    const systemInfo = await getEncodedSystemInfo();
+    return systemInfo;
+  });
+
+  ipcMain.handle('save-licence-key', async (event, licenceKey: string) => {
+    const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
+    return saveLicenceKeyResult;
+  });
+
+  // Open the DevTools in dev mode
+  if (SHOW_DEV_TOOLS && process.env.NODE_ENV !== 'production') {
+    // @ts-ignore
+    activationWindow.openDevTools();
+  }
 
   return activationWindow;
 }
@@ -145,7 +171,7 @@ const createWindows = () => {
   // Window closed event
   mainWindow.on('closed', () => {
     mainWindow = null;
-    if (isLicensed() === true) {
+    if (licencedData) {
       app.quit();
     }
   });
@@ -251,6 +277,16 @@ function setupIPCHandlers() {
     return systemInfo;
   });
 
+  ipcMain.handle('save-licence-key', async (event, licenceKey: string) => {
+    const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
+    return saveLicenceKeyResult;
+  });
+
+  ipcMain.handle('get-encoded-system-info', async () => {
+    const systemInfo = await getEncodedSystemInfo();
+    return systemInfo;
+  });
+
   ipcMain.handle('get-app-settings', async () => {
     try {
       return await getAppSettings();
@@ -350,8 +386,9 @@ function setupDisplayListeners() {
 }
 
 // App ready event
-app.on('ready', () => {
-  if (isLicensed()) {
+app.on('ready', async () => {
+  const isLicencedResult = await isLicensed();
+  if (isLicencedResult.licenced === true) {
     createWindows();
     setupDisplayListeners();
     ensureWindowsAreVisible(); // Ensure windows are visible on startup
@@ -362,6 +399,14 @@ app.on('ready', () => {
     {
       label: 'PlayOverlay',
       submenu: [{ role: 'quit' }, { role: 'about' }],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy' },
+        { label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste' },
+        { label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectAll' },
+      ],
     },
   ]);
   Menu.setApplicationMenu(menu);

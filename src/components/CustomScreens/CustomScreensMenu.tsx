@@ -12,7 +12,7 @@ export interface Props {
   keyColour: string;
 }
 
-export default function CustomScreens({ open, setOpen, keyColour }: Props) {
+export default function CustomScreensMenu({ open, setOpen, keyColour }: Props) {
   const [showAddCustomScreenModal, setShowAddCustomScreenModal] =
     useState(false);
   const [showAddConfirmDeleteModal, setShowAddConfirmDeleteModal] =

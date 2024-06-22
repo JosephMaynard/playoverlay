@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { getCustomScreens, setCustomScreens } from '../storage';
+import { getCustomScreens, setCustomScreens } from './storage';
 import { CustomScreen } from '../types';
 import convertFilePathToUrl from './convertFilePathToUrl';
 

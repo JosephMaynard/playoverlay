@@ -11,7 +11,7 @@ export interface Props {
   isDemoMode: boolean;
 }
 
-export default function SettingsMenu({
+export default function TeamSettingsMenu({
   sidebarOpen,
   setSidebarOpen,
   teamSettings,

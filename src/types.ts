@@ -68,7 +68,7 @@ export interface CustomScreen {
   url: string | null;
 }
 
-interface SystemInfo {
+export interface SystemInfo {
   machine_description: string;
   machine_id: string;
   app_name: string;

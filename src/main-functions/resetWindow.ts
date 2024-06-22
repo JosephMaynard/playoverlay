@@ -1,5 +1,5 @@
 import { BrowserWindow, screen } from 'electron';
-import { WindowName, setWindowPosition, setWindowSize } from '../storage';
+import { WindowName, setWindowPosition, setWindowSize } from './storage';
 
 export default function resetWindow(
   window: BrowserWindow | null,

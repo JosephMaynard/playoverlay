@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-power-save-blocker-status'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
   getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
+  getEncodedSystemInfo: () => ipcRenderer.invoke('get-encoded-system-info'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
   getTeamSettings: () => ipcRenderer.invoke('get-team-settings'),
   moveWindowToScreen: (screenId: number) =>
@@ -97,4 +98,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('custom-screens-updated', listener);
   },
   getDemoMode: () => ipcRenderer.invoke('get-demo-mode'),
+  saveLicenceKey: (licenceKey: string) =>
+    ipcRenderer.invoke('save-licence-key', licenceKey),
 });

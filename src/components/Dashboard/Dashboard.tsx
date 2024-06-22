@@ -3,6 +3,7 @@ import {
   ComputerDesktopIcon,
   PhotoIcon,
   UserGroupIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 import {
@@ -16,7 +17,7 @@ import {
   DisplayScreen,
 } from '../../types';
 import Preview from '../Preview/Preview';
-import SettingsMenu from './SettingsMenu';
+import TeamSettingsMenu from './TeamSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import {
   MatchPhase,
@@ -34,17 +35,23 @@ import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import { timeToString } from '../../utils';
 import PenaltiesPanel from './PenaltiesPanel';
-import AppSettingsModal from './AppSettingsModal';
-import CustomScreens from '../CustomScreens/CustomScreens';
+import AppSettingsMenu from './AppSettingsMenu';
+import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
+import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
 
+export type SideMenuType =
+  | null
+  | 'app-settings'
+  | 'custom-screens'
+  | 'team-settings'
+  | 'system-settings';
+
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showAppSettings, setShowAppSettings] = useState(false);
-  const [showCustomScreens, setShowCustomScreens] = useState(false);
+  const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
   const [scores, setScores] = useState<Scores>(defaultScores);
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
@@ -220,14 +227,6 @@ export default function Dashboard() {
   return (
     <>
       <div className="select-none">
-        <SettingsMenu
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          teamSettings={teamSettings}
-          updateTeamSettings={updateTeamSettings}
-          appSettings={appSettings}
-          isDemoMode={isDemoMode}
-        />
         <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
           <div className="flex  items-center gap-x-4">
             <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
@@ -238,7 +237,7 @@ export default function Dashboard() {
           <button
             type="button"
             className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => setSideMenu('team-settings')}
             title="Team Settings"
           >
             <span className="sr-only">Open Team Settings</span>
@@ -247,7 +246,7 @@ export default function Dashboard() {
           <button
             type="button"
             className="-m-2.5 mr-4 p-2.5 text-gray-700"
-            onClick={() => setShowCustomScreens(true)}
+            onClick={() => setSideMenu('custom-screens')}
             title="Custom Screens"
           >
             <span className="sr-only">Open Custom Screens</span>
@@ -255,12 +254,21 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700"
-            onClick={() => setShowAppSettings(true)}
+            className="-m-2.5 mr-4 p-2.5 text-gray-700"
+            onClick={() => setSideMenu('app-settings')}
             title="Window Settings"
           >
             <span className="sr-only">Open Window Settings</span>
             <ComputerDesktopIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="-m-2.5 p-2.5 text-gray-700"
+            onClick={() => setSideMenu('system-settings')}
+            title="System Settings"
+          >
+            <span className="sr-only">Open Window Settings</span>
+            <Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
 
@@ -277,7 +285,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setSidebarOpen(true)}
+                  onClick={() => setSideMenu('team-settings')}
                   title="Team Settings"
                 >
                   <span className="sr-only">Open Team Settings</span>
@@ -291,7 +299,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setShowCustomScreens(true)}
+                  onClick={() => setSideMenu('custom-screens')}
                   title="Custom Screens"
                 >
                   <span className="sr-only">Open Custom Screens</span>
@@ -305,11 +313,25 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setShowAppSettings(true)}
+                  onClick={() => setSideMenu('app-settings')}
                   title="Window Settings"
                 >
                   <span className="sr-only">Open Window Settings</span>
                   <ComputerDesktopIcon
+                    className="h-8 w-8 text-gray-500"
+                    aria-hidden="true"
+                  />
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-700"
+                  onClick={() => setSideMenu('system-settings')}
+                  title="Window Settings"
+                >
+                  <span className="sr-only">Open System Settings</span>
+                  <Cog6ToothIcon
                     className="h-8 w-8 text-gray-500"
                     aria-hidden="true"
                   />
@@ -379,16 +401,28 @@ export default function Dashboard() {
             />
           </div>
         </main>
-        <CustomScreens
-          open={showCustomScreens}
-          setOpen={() => setShowCustomScreens(false)}
+        <TeamSettingsMenu
+          sidebarOpen={sideMenu === 'team-settings'}
+          setSidebarOpen={() => setSideMenu(null)}
+          teamSettings={teamSettings}
+          updateTeamSettings={updateTeamSettings}
+          appSettings={appSettings}
+          isDemoMode={isDemoMode}
+        />
+        <CustomScreensMenu
+          open={sideMenu === 'custom-screens'}
+          setOpen={() => setSideMenu(null)}
           keyColour={appSettings.keyColour}
         />
-        <AppSettingsModal
-          open={showAppSettings}
-          setOpen={() => setShowAppSettings(false)}
+        <AppSettingsMenu
+          open={sideMenu === 'app-settings'}
+          setOpen={() => setSideMenu(null)}
           appSettings={appSettings}
           updateAppSettings={updateAppSettings}
+        />
+        <SystemSettingsMenu
+          open={sideMenu === 'system-settings'}
+          setOpen={() => setSideMenu(null)}
         />
       </div>
       {isDemoMode && (

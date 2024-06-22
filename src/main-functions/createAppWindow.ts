@@ -6,7 +6,7 @@ import {
   setWindowSize,
   setWindowPosition,
   WindowName,
-} from '../storage';
+} from './storage';
 import { isDev } from '../main';
 
 export default function createAppWindow(windowName: WindowName): BrowserWindow {

@@ -16,7 +16,7 @@ export interface Props {
   updateAppSettings: (updatedSettings: Partial<AppSettings>) => void;
 }
 
-export default function AppSettingsModal({
+export default function AppSettingsMenu({
   open,
   setOpen,
   appSettings,

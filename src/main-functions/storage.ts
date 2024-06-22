@@ -1,6 +1,6 @@
 import Store from './electron-store';
-import isDemoMode from './main-functions/isDemoMode';
-import { AppSettings, TeamSettingsInterface, CustomScreen } from './types';
+import isDemoMode from './isDemoMode';
+import { AppSettings, TeamSettingsInterface, CustomScreen } from '../types';
 
 const storage = new Store();
 
@@ -87,6 +87,10 @@ export function getLicenceKey() {
 
 export function setLicenceKey(licenceKey: string) {
   storage.set(LICENCE_KEY, licenceKey);
+}
+
+export function deleteLicenceKey() {
+  storage.delete(LICENCE_KEY);
 }
 
 export function getCustomScreens() {

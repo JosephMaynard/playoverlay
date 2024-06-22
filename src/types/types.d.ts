@@ -50,6 +50,10 @@ declare global {
       ) => () => void;
       getDemoMode: () => boolean;
       getSystemInfo: () => Promise<SystemInfo>;
+      getEncodedSystemInfo: () => Promise<string>;
+      saveLicenceKey: (
+        licenceKey: string
+      ) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }
