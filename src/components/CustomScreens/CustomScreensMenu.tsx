@@ -37,7 +37,6 @@ export default function CustomScreensMenu({ open, setOpen, keyColour }: Props) {
 
     const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
       (updatedScreens) => {
-        console.log('updatedScreens', updatedScreens); // Should now log the correct array
         setCustomScreens(updatedScreens || []);
       }
     );

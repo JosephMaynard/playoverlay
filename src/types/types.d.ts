@@ -1,3 +1,4 @@
+import { deleteLicenceKey } from 'src/main-functions/storage';
 import {
   AppSettings,
   Scores,
@@ -7,6 +8,7 @@ import {
   Display,
   SystemInfo,
 } from '../types';
+import { LicenceKeyData } from '../main-functions/validateJWT';
 
 declare global {
   interface Window {
@@ -54,6 +56,8 @@ declare global {
       saveLicenceKey: (
         licenceKey: string
       ) => Promise<{ success: boolean; error?: string }>;
+      deleteLicenceKey: () => void;
+      getLicencedData: () => Promise<LicenceKeyData | undefined>;
     };
   }
 }

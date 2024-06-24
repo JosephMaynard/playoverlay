@@ -423,6 +423,7 @@ export default function Dashboard() {
         <SystemSettingsMenu
           open={sideMenu === 'system-settings'}
           setOpen={() => setSideMenu(null)}
+          isDemoMode={isDemoMode}
         />
       </div>
       {isDemoMode && (

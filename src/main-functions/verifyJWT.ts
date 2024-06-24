@@ -1,18 +1,10 @@
 import jwt from 'jsonwebtoken';
-import * as dotenv from 'dotenv';
-import path from 'path';
-
 import { LicenceKeyData } from './validateJWT';
-
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const publicKey = // @ts-ignore
   import.meta.env.VITE_JWT_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? '';
 
 export default function verifyJWT(token: string) {
-  console.log('publicKey: ', publicKey);
-  console.log('token: ', token);
   try {
     const decoded = jwt.verify(token.trim(), publicKey.trim(), {
       algorithms: ['RS256'],

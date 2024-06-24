@@ -23,7 +23,7 @@ export default function ManualActivationModal({ open, setOpen }: Props) {
         console.error('Failed to load encoded system info:', error);
         setErrorMessage('Failed to load System Key');
       });
-  });
+  }, []);
 
   const handleSetLicencenKey = async () => {
     if (licencenKey) {

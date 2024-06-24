@@ -19,7 +19,6 @@ export default function DisplayControlsPanel({
       try {
         const storedScreens = await window?.electronAPI?.getCustomScreens();
         setCustomScreens(storedScreens || []);
-        console.log('storedScreens', storedScreens);
       } catch (error) {
         console.error('Failed to fetch custom screens:', error);
       }
@@ -29,7 +28,6 @@ export default function DisplayControlsPanel({
 
     const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
       (updatedScreens) => {
-        console.log('updatedScreens', updatedScreens); // Should now log the correct array
         setCustomScreens(updatedScreens || []);
       }
     );

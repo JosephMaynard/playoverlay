@@ -6,9 +6,9 @@ import {
   powerSaveBlocker,
   screen,
   Menu,
+  protocol,
 } from 'electron';
 import path from 'path';
-import * as dotenv from 'dotenv';
 import {
   AppSettings,
   MatchSettings,
@@ -20,6 +20,7 @@ import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
   WindowName,
+  deleteLicenceKey,
   getAppSettings,
   getCustomScreens,
   getTeamSettings,
@@ -29,7 +30,7 @@ import {
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
 import sendToScreen from './main-functions/sendToScreen';
-import isLicensed from './main-functions/isLicensed';
+import isLicensed, { getLicencedData } from './main-functions/isLicensed';
 import {
   handleFileDeletion,
   handleFileUpload,
@@ -39,32 +40,16 @@ import {
   getSystemInfo,
   getEncodedSystemInfo,
 } from './main-functions/getSystemInfo';
-import { LicenceKeyData } from './main-functions/validateJWT';
 import saveLicenceKey from './main-functions/saveLicenceKey';
-
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const SHOW_DEV_TOOLS = true;
 
 export const isDev = process.env.NODE_ENV !== 'production';
-
-let licencedData: LicenceKeyData;
-
-// const protocolName = 'playoverlay';
-
-// function validateSender(frame: Electron.WebFrameMain): boolean {
-//   // Assuming your custom protocol is 'playoverlay://'
-//   const url = new URL(frame.url);
-//   return url.origin === 'playoverlay://-'; // Validate against your app's origin
-// }
-
-// // Register the custom protocol
-// protocol.registerSchemesAsPrivileged([
-//   { scheme: protocolName, privileges: { secure: true, standard: true } },
-// ]);
+let quitWhenAllWindowsClose = true;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
+  console.log('electron-squirrel-startup');
   app.quit();
 }
 
@@ -79,6 +64,7 @@ const additionalData = { playOverlay: 'PlayOverlay' };
 const gotTheLock = app.requestSingleInstanceLock(additionalData);
 
 if (!gotTheLock && !isDev) {
+  console.log('gotTheLock');
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -88,6 +74,10 @@ if (!gotTheLock && !isDev) {
     }
   });
 }
+
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'playoverlay', privileges: { standard: true, secure: true } },
+]);
 
 // Function to create the registration window
 function createActivationWindow() {
@@ -171,7 +161,8 @@ const createWindows = () => {
   // Window closed event
   mainWindow.on('closed', () => {
     mainWindow = null;
-    if (licencedData) {
+    if (!isDev) {
+      console.log('mainWindow closed');
       app.quit();
     }
   });
@@ -370,6 +361,17 @@ function setupIPCHandlers() {
   });
 
   ipcMain.handle('get-demo-mode', () => isDemoMode());
+
+  ipcMain.on('delete-licence-key', () => {
+    deleteLicenceKey();
+    app.relaunch();
+    app.exit();
+  });
+
+  ipcMain.handle('get-licence-data', async () => {
+    const licencedData = await getLicencedData();
+    return licencedData;
+  });
 }
 
 // Setup display listeners
@@ -387,6 +389,18 @@ function setupDisplayListeners() {
 
 // App ready event
 app.on('ready', async () => {
+  protocol.handle('playoverlay', async (request) => {
+    const url = new URL(request.url);
+    const jwt = url.searchParams.get('jwt');
+    if (jwt) {
+      const { error } = await saveLicenceKey(jwt);
+      if (error) {
+        console.log(error);
+      }
+    }
+    return new Response('');
+  });
+
   const isLicencedResult = await isLicensed();
   if (isLicencedResult.licenced === true) {
     createWindows();
@@ -414,7 +428,8 @@ app.on('ready', async () => {
 
 // All windows closed event
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (!isDev) {
+    console.log('window-all-closed');
     app.quit();
   }
 });

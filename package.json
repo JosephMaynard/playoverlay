@@ -51,7 +51,6 @@
   "license": "MIT",
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.6",
-    "dotenv": "^16.4.5",
     "electron-squirrel-startup": "^1.0.0",
     "electron-vite": "^2.2.0",
     "js-base64": "^3.7.7",

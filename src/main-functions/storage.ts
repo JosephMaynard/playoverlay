@@ -78,6 +78,17 @@ export function getTeamSettings() {
   }
 }
 
+export function removeDemoModeTeamSettings() {
+  let teamSettings: TeamSettingsInterface = storage.get(TEAM_SETTINGS);
+  setTeamSettings({
+    ...teamSettings,
+    awayTeamNameFull: 'Away Team',
+    awayTeamNameAbbreviated: 'AWA',
+    awayTeamTextColour: '#ffffff',
+    awayTeamBackgroundColour: '#0000cc',
+  });
+}
+
 export function getLicenceKey() {
   const licenceKey = storage.get(LICENCE_KEY);
   if (licenceKey) {

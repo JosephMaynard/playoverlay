@@ -10,6 +10,7 @@ import {
   MatchSettings,
   CustomScreen,
 } from './types';
+import { deleteLicenceKey } from './main-functions/storage';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
@@ -100,4 +101,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDemoMode: () => ipcRenderer.invoke('get-demo-mode'),
   saveLicenceKey: (licenceKey: string) =>
     ipcRenderer.invoke('save-licence-key', licenceKey),
+  deleteLicenceKey: () => ipcRenderer.send('delete-licence-key'),
+  getLicencedData: () => ipcRenderer.invoke('get-licence-data'),
 });
