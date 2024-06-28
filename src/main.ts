@@ -7,6 +7,7 @@ import {
   screen,
   Menu,
   protocol,
+  dialog,
 } from 'electron';
 import path from 'path';
 import {
@@ -41,8 +42,9 @@ import {
   getEncodedSystemInfo,
 } from './main-functions/getSystemInfo';
 import saveLicenceKey from './main-functions/saveLicenceKey';
+import openActivationLink from './main-functions/openActivationLink';
 
-const SHOW_DEV_TOOLS = true;
+const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV !== 'production';
 let quitWhenAllWindowsClose = true;
@@ -64,10 +66,9 @@ const additionalData = { playOverlay: 'PlayOverlay' };
 const gotTheLock = app.requestSingleInstanceLock(additionalData);
 
 if (!gotTheLock && !isDev) {
-  console.log('gotTheLock');
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
@@ -79,12 +80,22 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'playoverlay', privileges: { standard: true, secure: true } },
 ]);
 
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('playoverlay', process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('playoverlay');
+}
+
 // Function to create the registration window
 function createActivationWindow() {
   activationWindow = new BrowserWindow({
     autoHideMenuBar: true,
     minWidth: 400,
-    minHeight: 300,
+    minHeight: 400,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false,
@@ -101,7 +112,10 @@ function createActivationWindow() {
     );
   } else {
     activationWindow.loadFile(
-      `../renderer/${ACTIVATION_WINDOW_VITE_NAME}/activation.html`
+      path.join(
+        __dirname,
+        `../renderer/${ACTIVATION_WINDOW_VITE_NAME}/activation.html`
+      )
     );
   }
 
@@ -109,18 +123,29 @@ function createActivationWindow() {
     activationWindow = null;
   });
 
-  ipcMain.handle('get-encoded-system-info', async () => {
+  ipcMain.handle('get-encoded-system-info-activation-window', async () => {
     const systemInfo = await getEncodedSystemInfo();
     return systemInfo;
   });
 
-  ipcMain.handle('save-licence-key', async (event, licenceKey: string) => {
-    const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
-    return saveLicenceKeyResult;
+  ipcMain.handle(
+    'save-licence-key-activation-window',
+    async (event, licenceKey: string) => {
+      const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
+      return saveLicenceKeyResult;
+    }
+  );
+
+  ipcMain.on('run-in-demo-mode', () => {
+    openMainAndDisplayWindows();
+  });
+
+  ipcMain.on('open-activation-link-activation-window', () => {
+    openActivationLink();
   });
 
   // Open the DevTools in dev mode
-  if (SHOW_DEV_TOOLS && process.env.NODE_ENV !== 'production') {
+  if (SHOW_DEV_TOOLS && isDev) {
     // @ts-ignore
     activationWindow.openDevTools();
   }
@@ -372,6 +397,10 @@ function setupIPCHandlers() {
     const licencedData = await getLicencedData();
     return licencedData;
   });
+
+  ipcMain.on('open-activation-link', () => {
+    openActivationLink();
+  });
 }
 
 // Setup display listeners
@@ -389,18 +418,6 @@ function setupDisplayListeners() {
 
 // App ready event
 app.on('ready', async () => {
-  protocol.handle('playoverlay', async (request) => {
-    const url = new URL(request.url);
-    const jwt = url.searchParams.get('jwt');
-    if (jwt) {
-      const { error } = await saveLicenceKey(jwt);
-      if (error) {
-        console.log(error);
-      }
-    }
-    return new Response('');
-  });
-
   const isLicencedResult = await isLicensed();
   if (isLicencedResult.licenced === true) {
     createWindows();
@@ -431,13 +448,6 @@ app.on('window-all-closed', () => {
   if (!isDev) {
     console.log('window-all-closed');
     app.quit();
-  }
-});
-
-// App activate event
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindows();
   }
 });
 
@@ -530,4 +540,17 @@ function ensureWindowsAreVisible() {
 
   checkAndMoveWindow(mainWindow, MAIN_WINDOW);
   checkAndMoveWindow(displayWindow, DISPLAY_WINDOW);
+}
+
+if (process.platform === 'darwin') {
+  // Handle the protocol. In this case, we choose to show an Error Box.
+  app.on('open-url', async (event, url) => {
+    if (isDemoMode()) {
+      const jwt = new URL(url).searchParams.get('jwt');
+      const { error } = await saveLicenceKey(jwt);
+      if (error) {
+        dialog.showErrorBox('An error occured', error);
+      }
+    }
+  });
 }

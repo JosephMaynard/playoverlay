@@ -4,30 +4,49 @@ import WideModal from '../Modal/WideModal';
 export interface Props {
   open: boolean;
   setOpen: (open: boolean) => void;
+  activationWindow?: boolean;
 }
 
-export default function ManualActivationModal({ open, setOpen }: Props) {
+export default function ManualActivationModal({
+  open,
+  setOpen,
+  activationWindow,
+}: Props) {
   const [encodedSystemInfo, setEncodedSystemInfo] = useState('');
   const [licencenKey, setLicencenKey] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    window?.electronAPI
-      ?.getEncodedSystemInfo()
-      .then((encodedSystemInfo) => {
-        if (encodedSystemInfo) {
-          setEncodedSystemInfo(encodedSystemInfo);
-        }
-      })
-      .catch((error: any) => {
-        console.error('Failed to load encoded system info:', error);
-        setErrorMessage('Failed to load System Key');
-      });
+    activationWindow
+      ? window?.electronAPI
+          ?.getEncodedSystemInfo()
+          .then((encodedSystemInfo) => {
+            if (encodedSystemInfo) {
+              setEncodedSystemInfo(encodedSystemInfo);
+            }
+          })
+          .catch((error: any) => {
+            console.error('Failed to load encoded system info:', error);
+            setErrorMessage('Failed to load System Key');
+          })
+      : window?.electronAPI
+          ?.getEncodedSystemInfoActivationWindow()
+          .then((encodedSystemInfo) => {
+            if (encodedSystemInfo) {
+              setEncodedSystemInfo(encodedSystemInfo);
+            }
+          })
+          .catch((error: any) => {
+            console.error('Failed to load encoded system info:', error);
+            setErrorMessage('Failed to load System Key');
+          });
   }, []);
 
   const handleSetLicencenKey = async () => {
     if (licencenKey) {
-      const { error } = await window?.electronAPI?.saveLicenceKey(licencenKey);
+      const { error } = activationWindow
+        ? await window?.electronAPI?.saveLicenceKeyActivationWindow(licencenKey)
+        : await window?.electronAPI?.saveLicenceKey(licencenKey);
 
       if (error) {
         setErrorMessage(error);

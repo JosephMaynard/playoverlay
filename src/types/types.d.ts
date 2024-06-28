@@ -53,11 +53,18 @@ declare global {
       getDemoMode: () => boolean;
       getSystemInfo: () => Promise<SystemInfo>;
       getEncodedSystemInfo: () => Promise<string>;
+      getEncodedSystemInfoActivationWindow: () => Promise<string>;
       saveLicenceKey: (
+        licenceKey: string
+      ) => Promise<{ success: boolean; error?: string }>;
+      saveLicenceKeyActivationWindow: (
         licenceKey: string
       ) => Promise<{ success: boolean; error?: string }>;
       deleteLicenceKey: () => void;
       getLicencedData: () => Promise<LicenceKeyData | undefined>;
+      runInDemoMode: () => void;
+      openActivationLinkActivationWindow: () => void;
+      openActivationLink: () => void;
     };
   }
 }

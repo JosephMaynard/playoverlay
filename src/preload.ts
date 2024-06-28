@@ -49,6 +49,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: () => ipcRenderer.sendSync('get-version'),
   getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
   getEncodedSystemInfo: () => ipcRenderer.invoke('get-encoded-system-info'),
+  getEncodedSystemInfoActivationWindow: () =>
+    ipcRenderer.invoke('get-encoded-system-info-activation-window'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
   getTeamSettings: () => ipcRenderer.invoke('get-team-settings'),
   moveWindowToScreen: (screenId: number) =>
@@ -101,6 +103,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDemoMode: () => ipcRenderer.invoke('get-demo-mode'),
   saveLicenceKey: (licenceKey: string) =>
     ipcRenderer.invoke('save-licence-key', licenceKey),
+  saveLicenceKeyActivationWindow: (licenceKey: string) =>
+    ipcRenderer.invoke('save-licence-key-activation-window', licenceKey),
   deleteLicenceKey: () => ipcRenderer.send('delete-licence-key'),
   getLicencedData: () => ipcRenderer.invoke('get-licence-data'),
+  runInDemoMode: () => ipcRenderer.send('run-in-demo-mode'),
+  openActivationLinkActivationWindow: () =>
+    ipcRenderer.send('open-activation-link-activation-window'),
+  openActivationLink: () => ipcRenderer.send('open-activation-link'),
 });

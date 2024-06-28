@@ -15,17 +15,16 @@ import {
   Penalty,
   homeOrAway,
   DisplayScreen,
+  MatchPhase,
 } from '../../types';
 import Preview from '../Preview/Preview';
 import TeamSettingsMenu from './TeamSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import {
-  MatchPhase,
   defaultAppSettings,
   defaultMatchSettings,
   defaultScores,
   defaultTeamSettings,
-  matchPhases,
 } from '../../constants';
 import Screens from '../Screens/Screens';
 
@@ -33,7 +32,7 @@ import Screens from '../Screens/Screens';
 import logo from '../../assets/playoverlay-logo.svg';
 import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
-import { timeToString } from '../../utils';
+import { getMatchPhases, timeToString } from '../../utils';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsMenu from './AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
@@ -156,7 +155,12 @@ export default function Dashboard() {
         time: timeToString(seconds),
         remainingTime: timeToString(
           Math.max(
-            (matchPhases?.[currentTime.matchPhase]?.end || 0) * 60 - seconds,
+            (getMatchPhases(
+              matchSettings.halfLength,
+              matchSettings.extraTimeHalfLength
+            )?.[currentTime.matchPhase]?.end || 0) *
+              60 -
+              seconds,
             0
           )
         ),
@@ -172,13 +176,25 @@ export default function Dashboard() {
     }
     updateMatchSettings({ matchPhase });
     setPaused(false);
-    seconds = matchPhases[matchPhase].start * 60;
+    seconds =
+      getMatchPhases(
+        matchSettings.halfLength,
+        matchSettings.extraTimeHalfLength
+      )?.[matchPhase].start * 60;
     const initialTime = {
       ...time,
       time: timeToString(seconds),
       matchPhase,
       remainingTime: timeToString(
-        Math.max((matchPhases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
+        Math.max(
+          (getMatchPhases(
+            matchSettings.halfLength,
+            matchSettings.extraTimeHalfLength
+          )?.[matchPhase]?.end || 0) *
+            60 -
+            seconds,
+          0
+        )
       ),
     };
     setTime(initialTime);
@@ -361,6 +377,7 @@ export default function Dashboard() {
           <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
             <TimeControlPanel
               time={time}
+              matchSettings={matchSettings}
               pause={pause}
               resume={resume}
               adjustTime={(difference: number) => {
@@ -402,6 +419,8 @@ export default function Dashboard() {
           </div>
         </main>
         <TeamSettingsMenu
+          matchSettings={matchSettings}
+          updateMatchSettings={updateMatchSettings}
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={() => setSideMenu(null)}
           teamSettings={teamSettings}

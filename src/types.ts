@@ -1,5 +1,3 @@
-import { MatchPhase } from './constants';
-
 export type homeOrAway = 'home' | 'away';
 
 export interface Penalty {
@@ -41,6 +39,8 @@ export interface MatchSettings {
   displayScreen: DisplayScreen;
   penaltiesFirstTeam: homeOrAway;
   customScreenImageUrl?: string;
+  halfLength: number;
+  extraTimeHalfLength: number;
 }
 
 export interface Time {
@@ -74,3 +74,21 @@ export interface SystemInfo {
   app_name: string;
   app_version: string;
 }
+
+export interface MatchPeriod {
+  title: string;
+  start: number;
+  end: number;
+}
+export interface MatchPhases {
+  firstHalf: MatchPeriod;
+  secondHalf: MatchPeriod;
+  extraTimeFirstHalf: MatchPeriod;
+  extraTimeSecondHalf: MatchPeriod;
+}
+
+export type MatchPhase =
+  | 'firstHalf'
+  | 'secondHalf'
+  | 'extraTimeFirstHalf'
+  | 'extraTimeSecondHalf';

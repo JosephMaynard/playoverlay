@@ -1,8 +1,7 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { DisplayScreen, Time } from '../../types';
+import { DisplayScreen, Time, MatchPhase, MatchSettings } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-import { MatchPhase } from 'src/constants';
 import { useState } from 'react';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
@@ -11,6 +10,7 @@ import { classNames } from '../..//utils';
 
 export interface Props {
   time: Time;
+  matchSettings: MatchSettings;
   pause: () => void;
   resume: () => void;
   adjustTime: (difference: number) => void;
@@ -25,6 +25,7 @@ export interface Props {
 
 export default function TimeControlPanel({
   time,
+  matchSettings,
   pause,
   resume,
   adjustTime,
@@ -49,6 +50,7 @@ export default function TimeControlPanel({
     <CollapsiblePanel title="Time" noPanelPadding>
       <TimeDisplay
         time={time}
+        matchSettings={matchSettings}
         openAdjustmentsModal={() => setModal('adjustTime')}
       />
       <div className="p-4">
@@ -175,7 +177,7 @@ export default function TimeControlPanel({
         }}
         title="Adjust Time"
       >
-        <TimeDisplay time={time} />
+        <TimeDisplay time={time} matchSettings={matchSettings} />
 
         <div className="mx-auto mt-8 text-center">
           <span className="text-s isolate mx-auto inline-flex rounded-md shadow-sm">

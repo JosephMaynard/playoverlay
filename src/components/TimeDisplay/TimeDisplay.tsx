@@ -1,13 +1,18 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { matchPhases } from '../..//constants';
-import { Time } from '../../types';
+import { Time, MatchSettings } from '../../types';
+import { getMatchPhases } from '../../utils';
 
 export interface Props {
   time: Time;
+  matchSettings: MatchSettings;
   openAdjustmentsModal?: () => void;
 }
 
-export default function TimeDisplay({ time, openAdjustmentsModal }: Props) {
+export default function TimeDisplay({
+  time,
+  matchSettings,
+  openAdjustmentsModal,
+}: Props) {
   return (
     <div className="relative flex min-h-32 flex-col items-center justify-center  bg-black py-1">
       {time.time ? (
@@ -20,7 +25,12 @@ export default function TimeDisplay({ time, openAdjustmentsModal }: Props) {
           <div className="flex flex-col items-center justify-center font-semibold">
             {time.matchPhase && (
               <p className="mb-1 text-center tabular-nums text-white">
-                {matchPhases[time.matchPhase]?.title}
+                {
+                  getMatchPhases(
+                    matchSettings.halfLength,
+                    matchSettings.extraTimeHalfLength
+                  )[time.matchPhase]?.title
+                }
               </p>
             )}
             {time.remainingTime && (

@@ -1,4 +1,4 @@
-import { Penalty } from './types';
+import { MatchPhases, Penalty } from './types';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -61,3 +61,29 @@ export function calculatePenalties(penalties: Penalty[]) {
 export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
+
+export const getMatchPhases = (
+  halfLength: number = 45,
+  extraTimeHalfLength: number = 15
+): MatchPhases => ({
+  firstHalf: {
+    title: 'First Half',
+    start: 0,
+    end: halfLength,
+  },
+  secondHalf: {
+    title: 'Second Half',
+    start: halfLength,
+    end: halfLength * 2,
+  },
+  extraTimeFirstHalf: {
+    title: 'Extra Time First Half',
+    start: halfLength * 2,
+    end: halfLength * 2 + extraTimeHalfLength,
+  },
+  extraTimeSecondHalf: {
+    title: 'Extra Time Second Half',
+    start: halfLength * 2 + extraTimeHalfLength,
+    end: (halfLength + extraTimeHalfLength) * 2,
+  },
+});

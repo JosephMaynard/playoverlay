@@ -11,6 +11,10 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: 'src/assets/appIcon',
+    ignore: [
+      'node_modules/@babel/core/node_modules/.bin/semver',
+      'node_modules/@babel/core/node_modules/semver/bin/semver.js'
+    ],
   },
   rebuildConfig: {},
   makers: [
