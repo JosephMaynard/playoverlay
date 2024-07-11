@@ -71,11 +71,11 @@ export default function Modal({
                     <div className="mt-2">{children}</div>
                   </div>
                 </div>
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <div className="mt-5 gap-3 sm:mt-4 sm:flex sm:flex-row sm:justify-end">
                   {action && actionButtonLabel && (
                     <button
                       type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
                       onClick={action}
                     >
                       {actionButtonLabel}

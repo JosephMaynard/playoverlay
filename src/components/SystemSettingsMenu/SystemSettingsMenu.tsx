@@ -129,16 +129,31 @@ export default function SystemSettingsMenu({
         open={currentModal === 'about'}
         setOpen={() => setCurrentModal(null)}
         title="About PlayOverlay"
-        actionButtonLabel="Delete licence key?"
+        actionButtonLabel="Renew licence now"
         icon="playoverlay-logo"
+        action={navigator.onLine ? () => alert('bing') : undefined}
       >
         {isDemoMode ? (
-          <p className="text-sm text-gray-500">Demo mode</p>
+          <p className="mb-4 text-sm text-gray-500">Demo mode</p>
         ) : (
           <>
-            <p className="text-sm text-gray-500">{licenceData?.description}</p>
-            <p className="text-sm text-gray-500">
+            <p className="mb-4 text-sm text-gray-500">
+              {licenceData?.description}
+            </p>
+            <p className="mb-4 text-sm text-gray-500">
               Licenced to: {licenceData?.email}
+            </p>
+            <p className="mb-4 text-sm text-gray-500">
+              Current licence valid from:{' '}
+              {new Date(licenceData?.iat * 1000).toLocaleString()}
+            </p>
+            <p className="mb-4 text-sm text-gray-500">
+              Current licence expires in{' '}
+              {Math.floor(
+                (licenceData?.exp - Math.floor(Date.now() / 1000)) /
+                  (60 * 60 * 24)
+              )}{' '}
+              days at: {new Date(licenceData?.exp * 1000).toLocaleString()}
             </p>
           </>
         )}

@@ -32,5 +32,14 @@ export default async function validateJWT(decodedJWT: LicenceKeyData) {
     };
   }
 
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  if (validatedJWT.data.exp < currentTime) {
+    return {
+      success: false,
+      error: 'Licence key has expired',
+    };
+  }
+
   return { success: true };
 }

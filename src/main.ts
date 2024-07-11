@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/electron/main';
 import {
   app,
   BrowserWindow,
@@ -43,6 +44,10 @@ import {
 } from './main-functions/getSystemInfo';
 import saveLicenceKey from './main-functions/saveLicenceKey';
 import openActivationLink from './main-functions/openActivationLink';
+
+Sentry.init({
+  dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
+});
 
 const SHOW_DEV_TOOLS = false;
 

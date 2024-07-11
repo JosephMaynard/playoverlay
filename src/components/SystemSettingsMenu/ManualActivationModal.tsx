@@ -19,7 +19,7 @@ export default function ManualActivationModal({
   useEffect(() => {
     activationWindow
       ? window?.electronAPI
-          ?.getEncodedSystemInfo()
+          ?.getEncodedSystemInfoActivationWindow()
           .then((encodedSystemInfo) => {
             if (encodedSystemInfo) {
               setEncodedSystemInfo(encodedSystemInfo);
@@ -30,7 +30,7 @@ export default function ManualActivationModal({
             setErrorMessage('Failed to load System Key');
           })
       : window?.electronAPI
-          ?.getEncodedSystemInfoActivationWindow()
+          ?.getEncodedSystemInfo()
           .then((encodedSystemInfo) => {
             if (encodedSystemInfo) {
               setEncodedSystemInfo(encodedSystemInfo);

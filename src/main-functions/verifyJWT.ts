@@ -4,6 +4,18 @@ import { LicenceKeyData } from './validateJWT';
 const publicKey = // @ts-ignore
   import.meta.env.VITE_JWT_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? '';
 
+export const checkJwtExpiration = (token: string): boolean => {
+  const decoded = jwt.decode(token) as { exp: number };
+  const currentTime = Math.floor(Date.now() / 1000);
+  return decoded.exp < currentTime;
+};
+
+export const getJwtTimeLeft = (token: string): number => {
+  const decoded = jwt.decode(token) as { exp: number };
+  const currentTime = Math.floor(Date.now() / 1000);
+  return decoded.exp - currentTime;
+};
+
 export default function verifyJWT(token: string) {
   try {
     const decoded = jwt.verify(token.trim(), publicKey.trim(), {
