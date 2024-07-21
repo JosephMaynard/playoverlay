@@ -9,6 +9,7 @@ import {
   Menu,
   protocol,
   dialog,
+  shell,
 } from 'electron';
 import path from 'path';
 import {
@@ -44,6 +45,12 @@ import {
 } from './main-functions/getSystemInfo';
 import saveLicenceKey from './main-functions/saveLicenceKey';
 import openActivationLink from './main-functions/openActivationLink';
+import {
+  checkForUpdates,
+  checkInternetConnection,
+  deactivateLicenceKey,
+  renewLicenceKey,
+} from './main-functions/apiRequests';
 
 Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
@@ -147,6 +154,10 @@ function createActivationWindow() {
 
   ipcMain.on('open-activation-link-activation-window', () => {
     openActivationLink();
+  });
+
+  ipcMain.on('open-buy-now-link', () => {
+    shell.openExternal('https://account.playoverlay.com/');
   });
 
   // Open the DevTools in dev mode
@@ -405,6 +416,46 @@ function setupIPCHandlers() {
 
   ipcMain.on('open-activation-link', () => {
     openActivationLink();
+  });
+
+  ipcMain.handle('renew-licence-key', async (event, encodedSystemInfo) => {
+    try {
+      const token = await renewLicenceKey(encodedSystemInfo);
+      return { success: true, token };
+    } catch (error) {
+      console.error('Renew license key failed:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('deactivate-licence-key', async (event, encodedSystemInfo) => {
+    try {
+      const success = await deactivateLicenceKey(encodedSystemInfo);
+      return { success };
+    } catch (error) {
+      console.error('Delete license key failed:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('check-for-updates', async () => {
+    try {
+      const updates = await checkForUpdates();
+      return { success: true, updates };
+    } catch (error) {
+      console.error('Check for updates failed:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('check-internet-connection', async () => {
+    try {
+      const isConnected = await checkInternetConnection();
+      return { success: true, isConnected };
+    } catch (error) {
+      console.error('Check internet connection failed:', error);
+      return { success: false, error: error.message };
+    }
   });
 }
 

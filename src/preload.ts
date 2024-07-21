@@ -111,4 +111,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openActivationLinkActivationWindow: () =>
     ipcRenderer.send('open-activation-link-activation-window'),
   openActivationLink: () => ipcRenderer.send('open-activation-link'),
+  openBuyNowLink: () => ipcRenderer.send('open-buy-now-link'),
+  renewLicenceKey: async (encodedSystemInfo: string) => {
+    return await ipcRenderer.invoke('renew-licence-key', encodedSystemInfo);
+  },
+  deactivateLicenceKey: async (encodedSystemInfo: string) => {
+    return await ipcRenderer.invoke(
+      'deactivate-licence-key',
+      encodedSystemInfo
+    );
+  },
+  checkForUpdates: async () => {
+    return await ipcRenderer.invoke('check-for-updates');
+  },
+  checkInternetConnection: async () => {
+    return await ipcRenderer.invoke('check-internet-connection');
+  },
 });

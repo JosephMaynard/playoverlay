@@ -136,26 +136,46 @@ export default function SystemSettingsMenu({
         {isDemoMode ? (
           <p className="mb-4 text-sm text-gray-500">Demo mode</p>
         ) : (
-          <>
-            <p className="mb-4 text-sm text-gray-500">
-              {licenceData?.description}
-            </p>
-            <p className="mb-4 text-sm text-gray-500">
-              Licenced to: {licenceData?.email}
-            </p>
-            <p className="mb-4 text-sm text-gray-500">
-              Current licence valid from:{' '}
-              {new Date(licenceData?.iat * 1000).toLocaleString()}
-            </p>
-            <p className="mb-4 text-sm text-gray-500">
-              Current licence expires in{' '}
-              {Math.floor(
-                (licenceData?.exp - Math.floor(Date.now() / 1000)) /
-                  (60 * 60 * 24)
-              )}{' '}
-              days at: {new Date(licenceData?.exp * 1000).toLocaleString()}
-            </p>
-          </>
+          <div className="mt-6 border-t border-gray-100">
+            <dl className="divide-y divide-gray-100">
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  Product
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {licenceData?.description}
+                </dd>
+              </div>
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  Licenced to
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {licenceData?.email}
+                </dd>
+              </div>
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  Current licence valid from
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {new Date(licenceData?.iat * 1000).toLocaleString()}
+                </dd>
+              </div>
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  Current licence expires
+                </dt>
+                <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                  {Math.floor(
+                    (licenceData?.exp - Math.floor(Date.now() / 1000)) /
+                      (60 * 60 * 24)
+                  )}{' '}
+                  days at: {new Date(licenceData?.exp * 1000).toLocaleString()}
+                </dd>
+              </div>
+            </dl>
+          </div>
         )}
       </Modal>
     </>

@@ -65,6 +65,23 @@ declare global {
       runInDemoMode: () => void;
       openActivationLinkActivationWindow: () => void;
       openActivationLink: () => void;
+      openBuyNowLink: () => void;
+      renewLicenceKey: (
+        encodedSystemInfo: string
+      ) => Promise<{ success: boolean; token?: string; error?: string }>;
+      deleteLicenceKey: (
+        encodedSystemInfo: string
+      ) => Promise<{ success: boolean; error?: string }>;
+      checkForUpdates: () => Promise<{
+        success: boolean;
+        updates?: any;
+        error?: string;
+      }>;
+      checkInternetConnection: () => Promise<{
+        success: boolean;
+        isConnected?: boolean;
+        error?: string;
+      }>;
     };
   }
 }

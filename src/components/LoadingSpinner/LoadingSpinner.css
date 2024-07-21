@@ -1,0 +1,87 @@
+.LoadingSpinner_wrapper {
+  --size: 6rem;
+  --movement: 6rem;
+  --duration: 1.5s;
+}
+
+.LoadingSpinner_container {
+  height: var(--size);
+  width: var(--size);
+  animation: container_animation calc(var(--duration) * 2.5);
+}
+
+.LoadingSpinner_ball {
+  height: var(--size);
+  width: var(--size);
+  border-radius: 50%;
+  background-color: navy;
+  animation: LoadingSpinner_ball_animation var(--duration) infinite;
+  transform-origin: 50% 100%;
+}
+
+.LoadingSpinner_shadow {
+  top: calc(var(--movement) + (var(--size) * 0.8));
+  left: 0;
+  height: calc(var(--size) / 4);
+  width: var(--size);
+  border-radius: 50%;
+  background-color: navy;
+  opacity: 0.5;
+  animation: LoadingSpinner_shadow_animation var(--duration) infinite;
+}
+
+@keyframes LoadingSpinner_ball_animation {
+  0% {
+    transform: translateY(calc(0rem - var(--movement)));
+    animation-timing-function: ease-in;
+  }
+  45% {
+    transform: translateY(var(--movement)) scaleY(1) scaleX(1);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(var(--movement)) scaleY(0.8) scaleX(1.3);
+    animation-timing-function: ease-in;
+  }
+  55% {
+    transform: translateY(var(--movement)) scaleY(1) scaleX(1);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    transform: translateY(calc(0rem - var(--movement)));
+  }
+}
+
+@keyframes LoadingSpinner_shadow_animation {
+  0%,
+  15%,
+  85%,
+  100% {
+    animation-timing-function: ease-in;
+    transform: scaleY(1.3) scaleX(2);
+    opacity: 0;
+    filter: blur(8px);
+  }
+  45%,
+  55% {
+    animation-timing-function: ease-out;
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.075;
+    filter: blur(0px);
+  }
+}
+
+@keyframes container_animation {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
