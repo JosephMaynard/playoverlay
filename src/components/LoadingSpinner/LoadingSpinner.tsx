@@ -9,7 +9,7 @@ export default function LoadingSpinner() {
         <div className="LoadingSpinner_shadow absolute left-0"></div>
         <img
           className="LoadingSpinner_ball absolute left-0 top-0"
-          src={logo.src}
+          src={logo}
           alt="PlayOverlay Logo"
         />
       </div>

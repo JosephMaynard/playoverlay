@@ -150,7 +150,7 @@ export default function SystemSettingsMenu({
       >
         {isDemoMode && <p className="mb-4 text-sm text-gray-500">Demo mode</p>}
         {loading && (
-          <div className="h-40 w-full">
+          <div className="mx-4 h-60 w-80">
             <LoadingSpinner />
           </div>
         )}

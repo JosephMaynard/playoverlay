@@ -1,7 +1,7 @@
 .LoadingSpinner_wrapper {
-  --size: 6rem;
-  --movement: 6rem;
-  --duration: 1.5s;
+  --size: 4.25rem;
+  --movement: 4.25rem;
+  --duration: 1.25s;
 }
 
 .LoadingSpinner_container {
