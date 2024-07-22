@@ -9,6 +9,7 @@ import { classNames } from '../../utils';
 import ManualActivationModal from './ManualActivationModal';
 import Modal from '../Modal/Modal';
 import { LicenceKeyData } from 'src/main-functions/validateJWT';
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 
 export interface Props {
   open: boolean;
@@ -24,7 +25,7 @@ export default function SystemSettingsMenu({
   isDemoMode,
 }: Props) {
   const [currentModal, setCurrentModal] = useState<Modals>(null);
-
+  const [loading, setLoading] = useState(false);
   const [licenceData, setlicenceData] = useState<LicenceKeyData>();
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function SystemSettingsMenu({
       .catch((error: any) => {
         console.error('Failed to load fetch licence data:', error);
       });
-  }, []);
+  }, [loading]);
   return (
     <>
       <SideMenu open={open} setOpen={setOpen} title="System Settings">
@@ -131,11 +132,29 @@ export default function SystemSettingsMenu({
         title="About PlayOverlay"
         actionButtonLabel="Renew licence now"
         icon="playoverlay-logo"
-        action={navigator.onLine ? () => alert('bing') : undefined}
+        action={
+          navigator.onLine
+            ? () => {
+                setLoading(true);
+                window?.electronAPI
+                  ?.renewLicenceKey()
+                  .then(() => {
+                    setLoading(false);
+                  })
+                  .catch(() => {
+                    setLoading(false);
+                  });
+              }
+            : undefined
+        }
       >
-        {isDemoMode ? (
-          <p className="mb-4 text-sm text-gray-500">Demo mode</p>
-        ) : (
+        {isDemoMode && <p className="mb-4 text-sm text-gray-500">Demo mode</p>}
+        {loading && (
+          <div className="h-40 w-full">
+            <LoadingSpinner />
+          </div>
+        )}
+        {!isDemoMode && !loading && (
           <div className="mt-6 border-t border-gray-100">
             <dl className="divide-y divide-gray-100">
               <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">

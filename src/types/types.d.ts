@@ -66,9 +66,11 @@ declare global {
       openActivationLinkActivationWindow: () => void;
       openActivationLink: () => void;
       openBuyNowLink: () => void;
-      renewLicenceKey: (
-        encodedSystemInfo: string
-      ) => Promise<{ success: boolean; token?: string; error?: string }>;
+      renewLicenceKey: () => Promise<{
+        success: boolean;
+        token?: string;
+        error?: string;
+      }>;
       deleteLicenceKey: (
         encodedSystemInfo: string
       ) => Promise<{ success: boolean; error?: string }>;

@@ -3,7 +3,10 @@ import { removeDemoModeTeamSettings, setLicenceKey } from './storage';
 import validateJWT, { LicenceKeyData } from './validateJWT';
 import verifyJWT from './verifyJWT';
 
-export default async function saveLicenceKey(licenceKey: string) {
+export default async function saveLicenceKey(
+  licenceKey: string,
+  restartApp?: boolean
+) {
   const decodedJWT = verifyJWT(licenceKey);
   if (decodedJWT === null) {
     return { success: false, error: 'Licence key invalid' };
@@ -19,9 +22,12 @@ export default async function saveLicenceKey(licenceKey: string) {
   }
 
   setLicenceKey(licenceKey);
-  removeDemoModeTeamSettings();
-  app.relaunch();
-  app.exit();
+
+  if (restartApp === true) {
+    removeDemoModeTeamSettings();
+    app.relaunch();
+    app.exit();
+  }
 
   return { success: true };
 }

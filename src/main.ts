@@ -56,7 +56,7 @@ Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
 });
 
-const SHOW_DEV_TOOLS = false;
+const SHOW_DEV_TOOLS = true;
 
 export const isDev = process.env.NODE_ENV !== 'production';
 let quitWhenAllWindowsClose = true;
@@ -143,7 +143,7 @@ function createActivationWindow() {
   ipcMain.handle(
     'save-licence-key-activation-window',
     async (event, licenceKey: string) => {
-      const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
+      const saveLicenceKeyResult = await saveLicenceKey(licenceKey, true);
       return saveLicenceKeyResult;
     }
   );
@@ -310,7 +310,7 @@ function setupIPCHandlers() {
   });
 
   ipcMain.handle('save-licence-key', async (event, licenceKey: string) => {
-    const saveLicenceKeyResult = await saveLicenceKey(licenceKey);
+    const saveLicenceKeyResult = await saveLicenceKey(licenceKey, true);
     return saveLicenceKeyResult;
   });
 
@@ -409,18 +409,17 @@ function setupIPCHandlers() {
     app.exit();
   });
 
-  ipcMain.handle('get-licence-data', async () => {
-    const licencedData = await getLicencedData();
-    return licencedData;
+  ipcMain.handle('get-licence-data', () => {
+    return getLicencedData();
   });
 
   ipcMain.on('open-activation-link', () => {
     openActivationLink();
   });
 
-  ipcMain.handle('renew-licence-key', async (event, encodedSystemInfo) => {
+  ipcMain.handle('renew-licence-key', async () => {
     try {
-      const token = await renewLicenceKey(encodedSystemInfo);
+      const token = await renewLicenceKey();
       return { success: true, token };
     } catch (error) {
       console.error('Renew license key failed:', error);
@@ -603,7 +602,7 @@ if (process.platform === 'darwin') {
   app.on('open-url', async (event, url) => {
     if (isDemoMode()) {
       const jwt = new URL(url).searchParams.get('jwt');
-      const { error } = await saveLicenceKey(jwt);
+      const { error } = await saveLicenceKey(jwt, true);
       if (error) {
         dialog.showErrorBox('An error occured', error);
       }

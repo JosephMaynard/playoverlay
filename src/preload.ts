@@ -112,8 +112,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('open-activation-link-activation-window'),
   openActivationLink: () => ipcRenderer.send('open-activation-link'),
   openBuyNowLink: () => ipcRenderer.send('open-buy-now-link'),
-  renewLicenceKey: async (encodedSystemInfo: string) => {
-    return await ipcRenderer.invoke('renew-licence-key', encodedSystemInfo);
+  renewLicenceKey: async () => {
+    return await ipcRenderer.invoke('renew-licence-key');
   },
   deactivateLicenceKey: async (encodedSystemInfo: string) => {
     return await ipcRenderer.invoke(
