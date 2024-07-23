@@ -1,8 +1,13 @@
-import Store from './electron-store';
+import Store from 'electron-store';
 import isDemoMode from './isDemoMode';
 import { AppSettings, TeamSettingsInterface, CustomScreen } from '../types';
 
-const storage = new Store();
+// @ts-ignore
+const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
+
+const storage = new Store({
+  encryptionKey: API_AUTH_KEY,
+});
 
 export const MAIN_WINDOW = 'MAIN_WINDOW';
 export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
@@ -63,7 +68,7 @@ export function setTeamSettings(teamSettings: TeamSettingsInterface) {
 }
 
 export function getTeamSettings() {
-  let teamSettings: TeamSettingsInterface = storage.get(TEAM_SETTINGS);
+  let teamSettings = storage.get(TEAM_SETTINGS) as TeamSettingsInterface;
   if (teamSettings) {
     if (isDemoMode() === true) {
       teamSettings = {
@@ -79,7 +84,7 @@ export function getTeamSettings() {
 }
 
 export function removeDemoModeTeamSettings() {
-  let teamSettings: TeamSettingsInterface = storage.get(TEAM_SETTINGS);
+  let teamSettings = storage.get(TEAM_SETTINGS) as TeamSettingsInterface;
   setTeamSettings({
     ...teamSettings,
     awayTeamNameFull: 'Away Team',

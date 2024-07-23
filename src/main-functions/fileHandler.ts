@@ -37,7 +37,7 @@ export async function handleFileUpload(
 
   try {
     fs.writeFileSync(destination, buffer);
-    const screens = getCustomScreens();
+    const screens = getCustomScreens() as CustomScreen[];
     screens.push({
       title,
       filePath: destination,
@@ -57,7 +57,7 @@ export async function handleFileUpload(
 export function handleFileDeletion(filePath: string): boolean {
   try {
     fs.unlinkSync(filePath);
-    const screens = getCustomScreens();
+    const screens = getCustomScreens() as CustomScreen[];
     const updatedScreens = screens.filter(
       (screen: CustomScreen) => screen.filePath !== filePath
     );
