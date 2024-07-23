@@ -32,3 +32,7 @@ export const updatesSchema = z.object({
 });
 
 export type Updates = z.infer<typeof updatesSchema>;
+
+export interface UpdateStatus extends Updates {
+  newVersionAvailable: boolean;
+}

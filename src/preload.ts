@@ -127,4 +127,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkInternetConnection: async () => {
     return await ipcRenderer.invoke('check-internet-connection');
   },
+  openUrlInBrowser: (url: string) =>
+    ipcRenderer.send('open-url-in-browser', url),
 });

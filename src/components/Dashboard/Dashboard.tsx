@@ -38,6 +38,7 @@ import AppSettingsMenu from './AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
+import { UpdateStatus } from 'src/zodSchemas';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -62,6 +63,7 @@ export default function Dashboard() {
   const [paused, setPaused] = useState(false);
 
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
 
   useEffect(() => {
     const checkDemoMode = async () => {
@@ -71,6 +73,15 @@ export default function Dashboard() {
 
     checkDemoMode();
   }, [isDemoMode]);
+
+  useEffect(() => {
+    const checkForUpdates = async () => {
+      const currentUpdateStatus = await window.electronAPI.checkForUpdates();
+      setUpdateStatus(currentUpdateStatus.updates);
+    };
+
+    checkForUpdates();
+  }, []);
 
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
@@ -452,6 +463,19 @@ export default function Dashboard() {
           icon={
             <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
           }
+        />
+      )}
+      {!isDemoMode && updateStatus?.newVersionAvailable && (
+        <AppNotification
+          title="Update available"
+          text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
+          icon={
+            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+          }
+          buttonOnClick={() => {
+            window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
+          }}
+          buttonText="Download now"
         />
       )}
     </>

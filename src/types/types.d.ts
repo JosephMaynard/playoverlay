@@ -84,6 +84,7 @@ declare global {
         isConnected?: boolean;
         error?: string;
       }>;
+      openUrlInBrowser: (url: string) => void;
     };
   }
 }

@@ -6,9 +6,17 @@ export interface Props {
   title: string;
   text: string;
   icon: React.ReactNode;
+  buttonText?: string;
+  buttonOnClick?: () => void;
 }
 
-export default function AppNotification({ title, text, icon }: Props) {
+export default function AppNotification({
+  title,
+  text,
+  icon,
+  buttonText,
+  buttonOnClick,
+}: Props) {
   const [show, setShow] = useState(true);
 
   return (
@@ -35,6 +43,20 @@ export default function AppNotification({ title, text, icon }: Props) {
                 <div className="ml-3 w-0 flex-1 pt-0.5">
                   <p className="text-sm font-medium text-gray-900">{title}</p>
                   <p className="mt-1 text-sm text-gray-500">{text}</p>
+                  {buttonText && buttonOnClick && (
+                    <div className="pt-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          buttonOnClick();
+                          setShow(false);
+                        }}
+                        className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      >
+                        {buttonText}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="ml-4 flex flex-shrink-0">
                   <button

@@ -57,7 +57,7 @@ Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
 });
 
-const SHOW_DEV_TOOLS = true;
+const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
@@ -452,6 +452,10 @@ function setupIPCHandlers() {
       console.error('Check internet connection failed:', error);
       return { success: false, error: error.message };
     }
+  });
+
+  ipcMain.on('open-url-in-browser', (event, url: string) => {
+    shell.openExternal(url);
   });
 }
 
