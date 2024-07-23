@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { LicenceKeyData } from './validateJWT';
+import { LicenceKeyData } from '../zodSchemas';
 
 const publicKey = // @ts-ignore
   import.meta.env.VITE_JWT_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? '';

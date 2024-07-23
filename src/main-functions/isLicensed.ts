@@ -1,13 +1,13 @@
+import { LicenceKeyData } from '../zodSchemas';
 import { setIsDemoMode } from './isDemoMode';
-import { getLicenceKey } from './storage';
-import validateJWT, { LicenceKeyData } from './validateJWT';
+import { getLicenceKey, getRenewalJWT } from './storage';
+import { validateJWT, validateRenewalJWT } from './validateJWT';
 import verifyJWT from './verifyJWT';
 
 let licenceData: LicenceKeyData;
 
-// Licensing check function (placeholder)
 export default async function isLicensed() {
-  const licenceKey = getLicenceKey();
+  const licenceKey = getLicenceKey() as string | undefined;
   if (!licenceKey) {
     return { licenced: false };
   }
@@ -17,13 +17,34 @@ export default async function isLicensed() {
     return { licenced: false };
   }
 
-  const validatedJWT = await validateJWT(data as LicenceKeyData);
+  const renewalJWT = getRenewalJWT() as string | undefined;
 
-  if (validatedJWT.success !== true) {
-    return { licenced: false };
+  if (renewalJWT) {
+    const renewalJWTData = verifyJWT(renewalJWT);
+    if (renewalJWTData === null) {
+      return { licenced: false };
+    }
+    const validatedRenewalJWT = await validateRenewalJWT(data, renewalJWTData);
+
+    if (validatedRenewalJWT.success !== true) {
+      return { licenced: false };
+    }
+
+    licenceData = {
+      ...data,
+      iat: renewalJWTData.iat,
+      exp: renewalJWTData.exp,
+    };
+  } else {
+    const validatedJWT = await validateJWT(data);
+
+    if (validatedJWT.success !== true) {
+      return { licenced: false };
+    }
+
+    licenceData = data;
   }
 
-  licenceData = data;
   setIsDemoMode(false);
 
   return { licenced: true };

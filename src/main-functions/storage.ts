@@ -15,6 +15,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 const APP_SETTINGS = 'APP_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS';
 const LICENCE_KEY = 'LICENCE_KEY';
+const RENEWAL_JWT = 'RENEWAL_JWT';
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
@@ -103,6 +104,17 @@ export function getLicenceKey() {
 
 export function setLicenceKey(licenceKey: string) {
   storage.set(LICENCE_KEY, licenceKey);
+}
+
+export function getRenewalJWT() {
+  const RenewalJWT = storage.get(RENEWAL_JWT);
+  if (RenewalJWT) {
+    return RenewalJWT;
+  }
+}
+
+export function setRenewalJWT(RenewalJWT: string) {
+  storage.set(RENEWAL_JWT, RenewalJWT);
 }
 
 export function deleteLicenceKey() {

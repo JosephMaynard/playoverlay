@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import { removeDemoModeTeamSettings, setLicenceKey } from './storage';
-import validateJWT, { LicenceKeyData } from './validateJWT';
+import { validateJWT } from './validateJWT';
+import { LicenceKeyData } from '../zodSchemas';
 import verifyJWT from './verifyJWT';
 
 export default async function saveLicenceKey(

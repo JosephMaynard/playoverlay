@@ -1,18 +1,11 @@
-import { z } from 'zod';
 import dns from 'dns/promises';
 
-import { getEncodedSystemInfo } from './getSystemInfo';
-import saveLicenceKey from './saveLicenceKey';
+import { getRenewalEncodedSystemInfo } from './getSystemInfo';
 import isLicensed from './isLicensed';
 import compareSemver from './compareSemver';
 import { app } from 'electron';
-
-const updatesSchema = z.object({
-  latestVersion: z.string(),
-  downloadUrl: z.string(),
-});
-
-export type Updates = z.infer<typeof updatesSchema>;
+import { updatesSchema } from '../zodSchemas';
+import saveRenewalJWT from './saveRenewalJWT';
 
 let useLocalBackend = false;
 
@@ -39,7 +32,7 @@ export async function renewLicenceKey() {
     throw new Error('No internet connection');
   }
 
-  const encodedSystemInfo = await getEncodedSystemInfo();
+  const encodedSystemInfo = await getRenewalEncodedSystemInfo();
 
   try {
     const response = await fetch(`${API_BASE_URL}/renew-jwt`, {
@@ -58,7 +51,7 @@ export async function renewLicenceKey() {
 
     const data = await response.json();
 
-    const saveLicenceKeyResult = await saveLicenceKey(data.token);
+    const saveLicenceKeyResult = await saveRenewalJWT(data.token);
 
     if (saveLicenceKeyResult.success !== true) {
       throw new Error(

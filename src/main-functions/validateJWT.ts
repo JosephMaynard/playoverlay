@@ -1,22 +1,12 @@
 import { machineId } from 'node-machine-id';
-import { z } from 'zod';
+import {
+  LicenceKeyData,
+  licenceKeyDataSchema,
+  RenewalJWTData,
+  renewalJWTDataSchema,
+} from '../zodSchemas';
 
-const licenceKeyDataSchema = z.object({
-  machine_description: z.string(),
-  machine_id: z.string(),
-  app_name: z.string(),
-  app_version: z.string(),
-  email: z.string().email(),
-  user_id: z.string(),
-  product_code: z.string(),
-  description: z.string(),
-  iat: z.number(),
-  exp: z.number(),
-});
-
-export type LicenceKeyData = z.infer<typeof licenceKeyDataSchema>;
-
-export default async function validateJWT(decodedJWT: LicenceKeyData) {
+export async function validateJWT(decodedJWT: LicenceKeyData) {
   const validatedJWT = licenceKeyDataSchema.safeParse(decodedJWT);
 
   if (validatedJWT.success !== true) {
@@ -35,6 +25,50 @@ export default async function validateJWT(decodedJWT: LicenceKeyData) {
   const currentTime = Math.floor(Date.now() / 1000);
 
   if (validatedJWT.data.exp < currentTime) {
+    return {
+      success: false,
+      error: 'Licence key has expired',
+    };
+  }
+
+  return { success: true };
+}
+
+export async function validateRenewalJWT(
+  decodedJWT: LicenceKeyData,
+  decodedRenewalJWT: RenewalJWTData
+) {
+  const validatedJWT = licenceKeyDataSchema.safeParse(decodedJWT);
+
+  if (validatedJWT.success !== true) {
+    console.error(validatedJWT);
+    return {
+      success: false,
+      error: 'validateRenewalJWT Licence key data is incorrect',
+    };
+  }
+  const validatedRenewalJWT = renewalJWTDataSchema.safeParse(decodedRenewalJWT);
+
+  if (validatedRenewalJWT.success !== true) {
+    return { success: false, error: 'Renewal data is incorrect' };
+  }
+
+  const machine_id = await machineId();
+
+  if (
+    validatedJWT.data.machine_id !== machine_id ||
+    validatedRenewalJWT.data.machine_id !== machine_id ||
+    validatedJWT.data.machine_id !== validatedRenewalJWT.data.machine_id
+  ) {
+    return {
+      success: false,
+      error: 'Licence key does not match system key',
+    };
+  }
+
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  if (validatedRenewalJWT.data.exp < currentTime) {
     return {
       success: false,
       error: 'Licence key has expired',

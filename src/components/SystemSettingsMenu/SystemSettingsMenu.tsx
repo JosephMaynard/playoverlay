@@ -8,7 +8,7 @@ import SideMenu from '../SideMenu/SideMenu';
 import { classNames } from '../../utils';
 import ManualActivationModal from './ManualActivationModal';
 import Modal from '../Modal/Modal';
-import { LicenceKeyData } from 'src/main-functions/validateJWT';
+import { LicenceKeyData } from '../../zodSchemas';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 
 export interface Props {
