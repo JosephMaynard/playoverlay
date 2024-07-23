@@ -45,7 +45,6 @@ export async function renewLicenceKey() {
     });
 
     if (!response.ok) {
-      console.log(response);
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
@@ -80,8 +79,6 @@ export async function deactivateLicenceKey() {
 
   const encodedSystemInfo = await getRenewalEncodedSystemInfo();
 
-  console.log('DEACTIVATE encodedSystemInfo', encodedSystemInfo);
-
   try {
     const response = await fetch(`${API_BASE_URL}/deactivate`, {
       method: 'DELETE',
@@ -92,10 +89,7 @@ export async function deactivateLicenceKey() {
       body: JSON.stringify({ encodedSystemInfo }),
     });
 
-    console.log('DEACTIVATE json', await response.json());
-
     if (!response.ok) {
-      console.log(response);
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
@@ -129,8 +123,6 @@ export async function checkForUpdates() {
       throw new Error('Check for updates fetch failed');
     }
 
-    console.log(data);
-
     const parsedUpdateData = updatesSchema.safeParse(data);
 
     if (parsedUpdateData.success === false) {
@@ -142,8 +134,6 @@ export async function checkForUpdates() {
     const newVersionAvailable =
       compareSemver(parsedUpdateData.data.latestVersion, app.getVersion()) ===
       1;
-
-    console.log(parsedUpdateData.data);
 
     return { ...parsedUpdateData.data, newVersionAvailable };
   } catch (error) {

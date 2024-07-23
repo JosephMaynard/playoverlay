@@ -27,7 +27,6 @@ export default function CustomScreensMenu({ open, setOpen, keyColour }: Props) {
       try {
         const storedScreens = await window?.electronAPI?.getCustomScreens();
         setCustomScreens(storedScreens || []);
-        console.log('storedScreens', storedScreens);
       } catch (error) {
         console.error('Failed to fetch custom screens:', error);
       }

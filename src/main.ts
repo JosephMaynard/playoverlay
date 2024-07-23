@@ -391,14 +391,29 @@ function setupIPCHandlers() {
   ipcMain.handle('get-demo-mode', () => isDemoMode());
 
   ipcMain.on('delete-licence-key', async () => {
+    const message =
+      'Unable to connect to the internet to delete this installation. You can delete it in your account at account.playoverlay.com';
     try {
       const success = await deactivateLicenceKey();
 
       if (!success) {
         console.error('Deactivate licence key API call failed');
+
+        await dialog.showMessageBox({
+          type: 'error',
+          buttons: ['OK'],
+          title: 'Error',
+          message,
+        });
       }
     } catch (err) {
       console.error('Deactivate licence key API call failed');
+      await dialog.showMessageBox({
+        type: 'error',
+        buttons: ['OK'],
+        title: 'Error',
+        message,
+      });
     }
 
     deleteLicenceKey();
