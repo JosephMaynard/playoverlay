@@ -1,7 +1,18 @@
+import { z } from 'zod';
 import dns from 'dns/promises';
+
 import { getEncodedSystemInfo } from './getSystemInfo';
 import saveLicenceKey from './saveLicenceKey';
 import isLicensed from './isLicensed';
+import compareSemver from './compareSemver';
+import { app } from 'electron';
+
+const updatesSchema = z.object({
+  latestVersion: z.string(),
+  downloadUrl: z.string(),
+});
+
+export type Updates = z.infer<typeof updatesSchema>;
 
 let useLocalBackend = false;
 
@@ -112,7 +123,28 @@ export async function checkForUpdates() {
     }
 
     const data = await response.json();
-    return data;
+
+    if (!data || data.success === false) {
+      throw new Error('Check for updates fetch failed');
+    }
+
+    console.log(data);
+
+    const parsedUpdateData = updatesSchema.safeParse(data);
+
+    if (parsedUpdateData.success === false) {
+      throw new Error(
+        `Check for updates parse error ${parsedUpdateData.error}`
+      );
+    }
+
+    const newVersionAvailable =
+      compareSemver(parsedUpdateData.data.latestVersion, app.getVersion()) ===
+      1;
+
+    console.log(parsedUpdateData.data);
+
+    return { ...parsedUpdateData.data, newVersionAvailable };
   } catch (error) {
     console.error('Error checking for updates:', error);
     throw error;

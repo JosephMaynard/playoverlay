@@ -58,7 +58,7 @@ Sentry.init({
 
 const SHOW_DEV_TOOLS = true;
 
-export const isDev = process.env.NODE_ENV !== 'production';
+export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -500,7 +500,7 @@ app.on('ready', async () => {
 
 // All windows closed event
 app.on('window-all-closed', () => {
-  if (!isDev) {
+  if (!isDev && quitWhenAllWindowsClose) {
     console.log('window-all-closed');
     app.quit();
   }
