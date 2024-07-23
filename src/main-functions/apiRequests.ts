@@ -72,11 +72,16 @@ export async function renewLicenceKey() {
   }
 }
 
-export async function deactivateLicenceKey(encodedSystemInfo: string) {
+export async function deactivateLicenceKey() {
   const isConnected = await checkInternetConnection();
   if (!isConnected) {
     throw new Error('No internet connection');
   }
+
+  const encodedSystemInfo = await getRenewalEncodedSystemInfo();
+
+  console.log('DEACTIVATE encodedSystemInfo', encodedSystemInfo);
+
   try {
     const response = await fetch(`${API_BASE_URL}/deactivate`, {
       method: 'DELETE',
@@ -84,10 +89,13 @@ export async function deactivateLicenceKey(encodedSystemInfo: string) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${API_AUTH_KEY}`,
       },
-      body: JSON.stringify({ machine_id: encodedSystemInfo }),
+      body: JSON.stringify({ encodedSystemInfo }),
     });
 
+    console.log('DEACTIVATE json', await response.json());
+
     if (!response.ok) {
+      console.log(response);
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 

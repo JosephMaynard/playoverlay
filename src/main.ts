@@ -51,6 +51,7 @@ import {
   deactivateLicenceKey,
   renewLicenceKey,
 } from './main-functions/apiRequests';
+import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
 
 Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
@@ -162,8 +163,7 @@ function createActivationWindow() {
 
   // Open the DevTools in dev mode
   if (SHOW_DEV_TOOLS && isDev) {
-    // @ts-ignore
-    activationWindow.openDevTools();
+    activationWindow.webContents.openDevTools();
   }
 
   return activationWindow;
@@ -220,19 +220,6 @@ function openMainAndDisplayWindows() {
     activationWindow = null;
   }
   createWindows();
-}
-
-// Function to open registration window and close main & display windows
-function openactivationWindow() {
-  if (mainWindow) {
-    mainWindow.close();
-    mainWindow = null;
-  }
-  if (displayWindow) {
-    displayWindow.close();
-    displayWindow = null;
-  }
-  createActivationWindow();
 }
 
 // Setup IPC handlers
@@ -403,7 +390,17 @@ function setupIPCHandlers() {
 
   ipcMain.handle('get-demo-mode', () => isDemoMode());
 
-  ipcMain.on('delete-licence-key', () => {
+  ipcMain.on('delete-licence-key', async () => {
+    try {
+      const success = await deactivateLicenceKey();
+
+      if (!success) {
+        console.error('Deactivate licence key API call failed');
+      }
+    } catch (err) {
+      console.error('Deactivate licence key API call failed');
+    }
+
     deleteLicenceKey();
     app.relaunch();
     app.exit();
@@ -427,9 +424,9 @@ function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('deactivate-licence-key', async (event, encodedSystemInfo) => {
+  ipcMain.handle('deactivate-licence-key', async () => {
     try {
-      const success = await deactivateLicenceKey(encodedSystemInfo);
+      const success = await deactivateLicenceKey();
       return { success };
     } catch (error) {
       console.error('Delete license key failed:', error);
@@ -477,7 +474,8 @@ app.on('ready', async () => {
   if (isLicencedResult.licenced === true) {
     createWindows();
     setupDisplayListeners();
-    ensureWindowsAreVisible(); // Ensure windows are visible on startup
+    ensureWindowsAreVisible();
+    checkLicenceExpiry();
   } else {
     createActivationWindow();
   }
