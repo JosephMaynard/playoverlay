@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   InformationCircleIcon,
   LockOpenIcon,
+  ShoppingCartIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import SideMenu from '../SideMenu/SideMenu';
@@ -68,6 +69,26 @@ export default function SystemSettingsMenu({
                 <button
                   className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
                   onClick={() => {
+                    window.electronAPI.openUrlInBrowser(
+                      'https://account.playoverlay.com'
+                    );
+                    setOpen();
+                  }}
+                >
+                  <ShoppingCartIcon
+                    className={classNames(
+                      'text-gray-400 group-hover:text-indigo-600',
+                      'h-6 w-6 shrink-0'
+                    )}
+                    aria-hidden="true"
+                  />
+                  Buy now
+                </button>
+              </li>
+              <li>
+                <button
+                  className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                  onClick={() => {
                     window.electronAPI.openActivationLink();
                     setOpen();
                   }}
@@ -79,7 +100,7 @@ export default function SystemSettingsMenu({
                     )}
                     aria-hidden="true"
                   />
-                  Activation
+                  Activate Purchace
                 </button>
               </li>
               <li>
