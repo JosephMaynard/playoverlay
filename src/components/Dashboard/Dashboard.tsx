@@ -459,10 +459,16 @@ export default function Dashboard() {
       {isDemoMode && (
         <AppNotification
           title="PlayOverlay Demo"
-          text="This is a pre-release demo version of PlayOverlay. Some features are unfinished and some features have been disabled. You will be able to visit playoverlay.com to purchase the full version when it is finished."
+          text="PlayOverlay is running in demo mode, some features have been disabled. To unlock all features, buy a licence from playoverlay.com or activatve an existing purchase."
           icon={
             <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
           }
+          buttonOnClick={() => {
+            window?.electronAPI?.openUrlInBrowser(
+              'https://account.playoverlay.com/'
+            );
+          }}
+          buttonText="Buy now"
         />
       )}
       {!isDemoMode && updateStatus?.newVersionAvailable && (

@@ -81,10 +81,20 @@ const gotTheLock = app.requestSingleInstanceLock(additionalData);
 if (!gotTheLock && !isDev) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', async (event, commandLine) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
+    }
+
+    if (process.platform !== 'darwin') {
+      const jwt = new URL(commandLine.pop()).searchParams.get('jwt');
+      if (jwt) {
+        const { error } = await saveLicenceKey(jwt, isDemoMode());
+        if (error) {
+          dialog.showErrorBox('An error occured', error);
+        }
+      }
     }
   });
 }
@@ -617,9 +627,9 @@ function ensureWindowsAreVisible() {
 if (process.platform === 'darwin') {
   // Handle the protocol. In this case, we choose to show an Error Box.
   app.on('open-url', async (event, url) => {
-    if (isDemoMode()) {
-      const jwt = new URL(url).searchParams.get('jwt');
-      const { error } = await saveLicenceKey(jwt, true);
+    const jwt = new URL(url).searchParams.get('jwt');
+    if (jwt) {
+      const { error } = await saveLicenceKey(jwt, isDemoMode());
       if (error) {
         dialog.showErrorBox('An error occured', error);
       }
