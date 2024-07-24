@@ -68,6 +68,24 @@ export default function SystemSettingsMenu({
                 <button
                   className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
                   onClick={() => {
+                    window.electronAPI.openActivationLink();
+                    setOpen();
+                  }}
+                >
+                  <LockOpenIcon
+                    className={classNames(
+                      'text-gray-400 group-hover:text-indigo-600',
+                      'h-6 w-6 shrink-0'
+                    )}
+                    aria-hidden="true"
+                  />
+                  Activation
+                </button>
+              </li>
+              <li>
+                <button
+                  className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                  onClick={() => {
                     setCurrentModal('activation');
                     setOpen();
                   }}
