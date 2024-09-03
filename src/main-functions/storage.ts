@@ -1,7 +1,7 @@
 import Store from 'electron-store';
 import isDemoMode from './isDemoMode';
 import { AppSettings, TeamSettingsInterface, CustomScreen } from '../types';
-import { defaultTeamSettings } from 'src/constants';
+import { defaultTeamSettings } from '../constants';
 
 // @ts-ignore
 const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
