@@ -36,3 +36,16 @@ export type Updates = z.infer<typeof updatesSchema>;
 export interface UpdateStatus extends Updates {
   newVersionAvailable: boolean;
 }
+
+export const teamSetingsSchema = z.object({
+  homeTeamNameFull: z.string(),
+  homeTeamNameAbbreviated: z.string(),
+  homeTeamTextColour: z.optional(z.string()),
+  homeTeamBackgroundColour: z.optional(z.string()),
+  awayTeamNameFull: z.string(),
+  awayTeamNameAbbreviated: z.string(),
+  awayTeamTextColour: z.optional(z.string()),
+  awayTeamBackgroundColour: z.optional(z.string()),
+});
+
+export type TeamSettingsInterface = z.infer<typeof teamSetingsSchema>;

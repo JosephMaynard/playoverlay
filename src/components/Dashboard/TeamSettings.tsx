@@ -58,7 +58,7 @@ export default function TeamSettings({
       </div>
       <div className="mb-2 inline-block border border-gray-900 [--base-size:2rem]">
         <ScoresTeamName
-          teamName={teamNameAbbreviated || '?'}
+          teamName={teamNameAbbreviated}
           textColour={textColour}
           backgroundColour={backgroundColour}
         />

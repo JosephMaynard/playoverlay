@@ -1,7 +1,8 @@
 import Store from 'electron-store';
 import isDemoMode from './isDemoMode';
-import { AppSettings, TeamSettingsInterface, CustomScreen } from '../types';
+import { AppSettings, CustomScreen } from '../types';
 import { defaultTeamSettings } from '../constants';
+import { teamSetingsSchema, TeamSettingsInterface } from '../zodSchemas';
 
 // @ts-ignore
 const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
@@ -69,11 +70,20 @@ export function setTeamSettings(teamSettings: TeamSettingsInterface) {
   storage.set(TEAM_SETTINGS, teamSettings);
 }
 
+function getVerifiedTeamSettings(): TeamSettingsInterface {
+  const teamSettings = storage.get(TEAM_SETTINGS, defaultTeamSettings);
+  const verifiedTeamSettings = teamSetingsSchema.safeParse(teamSettings);
+
+  if (verifiedTeamSettings.success === true) {
+    return verifiedTeamSettings.data;
+  }
+
+  // Fallback to default data if data corrupted
+  return defaultTeamSettings;
+}
+
 export function getTeamSettings() {
-  let teamSettings = storage.get(
-    TEAM_SETTINGS,
-    defaultTeamSettings
-  ) as TeamSettingsInterface;
+  let teamSettings = getVerifiedTeamSettings();
   if (teamSettings) {
     if (isDemoMode() === true) {
       teamSettings = {
@@ -89,10 +99,7 @@ export function getTeamSettings() {
 }
 
 export function removeDemoModeTeamSettings() {
-  let teamSettings = storage.get(
-    TEAM_SETTINGS,
-    defaultTeamSettings
-  ) as TeamSettingsInterface;
+  let teamSettings = getVerifiedTeamSettings();
   setTeamSettings({
     ...teamSettings,
     awayTeamNameFull: 'Away Team',

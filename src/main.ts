@@ -12,13 +12,8 @@ import {
   shell,
 } from 'electron';
 import path from 'path';
-import {
-  AppSettings,
-  MatchSettings,
-  Scores,
-  TeamSettingsInterface,
-  Time,
-} from './types';
+import { AppSettings, MatchSettings, Scores, Time } from './types';
+import { TeamSettingsInterface } from './zodSchemas';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,

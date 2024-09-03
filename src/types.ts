@@ -23,17 +23,6 @@ export interface AppSettings {
   autoSwitchScreens: boolean;
 }
 
-export interface TeamSettingsInterface {
-  homeTeamNameFull: string;
-  homeTeamNameAbbreviated: string;
-  homeTeamTextColour?: string;
-  homeTeamBackgroundColour?: string;
-  awayTeamNameFull: string;
-  awayTeamNameAbbreviated: string;
-  awayTeamTextColour?: string;
-  awayTeamBackgroundColour?: string;
-}
-
 export interface MatchSettings {
   matchPhase?: MatchPhase;
   displayScreen: DisplayScreen;

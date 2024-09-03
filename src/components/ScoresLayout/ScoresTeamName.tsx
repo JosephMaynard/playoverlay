@@ -17,7 +17,7 @@ export default function ScoresTeamName({
         backgroundColor: backgroundColour,
       }}
     >
-      {teamName}
+      {teamName || '?'}
     </div>
   );
 }
