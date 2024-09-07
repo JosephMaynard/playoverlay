@@ -1,6 +1,7 @@
-import { TeamSettingsInterface, Time, Scores } from 'src/types';
+import { Time, Scores } from 'src/types';
 import './MatchTitleLayout.css';
 import { calculatePenalties } from '../../utils';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 
 export interface Props {
   scores: Scores;

@@ -1,4 +1,5 @@
-import { Penalty, TeamSettingsInterface, homeOrAway } from '../../types';
+import { TeamSettingsInterface } from 'src/zodSchemas';
+import { Penalty, homeOrAway } from '../../types';
 import PenaltiesBoard from './PenaltiesBoard';
 
 import './PenaltiesLayout.css';

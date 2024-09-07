@@ -1,11 +1,7 @@
 import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
 import ScoresLayout from '../ScoresLayout/ScoresLayout';
-import {
-  MatchSettings,
-  Scores,
-  TeamSettingsInterface,
-  Time,
-} from '../../types';
+import { MatchSettings, Scores, Time } from '../../types';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 import PenaltiesLayout from '../PenaltiesLayout/PenaltiesLayout';
 import CustomScreenLayout from '../CustomScreenLayout/CustomScreenLayout';
 import { useEffect, useState } from 'react';

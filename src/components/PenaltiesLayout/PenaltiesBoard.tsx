@@ -1,9 +1,10 @@
-import { Penalty, TeamSettingsInterface, homeOrAway } from '../../types';
+import { Penalty, homeOrAway } from '../../types';
 import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 import PenaltyRow from './PenaltyRow';
+import { calculatePenalties } from '../../utils';
 
 import './PenaltiesBoard.css';
-import { calculatePenalties } from '../../utils';
 
 export interface Props {
   penalties: Penalty[];

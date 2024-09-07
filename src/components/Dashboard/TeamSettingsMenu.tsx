@@ -1,7 +1,8 @@
-import { AppSettings, MatchSettings, TeamSettingsInterface } from 'src/types';
+import { AppSettings, MatchSettings } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 
 export interface Props {
   sidebarOpen: boolean;

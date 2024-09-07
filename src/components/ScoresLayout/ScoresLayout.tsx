@@ -1,4 +1,5 @@
-import { TeamSettingsInterface, Time, Scores } from 'src/types';
+import { Time, Scores } from 'src/types';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 import ScoresTeamName from './ScoresTeamName';
 import './ScoresLayout.css';
 

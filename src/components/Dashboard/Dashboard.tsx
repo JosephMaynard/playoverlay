@@ -8,7 +8,6 @@ import {
 
 import {
   Scores,
-  TeamSettingsInterface,
   Time,
   AppSettings,
   MatchSettings,
@@ -38,7 +37,7 @@ import AppSettingsMenu from './AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
-import { UpdateStatus } from 'src/zodSchemas';
+import { TeamSettingsInterface, UpdateStatus } from 'src/zodSchemas';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;

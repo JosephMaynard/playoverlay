@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  AppSettings,
-  MatchSettings,
-  Scores,
-  TeamSettingsInterface,
-  Time,
-} from '../../types';
+import { AppSettings, MatchSettings, Scores, Time } from '../../types';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
   defaultAppSettings,
@@ -14,6 +8,7 @@ import {
   defaultScores,
 } from '../../constants';
 import Screens from '../Screens/Screens';
+import { TeamSettingsInterface } from 'src/zodSchemas';
 
 const Display = () => {
   const [scores, setScores] = useState<Scores>(defaultScores);

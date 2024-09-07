@@ -1,9 +1,5 @@
-import {
-  MatchSettings,
-  AppSettings,
-  TeamSettingsInterface,
-  Scores,
-} from './types';
+import { MatchSettings, AppSettings, Scores } from './types';
+import { TeamSettingsInterface } from './zodSchemas';
 
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',

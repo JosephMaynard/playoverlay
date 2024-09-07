@@ -1,4 +1,5 @@
-import { Scores, TeamSettingsInterface, Time } from '../../types';
+import { TeamSettingsInterface } from 'src/zodSchemas';
+import { Scores, Time } from '../../types';
 
 export interface Props {
   teamSettings: TeamSettingsInterface;

@@ -4,13 +4,12 @@
 import { Display, contextBridge, ipcRenderer } from 'electron';
 import {
   Scores,
-  TeamSettingsInterface,
   Time,
   AppSettings,
   MatchSettings,
   CustomScreen,
 } from './types';
-import { deleteLicenceKey } from './main-functions/storage';
+import { TeamSettingsInterface } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),

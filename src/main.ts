@@ -53,9 +53,13 @@ Sentry.init({
 });
 
 const SHOW_DEV_TOOLS = false;
+const USE_LOCAL_BACKEND = false;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
+
+export const showDevTools = !isDev && SHOW_DEV_TOOLS;
+export const useLocalBackend = !isDev && USE_LOCAL_BACKEND;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -167,7 +171,7 @@ function createActivationWindow() {
   });
 
   // Open the DevTools in dev mode
-  if (SHOW_DEV_TOOLS && isDev) {
+  if (showDevTools) {
     activationWindow.webContents.openDevTools();
   }
 
@@ -196,7 +200,7 @@ const createWindows = () => {
   }
 
   // Open the DevTools in dev mode
-  if (SHOW_DEV_TOOLS && process.env.NODE_ENV !== 'production') {
+  if (showDevTools) {
     mainWindow.webContents.openDevTools();
     displayWindow.webContents.openDevTools();
   }

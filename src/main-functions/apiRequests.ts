@@ -7,7 +7,7 @@ import { app } from 'electron';
 import { updatesSchema } from '../zodSchemas';
 import saveRenewalJWT from './saveRenewalJWT';
 
-let useLocalBackend = true;
+import { useLocalBackend } from '../main';
 
 const API_BASE_URL = // @ts-ignore
   useLocalBackend === true && process.env.NODE_ENV !== 'production'
@@ -67,7 +67,7 @@ export async function renewLicenceKey() {
     return false;
   } catch (error) {
     console.error('Error renewing license key:', error);
-    throw new Error('Error renewing license key:', error);
+    throw new Error(`Error renewing license key: ${error}`);
   }
 }
 
