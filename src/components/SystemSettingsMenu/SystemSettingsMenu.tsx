@@ -100,7 +100,7 @@ export default function SystemSettingsMenu({
                     )}
                     aria-hidden="true"
                   />
-                  Activate Purchace
+                  Activate Purchase
                 </button>
               </li>
               <li>

@@ -7,7 +7,7 @@ import { app } from 'electron';
 import { updatesSchema } from '../zodSchemas';
 import saveRenewalJWT from './saveRenewalJWT';
 
-let useLocalBackend = false;
+let useLocalBackend = true;
 
 const API_BASE_URL = // @ts-ignore
   useLocalBackend === true && process.env.NODE_ENV !== 'production'
