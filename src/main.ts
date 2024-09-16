@@ -10,6 +10,7 @@ import {
   protocol,
   dialog,
   shell,
+  globalShortcut,
 } from 'electron';
 import path from 'path';
 import { AppSettings, MatchSettings, Scores, Time } from './types';
@@ -52,14 +53,12 @@ Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
 });
 
-const SHOW_DEV_TOOLS = false;
-const USE_LOCAL_BACKEND = false;
+const SHOW_DEV_TOOLS = true;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
 
-export const showDevTools = !isDev && SHOW_DEV_TOOLS;
-export const useLocalBackend = !isDev && USE_LOCAL_BACKEND;
+export const showDevTools = isDev && SHOW_DEV_TOOLS;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -522,6 +521,32 @@ app.on('ready', async () => {
     },
   ]);
   Menu.setApplicationMenu(menu);
+
+  const registerShortcuts = () => {
+    globalShortcut.register('Space', () => {
+      mainWindow?.webContents.send('next-match-phase');
+    });
+
+    globalShortcut.register('h', () => {
+      mainWindow?.webContents.send('home-team-scored');
+    });
+
+    globalShortcut.register('a', () => {
+      mainWindow?.webContents.send('away-team-scored');
+    });
+  };
+
+  const unregisterShortcuts = () => {
+    globalShortcut.unregisterAll();
+  };
+
+  mainWindow.on('focus', () => {
+    registerShortcuts();
+  });
+
+  mainWindow.on('blur', () => {
+    unregisterShortcuts();
+  });
 });
 
 // All windows closed event
@@ -635,3 +660,7 @@ if (process.platform === 'darwin') {
     }
   });
 }
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});

@@ -85,6 +85,9 @@ declare global {
         error?: string;
       }>;
       openUrlInBrowser: (url: string) => void;
+      onNextMatchPhase: (callback: () => void) => () => void;
+      onHomeTeamScored: (callback: () => void) => () => void;
+      onAwayTeamScored: (callback: () => void) => () => void;
     };
   }
 }

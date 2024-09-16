@@ -128,4 +128,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   openUrlInBrowser: (url: string) =>
     ipcRenderer.send('open-url-in-browser', url),
+
+  onNextMatchPhase: (callback: () => void) =>
+    ipcRenderer.on('next-match-phase', callback),
+  onHomeTeamScored: (callback: () => void) =>
+    ipcRenderer.on('home-team-scored', callback),
+  onAwayTeamScored: (callback: () => void) =>
+    ipcRenderer.on('away-team-scored', callback),
 });

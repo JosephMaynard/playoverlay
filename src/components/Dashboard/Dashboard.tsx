@@ -1,10 +1,4 @@
 import { useState, useEffect } from 'react';
-import {
-  ComputerDesktopIcon,
-  PhotoIcon,
-  UserGroupIcon,
-  Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
 
 import {
   Scores,
@@ -38,6 +32,7 @@ import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import { TeamSettingsInterface, UpdateStatus } from 'src/zodSchemas';
+import DashboardHeader from './DashboardHeader';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -116,16 +111,26 @@ export default function Dashboard() {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
       });
-    0;
+
+    window.electronAPI.onNextMatchPhase(() => {
+      nextMatchPhase();
+    });
+
+    window.electronAPI.onHomeTeamScored(() => {
+      incrementHomeTeamScore();
+    });
+
+    window.electronAPI.onAwayTeamScored(() => {
+      incrementAwayTeamScore();
+    });
   }, []);
 
   const updateScore = (scoreUpdates: Partial<Scores>) => {
-    const updatedScores = {
-      ...scores,
-      ...scoreUpdates,
-    };
-    setScores(updatedScores);
-    window?.electronAPI?.updateScores(updatedScores);
+    setScores((prevScores) => {
+      const updatedScores = { ...prevScores, ...scoreUpdates };
+      window?.electronAPI?.updateScores(updatedScores);
+      return updatedScores;
+    });
   };
 
   const updateTeamSettings = (
@@ -250,123 +255,69 @@ export default function Dashboard() {
     window?.electronAPI?.updateScores(updatedScores);
   };
 
+  const incrementHomeTeamScore = () => {
+    setScores((prevScores) => {
+      const updatedScores = {
+        ...prevScores,
+        homeTeam: prevScores.homeTeam + 1,
+      };
+      window?.electronAPI?.updateScores(updatedScores);
+      return updatedScores;
+    });
+  };
+
+  const incrementAwayTeamScore = () => {
+    setScores((prevScores) => {
+      const updatedScores = {
+        ...prevScores,
+        awayTeam: prevScores.awayTeam + 1,
+      };
+      window?.electronAPI?.updateScores(updatedScores);
+      return updatedScores;
+    });
+  };
+
+  const nextMatchPhase = () => {
+    const { previousMatchPhase: updatedPreviousMatchPhase } = matchSettings;
+    if (updatedPreviousMatchPhase !== undefined) {
+      stopTime();
+      setMatchSettings({
+        ...matchSettings,
+        previousMatchPhase: updatedPreviousMatchPhase,
+      });
+      return;
+    }
+    if (matchSettings.previousMatchPhase === undefined) {
+      startTime('firstHalf');
+      return;
+    }
+    if (matchSettings.previousMatchPhase === 'firstHalf') {
+      startTime('secondHalf');
+      setMatchSettings({ ...matchSettings, previousMatchPhase: 'firstHalf' });
+      return;
+    }
+    if (matchSettings.previousMatchPhase === 'secondHalf') {
+      startTime('extraTimeFirstHalf');
+      setMatchSettings({
+        ...matchSettings,
+        previousMatchPhase: 'secondHalf',
+      });
+      return;
+    }
+    if (matchSettings.previousMatchPhase === 'extraTimeFirstHalf') {
+      startTime('extraTimeSecondHalf');
+      setMatchSettings({
+        ...matchSettings,
+        previousMatchPhase: 'extraTimeFirstHalf',
+      });
+      return;
+    }
+  };
+
   return (
     <>
       <div className="select-none">
-        <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-          <div className="flex  items-center gap-x-4">
-            <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
-            <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
-              PlayOverlay
-            </div>
-          </div>
-          <button
-            type="button"
-            className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
-            onClick={() => setSideMenu('team-settings')}
-            title="Team Settings"
-          >
-            <span className="sr-only">Open Team Settings</span>
-            <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="-m-2.5 mr-4 p-2.5 text-gray-700"
-            onClick={() => setSideMenu('custom-screens')}
-            title="Custom Screens"
-          >
-            <span className="sr-only">Open Custom Screens</span>
-            <PhotoIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="-m-2.5 mr-4 p-2.5 text-gray-700"
-            onClick={() => setSideMenu('app-settings')}
-            title="Window Settings"
-          >
-            <span className="sr-only">Open Window Settings</span>
-            <ComputerDesktopIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-gray-700"
-            onClick={() => setSideMenu('system-settings')}
-            title="System Settings"
-          >
-            <span className="sr-only">Open Window Settings</span>
-            <Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
-          <div className="flex h-16 shrink-0 items-center justify-center">
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          </div>
-          <nav className="mt-8 flex grow flex-col">
-            <ul
-              role="list"
-              className="flex h-full flex-1 flex-col items-center gap-6 pb-2"
-            >
-              <li className="mt-auto">
-                <button
-                  type="button"
-                  className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setSideMenu('team-settings')}
-                  title="Team Settings"
-                >
-                  <span className="sr-only">Open Team Settings</span>
-                  <UserGroupIcon
-                    className="h-8 w-8 text-gray-500"
-                    aria-hidden="true"
-                  />
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setSideMenu('custom-screens')}
-                  title="Custom Screens"
-                >
-                  <span className="sr-only">Open Custom Screens</span>
-                  <PhotoIcon
-                    className="h-8 w-8 text-gray-500"
-                    aria-hidden="true"
-                  />
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setSideMenu('app-settings')}
-                  title="Window Settings"
-                >
-                  <span className="sr-only">Open Window Settings</span>
-                  <ComputerDesktopIcon
-                    className="h-8 w-8 text-gray-500"
-                    aria-hidden="true"
-                  />
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="-m-2.5 p-2.5 text-gray-700"
-                  onClick={() => setSideMenu('system-settings')}
-                  title="Window Settings"
-                >
-                  <span className="sr-only">Open System Settings</span>
-                  <Cog6ToothIcon
-                    className="h-8 w-8 text-gray-500"
-                    aria-hidden="true"
-                  />
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
+        <DashboardHeader setSideMenu={setSideMenu} />
         <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
           <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
             <Preview keyColour={appSettings.keyColour}>

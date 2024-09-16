@@ -25,6 +25,7 @@ export interface AppSettings {
 
 export interface MatchSettings {
   matchPhase?: MatchPhase;
+  previousMatchPhase?: MatchPhase;
   displayScreen: DisplayScreen;
   penaltiesFirstTeam: homeOrAway;
   customScreenImageUrl?: string;
