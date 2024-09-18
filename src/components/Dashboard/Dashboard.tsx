@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import {
   Scores,
@@ -16,7 +17,6 @@ import TimeControlPanel from './TimeControlPanel';
 import {
   defaultAppSettings,
   defaultMatchSettings,
-  defaultScores,
   defaultTeamSettings,
 } from '../../constants';
 import Screens from '../Screens/Screens';
@@ -33,6 +33,7 @@ import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import { TeamSettingsInterface, UpdateStatus } from 'src/zodSchemas';
 import DashboardHeader from './DashboardHeader';
+import { useScoresStore } from '../../store/scores';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -46,7 +47,11 @@ export type SideMenuType =
 
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
-  const [scores, setScores] = useState<Scores>(defaultScores);
+
+  const scores = useScoresStore((state) => state.scores);
+
+  const updateScoresState = useScoresStore((state) => state.updateScores);
+
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
   const [matchSettings, setMatchSettings] =
@@ -113,7 +118,7 @@ export default function Dashboard() {
       });
 
     window.electronAPI.onNextMatchPhase(() => {
-      nextMatchPhase();
+      nextMatchPhaseRef.current();
     });
 
     window.electronAPI.onHomeTeamScored(() => {
@@ -126,11 +131,9 @@ export default function Dashboard() {
   }, []);
 
   const updateScore = (scoreUpdates: Partial<Scores>) => {
-    setScores((prevScores) => {
-      const updatedScores = { ...prevScores, ...scoreUpdates };
-      window?.electronAPI?.updateScores(updatedScores);
-      return updatedScores;
-    });
+    const updatedScores = { ...scores, ...scoreUpdates };
+    window?.electronAPI?.updateScores(updatedScores);
+    updateScoresState(updatedScores);
   };
 
   const updateTeamSettings = (
@@ -145,12 +148,14 @@ export default function Dashboard() {
   };
 
   const updateMatchSettings = (settingsUpdated: Partial<MatchSettings>) => {
-    const updatedSettings = {
-      ...matchSettings,
-      ...settingsUpdated,
-    };
-    setMatchSettings(updatedSettings);
-    window?.electronAPI?.updateMatchSettings(updatedSettings);
+    setMatchSettings((prevSettings) => {
+      const updatedSettings = {
+        ...prevSettings,
+        ...settingsUpdated,
+      };
+      window?.electronAPI?.updateMatchSettings(updatedSettings);
+      return updatedSettings;
+    });
   };
 
   const updateAppSettings = (settingsUpdated: Partial<AppSettings>) => {
@@ -185,54 +190,79 @@ export default function Dashboard() {
     });
   };
 
-  const startTime = (matchPhase: MatchPhase) => {
-    if (interval) {
-      clearInterval(interval);
-    }
-    updateMatchSettings({ matchPhase });
-    setPaused(false);
-    seconds =
-      getMatchPhases(
+  const startTime = useCallback(
+    (matchPhase: MatchPhase) => {
+      if (interval) {
+        clearInterval(interval);
+      }
+
+      setPaused(false);
+
+      const phases = getMatchPhases(
         matchSettings.halfLength,
         matchSettings.extraTimeHalfLength
-      )?.[matchPhase].start * 60;
-    const initialTime = {
-      ...time,
-      time: timeToString(seconds),
-      matchPhase,
-      remainingTime: timeToString(
-        Math.max(
-          (getMatchPhases(
-            matchSettings.halfLength,
-            matchSettings.extraTimeHalfLength
-          )?.[matchPhase]?.end || 0) *
-            60 -
-            seconds,
-          0
-        )
-      ),
-    };
-    setTime(initialTime);
-    window?.electronAPI?.updateTime(initialTime);
-    interval = setInterval(incrementTime, 1000);
-  };
+      );
 
-  const stopTime = () => {
+      seconds = phases?.[matchPhase].start * 60;
+
+      setTime((prevTime) => {
+        const initialTime = {
+          ...prevTime,
+          time: timeToString(seconds),
+          matchPhase,
+          remainingTime: timeToString(
+            Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
+          ),
+        };
+        window?.electronAPI?.updateTime(initialTime);
+        return initialTime;
+      });
+
+      // Update matchPhase in matchSettings
+      setMatchSettings((prevSettings) => {
+        const updatedSettings = {
+          ...prevSettings,
+          matchPhase,
+        };
+        window?.electronAPI?.updateMatchSettings(updatedSettings);
+        return updatedSettings;
+      });
+
+      interval = setInterval(incrementTime, 1000);
+    },
+    [matchSettings.halfLength, matchSettings.extraTimeHalfLength]
+  );
+
+  const stopTime = useCallback(() => {
     if (interval) {
       clearInterval(interval);
     }
-    const updatedTime: Time = {
-      ...time,
-      time: undefined,
-      additionalTime: undefined,
-      matchPhase: undefined,
-      remainingTime: undefined,
-    };
+
+    setTime((prevTime) => {
+      const updatedTime: Time = {
+        ...prevTime,
+        time: undefined,
+        additionalTime: undefined,
+        matchPhase: undefined,
+        remainingTime: undefined,
+      };
+      window?.electronAPI?.updateTime(updatedTime);
+      return updatedTime;
+    });
+
     setPaused(false);
-    setTime(updatedTime);
-    updateMatchSettings({ matchPhase: undefined });
-    window?.electronAPI?.updateTime(updatedTime);
-  };
+
+    // Update matchSettings with matchPhase undefined and previousMatchPhase set to the phase that just ended
+    setMatchSettings((prevMatchSettings) => {
+      const updatedMatchSettings = {
+        ...prevMatchSettings,
+        previousMatchPhase: prevMatchSettings.matchPhase,
+      };
+      delete updatedMatchSettings.matchPhase;
+      window?.electronAPI?.updateMatchSettings(updatedMatchSettings);
+      return updatedMatchSettings;
+    });
+  }, []);
 
   const pause = () => {
     if (interval) {
@@ -251,68 +281,76 @@ export default function Dashboard() {
       ...scores,
       penalties,
     };
-    setScores(updatedScores);
+    updateScoresState(updatedScores);
     window?.electronAPI?.updateScores(updatedScores);
   };
 
   const incrementHomeTeamScore = () => {
-    setScores((prevScores) => {
-      const updatedScores = {
-        ...prevScores,
-        homeTeam: prevScores.homeTeam + 1,
-      };
-      window?.electronAPI?.updateScores(updatedScores);
-      return updatedScores;
-    });
+    const prevScores = useScoresStore.getState().scores;
+    const updatedScores = {
+      ...prevScores,
+      homeTeam: prevScores.homeTeam + 1,
+    };
+    window?.electronAPI?.updateScores(updatedScores);
+    updateScoresState(updatedScores);
   };
 
   const incrementAwayTeamScore = () => {
-    setScores((prevScores) => {
-      const updatedScores = {
-        ...prevScores,
-        awayTeam: prevScores.awayTeam + 1,
-      };
-      window?.electronAPI?.updateScores(updatedScores);
-      return updatedScores;
-    });
+    const prevScores = useScoresStore.getState().scores;
+    const updatedScores = {
+      ...prevScores,
+      awayTeam: prevScores.awayTeam + 1,
+    };
+    window?.electronAPI?.updateScores(updatedScores);
+    updateScoresState(updatedScores);
   };
 
-  const nextMatchPhase = () => {
-    const { previousMatchPhase: updatedPreviousMatchPhase } = matchSettings;
-    if (updatedPreviousMatchPhase !== undefined) {
-      stopTime();
-      setMatchSettings({
-        ...matchSettings,
-        previousMatchPhase: updatedPreviousMatchPhase,
-      });
-      return;
-    }
-    if (matchSettings.previousMatchPhase === undefined) {
-      startTime('firstHalf');
-      return;
-    }
-    if (matchSettings.previousMatchPhase === 'firstHalf') {
-      startTime('secondHalf');
-      setMatchSettings({ ...matchSettings, previousMatchPhase: 'firstHalf' });
-      return;
-    }
-    if (matchSettings.previousMatchPhase === 'secondHalf') {
-      startTime('extraTimeFirstHalf');
-      setMatchSettings({
-        ...matchSettings,
-        previousMatchPhase: 'secondHalf',
-      });
-      return;
-    }
-    if (matchSettings.previousMatchPhase === 'extraTimeFirstHalf') {
-      startTime('extraTimeSecondHalf');
-      setMatchSettings({
-        ...matchSettings,
-        previousMatchPhase: 'extraTimeFirstHalf',
-      });
-      return;
-    }
-  };
+  const nextMatchPhase = useCallback(() => {
+    setMatchSettings((prevMatchSettings) => {
+      const { previousMatchPhase, matchPhase } = prevMatchSettings;
+
+      console.log('prevMatchSettings', prevMatchSettings);
+
+      let nextPhase: MatchPhase | undefined;
+
+      if (matchPhase === undefined) {
+        if (previousMatchPhase === undefined) {
+          // Start from the first phase
+          nextPhase = 'firstHalf';
+        } else if (previousMatchPhase === 'firstHalf') {
+          nextPhase = 'secondHalf';
+        } else if (previousMatchPhase === 'secondHalf') {
+          nextPhase = 'extraTimeFirstHalf';
+        } else if (previousMatchPhase === 'extraTimeFirstHalf') {
+          nextPhase = 'extraTimeSecondHalf';
+        }
+      }
+
+      if (nextPhase) {
+        startTime(nextPhase);
+        const updatedMatchSettings = {
+          ...prevMatchSettings,
+          matchPhase: nextPhase,
+        };
+        delete updatedMatchSettings.previousMatchPhase;
+        window?.electronAPI?.updateMatchSettings(updatedMatchSettings);
+        return updatedMatchSettings;
+      } else {
+        // No next phase, stop time
+        stopTime();
+        return {
+          ...prevMatchSettings,
+          matchPhase: undefined,
+          previousMatchPhase: prevMatchSettings.matchPhase,
+        };
+      }
+    });
+  }, [startTime, stopTime]);
+
+  const nextMatchPhaseRef = useRef(nextMatchPhase);
+  useEffect(() => {
+    nextMatchPhaseRef.current = nextMatchPhase;
+  }, [nextMatchPhase]);
 
   return (
     <>
