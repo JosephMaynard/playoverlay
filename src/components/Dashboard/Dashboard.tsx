@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import {
   Scores,
   Time,
   AppSettings,
-  MatchSettings,
   Penalty,
   homeOrAway,
   DisplayScreen,
@@ -13,7 +12,7 @@ import {
 import Preview from '../Preview/Preview';
 import TeamSettingsMenu from './TeamSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
-import { defaultAppSettings, defaultMatchSettings } from '../../constants';
+import { defaultAppSettings } from '../../constants';
 import Screens from '../Screens/Screens';
 
 // @ts-ignore
@@ -30,6 +29,7 @@ import { UpdateStatus } from '../../zodSchemas';
 import DashboardHeader from './DashboardHeader';
 import { useScoresStore } from '../../store/scores';
 import { useTeamSettingsStore } from '../../store/teamSettings';
+import { useMatchSettingsStore } from '../../store/matchSettings';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
+  const [paused, setPaused] = useState(false);
 
   const scores = useScoresStore((state) => state.scores);
   const setScores = useScoresStore((state) => state.setScores);
@@ -52,13 +53,14 @@ export default function Dashboard() {
   const setTeamSettings = useTeamSettingsStore(
     (state) => state.setTeamSettings
   );
+  const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
+  const setMatchSettings = useMatchSettingsStore(
+    (state) => state.setMatchSettings
+  );
 
-  const [matchSettings, setMatchSettings] =
-    useState<MatchSettings>(defaultMatchSettings);
   const [appSettings, setAppSettings] =
     useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const checkDemoMode = async () => {
@@ -113,7 +115,7 @@ export default function Dashboard() {
       });
 
     window.electronAPI.onNextMatchPhase(() => {
-      nextMatchPhaseRef.current();
+      nextMatchPhase();
     });
 
     window.electronAPI.onHomeTeamScored(() => {
@@ -133,17 +135,6 @@ export default function Dashboard() {
   const closeSideMenu = () => {
     setSideMenu(null);
     window?.electronAPI?.enableKeyboardShortcuts();
-  };
-
-  const updateMatchSettings = (settingsUpdated: Partial<MatchSettings>) => {
-    setMatchSettings((prevSettings) => {
-      const updatedSettings = {
-        ...prevSettings,
-        ...settingsUpdated,
-      };
-      window?.electronAPI?.updateMatchSettings(updatedSettings);
-      return updatedSettings;
-    });
   };
 
   const updateAppSettings = (settingsUpdated: Partial<AppSettings>) => {
@@ -178,48 +169,38 @@ export default function Dashboard() {
     });
   };
 
-  const startTime = useCallback(
-    (matchPhase: MatchPhase) => {
-      if (interval) {
-        clearInterval(interval);
-      }
+  const startTime = (matchPhase: MatchPhase) => {
+    if (interval) {
+      clearInterval(interval);
+    }
 
-      setPaused(false);
+    setPaused(false);
 
-      const phases = getMatchPhases(
-        matchSettings.halfLength,
-        matchSettings.extraTimeHalfLength
-      );
+    const phases = getMatchPhases(
+      matchSettings.halfLength,
+      matchSettings.extraTimeHalfLength
+    );
 
-      seconds = phases?.[matchPhase].start * 60;
+    seconds = phases?.[matchPhase].start * 60;
 
-      setTime((prevTime) => {
-        const initialTime = {
-          ...prevTime,
-          time: timeToString(seconds),
-          matchPhase,
-          remainingTime: timeToString(
-            Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
-          ),
-        };
-        window?.electronAPI?.updateTime(initialTime);
-        return initialTime;
-      });
+    setTime((prevTime) => {
+      const initialTime = {
+        ...prevTime,
+        time: timeToString(seconds),
+        matchPhase,
+        remainingTime: timeToString(
+          Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
+        ),
+      };
+      window?.electronAPI?.updateTime(initialTime);
+      return initialTime;
+    });
 
-      // Update matchPhase in matchSettings
-      setMatchSettings((prevSettings) => {
-        const updatedSettings = {
-          ...prevSettings,
-          matchPhase,
-        };
-        window?.electronAPI?.updateMatchSettings(updatedSettings);
-        return updatedSettings;
-      });
+    // Update matchPhase in matchSettings
+    setMatchSettings({ matchPhase });
 
-      interval = setInterval(incrementTime, 1000);
-    },
-    [matchSettings.halfLength, matchSettings.extraTimeHalfLength]
-  );
+    interval = setInterval(incrementTime, 1000);
+  };
 
   const stopTime = useCallback(() => {
     if (interval) {
@@ -241,14 +222,10 @@ export default function Dashboard() {
     setPaused(false);
 
     // Update matchSettings with matchPhase undefined and previousMatchPhase set to the phase that just ended
-    setMatchSettings((prevMatchSettings) => {
-      const updatedMatchSettings = {
-        ...prevMatchSettings,
-        previousMatchPhase: prevMatchSettings.matchPhase,
-      };
-      delete updatedMatchSettings.matchPhase;
-      window?.electronAPI?.updateMatchSettings(updatedMatchSettings);
-      return updatedMatchSettings;
+    setMatchSettings({
+      previousMatchPhase:
+        useMatchSettingsStore.getState().matchSettings.matchPhase,
+      matchPhase: undefined,
     });
   }, []);
 
@@ -290,52 +267,40 @@ export default function Dashboard() {
     setScores(updatedScores);
   };
 
-  const nextMatchPhase = useCallback(() => {
-    setMatchSettings((prevMatchSettings) => {
-      const { previousMatchPhase, matchPhase } = prevMatchSettings;
+  const nextMatchPhase = () => {
+    const { previousMatchPhase, matchPhase } =
+      useMatchSettingsStore.getState().matchSettings;
 
-      console.log('prevMatchSettings', prevMatchSettings);
+    let nextPhase: MatchPhase | undefined;
 
-      let nextPhase: MatchPhase | undefined;
-
-      if (matchPhase === undefined) {
-        if (previousMatchPhase === undefined) {
-          // Start from the first phase
-          nextPhase = 'firstHalf';
-        } else if (previousMatchPhase === 'firstHalf') {
-          nextPhase = 'secondHalf';
-        } else if (previousMatchPhase === 'secondHalf') {
-          nextPhase = 'extraTimeFirstHalf';
-        } else if (previousMatchPhase === 'extraTimeFirstHalf') {
-          nextPhase = 'extraTimeSecondHalf';
-        }
+    if (matchPhase === undefined) {
+      if (previousMatchPhase === undefined) {
+        // Start from the first phase
+        nextPhase = 'firstHalf';
+      } else if (previousMatchPhase === 'firstHalf') {
+        nextPhase = 'secondHalf';
+      } else if (previousMatchPhase === 'secondHalf') {
+        nextPhase = 'extraTimeFirstHalf';
+      } else if (previousMatchPhase === 'extraTimeFirstHalf') {
+        nextPhase = 'extraTimeSecondHalf';
       }
+    }
 
-      if (nextPhase) {
-        startTime(nextPhase);
-        const updatedMatchSettings = {
-          ...prevMatchSettings,
-          matchPhase: nextPhase,
-        };
-        delete updatedMatchSettings.previousMatchPhase;
-        window?.electronAPI?.updateMatchSettings(updatedMatchSettings);
-        return updatedMatchSettings;
-      } else {
-        // No next phase, stop time
-        stopTime();
-        return {
-          ...prevMatchSettings,
-          matchPhase: undefined,
-          previousMatchPhase: prevMatchSettings.matchPhase,
-        };
-      }
-    });
-  }, [startTime, stopTime]);
+    if (nextPhase) {
+      startTime(nextPhase);
+      setMatchSettings({
+        matchPhase: nextPhase,
+      });
+    } else {
+      // No next phase, stop time
+      stopTime();
 
-  const nextMatchPhaseRef = useRef(nextMatchPhase);
-  useEffect(() => {
-    nextMatchPhaseRef.current = nextMatchPhase;
-  }, [nextMatchPhase]);
+      setMatchSettings({
+        matchPhase: undefined,
+        previousMatchPhase: matchPhase,
+      });
+    }
+  };
 
   return (
     <>
@@ -353,7 +318,7 @@ export default function Dashboard() {
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">
               <DisplayControlsPanel
-                updateMatchSettings={updateMatchSettings}
+                updateMatchSettings={setMatchSettings}
                 matchSettings={matchSettings}
               />
             </div>
@@ -382,7 +347,7 @@ export default function Dashboard() {
                 updateAppSettings({ autoSwitchScreens })
               }
               setDisplayScreen={(displayScreen: DisplayScreen) =>
-                updateMatchSettings({ displayScreen })
+                setMatchSettings({ displayScreen })
               }
             />
             <ScoresPanel
@@ -396,7 +361,7 @@ export default function Dashboard() {
               setPenalties={setPenalties}
               penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
               setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-                updateMatchSettings({ penaltiesFirstTeam })
+                setMatchSettings({ penaltiesFirstTeam })
               }
               teamSettings={teamSettings}
             />
@@ -404,7 +369,7 @@ export default function Dashboard() {
         </main>
         <TeamSettingsMenu
           matchSettings={matchSettings}
-          updateMatchSettings={updateMatchSettings}
+          updateMatchSettings={setMatchSettings}
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
           teamSettings={teamSettings}
