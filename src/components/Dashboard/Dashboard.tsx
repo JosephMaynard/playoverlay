@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 
 import {
   Scores,
@@ -47,10 +46,11 @@ export type SideMenuType =
 
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
 
   const scores = useScoresStore((state) => state.scores);
-
-  const updateScoresState = useScoresStore((state) => state.updateScores);
+  const setScores = useScoresStore((state) => state.setScores);
 
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
@@ -60,9 +60,6 @@ export default function Dashboard() {
     useState<AppSettings>(defaultAppSettings);
   const [time, setTime] = useState<Time>({ paused: false });
   const [paused, setPaused] = useState(false);
-
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
 
   useEffect(() => {
     const checkDemoMode = async () => {
@@ -129,12 +126,6 @@ export default function Dashboard() {
       incrementAwayTeamScore();
     });
   }, []);
-
-  const updateScore = (scoreUpdates: Partial<Scores>) => {
-    const updatedScores = { ...scores, ...scoreUpdates };
-    window?.electronAPI?.updateScores(updatedScores);
-    updateScoresState(updatedScores);
-  };
 
   const updateTeamSettings = (
     settingsUpdated: Partial<TeamSettingsInterface>
@@ -281,8 +272,7 @@ export default function Dashboard() {
       ...scores,
       penalties,
     };
-    updateScoresState(updatedScores);
-    window?.electronAPI?.updateScores(updatedScores);
+    setScores(updatedScores);
   };
 
   const incrementHomeTeamScore = () => {
@@ -291,8 +281,7 @@ export default function Dashboard() {
       ...prevScores,
       homeTeam: prevScores.homeTeam + 1,
     };
-    window?.electronAPI?.updateScores(updatedScores);
-    updateScoresState(updatedScores);
+    setScores(updatedScores);
   };
 
   const incrementAwayTeamScore = () => {
@@ -301,8 +290,7 @@ export default function Dashboard() {
       ...prevScores,
       awayTeam: prevScores.awayTeam + 1,
     };
-    window?.electronAPI?.updateScores(updatedScores);
-    updateScoresState(updatedScores);
+    setScores(updatedScores);
   };
 
   const nextMatchPhase = useCallback(() => {
@@ -404,7 +392,7 @@ export default function Dashboard() {
               teamSettings={teamSettings}
               scores={scores}
               time={time}
-              updateScore={updateScore}
+              updateScore={setScores}
             />
             <PenaltiesPanel
               penalties={scores.penalties}
