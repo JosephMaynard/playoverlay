@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   Scores,
@@ -12,7 +12,6 @@ import {
 import Preview from '../Preview/Preview';
 import TeamSettingsMenu from './TeamSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
-import { defaultAppSettings } from '../../constants';
 import Screens from '../Screens/Screens';
 
 // @ts-ignore
@@ -30,6 +29,8 @@ import DashboardHeader from './DashboardHeader';
 import { useScoresStore } from '../../store/scores';
 import { useTeamSettingsStore } from '../../store/teamSettings';
 import { useMatchSettingsStore } from '../../store/matchSettings';
+import { useAppSettingsStore } from '../../store/appSettings';
+import { useTimeStore } from '../../store/time';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -57,10 +58,11 @@ export default function Dashboard() {
   const setMatchSettings = useMatchSettingsStore(
     (state) => state.setMatchSettings
   );
+  const appSettings = useAppSettingsStore((state) => state.appSettings);
+  const setAppSettings = useAppSettingsStore((state) => state.setAppSettings);
 
-  const [appSettings, setAppSettings] =
-    useState<AppSettings>(defaultAppSettings);
-  const [time, setTime] = useState<Time>({ paused: false });
+  const time = useTimeStore((state) => state.time);
+  const setTime = useTimeStore((state) => state.setTime);
 
   useEffect(() => {
     const checkDemoMode = async () => {
@@ -148,25 +150,23 @@ export default function Dashboard() {
 
   const incrementTime = () => {
     seconds = seconds + 1;
-    setTime((currentTime) => {
-      const updatedTime = {
-        ...currentTime,
-        time: timeToString(seconds),
-        remainingTime: timeToString(
-          Math.max(
-            (getMatchPhases(
-              matchSettings.halfLength,
-              matchSettings.extraTimeHalfLength
-            )?.[currentTime.matchPhase]?.end || 0) *
-              60 -
-              seconds,
-            0
-          )
-        ),
-      };
-      window?.electronAPI?.updateTime(updatedTime);
-      return updatedTime;
-    });
+    const currentTime = useTimeStore.getState().time;
+    const updatedTime = {
+      ...currentTime,
+      time: timeToString(seconds),
+      remainingTime: timeToString(
+        Math.max(
+          (getMatchPhases(
+            matchSettings.halfLength,
+            matchSettings.extraTimeHalfLength
+          )?.[currentTime.matchPhase]?.end || 0) *
+            60 -
+            seconds,
+          0
+        )
+      ),
+    };
+    setTime(updatedTime);
   };
 
   const startTime = (matchPhase: MatchPhase) => {
@@ -183,17 +183,12 @@ export default function Dashboard() {
 
     seconds = phases?.[matchPhase].start * 60;
 
-    setTime((prevTime) => {
-      const initialTime = {
-        ...prevTime,
-        time: timeToString(seconds),
-        matchPhase,
-        remainingTime: timeToString(
-          Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
-        ),
-      };
-      window?.electronAPI?.updateTime(initialTime);
-      return initialTime;
+    setTime({
+      time: timeToString(seconds),
+      matchPhase,
+      remainingTime: timeToString(
+        Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
+      ),
     });
 
     // Update matchPhase in matchSettings
@@ -202,21 +197,16 @@ export default function Dashboard() {
     interval = setInterval(incrementTime, 1000);
   };
 
-  const stopTime = useCallback(() => {
+  const stopTime = () => {
     if (interval) {
       clearInterval(interval);
     }
 
-    setTime((prevTime) => {
-      const updatedTime: Time = {
-        ...prevTime,
-        time: undefined,
-        additionalTime: undefined,
-        matchPhase: undefined,
-        remainingTime: undefined,
-      };
-      window?.electronAPI?.updateTime(updatedTime);
-      return updatedTime;
+    setTime({
+      time: undefined,
+      additionalTime: undefined,
+      matchPhase: undefined,
+      remainingTime: undefined,
     });
 
     setPaused(false);
@@ -227,7 +217,7 @@ export default function Dashboard() {
         useMatchSettingsStore.getState().matchSettings.matchPhase,
       matchPhase: undefined,
     });
-  }, []);
+  };
 
   const pause = () => {
     if (interval) {
@@ -291,6 +281,9 @@ export default function Dashboard() {
       setMatchSettings({
         matchPhase: nextPhase,
       });
+      if (appSettings.autoSwitchScreens) {
+        setMatchSettings({ displayScreen: 'scoreBug' });
+      }
     } else {
       // No next phase, stop time
       stopTime();
@@ -298,6 +291,9 @@ export default function Dashboard() {
       setMatchSettings({
         matchPhase: undefined,
         previousMatchPhase: matchPhase,
+        displayScreen: appSettings.autoSwitchScreens
+          ? 'matchTitle'
+          : useMatchSettingsStore.getState().matchSettings.displayScreen,
       });
     }
   };
