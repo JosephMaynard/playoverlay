@@ -88,6 +88,8 @@ declare global {
       onNextMatchPhase: (callback: () => void) => () => void;
       onHomeTeamScored: (callback: () => void) => () => void;
       onAwayTeamScored: (callback: () => void) => () => void;
+      enableKeyboardShortcuts: () => void;
+      disableKeyboardShortcuts: () => void;
     };
   }
 }

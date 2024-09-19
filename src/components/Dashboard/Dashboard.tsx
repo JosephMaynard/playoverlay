@@ -13,11 +13,7 @@ import {
 import Preview from '../Preview/Preview';
 import TeamSettingsMenu from './TeamSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
-import {
-  defaultAppSettings,
-  defaultMatchSettings,
-  defaultTeamSettings,
-} from '../../constants';
+import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import Screens from '../Screens/Screens';
 
 // @ts-ignore
@@ -30,9 +26,10 @@ import AppSettingsMenu from './AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
-import { TeamSettingsInterface, UpdateStatus } from 'src/zodSchemas';
+import { UpdateStatus } from '../../zodSchemas';
 import DashboardHeader from './DashboardHeader';
 import { useScoresStore } from '../../store/scores';
+import { useTeamSettingsStore } from '../../store/teamSettings';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -51,9 +48,11 @@ export default function Dashboard() {
 
   const scores = useScoresStore((state) => state.scores);
   const setScores = useScoresStore((state) => state.setScores);
+  const teamSettings = useTeamSettingsStore((state) => state.teamSettings);
+  const setTeamSettings = useTeamSettingsStore(
+    (state) => state.setTeamSettings
+  );
 
-  const [teamSettings, setTeamSettings] =
-    useState<TeamSettingsInterface>(defaultTeamSettings);
   const [matchSettings, setMatchSettings] =
     useState<MatchSettings>(defaultMatchSettings);
   const [appSettings, setAppSettings] =
@@ -89,7 +88,6 @@ export default function Dashboard() {
       .then((settings) => {
         if (settings) {
           setTeamSettings(settings);
-          window?.electronAPI?.updateTeamSettings(settings);
         } else {
           window?.electronAPI?.updateTeamSettings(teamSettings);
         }
@@ -127,15 +125,14 @@ export default function Dashboard() {
     });
   }, []);
 
-  const updateTeamSettings = (
-    settingsUpdated: Partial<TeamSettingsInterface>
-  ) => {
-    const updatedSettings = {
-      ...teamSettings,
-      ...settingsUpdated,
-    };
-    setTeamSettings(updatedSettings);
-    window?.electronAPI?.updateTeamSettings(updatedSettings);
+  const openSideMenu = (sideMenu: SideMenuType) => {
+    setSideMenu(sideMenu);
+    window?.electronAPI?.disableKeyboardShortcuts();
+  };
+
+  const closeSideMenu = () => {
+    setSideMenu(null);
+    window?.electronAPI?.enableKeyboardShortcuts();
   };
 
   const updateMatchSettings = (settingsUpdated: Partial<MatchSettings>) => {
@@ -343,7 +340,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="select-none">
-        <DashboardHeader setSideMenu={setSideMenu} />
+        <DashboardHeader setSideMenu={openSideMenu} />
         <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
           <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
             <Preview keyColour={appSettings.keyColour}>
@@ -409,26 +406,26 @@ export default function Dashboard() {
           matchSettings={matchSettings}
           updateMatchSettings={updateMatchSettings}
           sidebarOpen={sideMenu === 'team-settings'}
-          setSidebarOpen={() => setSideMenu(null)}
+          setSidebarOpen={closeSideMenu}
           teamSettings={teamSettings}
-          updateTeamSettings={updateTeamSettings}
+          updateTeamSettings={setTeamSettings}
           appSettings={appSettings}
           isDemoMode={isDemoMode}
         />
         <CustomScreensMenu
           open={sideMenu === 'custom-screens'}
-          setOpen={() => setSideMenu(null)}
+          setOpen={closeSideMenu}
           keyColour={appSettings.keyColour}
         />
         <AppSettingsMenu
           open={sideMenu === 'app-settings'}
-          setOpen={() => setSideMenu(null)}
+          setOpen={closeSideMenu}
           appSettings={appSettings}
           updateAppSettings={updateAppSettings}
         />
         <SystemSettingsMenu
           open={sideMenu === 'system-settings'}
-          setOpen={() => setSideMenu(null)}
+          setOpen={closeSideMenu}
           isDemoMode={isDemoMode}
         />
       </div>

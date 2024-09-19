@@ -135,4 +135,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('home-team-scored', callback),
   onAwayTeamScored: (callback: () => void) =>
     ipcRenderer.on('away-team-scored', callback),
+
+  enableKeyboardShortcuts: () => ipcRenderer.send('enable-keyboard-shortcuts'),
+  disableKeyboardShortcuts: () =>
+    ipcRenderer.send('disable-keyboard-shortcuts'),
 });

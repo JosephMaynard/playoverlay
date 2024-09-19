@@ -207,6 +207,17 @@ const createWindows = () => {
   // IPC Handlers
   setupIPCHandlers();
 
+  // Keyboard shortcuts
+  mainWindow.on('focus', () => {
+    registerKeyboardShortcuts();
+  });
+
+  mainWindow.on('blur', () => {
+    unregisterKeyboardShortcuts();
+  });
+
+  registerGlobalKeyboardShortcuts();
+
   // Window closed event
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -480,6 +491,14 @@ function setupIPCHandlers() {
   ipcMain.on('open-url-in-browser', (event, url: string) => {
     shell.openExternal(url);
   });
+
+  ipcMain.on('enable-keyboard-shortcuts', () => {
+    registerKeyboardShortcuts();
+  });
+
+  ipcMain.on('disable-keyboard-shortcuts', () => {
+    unregisterKeyboardShortcuts();
+  });
 }
 
 // Setup display listeners
@@ -494,6 +513,39 @@ function setupDisplayListeners() {
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 }
+
+// Keyboard shortcuts
+const registerKeyboardShortcuts = () => {
+  globalShortcut.register('Space', () => {
+    mainWindow?.webContents.send('next-match-phase');
+  });
+
+  globalShortcut.register('h', () => {
+    mainWindow?.webContents.send('home-team-scored');
+  });
+
+  globalShortcut.register('a', () => {
+    mainWindow?.webContents.send('away-team-scored');
+  });
+};
+
+const unregisterKeyboardShortcuts = () => {
+  globalShortcut.unregister('Space');
+  globalShortcut.unregister('h');
+  globalShortcut.unregister('a');
+};
+
+const registerGlobalKeyboardShortcuts = () => {
+  globalShortcut.register('CommandOrControl+Alt+Shift+Space', () => {
+    mainWindow?.webContents.send('next-match-phase');
+  });
+  globalShortcut.register('CommandOrControl+Alt+Shift+H', () => {
+    mainWindow?.webContents.send('home-team-scored');
+  });
+  globalShortcut.register('CommandOrControl+Alt+Shift+A', () => {
+    mainWindow?.webContents.send('away-team-scored');
+  });
+};
 
 // App ready event
 app.on('ready', async () => {
@@ -521,32 +573,6 @@ app.on('ready', async () => {
     },
   ]);
   Menu.setApplicationMenu(menu);
-
-  const registerShortcuts = () => {
-    globalShortcut.register('Space', () => {
-      mainWindow?.webContents.send('next-match-phase');
-    });
-
-    globalShortcut.register('h', () => {
-      mainWindow?.webContents.send('home-team-scored');
-    });
-
-    globalShortcut.register('a', () => {
-      mainWindow?.webContents.send('away-team-scored');
-    });
-  };
-
-  const unregisterShortcuts = () => {
-    globalShortcut.unregisterAll();
-  };
-
-  mainWindow.on('focus', () => {
-    registerShortcuts();
-  });
-
-  mainWindow.on('blur', () => {
-    unregisterShortcuts();
-  });
 });
 
 // All windows closed event

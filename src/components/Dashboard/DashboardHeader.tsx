@@ -26,7 +26,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
         <button
           type="button"
           className="-m-2.5 ml-auto mr-4 p-2.5 text-gray-700"
-          onClick={() => setSideMenu('team-settings')}
+          onMouseDown={() => setSideMenu('team-settings')}
           title="Team Settings"
         >
           <span className="sr-only">Open Team Settings</span>
@@ -35,7 +35,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
         <button
           type="button"
           className="-m-2.5 mr-4 p-2.5 text-gray-700"
-          onClick={() => setSideMenu('custom-screens')}
+          onMouseDown={() => setSideMenu('custom-screens')}
           title="Custom Screens"
         >
           <span className="sr-only">Open Custom Screens</span>
@@ -44,7 +44,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
         <button
           type="button"
           className="-m-2.5 mr-4 p-2.5 text-gray-700"
-          onClick={() => setSideMenu('app-settings')}
+          onMouseDown={() => setSideMenu('app-settings')}
           title="Window Settings"
         >
           <span className="sr-only">Open Window Settings</span>
@@ -53,7 +53,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
         <button
           type="button"
           className="-m-2.5 p-2.5 text-gray-700"
-          onClick={() => setSideMenu('system-settings')}
+          onMouseDown={() => setSideMenu('system-settings')}
           title="System Settings"
         >
           <span className="sr-only">Open Window Settings</span>
@@ -73,7 +73,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setSideMenu('team-settings')}
+                onMouseDown={() => setSideMenu('team-settings')}
                 title="Team Settings"
               >
                 <span className="sr-only">Open Team Settings</span>
@@ -87,7 +87,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setSideMenu('custom-screens')}
+                onMouseDown={() => setSideMenu('custom-screens')}
                 title="Custom Screens"
               >
                 <span className="sr-only">Open Custom Screens</span>
@@ -101,7 +101,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setSideMenu('app-settings')}
+                onMouseDown={() => setSideMenu('app-settings')}
                 title="Window Settings"
               >
                 <span className="sr-only">Open Window Settings</span>
@@ -115,7 +115,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
               <button
                 type="button"
                 className="-m-2.5 p-2.5 text-gray-700"
-                onClick={() => setSideMenu('system-settings')}
+                onMouseDown={() => setSideMenu('system-settings')}
                 title="Window Settings"
               >
                 <span className="sr-only">Open System Settings</span>
