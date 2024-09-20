@@ -47,6 +47,9 @@ declare global {
       uploadImage: (file: File, title: string) => Promise<string | null>;
       deleteImage: (filePath: string) => Promise<boolean>;
       getCustomScreens: () => Promise<CustomScreen[]>;
+      setCustomScreens: (
+        customScreens: CustomScreen[]
+      ) => Promise<{ success: boolean; error?: string }>;
       onCustomScreensUpdated: (
         callback: (customScreens: CustomScreen[]) => void
       ) => () => void;

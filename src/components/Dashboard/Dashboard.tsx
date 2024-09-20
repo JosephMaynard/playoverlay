@@ -137,15 +137,6 @@ export default function Dashboard() {
       incrementAwayTeamScore();
     });
 
-    const fetchScreens = async () => {
-      try {
-        const storedScreens = await window?.electronAPI?.getCustomScreens();
-        setCustomGraphics(storedScreens || []);
-      } catch (error) {
-        console.error('Failed to fetch custom screens:', error);
-      }
-    };
-
     fetchScreens();
 
     const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
@@ -159,6 +150,15 @@ export default function Dashboard() {
       unsubscribe();
     };
   }, []);
+
+  const fetchScreens = async () => {
+    try {
+      const storedScreens = await window?.electronAPI?.getCustomScreens();
+      setCustomGraphics(storedScreens || []);
+    } catch (error) {
+      console.error('Failed to fetch custom screens:', error);
+    }
+  };
 
   const openSideMenu = (sideMenu: SideMenuType) => {
     setSideMenu(sideMenu);
@@ -410,6 +410,7 @@ export default function Dashboard() {
           setOpen={closeSideMenu}
           keyColour={appSettings.keyColour}
           customGraphics={customGraphics}
+          fetchScreens={fetchScreens}
         />
         <AppSettingsMenu
           open={sideMenu === 'app-settings'}

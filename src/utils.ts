@@ -87,3 +87,24 @@ export const getMatchPhases = (
     end: (halfLength + extraTimeHalfLength) * 2,
   },
 });
+
+export function arraysEqual(arr1?: string[], arr2?: string[]): boolean {
+  if (arr1 === undefined || arr2 === undefined || arr1.length !== arr2.length)
+    return false;
+
+  const sortedArr1 = [...arr1].sort();
+  const sortedArr2 = [...arr2].sort();
+
+  return sortedArr1.every((value, index) => value === sortedArr2[index]);
+}
+
+export function insertValue(arr: string[], value: string): string[] {
+  if (!arr.includes(value)) {
+    return [...arr, value];
+  }
+  return arr;
+}
+
+export function removeValue(arr: string[], value: string): string[] {
+  return arr.filter((item) => item !== value);
+}

@@ -13,7 +13,13 @@ import {
   globalShortcut,
 } from 'electron';
 import path from 'path';
-import { AppSettings, MatchSettings, Scores, Time } from './types';
+import {
+  AppSettings,
+  CustomScreen,
+  MatchSettings,
+  Scores,
+  Time,
+} from './types';
 import { TeamSettingsInterface } from './zodSchemas';
 import {
   DISPLAY_WINDOW,
@@ -24,6 +30,7 @@ import {
   getCustomScreens,
   getTeamSettings,
   setAppSettings,
+  setCustomScreens,
   setTeamSettings,
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
@@ -401,6 +408,19 @@ function setupIPCHandlers() {
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();
   });
+
+  ipcMain.handle(
+    'set-custom-screens',
+    (event, customScreens: CustomScreen[]) => {
+      try {
+        setCustomScreens(customScreens);
+        return { success: true };
+      } catch (error) {
+        console.error('Error setting custom screens:', error);
+        return { success: false, error: error.message };
+      }
+    }
+  );
 
   ipcMain.on('custom-screens-updated', (event, screens) => {
     mainWindow?.webContents.send('custom-screens-updated', screens);

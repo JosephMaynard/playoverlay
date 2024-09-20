@@ -54,6 +54,10 @@ export default function Screens({
   return (
     <>
       {isDemoMode && <BouncingLogo />}
+      <OverlaysLayout
+        activeScreen={matchSettings.displayScreen}
+        overlays={matchSettings.overlays}
+      />
       <ScoresLayout
         settings={teamSettings}
         scores={scores}
@@ -75,10 +79,6 @@ export default function Screens({
       <CustomScreenLayout
         active={matchSettings.displayScreen === 'custom'}
         customScreenImageUrl={matchSettings.customScreenImageUrl}
-      />
-      <OverlaysLayout
-        activeScreen={matchSettings.displayScreen}
-        overlays={[]}
       />
     </>
   );

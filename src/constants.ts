@@ -29,7 +29,7 @@ export const defaultMatchSettings: MatchSettings = {
   penaltiesFirstTeam: 'home',
   halfLength: 45,
   extraTimeHalfLength: 15,
-  overlayGraphics: [],
+  overlays: [],
 };
 
 export const defaultScores: Scores = {

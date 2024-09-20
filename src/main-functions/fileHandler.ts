@@ -42,6 +42,8 @@ export async function handleFileUpload(
       title,
       filePath: destination,
       url: convertFilePathToUrl(destination),
+      type: 'screen',
+      overlayLinks: [],
     });
     setCustomScreens(screens);
     BrowserWindow.getAllWindows().forEach((win) => {

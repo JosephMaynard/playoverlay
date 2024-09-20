@@ -20,7 +20,7 @@ const menuButtons = [
     menu: 'team-settings',
   },
   {
-    title: 'Custom Screens',
+    title: 'Custom Graphics',
     icon: PhotoIcon,
     menu: 'custom-screens',
   },
@@ -59,6 +59,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
                   className="h-6 w-6  text-gray-400 hover:text-indigo-500"
                   aria-hidden="true"
                 />
+                <span className="sr-only">Open {menuButton.title} Menu</span>
               </button>
             </li>
           ))}

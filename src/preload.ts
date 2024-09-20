@@ -92,6 +92,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('delete-image', filePath),
   getCustomScreens: (): Promise<CustomScreen[]> =>
     ipcRenderer.invoke('get-custom-screens'),
+  setCustomScreens: (customScreens: CustomScreen[]) =>
+    ipcRenderer.invoke('set-custom-screens', customScreens),
   onCustomScreensUpdated: (
     callback: (customScreens: CustomScreen[]) => void
   ) => {

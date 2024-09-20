@@ -8,6 +8,7 @@ export interface Props {
   setOpen: (open: boolean) => void;
   title: string;
   children?: React.ReactNode;
+  actionButtonColor?: 'red' | 'green' | 'indigo' | 'blue';
   actionButtonLabel?: string;
   action?: () => void;
   icon?: Icon;
@@ -19,6 +20,7 @@ export default function Modal({
   title,
   children,
   actionButtonLabel,
+  actionButtonColor = 'red',
   action,
   icon,
 }: Props) {
@@ -75,7 +77,7 @@ export default function Modal({
                   {action && actionButtonLabel && (
                     <button
                       type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
+                      className={`inline-flex w-full justify-center rounded-md  px-3 py-2 text-sm font-semibold text-white shadow-sm ${actionButtonColor === 'red' ? 'bg-red-600 hover:bg-red-500' : ''}${actionButtonColor === 'green' ? 'bg-green-600 hover:bg-green-500' : ''}${actionButtonColor === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-500' : ''}${actionButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : ''} sm:w-auto`}
                       onClick={action}
                     >
                       {actionButtonLabel}
