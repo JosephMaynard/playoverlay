@@ -29,6 +29,7 @@ export const defaultMatchSettings: MatchSettings = {
   penaltiesFirstTeam: 'home',
   halfLength: 45,
   extraTimeHalfLength: 15,
+  overlayGraphics: [],
 };
 
 export const defaultScores: Scores = {
@@ -36,3 +37,13 @@ export const defaultScores: Scores = {
   awayTeam: 0,
   penalties: [],
 };
+
+export const screens = {
+  none: 'None',
+  matchTitle: 'Match Title',
+  scoreBug: 'Score Bug',
+  penalties: 'Penalties',
+  custom: 'Custom Screens',
+} as const;
+
+export type DisplayScreen = keyof typeof screens;

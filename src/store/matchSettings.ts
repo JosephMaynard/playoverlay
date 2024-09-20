@@ -11,7 +11,6 @@ export const useMatchSettingsStore = create<MatchSettingsStore>((set) => ({
   matchSettings: { ...defaultMatchSettings },
   setMatchSettings: (matchSettingsUpdates: Partial<MatchSettings>) =>
     set((state) => {
-      console.log({ matchSettingsUpdates });
       const matchSettings = {
         ...state.matchSettings,
         ...matchSettingsUpdates,

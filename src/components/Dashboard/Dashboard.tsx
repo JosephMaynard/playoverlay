@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 
 import {
   Scores,
-  Time,
   AppSettings,
   Penalty,
   homeOrAway,
-  DisplayScreen,
   MatchPhase,
 } from '../../types';
 import Preview from '../Preview/Preview';
@@ -31,6 +29,8 @@ import { useTeamSettingsStore } from '../../store/teamSettings';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
+import { DisplayScreen } from '../../constants';
+import { useCustomGraphicsStore } from '../../store/customGraphics';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -64,6 +64,13 @@ export default function Dashboard() {
   const time = useTimeStore((state) => state.time);
   const setTime = useTimeStore((state) => state.setTime);
 
+  const customGraphics = useCustomGraphicsStore(
+    (state) => state.customGraphics
+  );
+  const setCustomGraphics = useCustomGraphicsStore(
+    (state) => state.setCustomGraphics
+  );
+
   useEffect(() => {
     const checkDemoMode = async () => {
       const demoMode = await window.electronAPI.getDemoMode();
@@ -73,6 +80,7 @@ export default function Dashboard() {
     checkDemoMode();
   }, [isDemoMode]);
 
+  // Check for updates on launch
   useEffect(() => {
     const checkForUpdates = async () => {
       const currentUpdateStatus = await window.electronAPI.checkForUpdates();
@@ -82,6 +90,7 @@ export default function Dashboard() {
     checkForUpdates();
   }, []);
 
+  // Set up IPC state and listeners
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
     window?.electronAPI?.updateMatchSettings(matchSettings);
@@ -127,6 +136,28 @@ export default function Dashboard() {
     window.electronAPI.onAwayTeamScored(() => {
       incrementAwayTeamScore();
     });
+
+    const fetchScreens = async () => {
+      try {
+        const storedScreens = await window?.electronAPI?.getCustomScreens();
+        setCustomGraphics(storedScreens || []);
+      } catch (error) {
+        console.error('Failed to fetch custom screens:', error);
+      }
+    };
+
+    fetchScreens();
+
+    const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
+      (updatedScreens) => {
+        setCustomGraphics(updatedScreens || []);
+      }
+    );
+
+    // Clean up the listener on unmount
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const openSideMenu = (sideMenu: SideMenuType) => {
@@ -316,6 +347,7 @@ export default function Dashboard() {
               <DisplayControlsPanel
                 updateMatchSettings={setMatchSettings}
                 matchSettings={matchSettings}
+                customGraphics={customGraphics}
               />
             </div>
           </div>
@@ -377,6 +409,7 @@ export default function Dashboard() {
           open={sideMenu === 'custom-screens'}
           setOpen={closeSideMenu}
           keyColour={appSettings.keyColour}
+          customGraphics={customGraphics}
         />
         <AppSettingsMenu
           open={sideMenu === 'app-settings'}

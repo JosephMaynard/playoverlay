@@ -3,7 +3,7 @@ import { Penalty, homeOrAway } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
-import PenaltiesBoard from '../PenaltiesLayout/PenaltiesBoard';
+import PenaltiesBoard from '../Screens/PenaltiesLayout/PenaltiesBoard';
 import { TeamSettingsInterface } from 'src/zodSchemas';
 
 export interface Props {

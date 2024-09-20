@@ -1,3 +1,5 @@
+import { DisplayScreen } from './constants';
+
 export type homeOrAway = 'home' | 'away';
 
 export interface Penalty {
@@ -10,13 +12,6 @@ export interface Scores {
   awayTeam: number;
   penalties: Penalty[];
 }
-
-export type DisplayScreen =
-  | 'none'
-  | 'scoreBug'
-  | 'matchTitle'
-  | 'penalties'
-  | 'custom';
 
 export interface AppSettings {
   keyColour: string;
@@ -31,6 +26,7 @@ export interface MatchSettings {
   customScreenImageUrl?: string;
   halfLength: number;
   extraTimeHalfLength: number;
+  overlayGraphics: CustomScreen[];
 }
 
 export interface Time {
@@ -56,6 +52,8 @@ export interface CustomScreen {
   title: string;
   filePath: string | null;
   url: string | null;
+  type?: 'screen' | 'overlay';
+  overlayLinks?: DisplayScreen[];
 }
 
 export interface SystemInfo {

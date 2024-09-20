@@ -1,84 +1,43 @@
+import { useEffect, useState } from 'react';
+
 import { CustomScreen, MatchSettings } from 'src/types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import { useEffect, useState } from 'react';
+import { DisplayScreen, screens } from '../../constants';
 
 export interface Props {
   updateMatchSettings: (settingsUpdated: Partial<MatchSettings>) => void;
   matchSettings: MatchSettings;
+  customGraphics: CustomScreen[];
 }
 
 export default function DisplayControlsPanel({
   updateMatchSettings,
   matchSettings,
+  customGraphics,
 }: Props) {
-  const [customScreens, setCustomScreens] = useState<CustomScreen[]>([]);
-
-  useEffect(() => {
-    const fetchScreens = async () => {
-      try {
-        const storedScreens = await window?.electronAPI?.getCustomScreens();
-        setCustomScreens(storedScreens || []);
-      } catch (error) {
-        console.error('Failed to fetch custom screens:', error);
-      }
-    };
-
-    fetchScreens();
-
-    const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
-      (updatedScreens) => {
-        setCustomScreens(updatedScreens || []);
-      }
-    );
-
-    // Clean up the listener on unmount
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
+  const customScreens = customGraphics.filter(
+    (graphic) => graphic.type === undefined || graphic.type === 'screen'
+  );
+  const overlays = customGraphics.filter(
+    (graphic) => graphic.type === 'overlay'
+  );
   return (
     <CollapsiblePanel title="Display Controls">
       <ButtonGrid
         className="mb-4"
         buttons={[
-          {
-            label: 'None',
-            onClick: () =>
-              updateMatchSettings({
-                displayScreen: 'none',
-                customScreenImageUrl: undefined,
-              }),
-            selected: matchSettings.displayScreen === 'none',
-          },
-          {
-            label: 'Match title',
-            onClick: () =>
-              updateMatchSettings({
-                displayScreen: 'matchTitle',
-                customScreenImageUrl: undefined,
-              }),
-            selected: matchSettings.displayScreen === 'matchTitle',
-          },
-          {
-            label: 'Score Bug',
-            onClick: () =>
-              updateMatchSettings({
-                displayScreen: 'scoreBug',
-                customScreenImageUrl: undefined,
-              }),
-            selected: matchSettings.displayScreen === 'scoreBug',
-          },
-          {
-            label: 'Penalties',
-            onClick: () =>
-              updateMatchSettings({
-                displayScreen: 'penalties',
-                customScreenImageUrl: undefined,
-              }),
-            selected: matchSettings.displayScreen === 'penalties',
-          },
+          ...Object.keys(screens)
+            .filter((screen) => screen !== 'custom')
+            .map((screen) => ({
+              label: screens[screen as DisplayScreen],
+              onClick: () =>
+                updateMatchSettings({
+                  displayScreen: screen as DisplayScreen,
+                  customScreenImageUrl: undefined,
+                }),
+              selected: matchSettings.displayScreen === screen,
+            })),
         ]}
       />
       {customScreens?.length > 0 && (

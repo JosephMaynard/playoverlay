@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 // @ts-ignore
-import logo from '../../assets/playoverlay-logo.svg';
+import logo from '../../../assets/playoverlay-logo.svg';
 
 const BouncingLogo: React.FC = () => {
   const [position, setPosition] = useState({ top: 50, left: 50 });

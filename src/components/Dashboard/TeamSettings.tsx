@@ -1,7 +1,7 @@
 import { AppSettings } from 'src/types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
-import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
+import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
 
 export interface Props {
   title: string;

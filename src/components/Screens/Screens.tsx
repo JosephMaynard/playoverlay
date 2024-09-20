@@ -1,11 +1,12 @@
-import MatchTitleLayout from '../MatchTitleLayout/MatchTitleLayout';
-import ScoresLayout from '../ScoresLayout/ScoresLayout';
 import { MatchSettings, Scores, Time } from '../../types';
 import { TeamSettingsInterface } from 'src/zodSchemas';
-import PenaltiesLayout from '../PenaltiesLayout/PenaltiesLayout';
-import CustomScreenLayout from '../CustomScreenLayout/CustomScreenLayout';
+import ScoresLayout from './ScoresLayout/ScoresLayout';
+import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
+import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
+import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import { useEffect, useState } from 'react';
-import BouncingLogo from '../BouncingLogo/BouncingLogo';
+import BouncingLogo from './BouncingLogo/BouncingLogo';
+import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
 
 export interface Props {
   teamSettings: TeamSettingsInterface;
@@ -74,6 +75,10 @@ export default function Screens({
       <CustomScreenLayout
         active={matchSettings.displayScreen === 'custom'}
         customScreenImageUrl={matchSettings.customScreenImageUrl}
+      />
+      <OverlaysLayout
+        activeScreen={matchSettings.displayScreen}
+        overlays={[]}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { DisplayScreen, Time, MatchPhase, MatchSettings } from '../../types';
+import { Time, MatchPhase, MatchSettings } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
 import { classNames } from '../..//utils';
+import { DisplayScreen } from '../../constants';
 
 export interface Props {
   time: Time;
