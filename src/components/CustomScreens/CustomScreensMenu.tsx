@@ -94,28 +94,26 @@ export default function CustomScreensMenu({
           {customGraphics?.map((customScreen) => (
             <li
               key={customScreen.filePath}
-              className="flex items-center justify-between gap-x-6 py-4"
+              className="flex items-center justify-between gap-x-4 py-4"
             >
-              <div className="flex min-w-0 grow gap-x-6">
-                <div
-                  style={{
-                    backgroundImage: `url("${customScreen.url}")`,
-                    backgroundColor: keyColour,
-                  }}
-                  className="aspect-video w-32 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm"
-                />
-                <div className="flex min-w-0 flex-auto flex-col items-start justify-center">
-                  <p className="text-sm font-semibold leading-6 text-gray-900">
-                    {customScreen.title}
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-gray-600">
-                    Type:{' '}
-                    {customScreen.type === 'screen' ||
-                    customScreen.type === undefined
-                      ? 'Custom Screen'
-                      : 'Overlay'}
-                  </p>
-                </div>
+              <div
+                style={{
+                  backgroundImage: `url("${customScreen.url}")`,
+                  backgroundColor: keyColour,
+                }}
+                className="aspect-video w-32 shrink-0 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm"
+              />
+              <div className="flex min-w-0 flex-auto grow flex-col items-start justify-center">
+                <p className="max-w-full truncate text-sm font-semibold leading-6 text-gray-900">
+                  {customScreen.title}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-gray-600">
+                  Type:{' '}
+                  {customScreen.type === 'screen' ||
+                  customScreen.type === undefined
+                    ? 'Custom Screen'
+                    : 'Overlay'}
+                </p>
               </div>
               <button
                 type="button"

@@ -15,7 +15,7 @@ export interface Props {
   updateMatchSettings: (settingsUpdated: Partial<MatchSettings>) => void;
 }
 
-export default function TeamSettingsMenu({
+export default function MatchSettingsMenu({
   sidebarOpen,
   setSidebarOpen,
   teamSettings,
@@ -72,7 +72,27 @@ export default function TeamSettingsMenu({
         appSettings={appSettings}
         disabled={isDemoMode}
       />
-      <CollapsiblePanel title="Match Length">
+      <CollapsiblePanel title="Match Details">
+        <div className="col-span-full mb-4">
+          <label
+            htmlFor="matchVenue"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Venue
+          </label>
+          <div className="mt-2">
+            <input
+              type="text"
+              name="matchVenue"
+              id="matchVenue"
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
+              onChange={(e) => {
+                updateTeamSettings({ venue: e.target.value || undefined });
+              }}
+              value={teamSettings.venue || ''}
+            />
+          </div>
+        </div>
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
             <label
@@ -87,7 +107,7 @@ export default function TeamSettingsMenu({
                 name="halfLength"
                 id="halfLength"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={matchSettings.halfLength}
+                value={matchSettings.halfLength || ''}
                 onChange={(e) =>
                   updateMatchSettings({ halfLength: Number(e.target.value) })
                 }
@@ -110,7 +130,7 @@ export default function TeamSettingsMenu({
                 value={matchSettings.extraTimeHalfLength || ''}
                 onChange={(e) =>
                   updateMatchSettings({
-                    extraTimeHalfLength: Number(e.target.value),
+                    extraTimeHalfLength: Number(e.target.value || 0),
                   })
                 }
               />

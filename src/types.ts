@@ -26,7 +26,7 @@ export interface MatchSettings {
   customScreenImageUrl?: string;
   halfLength: number;
   extraTimeHalfLength: number;
-  overlayGraphics: CustomScreen[];
+  overlays: CustomScreen[];
 }
 
 export interface Time {

@@ -67,7 +67,6 @@ export default function Screens({
       <MatchTitleLayout
         settings={teamSettings}
         scores={scores}
-        time={time}
         active={matchSettings.displayScreen === 'matchTitle'}
       />
       <PenaltiesLayout

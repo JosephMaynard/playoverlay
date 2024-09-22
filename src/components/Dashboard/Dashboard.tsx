@@ -8,7 +8,7 @@ import {
   MatchPhase,
 } from '../../types';
 import Preview from '../Preview/Preview';
-import TeamSettingsMenu from './TeamSettingsMenu';
+import MatchSettingsMenu from './MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import Screens from '../Screens/Screens';
 
@@ -395,7 +395,7 @@ export default function Dashboard() {
             />
           </div>
         </main>
-        <TeamSettingsMenu
+        <MatchSettingsMenu
           matchSettings={matchSettings}
           updateMatchSettings={setMatchSettings}
           sidebarOpen={sideMenu === 'team-settings'}
