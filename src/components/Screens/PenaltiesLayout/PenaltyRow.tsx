@@ -1,4 +1,4 @@
-import { Penalty } from '../../types';
+import { Penalty } from '../../../types';
 
 import './PenaltyRow.css';
 

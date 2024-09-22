@@ -60,7 +60,7 @@ Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
 });
 
-const SHOW_DEV_TOOLS = true;
+const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
@@ -343,7 +343,7 @@ function setupIPCHandlers() {
 
   ipcMain.handle('get-team-settings', async () => {
     try {
-      return await getTeamSettings();
+      return getTeamSettings();
     } catch (error) {
       console.error('Error getting team settings:', error);
       throw error;
