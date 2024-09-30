@@ -6,6 +6,7 @@ import {
   Penalty,
   homeOrAway,
   MatchPhase,
+  SideMenuType,
 } from '../../types';
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from './MatchSettingsMenu';
@@ -31,16 +32,10 @@ import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
 import { DisplayScreen } from '../../constants';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
+import SavedMatchSettingsMenu from '../SavedMatchSettingsMenu/SavedMatchSettingsMenu';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
-
-export type SideMenuType =
-  | null
-  | 'app-settings'
-  | 'custom-screens'
-  | 'team-settings'
-  | 'system-settings';
 
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
@@ -419,6 +414,12 @@ export default function Dashboard() {
           open={sideMenu === 'system-settings'}
           setOpen={closeSideMenu}
           isDemoMode={isDemoMode}
+        />
+        <SavedMatchSettingsMenu
+          open={sideMenu === 'save-match-settings'}
+          setOpen={closeSideMenu}
+          matchSettings={matchSettings}
+          setMatchSettings={setMatchSettings}
         />
       </div>
       {isDemoMode && (

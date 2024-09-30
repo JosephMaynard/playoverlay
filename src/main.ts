@@ -23,9 +23,11 @@ import {
   getAppSettings,
   getCustomScreens,
   getMatchSettings,
+  getSavedMatchSettings,
   setAppSettings,
   setCustomScreens,
   setMatchSettings,
+  setSavedMatchSettings,
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
@@ -52,9 +54,10 @@ import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
 
 Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
+  enabled: process.env.NODE_ENV === 'production',
 });
 
-const SHOW_DEV_TOOLS = false;
+const SHOW_DEV_TOOLS = true;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
@@ -408,6 +411,23 @@ function setupIPCHandlers() {
         return { success: true };
       } catch (error) {
         console.error('Error setting custom screens:', error);
+        return { success: false, error: error.message };
+      }
+    }
+  );
+
+  ipcMain.handle('get-saved-match-settings', () => {
+    return getSavedMatchSettings();
+  });
+
+  ipcMain.handle(
+    'set-saved-match-settings',
+    (event, savedMatchSettings: MatchSettings[]) => {
+      try {
+        setSavedMatchSettings(savedMatchSettings);
+        return { success: true };
+      } catch (error) {
+        console.error('Error setting saved match settings:', error);
         return { success: false, error: error.message };
       }
     }

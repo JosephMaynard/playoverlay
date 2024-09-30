@@ -86,6 +86,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-custom-screens'),
   setCustomScreens: (customScreens: CustomScreen[]) =>
     ipcRenderer.invoke('set-custom-screens', customScreens),
+  getSavedMatchSettings: (): Promise<MatchSettings[]> =>
+    ipcRenderer.invoke('get-saved-match-settings'),
+  setSavedMatchSettings: (savedMatchSettings: MatchSettings[]) =>
+    ipcRenderer.invoke('set-saved-match-settings', savedMatchSettings),
   onCustomScreensUpdated: (
     callback: (customScreens: CustomScreen[]) => void
   ) => {

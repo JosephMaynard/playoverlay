@@ -80,3 +80,11 @@ export type MatchPhase =
   | 'secondHalf'
   | 'extraTimeFirstHalf'
   | 'extraTimeSecondHalf';
+
+export type SideMenuType =
+  | null
+  | 'app-settings'
+  | 'custom-screens'
+  | 'team-settings'
+  | 'system-settings'
+  | 'save-match-settings';

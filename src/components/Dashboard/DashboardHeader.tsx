@@ -3,11 +3,12 @@ import {
   ComputerDesktopIcon,
   PhotoIcon,
   UserGroupIcon,
+  BookmarkSquareIcon,
 } from '@heroicons/react/24/outline';
 
 // @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
-import { SideMenuType } from './Dashboard';
+import { SideMenuType } from '../../types';
 
 export interface Props {
   setSideMenu: (sideMenu: SideMenuType) => void;
@@ -18,6 +19,11 @@ const menuButtons = [
     title: 'Team Settings',
     icon: UserGroupIcon,
     menu: 'team-settings',
+  },
+  {
+    title: 'Saved Match Settings',
+    icon: BookmarkSquareIcon,
+    menu: 'save-match-settings',
   },
   {
     title: 'Custom Graphics',
@@ -40,7 +46,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
   return (
     <>
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-        <div className="flex  items-center gap-x-4">
+        <div className="flex items-center gap-x-4">
           <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
           <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
             PlayOverlay
@@ -56,7 +62,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
                 title={menuButton.title}
               >
                 <menuButton.icon
-                  className="h-6 w-6  text-gray-400 hover:text-indigo-500"
+                  className="h-6 w-6 text-gray-400 hover:text-indigo-500"
                   aria-hidden="true"
                 />
                 <span className="sr-only">Open {menuButton.title} Menu</span>

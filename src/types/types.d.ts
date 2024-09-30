@@ -9,6 +9,7 @@ import {
   SystemInfo,
 } from '../types';
 import { LicenceKeyData } from '../main-functions/validateJWT';
+import { MatchSettings } from '../zodSchemas';
 
 declare global {
   interface Window {
@@ -47,6 +48,10 @@ declare global {
       getCustomScreens: () => Promise<CustomScreen[]>;
       setCustomScreens: (
         customScreens: CustomScreen[]
+      ) => Promise<{ success: boolean; error?: string }>;
+      getSavedMatchSettings: () => Promise<MatchSettings[]>;
+      setSavedMatchSettings: (
+        matchSettings: MatchSettings[]
       ) => Promise<{ success: boolean; error?: string }>;
       onCustomScreensUpdated: (
         callback: (customScreens: CustomScreen[]) => void

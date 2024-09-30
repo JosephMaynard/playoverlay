@@ -16,6 +16,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 
 const APP_SETTINGS = 'APP_SETTINGS';
 const MATCH_SETTINGS = 'MATCH_SETTINGS';
+const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const LICENCE_KEY = 'LICENCE_KEY';
 const RENEWAL_JWT = 'RENEWAL_JWT';
@@ -157,4 +158,17 @@ export function getCustomScreens() {
 
 export function setCustomScreens(customScreens: CustomScreen[]) {
   storage.set(CUSTOM_SCREENS, customScreens);
+}
+
+export function getSavedMatchSettings() {
+  const savedMatchSettings = storage.get(SAVED_MATCH_SETTINGS);
+  if (savedMatchSettings) {
+    return savedMatchSettings;
+  } else {
+    return [];
+  }
+}
+
+export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
+  storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
 }

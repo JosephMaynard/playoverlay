@@ -26,8 +26,7 @@ export default function CustomScreensMenu({
 }: Props) {
   const [showAddCustomScreenModal, setShowAddCustomScreenModal] =
     useState(false);
-  const [showAddConfirmDeleteModal, setShowAddConfirmDeleteModal] =
-    useState(false);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [customScreenToEdit, setCustomScreenToEdit] =
     useState<CustomScreen | null>(null);
   const [customScreenToDelete, setCustomScreenToDelete] = useState<
@@ -35,7 +34,7 @@ export default function CustomScreensMenu({
   >();
 
   const handleDelete = (customScreen: CustomScreen) => {
-    setShowAddConfirmDeleteModal(true);
+    setShowConfirmDeleteModal(true);
     setCustomScreenToDelete(customScreen);
   };
 
@@ -74,11 +73,7 @@ export default function CustomScreensMenu({
   return (
     <SideMenu open={open} setOpen={setOpen} title="Custom Graphics">
       <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <p className="mt-2 text-sm text-gray-700">
-            Use images to create your own custom graphics
-          </p>
-        </div>
+        <div className="sm:flex-auto" />
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
           <button
             type="button"
@@ -154,14 +149,14 @@ export default function CustomScreensMenu({
         keyColour={keyColour}
       />
       <Modal
-        open={showAddConfirmDeleteModal}
-        setOpen={setShowAddConfirmDeleteModal}
+        open={showConfirmDeleteModal}
+        setOpen={setShowConfirmDeleteModal}
         title="Delete custom screen?"
         actionButtonLabel="Delete custom screen"
         icon="warning"
         action={() => {
           window?.electronAPI?.deleteImage(customScreenToDelete.filePath);
-          setShowAddConfirmDeleteModal(false);
+          setShowConfirmDeleteModal(false);
         }}
       >
         <p className="text-sm text-gray-500">
