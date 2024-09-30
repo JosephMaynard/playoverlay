@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { AppSettings, MatchSettings, Scores, Time } from '../../types';
+import { AppSettings, MatchState, Scores, Time } from '../../types';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
   defaultAppSettings,
-  defaultMatchSettings,
+  defaultMatchState,
   defaultTeamSettings,
   defaultScores,
 } from '../../constants';
@@ -16,7 +16,7 @@ const Display = () => {
   const [teamSettings, setTeamSettings] =
     useState<TeamSettingsInterface>(defaultTeamSettings);
   const [matchSettings, setMatchSettings] =
-    useState<MatchSettings>(defaultMatchSettings);
+    useState<MatchState>(defaultMatchState);
   const [appSettings, setAppSettings] =
     useState<AppSettings>(defaultAppSettings);
 
@@ -54,7 +54,7 @@ const Display = () => {
     const handleAppSettingsUpdate = (newSettings: AppSettings) => {
       setAppSettings(newSettings);
     };
-    const handleMatchSettingsUpdate = (newSettings: MatchSettings) => {
+    const handleMatchSettingsUpdate = (newSettings: MatchState) => {
       setMatchSettings(newSettings);
     };
 
@@ -62,28 +62,28 @@ const Display = () => {
     window.electronAPI.onTimeUpdated(handleTimeUpdate);
     window.electronAPI.onTeamSettingsUpdated(handleTeamSettingsUpdate);
     window.electronAPI.onAppSettingsUpdated(handleAppSettingsUpdate);
-    window.electronAPI.onMatchSettingsUpdated(handleMatchSettingsUpdate);
+    window.electronAPI.onMatchStateUpdated(handleMatchSettingsUpdate);
 
     // Cleanup listeners on component unmount
     return () => {
       window.electronAPI.onScoreUpdated(() => {});
       window.electronAPI.onTimeUpdated(() => {});
-      window.electronAPI.onMatchSettingsUpdated(() => {});
+      window.electronAPI.onMatchStateUpdated(() => {});
       window.electronAPI.onAppSettingsUpdated(() => {});
-      window.electronAPI.onMatchSettingsUpdated(() => {});
+      window.electronAPI.onMatchStateUpdated(() => {});
     };
   }, []);
 
   return (
     <div
-      className={`h-screen overflow-hidden relative${isFullscreen ? ' cursor-none' : ''}`}
+      className={`h-screen overflow-hidden relative${isFullscreen ? 'cursor-none' : ''}`}
       style={{ backgroundColor: appSettings.keyColour }}
     >
       <Screens
         teamSettings={teamSettings}
         scores={scores}
         time={time}
-        matchSettings={matchSettings}
+        matchState={matchSettings}
       />
       {!isFullscreen && (
         <button

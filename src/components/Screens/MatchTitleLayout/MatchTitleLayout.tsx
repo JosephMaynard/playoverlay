@@ -1,4 +1,4 @@
-import { Time, Scores, MatchSettings } from 'src/types';
+import { Time, Scores, MatchState } from 'src/types';
 import './MatchTitleLayout.css';
 import { calculatePenalties } from '../../../utils';
 import { TeamSettingsInterface } from 'src/zodSchemas';
@@ -19,7 +19,7 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
       {settings?.venue && (
         <div className="MatchTitleLayout_venue flex justify-center">
           <div
-            className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'}  z-0 max-w-full truncate  bg-black text-center text-white`}
+            className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
           >
             {settings.venue}
           </div>
@@ -36,7 +36,7 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
           />
         </div>
       </div>
-      <div className="MatchTitleLayout_score z-10 bg-white text-center font-bold tabular-nums text-black ">
+      <div className="MatchTitleLayout_score z-10 bg-white text-center font-bold tabular-nums text-black">
         <div>
           {scores.homeTeam} - {scores.awayTeam}
         </div>
@@ -51,7 +51,7 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
       </div>
       <div className="MatchTitleLayout_awayTeam flex items-center overflow-hidden">
         <div
-          className={`MatchTitleLayout_awayTeam_inner ${active ? 'MatchTitleLayout_awayTeam_inner_active' : 'MatchTitleLayout_awayTeam_inner_hidden'} w-full max-w-full truncate bg-black  text-center text-white`}
+          className={`MatchTitleLayout_awayTeam_inner ${active ? 'MatchTitleLayout_awayTeam_inner_active' : 'MatchTitleLayout_awayTeam_inner_hidden'} w-full max-w-full truncate bg-black text-center text-white`}
         >
           <div>{settings.awayTeamNameFull}</div>
           <div

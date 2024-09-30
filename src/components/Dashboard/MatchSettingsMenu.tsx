@@ -1,4 +1,4 @@
-import { AppSettings, MatchSettings } from 'src/types';
+import { AppSettings, MatchState } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
@@ -11,8 +11,8 @@ export interface Props {
   updateTeamSettings: (updatedSettings: Partial<TeamSettingsInterface>) => void;
   appSettings: AppSettings;
   isDemoMode: boolean;
-  matchSettings: MatchSettings;
-  updateMatchSettings: (settingsUpdated: Partial<MatchSettings>) => void;
+  matchState: MatchState;
+  updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
 }
 
 export default function MatchSettingsMenu({
@@ -22,8 +22,8 @@ export default function MatchSettingsMenu({
   updateTeamSettings,
   appSettings,
   isDemoMode,
-  matchSettings,
-  updateMatchSettings,
+  matchState,
+  updateMatchState,
 }: Props) {
   return (
     <SideMenu
@@ -107,9 +107,9 @@ export default function MatchSettingsMenu({
                 name="halfLength"
                 id="halfLength"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={matchSettings.halfLength || ''}
+                value={matchState.halfLength || ''}
                 onChange={(e) =>
-                  updateMatchSettings({ halfLength: Number(e.target.value) })
+                  updateMatchState({ halfLength: Number(e.target.value) })
                 }
               />
             </div>
@@ -127,9 +127,9 @@ export default function MatchSettingsMenu({
                 name="extraTimeHalfLength"
                 id="extraTimeHalfLength"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={matchSettings.extraTimeHalfLength || ''}
+                value={matchState.extraTimeHalfLength || ''}
                 onChange={(e) =>
-                  updateMatchSettings({
+                  updateMatchState({
                     extraTimeHalfLength: Number(e.target.value || 0),
                   })
                 }
@@ -141,7 +141,7 @@ export default function MatchSettingsMenu({
           type="button"
           className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           onClick={() => {
-            updateMatchSettings({ halfLength: 45, extraTimeHalfLength: 15 });
+            updateMatchState({ halfLength: 45, extraTimeHalfLength: 15 });
           }}
         >
           Reset

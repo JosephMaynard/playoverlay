@@ -2,13 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { Display, contextBridge, ipcRenderer } from 'electron';
-import {
-  Scores,
-  Time,
-  AppSettings,
-  MatchSettings,
-  CustomScreen,
-} from './types';
+import { Scores, Time, AppSettings, MatchState, CustomScreen } from './types';
 import { TeamSettingsInterface } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -32,10 +26,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('app-settings-updated', (_, appSettings) =>
       callback(appSettings)
     ),
-  updateMatchSettings: (matchSettings: MatchSettings) =>
-    ipcRenderer.send('update-match-settings', matchSettings),
-  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) =>
-    ipcRenderer.on('match-settings-updated', (_, matchSettings) =>
+  updateMatchState: (matchSettings: MatchState) =>
+    ipcRenderer.send('update-match-state', matchSettings),
+  onMatchStateUpdated: (callback: (matchSettings: MatchState) => void) =>
+    ipcRenderer.on('match-state-updated', (_, matchSettings) =>
       callback(matchSettings)
     ),
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),

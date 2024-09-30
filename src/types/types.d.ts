@@ -4,7 +4,7 @@ import {
   Scores,
   TeamSettingsInterface,
   Time,
-  MatchSettings,
+  MatchState,
   Display,
   SystemInfo,
 } from '../types';
@@ -23,10 +23,8 @@ declare global {
       ) => void;
       updateAppSettings: (settings: AppSettings) => void;
       onAppSettingsUpdated: (callback: (settings: AppSettings) => void) => void;
-      updateMatchSettings: (settings: MatchSettings) => void;
-      onMatchSettingsUpdated: (
-        callback: (settings: MatchSettings) => void
-      ) => void;
+      updateMatchState: (settings: MatchState) => void;
+      onMatchStateUpdated: (callback: (settings: MatchState) => void) => void;
       toggleFullscreen: () => void;
       getFullscreenStatus: () => boolean;
       startPowerSaveBlocker: () => void;

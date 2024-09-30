@@ -1,4 +1,4 @@
-import { MatchSettings, AppSettings, Scores } from './types';
+import { MatchState, AppSettings, Scores } from './types';
 import { TeamSettingsInterface } from './zodSchemas';
 
 export const defaultAppSettings: AppSettings = {
@@ -24,7 +24,7 @@ export const demoModeTeamSettingsOverrides: Partial<TeamSettingsInterface> = {
   awayTeamBackgroundColour: '#0000cc',
 };
 
-export const defaultMatchSettings: MatchSettings = {
+export const defaultMatchState: MatchState = {
   displayScreen: 'scoreBug',
   penaltiesFirstTeam: 'home',
   halfLength: 45,

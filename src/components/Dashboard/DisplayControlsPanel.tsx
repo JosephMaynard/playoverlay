@@ -1,11 +1,11 @@
-import { CustomScreen, MatchSettings } from 'src/types';
+import { CustomScreen, MatchState } from 'src/types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import { DisplayScreen, screens } from '../../constants';
 
 export interface Props {
-  updateMatchSettings: (settingsUpdated: Partial<MatchSettings>) => void;
-  matchSettings: MatchSettings;
+  updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
+  matchState: MatchState;
   customGraphics: CustomScreen[];
 }
 
@@ -39,8 +39,8 @@ export function removeCustomScreen(
 }
 
 export default function DisplayControlsPanel({
-  updateMatchSettings,
-  matchSettings,
+  updateMatchState,
+  matchState,
   customGraphics,
 }: Props) {
   const customScreens = customGraphics.filter(
@@ -58,11 +58,11 @@ export default function DisplayControlsPanel({
             .map((screen) => ({
               label: screens[screen as DisplayScreen],
               onClick: () =>
-                updateMatchSettings({
+                updateMatchState({
                   displayScreen: screen as DisplayScreen,
                   customScreenImageUrl: undefined,
                 }),
-              selected: matchSettings.displayScreen === screen,
+              selected: matchState.displayScreen === screen,
             })),
         ]}
       />
@@ -77,11 +77,11 @@ export default function DisplayControlsPanel({
             buttons={customScreens?.map((customScreen) => ({
               label: customScreen.title,
               onClick: () =>
-                updateMatchSettings({
+                updateMatchState({
                   displayScreen: 'custom',
                   customScreenImageUrl: customScreen.url,
                 }),
-              selected: matchSettings.customScreenImageUrl === customScreen.url,
+              selected: matchState.customScreenImageUrl === customScreen.url,
             }))}
           />
         </>
@@ -95,16 +95,16 @@ export default function DisplayControlsPanel({
           </div>
           <ButtonGrid
             buttons={overlays?.map((customScreen) => {
-              const selected = (matchSettings.overlays || [])
+              const selected = (matchState.overlays || [])
                 .map((selectOvelay) => selectOvelay.filePath)
                 .includes(customScreen.filePath);
               return {
                 label: customScreen.title,
                 onClick: () =>
-                  updateMatchSettings({
+                  updateMatchState({
                     overlays: selected
-                      ? removeCustomScreen(matchSettings.overlays, customScreen)
-                      : addCustomScreen(matchSettings.overlays, customScreen),
+                      ? removeCustomScreen(matchState.overlays, customScreen)
+                      : addCustomScreen(matchState.overlays, customScreen),
                   }),
                 selected,
               };

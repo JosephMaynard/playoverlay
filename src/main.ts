@@ -13,13 +13,7 @@ import {
   globalShortcut,
 } from 'electron';
 import path from 'path';
-import {
-  AppSettings,
-  CustomScreen,
-  MatchSettings,
-  Scores,
-  Time,
-} from './types';
+import { AppSettings, CustomScreen, MatchState, Scores, Time } from './types';
 import { TeamSettingsInterface } from './zodSchemas';
 import {
   DISPLAY_WINDOW,
@@ -275,8 +269,8 @@ function setupIPCHandlers() {
     displayWindow?.webContents.send('app-settings-updated', appSettings);
   });
 
-  ipcMain.on('update-match-settings', (_, matchSettings: MatchSettings) => {
-    displayWindow?.webContents.send('match-settings-updated', matchSettings);
+  ipcMain.on('update-match-state', (_, matchState: MatchState) => {
+    displayWindow?.webContents.send('match-state-updated', matchState);
   });
 
   ipcMain.on('toggle-fullscreen', () => {

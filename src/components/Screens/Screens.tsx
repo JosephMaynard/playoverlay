@@ -1,4 +1,4 @@
-import { MatchSettings, Scores, Time } from '../../types';
+import { MatchState, Scores, Time } from '../../types';
 import { TeamSettingsInterface } from 'src/zodSchemas';
 import ScoresLayout from './ScoresLayout/ScoresLayout';
 import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
@@ -12,14 +12,14 @@ export interface Props {
   teamSettings: TeamSettingsInterface;
   scores: Scores;
   time: Time;
-  matchSettings: MatchSettings;
+  matchState: MatchState;
 }
 
 export default function Screens({
   teamSettings,
   scores,
   time,
-  matchSettings,
+  matchState,
 }: Props) {
   const [isDemoMode, setIsDemoMode] = useState(false);
 
@@ -55,29 +55,29 @@ export default function Screens({
     <>
       {isDemoMode && <BouncingLogo />}
       <OverlaysLayout
-        activeScreen={matchSettings.displayScreen}
-        overlays={matchSettings.overlays}
+        activeScreen={matchState.displayScreen}
+        overlays={matchState.overlays}
       />
       <ScoresLayout
         settings={teamSettings}
         scores={scores}
         time={time}
-        active={matchSettings.displayScreen === 'scoreBug'}
+        active={matchState.displayScreen === 'scoreBug'}
       />
       <MatchTitleLayout
         settings={teamSettings}
         scores={scores}
-        active={matchSettings.displayScreen === 'matchTitle'}
+        active={matchState.displayScreen === 'matchTitle'}
       />
       <PenaltiesLayout
         penalties={scores.penalties}
-        active={matchSettings.displayScreen === 'penalties'}
-        penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
+        active={matchState.displayScreen === 'penalties'}
+        penaltiesFirstTeam={matchState.penaltiesFirstTeam}
         teamSettings={teamSettings}
       />
       <CustomScreenLayout
-        active={matchSettings.displayScreen === 'custom'}
-        customScreenImageUrl={matchSettings.customScreenImageUrl}
+        active={matchState.displayScreen === 'custom'}
+        customScreenImageUrl={matchState.customScreenImageUrl}
       />
     </>
   );

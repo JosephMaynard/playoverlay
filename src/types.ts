@@ -18,7 +18,7 @@ export interface AppSettings {
   autoSwitchScreens: boolean;
 }
 
-export interface MatchSettings {
+export interface MatchState {
   matchPhase?: MatchPhase;
   previousMatchPhase?: MatchPhase;
   displayScreen: DisplayScreen;

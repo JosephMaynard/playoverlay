@@ -26,7 +26,7 @@ import { UpdateStatus } from '../../zodSchemas';
 import DashboardHeader from './DashboardHeader';
 import { useScoresStore } from '../../store/scores';
 import { useTeamSettingsStore } from '../../store/teamSettings';
-import { useMatchSettingsStore } from '../../store/matchSettings';
+import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
 import { DisplayScreen } from '../../constants';
@@ -54,10 +54,8 @@ export default function Dashboard() {
   const setTeamSettings = useTeamSettingsStore(
     (state) => state.setTeamSettings
   );
-  const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
-  const setMatchSettings = useMatchSettingsStore(
-    (state) => state.setMatchSettings
-  );
+  const matchState = useMatchStateStore((state) => state.matchState);
+  const setMatchState = useMatchStateStore((state) => state.setMatchState);
   const appSettings = useAppSettingsStore((state) => state.appSettings);
   const setAppSettings = useAppSettingsStore((state) => state.setAppSettings);
 
@@ -93,7 +91,7 @@ export default function Dashboard() {
   // Set up IPC state and listeners
   useEffect(() => {
     window?.electronAPI?.updateScores(scores);
-    window?.electronAPI?.updateMatchSettings(matchSettings);
+    window?.electronAPI?.updateMatchState(matchState);
     window?.electronAPI?.updateTime(time);
 
     window?.electronAPI
@@ -188,8 +186,8 @@ export default function Dashboard() {
       remainingTime: timeToString(
         Math.max(
           (getMatchPhases(
-            matchSettings.halfLength,
-            matchSettings.extraTimeHalfLength
+            matchState.halfLength,
+            matchState.extraTimeHalfLength
           )?.[currentTime.matchPhase]?.end || 0) *
             60 -
             seconds,
@@ -208,8 +206,8 @@ export default function Dashboard() {
     setPaused(false);
 
     const phases = getMatchPhases(
-      matchSettings.halfLength,
-      matchSettings.extraTimeHalfLength
+      matchState.halfLength,
+      matchState.extraTimeHalfLength
     );
 
     seconds = phases?.[matchPhase].start * 60;
@@ -222,8 +220,8 @@ export default function Dashboard() {
       ),
     });
 
-    // Update matchPhase in matchSettings
-    setMatchSettings({ matchPhase });
+    // Update matchPhase in matchState
+    setMatchState({ matchPhase });
 
     interval = setInterval(incrementTime, 1000);
   };
@@ -242,10 +240,9 @@ export default function Dashboard() {
 
     setPaused(false);
 
-    // Update matchSettings with matchPhase undefined and previousMatchPhase set to the phase that just ended
-    setMatchSettings({
-      previousMatchPhase:
-        useMatchSettingsStore.getState().matchSettings.matchPhase,
+    // Update matchState with matchPhase undefined and previousMatchPhase set to the phase that just ended
+    setMatchState({
+      previousMatchPhase: useMatchStateStore.getState().matchState.matchPhase,
       matchPhase: undefined,
     });
   };
@@ -290,7 +287,7 @@ export default function Dashboard() {
 
   const nextMatchPhase = () => {
     const { previousMatchPhase, matchPhase } =
-      useMatchSettingsStore.getState().matchSettings;
+      useMatchStateStore.getState().matchState;
 
     let nextPhase: MatchPhase | undefined;
 
@@ -309,22 +306,22 @@ export default function Dashboard() {
 
     if (nextPhase) {
       startTime(nextPhase);
-      setMatchSettings({
+      setMatchState({
         matchPhase: nextPhase,
       });
       if (appSettings.autoSwitchScreens) {
-        setMatchSettings({ displayScreen: 'scoreBug' });
+        setMatchState({ displayScreen: 'scoreBug' });
       }
     } else {
       // No next phase, stop time
       stopTime();
 
-      setMatchSettings({
+      setMatchState({
         matchPhase: undefined,
         previousMatchPhase: matchPhase,
         displayScreen: appSettings.autoSwitchScreens
           ? 'matchTitle'
-          : useMatchSettingsStore.getState().matchSettings.displayScreen,
+          : useMatchStateStore.getState().matchState.displayScreen,
       });
     }
   };
@@ -340,13 +337,13 @@ export default function Dashboard() {
                 teamSettings={teamSettings}
                 scores={scores}
                 time={time}
-                matchSettings={matchSettings}
+                matchState={matchState}
               />
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">
               <DisplayControlsPanel
-                updateMatchSettings={setMatchSettings}
-                matchSettings={matchSettings}
+                updateMatchState={setMatchState}
+                matchState={matchState}
                 customGraphics={customGraphics}
               />
             </div>
@@ -354,7 +351,7 @@ export default function Dashboard() {
           <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
             <TimeControlPanel
               time={time}
-              matchSettings={matchSettings}
+              matchState={matchState}
               pause={pause}
               resume={resume}
               adjustTime={(difference: number) => {
@@ -375,7 +372,7 @@ export default function Dashboard() {
                 updateAppSettings({ autoSwitchScreens })
               }
               setDisplayScreen={(displayScreen: DisplayScreen) =>
-                setMatchSettings({ displayScreen })
+                setMatchState({ displayScreen })
               }
             />
             <ScoresPanel
@@ -387,17 +384,17 @@ export default function Dashboard() {
             <PenaltiesPanel
               penalties={scores.penalties}
               setPenalties={setPenalties}
-              penaltiesFirstTeam={matchSettings.penaltiesFirstTeam}
+              penaltiesFirstTeam={matchState.penaltiesFirstTeam}
               setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-                setMatchSettings({ penaltiesFirstTeam })
+                setMatchState({ penaltiesFirstTeam })
               }
               teamSettings={teamSettings}
             />
           </div>
         </main>
         <MatchSettingsMenu
-          matchSettings={matchSettings}
-          updateMatchSettings={setMatchSettings}
+          matchState={matchState}
+          updateMatchState={setMatchState}
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
           teamSettings={teamSettings}
