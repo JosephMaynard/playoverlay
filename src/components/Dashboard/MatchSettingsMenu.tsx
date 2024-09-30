@@ -2,13 +2,13 @@ import { AppSettings, MatchState } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   sidebarOpen: boolean;
   setSidebarOpen: (sidebarOpen: boolean) => void;
-  teamSettings: TeamSettingsInterface;
-  updateTeamSettings: (updatedSettings: Partial<TeamSettingsInterface>) => void;
+  teamSettings: MatchSettings;
+  updateMatchSettings: (updatedSettings: Partial<MatchSettings>) => void;
   appSettings: AppSettings;
   isDemoMode: boolean;
   matchState: MatchState;
@@ -19,7 +19,7 @@ export default function MatchSettingsMenu({
   sidebarOpen,
   setSidebarOpen,
   teamSettings,
-  updateTeamSettings,
+  updateMatchSettings,
   appSettings,
   isDemoMode,
   matchState,
@@ -35,19 +35,19 @@ export default function MatchSettingsMenu({
         title="Home Team"
         teamNameFull={teamSettings.homeTeamNameFull}
         setTeamNameFull={(homeTeamNameFull: string) =>
-          updateTeamSettings({ homeTeamNameFull })
+          updateMatchSettings({ homeTeamNameFull })
         }
         teamNameAbbreviated={teamSettings.homeTeamNameAbbreviated}
         setTeamNameAbbreviated={(homeTeamNameAbbreviated: string) =>
-          updateTeamSettings({ homeTeamNameAbbreviated })
+          updateMatchSettings({ homeTeamNameAbbreviated })
         }
         textColour={teamSettings.homeTeamTextColour}
         setTextColour={(homeTeamTextColour: string) =>
-          updateTeamSettings({ homeTeamTextColour })
+          updateMatchSettings({ homeTeamTextColour })
         }
         backgroundColour={teamSettings.homeTeamBackgroundColour}
         setBackgroundColour={(homeTeamBackgroundColour: string) =>
-          updateTeamSettings({ homeTeamBackgroundColour })
+          updateMatchSettings({ homeTeamBackgroundColour })
         }
         appSettings={appSettings}
       />
@@ -55,19 +55,19 @@ export default function MatchSettingsMenu({
         title="Away Team"
         teamNameFull={teamSettings.awayTeamNameFull}
         setTeamNameFull={(awayTeamNameFull: string) =>
-          updateTeamSettings({ awayTeamNameFull })
+          updateMatchSettings({ awayTeamNameFull })
         }
         teamNameAbbreviated={teamSettings.awayTeamNameAbbreviated}
         setTeamNameAbbreviated={(awayTeamNameAbbreviated: string) =>
-          updateTeamSettings({ awayTeamNameAbbreviated })
+          updateMatchSettings({ awayTeamNameAbbreviated })
         }
         textColour={teamSettings.awayTeamTextColour}
         setTextColour={(awayTeamTextColour: string) =>
-          updateTeamSettings({ awayTeamTextColour })
+          updateMatchSettings({ awayTeamTextColour })
         }
         backgroundColour={teamSettings.awayTeamBackgroundColour}
         setBackgroundColour={(awayTeamBackgroundColour: string) =>
-          updateTeamSettings({ awayTeamBackgroundColour })
+          updateMatchSettings({ awayTeamBackgroundColour })
         }
         appSettings={appSettings}
         disabled={isDemoMode}
@@ -87,7 +87,7 @@ export default function MatchSettingsMenu({
               id="matchVenue"
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
               onChange={(e) => {
-                updateTeamSettings({ venue: e.target.value || undefined });
+                updateMatchSettings({ venue: e.target.value || undefined });
               }}
               value={teamSettings.venue || ''}
             />

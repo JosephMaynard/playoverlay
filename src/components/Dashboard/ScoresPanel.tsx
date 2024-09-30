@@ -1,8 +1,8 @@
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 import { Scores, Time } from '../../types';
 
 export interface Props {
-  teamSettings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
   scores: Scores;
   time: Time;
   updateScore: (scoreUpdates: Partial<Scores>) => void;
@@ -11,7 +11,7 @@ import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ScoreInput from './ScoreInput';
 
 export default function ScoresPanel({
-  teamSettings,
+  matchSettings,
   scores,
   updateScore,
 }: Props) {
@@ -23,20 +23,20 @@ export default function ScoresPanel({
           score={scores.homeTeam}
           id="homeTeamScore"
           setScore={(homeTeam: number) => updateScore({ homeTeam })}
-          textColour={teamSettings.homeTeamTextColour}
-          backgroundColour={teamSettings.homeTeamBackgroundColour}
-          teamNameFull={teamSettings.homeTeamNameFull}
-          teamNameAbbreviated={teamSettings.homeTeamNameAbbreviated}
+          textColour={matchSettings.homeTeamTextColour}
+          backgroundColour={matchSettings.homeTeamBackgroundColour}
+          teamNameFull={matchSettings.homeTeamNameFull}
+          teamNameAbbreviated={matchSettings.homeTeamNameAbbreviated}
         />
         <ScoreInput
           title="Away Team"
           score={scores.awayTeam}
           id="awayTeamScore"
           setScore={(awayTeam: number) => updateScore({ awayTeam })}
-          textColour={teamSettings.awayTeamTextColour}
-          backgroundColour={teamSettings.awayTeamBackgroundColour}
-          teamNameFull={teamSettings.awayTeamNameFull}
-          teamNameAbbreviated={teamSettings.awayTeamNameAbbreviated}
+          textColour={matchSettings.awayTeamTextColour}
+          backgroundColour={matchSettings.awayTeamBackgroundColour}
+          teamNameFull={matchSettings.awayTeamNameFull}
+          teamNameAbbreviated={matchSettings.awayTeamNameAbbreviated}
         />
       </div>
     </CollapsiblePanel>

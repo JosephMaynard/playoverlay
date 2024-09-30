@@ -4,19 +4,18 @@ import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
   defaultAppSettings,
   defaultMatchState,
-  defaultTeamSettings,
+  defaultMatchSettings,
   defaultScores,
 } from '../../constants';
 import Screens from '../Screens/Screens';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 
 const Display = () => {
   const [scores, setScores] = useState<Scores>(defaultScores);
   const [time, setTime] = useState<Time>({});
-  const [teamSettings, setTeamSettings] =
-    useState<TeamSettingsInterface>(defaultTeamSettings);
   const [matchSettings, setMatchSettings] =
-    useState<MatchState>(defaultMatchState);
+    useState<MatchSettings>(defaultMatchSettings);
+  const [matchState, setMatchState] = useState<MatchState>(defaultMatchState);
   const [appSettings, setAppSettings] =
     useState<AppSettings>(defaultAppSettings);
 
@@ -48,19 +47,19 @@ const Display = () => {
     const handleTimeUpdate = (newTime: Time) => {
       setTime(newTime);
     };
-    const handleTeamSettingsUpdate = (newSettings: TeamSettingsInterface) => {
-      setTeamSettings(newSettings);
+    const handleTeamSettingsUpdate = (newSettings: MatchSettings) => {
+      setMatchSettings(newSettings);
     };
     const handleAppSettingsUpdate = (newSettings: AppSettings) => {
       setAppSettings(newSettings);
     };
     const handleMatchSettingsUpdate = (newSettings: MatchState) => {
-      setMatchSettings(newSettings);
+      setMatchState(newSettings);
     };
 
     window.electronAPI.onScoreUpdated(handleScoreUpdate);
     window.electronAPI.onTimeUpdated(handleTimeUpdate);
-    window.electronAPI.onTeamSettingsUpdated(handleTeamSettingsUpdate);
+    window.electronAPI.onMatchSettingsUpdated(handleTeamSettingsUpdate);
     window.electronAPI.onAppSettingsUpdated(handleAppSettingsUpdate);
     window.electronAPI.onMatchStateUpdated(handleMatchSettingsUpdate);
 
@@ -80,10 +79,10 @@ const Display = () => {
       style={{ backgroundColor: appSettings.keyColour }}
     >
       <Screens
-        teamSettings={teamSettings}
+        matchSettings={matchSettings}
         scores={scores}
         time={time}
-        matchState={matchSettings}
+        matchState={matchState}
       />
       {!isFullscreen && (
         <button

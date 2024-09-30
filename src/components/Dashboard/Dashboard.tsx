@@ -25,7 +25,7 @@ import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import { UpdateStatus } from '../../zodSchemas';
 import DashboardHeader from './DashboardHeader';
 import { useScoresStore } from '../../store/scores';
-import { useTeamSettingsStore } from '../../store/teamSettings';
+import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
@@ -50,9 +50,9 @@ export default function Dashboard() {
 
   const scores = useScoresStore((state) => state.scores);
   const setScores = useScoresStore((state) => state.setScores);
-  const teamSettings = useTeamSettingsStore((state) => state.teamSettings);
-  const setTeamSettings = useTeamSettingsStore(
-    (state) => state.setTeamSettings
+  const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
+  const setMatchSettings = useMatchSettingsStore(
+    (state) => state.setMatchSettings
   );
   const matchState = useMatchStateStore((state) => state.matchState);
   const setMatchState = useMatchStateStore((state) => state.setMatchState);
@@ -95,16 +95,16 @@ export default function Dashboard() {
     window?.electronAPI?.updateTime(time);
 
     window?.electronAPI
-      ?.getTeamSettings()
+      ?.getMatchSettings()
       .then((settings) => {
         if (settings) {
-          setTeamSettings(settings);
+          setMatchSettings(settings);
         } else {
-          window?.electronAPI?.updateTeamSettings(teamSettings);
+          window?.electronAPI?.updateMatchSettings(matchSettings);
         }
       })
       .catch((error: any) => {
-        window?.electronAPI?.updateTeamSettings(teamSettings);
+        window?.electronAPI?.updateMatchSettings(matchSettings);
         console.error('Failed to load team settings:', error);
       });
 
@@ -334,7 +334,7 @@ export default function Dashboard() {
           <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
             <Preview keyColour={appSettings.keyColour}>
               <Screens
-                teamSettings={teamSettings}
+                matchSettings={matchSettings}
                 scores={scores}
                 time={time}
                 matchState={matchState}
@@ -376,7 +376,7 @@ export default function Dashboard() {
               }
             />
             <ScoresPanel
-              teamSettings={teamSettings}
+              matchSettings={matchSettings}
               scores={scores}
               time={time}
               updateScore={setScores}
@@ -388,7 +388,7 @@ export default function Dashboard() {
               setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
                 setMatchState({ penaltiesFirstTeam })
               }
-              teamSettings={teamSettings}
+              matchSettings={matchSettings}
             />
           </div>
         </main>
@@ -397,8 +397,8 @@ export default function Dashboard() {
           updateMatchState={setMatchState}
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
-          teamSettings={teamSettings}
-          updateTeamSettings={setTeamSettings}
+          teamSettings={matchSettings}
+          updateMatchSettings={setMatchSettings}
           appSettings={appSettings}
           isDemoMode={isDemoMode}
         />

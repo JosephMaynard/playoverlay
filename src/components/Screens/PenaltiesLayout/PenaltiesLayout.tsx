@@ -1,4 +1,4 @@
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 import { Penalty, homeOrAway } from '../../../types';
 import PenaltiesBoard from './PenaltiesBoard';
 
@@ -7,27 +7,27 @@ import './PenaltiesLayout.css';
 export interface Props {
   penalties: Penalty[];
   penaltiesFirstTeam: homeOrAway;
-  teamSettings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
   active: boolean;
 }
 
 export default function PenaltiesLayout({
   penalties,
   penaltiesFirstTeam,
-  teamSettings,
+  matchSettings,
   active,
 }: Props) {
   return (
     <div
-      className={`PenaltiesLayout${active ? ' PenaltiesLayout_active' : ''}`}
+      className={`PenaltiesLayout ${active ? 'PenaltiesLayout_active' : ''}`}
     >
       <div
-        className={`PenaltiesLayout_wrapper${active ? ' PenaltiesLayout_wrapper_active' : ''}`}
+        className={`PenaltiesLayout_wrapper ${active ? 'PenaltiesLayout_wrapper_active' : ''}`}
       >
         <PenaltiesBoard
           penalties={penalties}
           penaltiesFirstTeam={penaltiesFirstTeam}
-          teamSettings={teamSettings}
+          matchSettings={matchSettings}
         />
       </div>
     </div>

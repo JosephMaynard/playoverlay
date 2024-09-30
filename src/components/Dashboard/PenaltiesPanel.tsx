@@ -4,14 +4,14 @@ import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import PenaltiesBoard from '../Screens/PenaltiesLayout/PenaltiesBoard';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   penalties: Penalty[];
   setPenalties: (penalties: Penalty[]) => void;
   penaltiesFirstTeam: homeOrAway;
   setPenaltiesFirstTeam: (team: homeOrAway) => void;
-  teamSettings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
 }
 
 export default function PenaltiesPanel({
@@ -19,7 +19,7 @@ export default function PenaltiesPanel({
   setPenalties,
   penaltiesFirstTeam,
   setPenaltiesFirstTeam,
-  teamSettings,
+  matchSettings,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const nextPenalyTeam: homeOrAway =
@@ -31,10 +31,10 @@ export default function PenaltiesPanel({
 
   return (
     <CollapsiblePanel title="Penalties">
-      <div className=" mb-4 [--base-size:1.25rem]">
+      <div className="mb-4 [--base-size:1.25rem]">
         <PenaltiesBoard
           className="border border-gray-600"
-          teamSettings={teamSettings}
+          matchSettings={matchSettings}
           penalties={penalties}
           penaltiesFirstTeam={penaltiesFirstTeam}
         />
@@ -60,8 +60,8 @@ export default function PenaltiesPanel({
       <h3 className="my-4 text-base font-semibold leading-6 text-gray-900">
         Next Penalty{' '}
         {nextPenalyTeam === 'home'
-          ? teamSettings.homeTeamNameFull
-          : teamSettings.awayTeamNameFull}{' '}
+          ? matchSettings.homeTeamNameFull
+          : matchSettings.awayTeamNameFull}{' '}
         ({nextPenalyTeam === 'home' ? 'Home' : 'Away'} Team):
       </h3>
 

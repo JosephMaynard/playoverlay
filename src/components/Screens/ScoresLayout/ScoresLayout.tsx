@@ -1,31 +1,31 @@
 import { Time, Scores } from 'src/types';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 import ScoresTeamName from './ScoresTeamName';
 import './ScoresLayout.css';
 
 export interface Props {
   scores: Scores;
-  settings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
   time: Time;
   active: boolean;
 }
 
-export default function Scores({ scores, settings, time, active }: Props) {
+export default function Scores({ scores, matchSettings, time, active }: Props) {
   return (
-    <div className={`ScoresLayout flex${active ? ' ScoresLayout_active' : ''}`}>
+    <div className={`ScoresLayout flex ${active ? 'ScoresLayout_active' : ''}`}>
       <ScoresTeamName
-        textColour={settings.homeTeamTextColour}
-        backgroundColour={settings.homeTeamBackgroundColour}
-        teamName={settings.homeTeamNameAbbreviated}
+        textColour={matchSettings.homeTeamTextColour}
+        backgroundColour={matchSettings.homeTeamBackgroundColour}
+        teamName={matchSettings.homeTeamNameAbbreviated}
       />
       <div className="ScoresLayout_item ScoresLayout_scores bg-black text-center font-bold text-white">
         {' '}
         {scores.homeTeam} - {scores.awayTeam}{' '}
       </div>
       <ScoresTeamName
-        textColour={settings.awayTeamTextColour}
-        backgroundColour={settings.awayTeamBackgroundColour}
-        teamName={settings.awayTeamNameAbbreviated}
+        textColour={matchSettings.awayTeamTextColour}
+        backgroundColour={matchSettings.awayTeamBackgroundColour}
+        teamName={matchSettings.awayTeamNameAbbreviated}
       />
       {time.time && (
         <div className="ScoresLayout_item ScoresLayout_time bg-black text-center text-white">

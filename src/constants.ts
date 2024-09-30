@@ -1,12 +1,12 @@
 import { MatchState, AppSettings, Scores } from './types';
-import { TeamSettingsInterface } from './zodSchemas';
+import { MatchSettings } from './zodSchemas';
 
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
   autoSwitchScreens: true,
 };
 
-export const defaultTeamSettings: TeamSettingsInterface = {
+export const defaultMatchSettings: MatchSettings = {
   homeTeamNameFull: 'Home Team',
   homeTeamNameAbbreviated: 'HOM',
   homeTeamTextColour: '#ffffff',
@@ -17,7 +17,7 @@ export const defaultTeamSettings: TeamSettingsInterface = {
   awayTeamBackgroundColour: '#0000cc',
 };
 
-export const demoModeTeamSettingsOverrides: Partial<TeamSettingsInterface> = {
+export const demoModeTeamSettingsOverrides: Partial<MatchSettings> = {
   awayTeamNameFull: 'PlayOverlay Demo',
   awayTeamNameAbbreviated: 'DEMO',
   awayTeamTextColour: '#ffffff',

@@ -3,7 +3,7 @@
 
 import { Display, contextBridge, ipcRenderer } from 'electron';
 import { Scores, Time, AppSettings, MatchState, CustomScreen } from './types';
-import { TeamSettingsInterface } from './zodSchemas';
+import { MatchSettings } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
@@ -12,13 +12,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateTime: (time: Time) => ipcRenderer.send('update-time', time),
   onTimeUpdated: (callback: (time: Time) => void) =>
     ipcRenderer.on('time-updated', (_, time) => callback(time)),
-  updateTeamSettings: (teamSettings: TeamSettingsInterface) =>
-    ipcRenderer.send('update-team-settings', teamSettings),
-  onTeamSettingsUpdated: (
-    callback: (teamSettings: TeamSettingsInterface) => void
-  ) =>
-    ipcRenderer.on('team-settings-updated', (_, teamSettings) =>
-      callback(teamSettings)
+  updateMatchSettings: (matchSettings: MatchSettings) =>
+    ipcRenderer.send('update-match-settings', matchSettings),
+  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) =>
+    ipcRenderer.on('match-settings-updated', (_, matchSettings) =>
+      callback(matchSettings)
     ),
   updateAppSettings: (appSettings: AppSettings) =>
     ipcRenderer.send('update-app-settings', appSettings),
@@ -45,7 +43,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getEncodedSystemInfoActivationWindow: () =>
     ipcRenderer.invoke('get-encoded-system-info-activation-window'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
-  getTeamSettings: () => ipcRenderer.invoke('get-team-settings'),
+  getMatchSettings: () => ipcRenderer.invoke('get-match-settings'),
   moveWindowToScreen: (screenId: number) =>
     ipcRenderer.invoke('move-window-to-screen', screenId),
   onDisplayChange: (callback: (displays: Display[]) => void) => {

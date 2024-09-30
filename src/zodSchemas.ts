@@ -37,7 +37,7 @@ export interface UpdateStatus extends Updates {
   newVersionAvailable: boolean;
 }
 
-export const teamSetingsSchema = z.object({
+export const matchSetingsSchema = z.object({
   homeTeamNameFull: z.string(),
   homeTeamNameAbbreviated: z.string(),
   homeTeamTextColour: z.optional(z.string()),
@@ -57,4 +57,4 @@ export const teamSetingsSchema = z.object({
   hideScreens: z.optional(z.array(z.string())),
 });
 
-export type TeamSettingsInterface = z.infer<typeof teamSetingsSchema>;
+export type MatchSettings = z.infer<typeof matchSetingsSchema>;

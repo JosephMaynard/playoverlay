@@ -17,8 +17,8 @@ declare global {
       onScoreUpdated: (callback: (scores: Scores) => void) => void;
       updateTime: (time: Time) => void;
       onTimeUpdated: (callback: (time: Time) => void) => void;
-      updateTeamSettings: (settings: TeamSettingsInterface) => void;
-      onTeamSettingsUpdated: (
+      updateMatchSettings: (settings: TeamSettingsInterface) => void;
+      onMatchSettingsUpdated: (
         callback: (settings: TeamSettingsInterface) => void
       ) => void;
       updateAppSettings: (settings: AppSettings) => void;
@@ -32,7 +32,7 @@ declare global {
       getPowerSaveBlockerStatus: () => boolean;
       getVersion: () => string;
       getAppSettings: () => Promise<AppSettings | undefined>;
-      getTeamSettings: () => Promise<TeamSettingsInterface | undefined>;
+      getMatchSettings: () => Promise<TeamSettingsInterface | undefined>;
       moveWindowToScreen: (screenId: number) => Promise<void>;
       onDisplayChange: (callback: (displays: Display[]) => void) => () => void;
       getScreenInfo: () => void;

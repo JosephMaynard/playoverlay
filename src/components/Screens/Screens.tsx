@@ -1,5 +1,5 @@
 import { MatchState, Scores, Time } from '../../types';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 import ScoresLayout from './ScoresLayout/ScoresLayout';
 import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
 import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
@@ -9,14 +9,14 @@ import BouncingLogo from './BouncingLogo/BouncingLogo';
 import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
 
 export interface Props {
-  teamSettings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
   scores: Scores;
   time: Time;
   matchState: MatchState;
 }
 
 export default function Screens({
-  teamSettings,
+  matchSettings,
   scores,
   time,
   matchState,
@@ -59,13 +59,13 @@ export default function Screens({
         overlays={matchState.overlays}
       />
       <ScoresLayout
-        settings={teamSettings}
+        matchSettings={matchSettings}
         scores={scores}
         time={time}
         active={matchState.displayScreen === 'scoreBug'}
       />
       <MatchTitleLayout
-        settings={teamSettings}
+        settings={matchSettings}
         scores={scores}
         active={matchState.displayScreen === 'matchTitle'}
       />
@@ -73,7 +73,7 @@ export default function Screens({
         penalties={scores.penalties}
         active={matchState.displayScreen === 'penalties'}
         penaltiesFirstTeam={matchState.penaltiesFirstTeam}
-        teamSettings={teamSettings}
+        matchSettings={matchSettings}
       />
       <CustomScreenLayout
         active={matchState.displayScreen === 'custom'}

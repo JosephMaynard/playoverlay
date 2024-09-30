@@ -1,8 +1,8 @@
 import Store from 'electron-store';
 import isDemoMode from './isDemoMode';
 import { AppSettings, CustomScreen } from '../types';
-import { defaultTeamSettings } from '../constants';
-import { teamSetingsSchema, TeamSettingsInterface } from '../zodSchemas';
+import { defaultMatchSettings } from '../constants';
+import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
 
 // @ts-ignore
 const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
@@ -15,10 +15,12 @@ export const MAIN_WINDOW = 'MAIN_WINDOW';
 export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 
 const APP_SETTINGS = 'APP_SETTINGS';
-const TEAM_SETTINGS = 'TEAM_SETTINGS';
+const MATCH_SETTINGS = 'MATCH_SETTINGS';
+const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const LICENCE_KEY = 'LICENCE_KEY';
 const RENEWAL_JWT = 'RENEWAL_JWT';
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
+const LOGOS = 'LOGOS';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
 
@@ -66,42 +68,51 @@ export function getAppSettings() {
   }
 }
 
-export function setTeamSettings(teamSettings: TeamSettingsInterface) {
-  storage.set(TEAM_SETTINGS, teamSettings);
+export function setMatchSettings(matchSettings: MatchSettings) {
+  storage.set(MATCH_SETTINGS, matchSettings);
 }
 
-function getVerifiedTeamSettings(): TeamSettingsInterface {
-  const teamSettings = storage.get(TEAM_SETTINGS, defaultTeamSettings);
-  const verifiedTeamSettings = teamSetingsSchema.safeParse(teamSettings);
+function getVerifiedMatchSettings(): MatchSettings {
+  const matchSettings = storage.get(MATCH_SETTINGS, defaultMatchSettings);
 
-  if (verifiedTeamSettings.success === true) {
-    return verifiedTeamSettings.data;
+  // Handle Legacy TEAM_SETTINGS
+  const legacyMatchSetting = storage.get(TEAM_SETTINGS);
+  const verifiedMatchSettings = legacyMatchSetting
+    ? matchSetingsSchema.safeParse(legacyMatchSetting)
+    : matchSetingsSchema.safeParse(matchSettings);
+
+  if (legacyMatchSetting) {
+    storage.delete(TEAM_SETTINGS);
+  }
+
+  if (verifiedMatchSettings.success === true) {
+    return verifiedMatchSettings.data;
   }
 
   // Fallback to default data if data corrupted
-  return defaultTeamSettings;
+  return defaultMatchSettings;
 }
 
-export function getTeamSettings() {
-  let teamSettings = getVerifiedTeamSettings();
-  if (teamSettings) {
+export function getMatchSettings() {
+  let matchSettings = getVerifiedMatchSettings();
+  if (matchSettings) {
     if (isDemoMode() === true) {
-      teamSettings = {
-        ...teamSettings,
+      matchSettings = {
+        ...matchSettings,
         awayTeamNameAbbreviated: 'DEMO',
         awayTeamNameFull: 'PlayOverlay Demo',
         awayTeamBackgroundColour: '#0000CC',
         awayTeamTextColour: '#FFFFFF',
       };
     }
-    return teamSettings;
+    return matchSettings;
   }
 }
 
-export function removeDemoModeTeamSettings() {
-  let teamSettings = getVerifiedTeamSettings();
-  setTeamSettings({
-    ...teamSettings,
+export function removeDemoModeMatchSettings() {
+  let matchSettings = getVerifiedMatchSettings();
+  setMatchSettings({
+    ...matchSettings,
     awayTeamNameFull: 'Away Team',
     awayTeamNameAbbreviated: 'AWA',
     awayTeamTextColour: '#ffffff',

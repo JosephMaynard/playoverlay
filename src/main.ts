@@ -14,7 +14,7 @@ import {
 } from 'electron';
 import path from 'path';
 import { AppSettings, CustomScreen, MatchState, Scores, Time } from './types';
-import { TeamSettingsInterface } from './zodSchemas';
+import { MatchSettings } from './zodSchemas';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
@@ -22,10 +22,10 @@ import {
   deleteLicenceKey,
   getAppSettings,
   getCustomScreens,
-  getTeamSettings,
+  getMatchSettings,
   setAppSettings,
   setCustomScreens,
-  setTeamSettings,
+  setMatchSettings,
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
@@ -256,13 +256,10 @@ function setupIPCHandlers() {
     displayWindow?.webContents.send('settings-updated', settings);
   });
 
-  ipcMain.on(
-    'update-team-settings',
-    (_, teamSettings: TeamSettingsInterface) => {
-      setTeamSettings(teamSettings);
-      displayWindow?.webContents.send('team-settings-updated', teamSettings);
-    }
-  );
+  ipcMain.on('update-match-settings', (_, teamSettings: MatchSettings) => {
+    setMatchSettings(teamSettings);
+    displayWindow?.webContents.send('match-settings-updated', teamSettings);
+  });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
     setAppSettings(appSettings);
@@ -335,9 +332,9 @@ function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('get-team-settings', async () => {
+  ipcMain.handle('get-match-settings', async () => {
     try {
-      return getTeamSettings();
+      return getMatchSettings();
     } catch (error) {
       console.error('Error getting team settings:', error);
       throw error;

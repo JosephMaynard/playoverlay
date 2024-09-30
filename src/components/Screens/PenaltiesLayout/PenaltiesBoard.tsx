@@ -1,6 +1,6 @@
 import { Penalty, homeOrAway } from '../../../types';
 import ScoresTeamName from '../../Screens/ScoresLayout/ScoresTeamName';
-import { TeamSettingsInterface } from 'src/zodSchemas';
+import { MatchSettings } from 'src/zodSchemas';
 import PenaltyRow from './PenaltyRow';
 import { calculatePenalties } from '../../../utils';
 
@@ -9,14 +9,14 @@ import './PenaltiesBoard.css';
 export interface Props {
   penalties: Penalty[];
   penaltiesFirstTeam: homeOrAway;
-  teamSettings: TeamSettingsInterface;
+  matchSettings: MatchSettings;
   className?: string;
 }
 
 export default function PenaltiesBoard({
   penalties,
   penaltiesFirstTeam,
-  teamSettings,
+  matchSettings,
   className,
 }: Props) {
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
@@ -26,18 +26,18 @@ export default function PenaltiesBoard({
       <ScoresTeamName
         textColour={
           penaltiesFirstTeam === 'home'
-            ? teamSettings.homeTeamTextColour
-            : teamSettings.awayTeamTextColour
+            ? matchSettings.homeTeamTextColour
+            : matchSettings.awayTeamTextColour
         }
         backgroundColour={
           penaltiesFirstTeam === 'home'
-            ? teamSettings.homeTeamBackgroundColour
-            : teamSettings.awayTeamBackgroundColour
+            ? matchSettings.homeTeamBackgroundColour
+            : matchSettings.awayTeamBackgroundColour
         }
         teamName={
           penaltiesFirstTeam === 'home'
-            ? teamSettings.homeTeamNameAbbreviated
-            : teamSettings.awayTeamNameAbbreviated
+            ? matchSettings.homeTeamNameAbbreviated
+            : matchSettings.awayTeamNameAbbreviated
         }
       />
       <PenaltyRow
@@ -53,18 +53,18 @@ export default function PenaltiesBoard({
       <ScoresTeamName
         textColour={
           penaltiesFirstTeam === 'away'
-            ? teamSettings.homeTeamTextColour
-            : teamSettings.awayTeamTextColour
+            ? matchSettings.homeTeamTextColour
+            : matchSettings.awayTeamTextColour
         }
         backgroundColour={
           penaltiesFirstTeam === 'away'
-            ? teamSettings.homeTeamBackgroundColour
-            : teamSettings.awayTeamBackgroundColour
+            ? matchSettings.homeTeamBackgroundColour
+            : matchSettings.awayTeamBackgroundColour
         }
         teamName={
           penaltiesFirstTeam === 'away'
-            ? teamSettings.homeTeamNameAbbreviated
-            : teamSettings.awayTeamNameAbbreviated
+            ? matchSettings.homeTeamNameAbbreviated
+            : matchSettings.awayTeamNameAbbreviated
         }
       />
       <PenaltyRow
