@@ -13,6 +13,7 @@ export default function OverlaysLayout({ overlays, activeScreen }: Props) {
         .filter((overlay) => overlay?.overlayLinks.includes(activeScreen))
         .map((overlay) => (
           <div
+            key={overlay.filePath}
             style={{
               backgroundImage: `url("${overlay.url}")`,
             }}

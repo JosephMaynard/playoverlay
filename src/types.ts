@@ -24,8 +24,6 @@ export interface MatchState {
   displayScreen: DisplayScreen;
   penaltiesFirstTeam: homeOrAway;
   customScreenImageUrl?: string;
-  halfLength: number;
-  extraTimeHalfLength: number;
   overlays: CustomScreen[];
 }
 
@@ -86,5 +84,4 @@ export type SideMenuType =
   | 'app-settings'
   | 'custom-screens'
   | 'team-settings'
-  | 'system-settings'
-  | 'save-match-settings';
+  | 'system-settings';

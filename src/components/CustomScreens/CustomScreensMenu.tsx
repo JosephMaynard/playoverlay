@@ -8,6 +8,7 @@ import Modal from '../Modal/Modal';
 import { DisplayScreen, screens } from '../../constants';
 import { arraysEqual, insertValue, removeValue } from '../../utils';
 import EditCustomScreen from './EditCustomScreen';
+import Empty from '../MatchSettingsMenu/Empty';
 
 export interface Props {
   open: boolean;
@@ -86,6 +87,12 @@ export default function CustomScreensMenu({
       </div>
       <div>
         <ul role="list" className="divide-y divide-gray-100">
+          {customGraphics?.length === 0 && (
+            <Empty
+              title="No Custom Grapics"
+              description='Click the "Add Custom Graphic" button to add custom graphics'
+            />
+          )}
           {customGraphics?.map((customScreen) => (
             <li
               key={customScreen.filePath}
@@ -148,6 +155,7 @@ export default function CustomScreensMenu({
         handleOnChange={handleOnChange}
         keyColour={keyColour}
       />
+
       <Modal
         open={showConfirmDeleteModal}
         setOpen={setShowConfirmDeleteModal}

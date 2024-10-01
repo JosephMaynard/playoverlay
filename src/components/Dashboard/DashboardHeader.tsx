@@ -21,11 +21,6 @@ const menuButtons = [
     menu: 'team-settings',
   },
   {
-    title: 'Saved Match Settings',
-    icon: BookmarkSquareIcon,
-    menu: 'save-match-settings',
-  },
-  {
     title: 'Custom Graphics',
     icon: PhotoIcon,
     menu: 'custom-screens',

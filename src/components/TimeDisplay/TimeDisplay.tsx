@@ -1,16 +1,17 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
-import { Time, MatchState } from '../../types';
+import { Time } from '../../types';
 import { getMatchPhases } from '../../utils';
+import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
   time: Time;
-  matchState: MatchState;
+  matchSettings: MatchSettings;
   openAdjustmentsModal?: () => void;
 }
 
 export default function TimeDisplay({
   time,
-  matchState,
+  matchSettings,
   openAdjustmentsModal,
 }: Props) {
   return (
@@ -27,8 +28,8 @@ export default function TimeDisplay({
               <p className="mb-1 text-center tabular-nums text-white">
                 {
                   getMatchPhases(
-                    matchState.halfLength,
-                    matchState.extraTimeHalfLength
+                    matchSettings.halfLength,
+                    matchSettings.extraTimeHalfLength
                   )[time.matchPhase]?.title
                 }
               </p>

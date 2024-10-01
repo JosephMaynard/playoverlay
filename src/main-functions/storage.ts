@@ -87,7 +87,8 @@ function getVerifiedMatchSettings(): MatchSettings {
   }
 
   if (verifiedMatchSettings.success === true) {
-    return verifiedMatchSettings.data;
+    // Always include spread defaultMatchSettings to cover datashape updates
+    return { ...defaultMatchSettings, ...verifiedMatchSettings.data };
   }
 
   // Fallback to default data if data corrupted

@@ -63,7 +63,7 @@ export default function Modal({
                 </div>
                 <div className="sm:flex sm:items-start">
                   {icon && <ModalIcon icon={icon} />}
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div className="mt-3 flex-grow text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <Dialog.Title
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
@@ -77,7 +77,7 @@ export default function Modal({
                   {action && actionButtonLabel && (
                     <button
                       type="button"
-                      className={`inline-flex w-full justify-center rounded-md  px-3 py-2 text-sm font-semibold text-white shadow-sm ${actionButtonColor === 'red' ? 'bg-red-600 hover:bg-red-500' : ''}${actionButtonColor === 'green' ? 'bg-green-600 hover:bg-green-500' : ''}${actionButtonColor === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-500' : ''}${actionButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : ''} sm:w-auto`}
+                      className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${actionButtonColor === 'red' ? 'bg-red-600 hover:bg-red-500' : ''}${actionButtonColor === 'green' ? 'bg-green-600 hover:bg-green-500' : ''}${actionButtonColor === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-500' : ''}${actionButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : ''} sm:w-auto`}
                       onClick={action}
                     >
                       {actionButtonLabel}

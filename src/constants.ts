@@ -15,6 +15,8 @@ export const defaultMatchSettings: MatchSettings = {
   awayTeamNameAbbreviated: 'AWA',
   awayTeamTextColour: '#ffffff',
   awayTeamBackgroundColour: '#0000cc',
+  halfLength: 45,
+  extraTimeHalfLength: 15,
 };
 
 export const demoModeTeamSettingsOverrides: Partial<MatchSettings> = {
@@ -27,8 +29,6 @@ export const demoModeTeamSettingsOverrides: Partial<MatchSettings> = {
 export const defaultMatchState: MatchState = {
   displayScreen: 'scoreBug',
   penaltiesFirstTeam: 'home',
-  halfLength: 45,
-  extraTimeHalfLength: 15,
   overlays: [],
 };
 

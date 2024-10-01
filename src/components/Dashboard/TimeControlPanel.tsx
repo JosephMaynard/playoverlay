@@ -1,5 +1,5 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Time, MatchPhase, MatchState } from '../../types';
+import { Time, MatchPhase } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { useState } from 'react';
@@ -8,10 +8,11 @@ import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
 import { classNames } from '../..//utils';
 import { DisplayScreen } from '../../constants';
+import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
   time: Time;
-  matchState: MatchState;
+  matchSettings: MatchSettings;
   pause: () => void;
   resume: () => void;
   adjustTime: (difference: number) => void;
@@ -26,7 +27,7 @@ export interface Props {
 
 export default function TimeControlPanel({
   time,
-  matchState,
+  matchSettings,
   pause,
   resume,
   adjustTime,
@@ -51,7 +52,7 @@ export default function TimeControlPanel({
     <CollapsiblePanel title="Time" noPanelPadding>
       <TimeDisplay
         time={time}
-        matchState={matchState}
+        matchSettings={matchSettings}
         openAdjustmentsModal={() => setModal('adjustTime')}
       />
       <div className="p-4">
@@ -178,7 +179,7 @@ export default function TimeControlPanel({
         }}
         title="Adjust Time"
       >
-        <TimeDisplay time={time} matchState={matchState} />
+        <TimeDisplay time={time} matchSettings={matchSettings} />
 
         <div className="mx-auto mt-8 text-center">
           <span className="text-s isolate mx-auto inline-flex rounded-md shadow-sm">

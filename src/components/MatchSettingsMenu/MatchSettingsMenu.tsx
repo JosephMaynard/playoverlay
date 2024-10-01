@@ -3,27 +3,24 @@ import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import { MatchSettings } from 'src/zodSchemas';
+import SavedMatchSettings from './SavedMatchSettings';
 
 export interface Props {
   sidebarOpen: boolean;
   setSidebarOpen: (sidebarOpen: boolean) => void;
-  teamSettings: MatchSettings;
+  matchSettings: MatchSettings;
   updateMatchSettings: (updatedSettings: Partial<MatchSettings>) => void;
   appSettings: AppSettings;
   isDemoMode: boolean;
-  matchState: MatchState;
-  updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
 }
 
 export default function MatchSettingsMenu({
   sidebarOpen,
   setSidebarOpen,
-  teamSettings,
+  matchSettings,
   updateMatchSettings,
   appSettings,
   isDemoMode,
-  matchState,
-  updateMatchState,
 }: Props) {
   return (
     <SideMenu
@@ -31,21 +28,25 @@ export default function MatchSettingsMenu({
       open={sidebarOpen}
       setOpen={setSidebarOpen}
     >
+      <SavedMatchSettings
+        matchSettings={matchSettings}
+        setMatchSettings={updateMatchSettings}
+      />
       <TeamSettings
         title="Home Team"
-        teamNameFull={teamSettings.homeTeamNameFull}
+        teamNameFull={matchSettings.homeTeamNameFull}
         setTeamNameFull={(homeTeamNameFull: string) =>
           updateMatchSettings({ homeTeamNameFull })
         }
-        teamNameAbbreviated={teamSettings.homeTeamNameAbbreviated}
+        teamNameAbbreviated={matchSettings.homeTeamNameAbbreviated}
         setTeamNameAbbreviated={(homeTeamNameAbbreviated: string) =>
           updateMatchSettings({ homeTeamNameAbbreviated })
         }
-        textColour={teamSettings.homeTeamTextColour}
+        textColour={matchSettings.homeTeamTextColour}
         setTextColour={(homeTeamTextColour: string) =>
           updateMatchSettings({ homeTeamTextColour })
         }
-        backgroundColour={teamSettings.homeTeamBackgroundColour}
+        backgroundColour={matchSettings.homeTeamBackgroundColour}
         setBackgroundColour={(homeTeamBackgroundColour: string) =>
           updateMatchSettings({ homeTeamBackgroundColour })
         }
@@ -53,19 +54,19 @@ export default function MatchSettingsMenu({
       />
       <TeamSettings
         title="Away Team"
-        teamNameFull={teamSettings.awayTeamNameFull}
+        teamNameFull={matchSettings.awayTeamNameFull}
         setTeamNameFull={(awayTeamNameFull: string) =>
           updateMatchSettings({ awayTeamNameFull })
         }
-        teamNameAbbreviated={teamSettings.awayTeamNameAbbreviated}
+        teamNameAbbreviated={matchSettings.awayTeamNameAbbreviated}
         setTeamNameAbbreviated={(awayTeamNameAbbreviated: string) =>
           updateMatchSettings({ awayTeamNameAbbreviated })
         }
-        textColour={teamSettings.awayTeamTextColour}
+        textColour={matchSettings.awayTeamTextColour}
         setTextColour={(awayTeamTextColour: string) =>
           updateMatchSettings({ awayTeamTextColour })
         }
-        backgroundColour={teamSettings.awayTeamBackgroundColour}
+        backgroundColour={matchSettings.awayTeamBackgroundColour}
         setBackgroundColour={(awayTeamBackgroundColour: string) =>
           updateMatchSettings({ awayTeamBackgroundColour })
         }
@@ -89,7 +90,7 @@ export default function MatchSettingsMenu({
               onChange={(e) => {
                 updateMatchSettings({ venue: e.target.value || undefined });
               }}
-              value={teamSettings.venue || ''}
+              value={matchSettings.venue || ''}
             />
           </div>
         </div>
@@ -107,9 +108,9 @@ export default function MatchSettingsMenu({
                 name="halfLength"
                 id="halfLength"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={matchState.halfLength || ''}
+                value={matchSettings.halfLength || ''}
                 onChange={(e) =>
-                  updateMatchState({ halfLength: Number(e.target.value) })
+                  updateMatchSettings({ halfLength: Number(e.target.value) })
                 }
               />
             </div>
@@ -127,9 +128,9 @@ export default function MatchSettingsMenu({
                 name="extraTimeHalfLength"
                 id="extraTimeHalfLength"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={matchState.extraTimeHalfLength || ''}
+                value={matchSettings.extraTimeHalfLength || ''}
                 onChange={(e) =>
-                  updateMatchState({
+                  updateMatchSettings({
                     extraTimeHalfLength: Number(e.target.value || 0),
                   })
                 }
@@ -141,7 +142,7 @@ export default function MatchSettingsMenu({
           type="button"
           className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           onClick={() => {
-            updateMatchState({ halfLength: 45, extraTimeHalfLength: 15 });
+            updateMatchSettings({ halfLength: 45, extraTimeHalfLength: 15 });
           }}
         >
           Reset

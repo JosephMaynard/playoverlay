@@ -8,31 +8,32 @@ import {
   MatchPhase,
   SideMenuType,
 } from '../../types';
+import { UpdateStatus } from '../../zodSchemas';
+
 import Preview from '../Preview/Preview';
-import MatchSettingsMenu from './MatchSettingsMenu';
+import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import Screens from '../Screens/Screens';
-
-// @ts-ignore
-import logo from '../../assets/playoverlay-logo.svg';
 import ScoresPanel from './ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
-import { getMatchPhases, timeToString } from '../../utils';
 import PenaltiesPanel from './PenaltiesPanel';
-import AppSettingsMenu from './AppSettingsMenu';
+import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
-import { UpdateStatus } from '../../zodSchemas';
 import DashboardHeader from './DashboardHeader';
+
+import { getMatchPhases, timeToString } from '../../utils';
+import { DisplayScreen } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
-import { DisplayScreen } from '../../constants';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
-import SavedMatchSettingsMenu from '../SavedMatchSettingsMenu/SavedMatchSettingsMenu';
+
+// @ts-ignore
+import logo from '../../assets/playoverlay-logo.svg';
 
 let seconds: number = 0;
 let interval: ReturnType<typeof setInterval>;
@@ -181,8 +182,8 @@ export default function Dashboard() {
       remainingTime: timeToString(
         Math.max(
           (getMatchPhases(
-            matchState.halfLength,
-            matchState.extraTimeHalfLength
+            matchSettings.halfLength,
+            matchSettings.extraTimeHalfLength
           )?.[currentTime.matchPhase]?.end || 0) *
             60 -
             seconds,
@@ -201,8 +202,8 @@ export default function Dashboard() {
     setPaused(false);
 
     const phases = getMatchPhases(
-      matchState.halfLength,
-      matchState.extraTimeHalfLength
+      matchSettings.halfLength,
+      matchSettings.extraTimeHalfLength
     );
 
     seconds = phases?.[matchPhase].start * 60;
@@ -346,7 +347,7 @@ export default function Dashboard() {
           <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
             <TimeControlPanel
               time={time}
-              matchState={matchState}
+              matchSettings={matchSettings}
               pause={pause}
               resume={resume}
               adjustTime={(difference: number) => {
@@ -388,11 +389,9 @@ export default function Dashboard() {
           </div>
         </main>
         <MatchSettingsMenu
-          matchState={matchState}
-          updateMatchState={setMatchState}
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
-          teamSettings={matchSettings}
+          matchSettings={matchSettings}
           updateMatchSettings={setMatchSettings}
           appSettings={appSettings}
           isDemoMode={isDemoMode}
@@ -414,12 +413,6 @@ export default function Dashboard() {
           open={sideMenu === 'system-settings'}
           setOpen={closeSideMenu}
           isDemoMode={isDemoMode}
-        />
-        <SavedMatchSettingsMenu
-          open={sideMenu === 'save-match-settings'}
-          setOpen={closeSideMenu}
-          matchSettings={matchSettings}
-          setMatchSettings={setMatchSettings}
         />
       </div>
       {isDemoMode && (

@@ -55,7 +55,8 @@ export const matchSetingsSchema = z.object({
   hasPenalties: z.optional(z.boolean()),
   hideCustomGraphics: z.optional(z.array(z.string())),
   hideScreens: z.optional(z.array(z.string())),
-  savedDate: z.optional(z.string().date()),
+  saveDate: z.optional(z.string().date()),
+  saveId: z.optional(z.string()),
 });
 
 export type MatchSettings = z.infer<typeof matchSetingsSchema>;
