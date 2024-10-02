@@ -112,8 +112,9 @@ export default function SavedMatchSettings({
                   <p className="max-w-full truncate text-sm font-semibold leading-6 text-gray-900">
                     {savedMatchSetting.saveTitle}
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-gray-600">
-                    Saved: {savedMatchSetting.saveDate}
+                  <p className="mt-1 text-xs leading-6 text-gray-600">
+                    Saved:{' '}
+                    {new Date(savedMatchSetting.saveDate).toLocaleString()}
                   </p>
                 </div>
 
@@ -171,6 +172,7 @@ export default function SavedMatchSettings({
         action={() => {
           setMatchSettings(savedMatchSettingsToRestore);
           setSavedMatchSettingsToRestore(null);
+          setModal(null);
         }}
       >
         <p className="text-sm text-gray-500">

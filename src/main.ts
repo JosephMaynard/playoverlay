@@ -57,7 +57,7 @@ Sentry.init({
   enabled: process.env.NODE_ENV === 'production',
 });
 
-const SHOW_DEV_TOOLS = true;
+const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV === 'development';
 let quitWhenAllWindowsClose = true;
