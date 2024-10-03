@@ -54,7 +54,7 @@
   "license": "MIT",
   "dependencies": {
     "@sentry/electron": "^5.1.0",
-    "@sentry/react": "8.9.2",
+    "@sentry/react": "^8.33.1",
     "chalk": "^5.3.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.2.0",
@@ -69,5 +69,5 @@
     "zod": "^3.23.8",
     "zustand": "^5.0.0-rc.2"
   },
-  "packageManager": "yarn@3.4.1+sha512.a333bf9c2557d71f5ba87dd1446cde24bb9c35301ec29dd2baba577b3f9d1ab61348b66a1324de9088c40a996c5b9203794da8bf14cab9fae6a6eccc00cb8078"
+  "packageManager": "npm@10.7.0"
 }
