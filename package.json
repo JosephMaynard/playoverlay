@@ -1,6 +1,7 @@
 {
   "name": "playoverlay",
   "productName": "PlayOverlay",
+  "author": "PlayOverlay",
   "version": "0.11.0",
   "description": "PlayOverlay, sports video overlay",
   "main": ".vite/build/main.js",
@@ -48,9 +49,6 @@
     "vite-plugin-svgr": "^4.2.0"
   },
   "keywords": [],
-  "author": {
-    "name": "PlayOverlay"
-  },
   "license": "MIT",
   "dependencies": {
     "@sentry/electron": "^5.1.0",
