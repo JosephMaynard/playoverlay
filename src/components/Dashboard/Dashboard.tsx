@@ -14,7 +14,7 @@ import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import Screens from '../Screens/Screens';
-import ScoresPanel from './ScoresPanel';
+import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';

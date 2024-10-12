@@ -1,4 +1,10 @@
-import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
+import {
+  CheckCircleIcon,
+  MinusIcon,
+  PencilIcon,
+  PlusIcon,
+  StarIcon,
+} from '@heroicons/react/24/outline';
 import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
 import { useState } from 'react';
 import Modal from '../Modal/Modal';
@@ -45,7 +51,7 @@ export default function ScoreInput({
           </div>
         </div>
 
-        <div className="relative flex min-h-16 flex-col items-center justify-center  bg-black py-1">
+        <div className="relative flex min-h-16 flex-col items-center justify-center bg-black py-1">
           <div className="flex h-full items-center justify-center">
             <p className="text-center text-4xl font-semibold text-white">
               {score}
@@ -62,13 +68,16 @@ export default function ScoreInput({
         <div className="p-3">
           <button
             type="button"
-            className="block w-full rounded-md bg-indigo-600 px-2 py-3.5 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            style={{ backgroundColor: backgroundColour }}
+            className="flex w-full items-center overflow-hidden rounded-md bg-green-600 pr-4 font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
             onClick={() => setScore(score + 1)}
           >
-            <span className="inline-block rounded bg-black/50 px-2 py-0.5">
-              {title} Scored
+            <span
+              style={{ backgroundColor: backgroundColour, color: textColour }}
+              className="flex h-14 w-20 items-center justify-center border-r border-white"
+            >
+              <StarIcon className="h-9 w-9" />
             </span>
+            <span className="mx-auto">{title} Scored</span>
           </button>
         </div>
       </div>
