@@ -5,7 +5,7 @@ import { encodeURI } from 'js-base64';
 import { getLicencedData } from './isLicensed';
 
 export async function getSystemInfo() {
-  const machine_description = `${os.userInfo().username}'s ${os.type()} ${os.totalmem() / 1024 ** 3}GB RAM ${os.cpus()[0].model}`;
+  const machine_description = `${os.userInfo().username}'s ${os.type()} ${Math.round(os.totalmem() / 1024 ** 3)}GB RAM ${os.cpus()[0].model}`;
   const machine_id = await machineId();
   return {
     machine_description,

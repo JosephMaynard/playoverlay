@@ -3,9 +3,10 @@ import dns from 'dns/promises';
 import { getRenewalEncodedSystemInfo } from './getSystemInfo';
 import isLicensed from './isLicensed';
 import compareSemver from './compareSemver';
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import { updatesSchema } from '../zodSchemas';
 import saveRenewalJWT from './saveRenewalJWT';
+import { deleteLicenceKey } from './storage';
 
 export const useLocalBackend = true;
 
@@ -49,6 +50,20 @@ export async function renewLicenceKey() {
     }
 
     const data = await response.json();
+
+    if (data.systemActivated === false) {
+      deleteLicenceKey();
+      await dialog.showMessageBox({
+        type: 'error',
+        buttons: ['OK'],
+        title: 'Error',
+        message:
+          'Sorry we cannot find a valid activation for this system, please active again.',
+      });
+
+      app.relaunch();
+      app.exit();
+    }
 
     const saveLicenceKeyResult = await saveRenewalJWT(data.token);
 
