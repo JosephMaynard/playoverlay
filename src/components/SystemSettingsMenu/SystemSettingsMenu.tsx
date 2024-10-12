@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  CalculatorIcon,
   InformationCircleIcon,
   LockOpenIcon,
   ShoppingCartIcon,
@@ -9,13 +10,18 @@ import SideMenu from '../SideMenu/SideMenu';
 import { classNames } from '../../utils';
 import ManualActivationModal from './ManualActivationModal';
 import Modal from '../Modal/Modal';
-import { LicenceKeyData } from '../../zodSchemas';
+import { LicenceKeyData, MatchSettings } from '../../zodSchemas';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
+import { connectToStreamDeck } from '../../stream-deck';
 
 export interface Props {
   open: boolean;
-  setOpen: () => void;
   isDemoMode: boolean;
+  matchSettings: MatchSettings;
+  setOpen: () => void;
+  incrementHomeTeamScore: () => void;
+  incrementAwayTeamScore: () => void;
+  nextMatchPhase: () => void;
 }
 
 export type Modals = null | 'about' | 'activation' | 'delete-licence-key';
@@ -24,6 +30,10 @@ export default function SystemSettingsMenu({
   open,
   setOpen,
   isDemoMode,
+  matchSettings,
+  incrementHomeTeamScore,
+  incrementAwayTeamScore,
+  nextMatchPhase,
 }: Props) {
   const [currentModal, setCurrentModal] = useState<Modals>(null);
   const [loading, setLoading] = useState(false);
@@ -61,6 +71,42 @@ export default function SystemSettingsMenu({
                 aria-hidden="true"
               />
               About
+            </button>
+          </li>
+          <li>
+            <button
+              className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+              onClick={() => {
+                connectToStreamDeck([
+                  {
+                    text: 'Next Match Phase',
+                    textColor: 'white',
+                    backgroundColor: 'red',
+                    onPress: nextMatchPhase,
+                  },
+                  {
+                    text: `${matchSettings.homeTeamNameFull} Scored`,
+                    textColor: matchSettings.homeTeamTextColour,
+                    backgroundColor: matchSettings.homeTeamBackgroundColour,
+                    onPress: incrementHomeTeamScore,
+                  },
+                  {
+                    text: `${matchSettings.awayTeamNameFull} Scored`,
+                    textColor: matchSettings.awayTeamTextColour,
+                    backgroundColor: matchSettings.awayTeamBackgroundColour,
+                    onPress: incrementAwayTeamScore,
+                  },
+                ]);
+              }}
+            >
+              <CalculatorIcon
+                className={classNames(
+                  'text-gray-400 group-hover:text-indigo-600',
+                  'h-6 w-6 shrink-0'
+                )}
+                aria-hidden="true"
+              />
+              Connect to Stream Deck
             </button>
           </li>
           {isDemoMode ? (

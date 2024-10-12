@@ -51,6 +51,7 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
+    "@elgato-stream-deck/webhid": "^7.0.2",
     "@sentry/electron": "^5.1.0",
     "@sentry/react": "^8.33.1",
     "chalk": "^5.3.0",

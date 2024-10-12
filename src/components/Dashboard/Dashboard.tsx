@@ -413,6 +413,10 @@ export default function Dashboard() {
           open={sideMenu === 'system-settings'}
           setOpen={closeSideMenu}
           isDemoMode={isDemoMode}
+          incrementHomeTeamScore={incrementHomeTeamScore}
+          incrementAwayTeamScore={incrementAwayTeamScore}
+          nextMatchPhase={nextMatchPhase}
+          matchSettings={matchSettings}
         />
       </div>
       {isDemoMode && (

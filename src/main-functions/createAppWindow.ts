@@ -20,6 +20,7 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: !isDev,
+      experimentalFeatures: true,
     },
   };
 
