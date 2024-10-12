@@ -108,3 +108,11 @@ export function insertValue(arr: string[], value: string): string[] {
 export function removeValue(arr: string[], value: string): string[] {
   return arr.filter((item) => item !== value);
 }
+
+export const debounce = (func: (...args: any) => void, delay: number) => {
+  let timer: any;
+  return (...args: any) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};

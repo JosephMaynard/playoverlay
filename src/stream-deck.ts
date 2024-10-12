@@ -1,7 +1,8 @@
-import { requestStreamDecks } from '@elgato-stream-deck/webhid';
+import { getStreamDecks, requestStreamDecks } from '@elgato-stream-deck/webhid';
 
 // @ts-ignore
 import logo from './assets/playoverlay-logo.svg';
+import { debounce } from './utils';
 
 function createCanvasWithText(
   text: string,
@@ -99,25 +100,50 @@ async function createCanvasWithSVGFromFile(
   });
 }
 
+let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>>;
+
 export async function connectToStreamDeck(
   buttons: {
     text: string;
     textColor: string;
     backgroundColor: string;
     onPress: () => void;
-  }[]
+  }[],
+  nextScreen: () => void
 ) {
-  const connectedStreamDecks = await requestStreamDecks();
+  if (connectedStreamDecks === undefined) {
+    connectedStreamDecks = await requestStreamDecks();
+  }
 
   connectedStreamDecks[0]?.clearPanel();
+  connectedStreamDecks[0]?.removeAllListeners('down');
 
-  connectedStreamDecks[0].on('down', (keyIndex) => {
-    buttons[keyIndex.index]?.onPress();
+  console.log('connectedStreamDecks', connectedStreamDecks);
+
+  let isHandlingPress = false;
+
+  connectedStreamDecks[0].on('down', async (key: any) => {
+    if (isHandlingPress) return; // Skip if already handling a button press
+    isHandlingPress = true;
+
+    try {
+      if (key.index === 5) {
+        nextScreen();
+      } else {
+        buttons[key.index]?.onPress();
+      }
+      console.log(key);
+    } finally {
+      // Set a short timeout to avoid rapid re-pressing
+      setTimeout(() => {
+        isHandlingPress = false;
+      }, 300);
+    }
   });
 
   // Fired whenever an error is detected by the hid device.
   // Always add a listener for this event! If you don't, errors will be silently dropped.
-  connectedStreamDecks[0].on('error', (error) => {
+  connectedStreamDecks[0].on('error', (error: any) => {
     console.error(error);
   });
 

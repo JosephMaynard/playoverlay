@@ -415,8 +415,13 @@ export default function Dashboard() {
           isDemoMode={isDemoMode}
           incrementHomeTeamScore={incrementHomeTeamScore}
           incrementAwayTeamScore={incrementAwayTeamScore}
-          nextMatchPhase={nextMatchPhase}
+          stopTime={stopTime}
           matchSettings={matchSettings}
+          startTime={startTime}
+          updateMatchState={setMatchState}
+          matchState={matchState}
+          autoSwitchScreens={appSettings.autoSwitchScreens}
+          time={time}
         />
       </div>
       {isDemoMode && (

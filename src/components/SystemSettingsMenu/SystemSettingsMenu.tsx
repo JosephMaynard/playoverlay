@@ -13,6 +13,8 @@ import Modal from '../Modal/Modal';
 import { LicenceKeyData, MatchSettings } from '../../zodSchemas';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { connectToStreamDeck } from '../../stream-deck';
+import { MatchPhase, MatchState, Time } from '../../types';
+import { DisplayScreen, screens } from '../../constants';
 
 export interface Props {
   open: boolean;
@@ -21,7 +23,12 @@ export interface Props {
   setOpen: () => void;
   incrementHomeTeamScore: () => void;
   incrementAwayTeamScore: () => void;
-  nextMatchPhase: () => void;
+  startTime: (matchPhase: MatchPhase) => void;
+  stopTime: () => void;
+  updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
+  matchState: MatchState;
+  autoSwitchScreens: boolean;
+  time: Time;
 }
 
 export type Modals = null | 'about' | 'activation' | 'delete-licence-key';
@@ -33,11 +40,122 @@ export default function SystemSettingsMenu({
   matchSettings,
   incrementHomeTeamScore,
   incrementAwayTeamScore,
-  nextMatchPhase,
+  startTime,
+  stopTime,
+  updateMatchState,
+  autoSwitchScreens,
+  time,
 }: Props) {
   const [currentModal, setCurrentModal] = useState<Modals>(null);
   const [loading, setLoading] = useState(false);
   const [licenceData, setlicenceData] = useState<LicenceKeyData>();
+
+  const [steamDeckConnected, setSteamDeckConnected] = useState(false);
+  const [streamDeckButtons, setStreamdeckButtons] = useState(0);
+
+  const streamDeckButtonSets = [
+    [
+      {
+        text: `${matchSettings.homeTeamNameFull} Scored`,
+        textColor: matchSettings.homeTeamTextColour,
+        backgroundColor: matchSettings.homeTeamBackgroundColour,
+        onPress: incrementHomeTeamScore,
+      },
+      {
+        text: `${matchSettings.awayTeamNameFull} Scored`,
+        textColor: matchSettings.awayTeamTextColour,
+        backgroundColor: matchSettings.awayTeamBackgroundColour,
+        onPress: incrementAwayTeamScore,
+      },
+      {
+        text: 'Stop',
+        textColor: 'white',
+        backgroundColor: 'red',
+        onPress: () => {
+          stopTime();
+          if (autoSwitchScreens) {
+            updateMatchState({
+              displayScreen: 'matchTitle' as DisplayScreen,
+            });
+          }
+        },
+      },
+    ],
+    [
+      {
+        text: 'First Half',
+        onPress: () => handleStartTime('firstHalf'),
+        textColor: 'black',
+        backgroundColor: time.matchPhase === 'firstHalf' ? '#86EFAC' : 'white',
+      },
+      {
+        text: 'Second Half',
+        onPress: () => handleStartTime('secondHalf'),
+        textColor: 'black',
+        backgroundColor: time.matchPhase === 'secondHalf' ? '#86EFAC' : 'white',
+      },
+      {
+        text: 'Extra Time First Half',
+        onPress: () => handleStartTime('extraTimeFirstHalf'),
+        textColor: 'black',
+        backgroundColor:
+          time.matchPhase === 'extraTimeFirstHalf' ? '#86EFAC' : 'white',
+      },
+      {
+        text: 'Extra Time Second Half',
+        onPress: () => handleStartTime('extraTimeSecondHalf'),
+        textColor: 'black',
+        backgroundColor:
+          time.matchPhase === 'extraTimeSecondHalf' ? '#86EFAC' : 'white',
+      },
+    ],
+    [
+      ...Object.keys(screens)
+        .filter((screen) => screen !== 'custom')
+        .map((screen) => ({
+          text: screens[screen as DisplayScreen],
+          textColor: 'black',
+          backgroundColor: 'white',
+          onPress: () =>
+            updateMatchState({
+              displayScreen: screen as DisplayScreen,
+              customScreenImageUrl: undefined,
+            }),
+        })),
+    ],
+  ];
+
+  const handleStartTime = (matchPhase: MatchPhase) => {
+    startTime(matchPhase);
+    if (autoSwitchScreens === true) {
+      updateMatchState({
+        displayScreen: 'scoreBug' as DisplayScreen,
+        customScreenImageUrl: undefined,
+      });
+    }
+  };
+
+  const nextButtonSet = () => {
+    setStreamdeckButtons((prevButtons) => {
+      const nextButtons =
+        prevButtons + 1 >= streamDeckButtonSets.length ? 0 : prevButtons + 1;
+      console.log('Updating buttons:', prevButtons, 'to', nextButtons);
+      return nextButtons;
+    });
+  };
+
+  const handleNextButtonSet = () => {
+    nextButtonSet();
+  };
+
+  useEffect(() => {
+    if (steamDeckConnected) {
+      connectToStreamDeck(
+        streamDeckButtonSets[streamDeckButtons],
+        handleNextButtonSet
+      );
+    }
+  }, [streamDeckButtons, steamDeckConnected, matchSettings]);
 
   useEffect(() => {
     window?.electronAPI
@@ -77,26 +195,13 @@ export default function SystemSettingsMenu({
             <button
               className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
               onClick={() => {
-                connectToStreamDeck([
-                  {
-                    text: 'Next Match Phase',
-                    textColor: 'white',
-                    backgroundColor: 'red',
-                    onPress: nextMatchPhase,
-                  },
-                  {
-                    text: `${matchSettings.homeTeamNameFull} Scored`,
-                    textColor: matchSettings.homeTeamTextColour,
-                    backgroundColor: matchSettings.homeTeamBackgroundColour,
-                    onPress: incrementHomeTeamScore,
-                  },
-                  {
-                    text: `${matchSettings.awayTeamNameFull} Scored`,
-                    textColor: matchSettings.awayTeamTextColour,
-                    backgroundColor: matchSettings.awayTeamBackgroundColour,
-                    onPress: incrementAwayTeamScore,
-                  },
-                ]);
+                if (steamDeckConnected === false) {
+                  setSteamDeckConnected(true);
+                  connectToStreamDeck(
+                    streamDeckButtonSets[streamDeckButtons],
+                    handleNextButtonSet
+                  );
+                }
               }}
             >
               <CalculatorIcon

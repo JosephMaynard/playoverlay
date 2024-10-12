@@ -68,12 +68,12 @@ export default function ScoreInput({
         <div className="p-3">
           <button
             type="button"
-            className="flex w-full items-center overflow-hidden rounded-md bg-green-600 pr-4 font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+            className="flex w-full items-center overflow-hidden rounded-md bg-white pr-4 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             onClick={() => setScore(score + 1)}
           >
             <span
               style={{ backgroundColor: backgroundColour, color: textColour }}
-              className="flex h-14 w-20 items-center justify-center border-r border-white"
+              className="flex h-14 w-20 items-center justify-center"
             >
               <StarIcon className="h-9 w-9" />
             </span>
