@@ -73,7 +73,7 @@ export default function ScoreInput({
           >
             <span
               style={{ backgroundColor: backgroundColour, color: textColour }}
-              className="flex h-14 w-20 items-center justify-center"
+              className="flex h-14 w-20 items-center justify-center rounded-l-md ring-1 ring-inset ring-gray-300"
             >
               <StarIcon className="h-9 w-9" />
             </span>

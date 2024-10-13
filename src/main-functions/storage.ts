@@ -3,6 +3,8 @@ import isDemoMode from './isDemoMode';
 import { AppSettings, CustomScreen } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
+import { renewLicenceKey } from './apiRequests';
+import { app } from 'electron';
 
 // @ts-ignore
 const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
@@ -20,6 +22,7 @@ const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const LICENCE_KEY = 'LICENCE_KEY';
 const RENEWAL_JWT = 'RENEWAL_JWT';
+const INSTALLED_VERSION = 'INSTALLED_VERSION';
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
 const LOGOS = 'LOGOS';
 
@@ -172,4 +175,12 @@ export function getSavedMatchSettings() {
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
   storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
+}
+
+export async function checkNewVersionInstalled() {
+  const prevInstalledVersion = storage.get(INSTALLED_VERSION);
+  if (prevInstalledVersion !== app.getVersion()) {
+    storage.set(INSTALLED_VERSION, app.getVersion());
+    await renewLicenceKey();
+  }
 }

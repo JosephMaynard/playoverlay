@@ -8,7 +8,7 @@ import { updatesSchema } from '../zodSchemas';
 import saveRenewalJWT from './saveRenewalJWT';
 import { deleteLicenceKey } from './storage';
 
-export const useLocalBackend = true;
+export const useLocalBackend = false;
 
 const API_BASE_URL = // @ts-ignore
   useLocalBackend === true && process.env.NODE_ENV !== 'production'
@@ -60,7 +60,6 @@ export async function renewLicenceKey() {
         message:
           'Sorry we cannot find a valid activation for this system, please active again.',
       });
-
       app.relaunch();
       app.exit();
     }

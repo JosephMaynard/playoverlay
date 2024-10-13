@@ -1,8 +1,7 @@
-import { getStreamDecks, requestStreamDecks } from '@elgato-stream-deck/webhid';
+import { requestStreamDecks } from '@elgato-stream-deck/webhid';
 
 // @ts-ignore
 import logo from './assets/playoverlay-logo.svg';
-import { debounce } from './utils';
 
 function createCanvasWithText(
   text: string,
