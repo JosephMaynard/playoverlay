@@ -75,7 +75,7 @@ const Display = () => {
 
   return (
     <div
-      className={`h-screen overflow-hidden relative${isFullscreen ? 'cursor-none' : ''}`}
+      className={`relative h-screen overflow-hidden ${isFullscreen ? 'cursor-none' : ''}`}
       style={{ backgroundColor: appSettings.keyColour }}
     >
       <Screens

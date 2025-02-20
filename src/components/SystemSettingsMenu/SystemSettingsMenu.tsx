@@ -15,6 +15,7 @@ import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { connectToStreamDeck } from '../../stream-deck';
 import { MatchPhase, MatchState, Time } from '../../types';
 import { DisplayScreen, screens } from '../../constants';
+import StreamDeckIcon from '../Icons/StreamDeckIcon';
 
 export interface Props {
   open: boolean;
@@ -204,7 +205,7 @@ export default function SystemSettingsMenu({
                 }
               }}
             >
-              <CalculatorIcon
+              <StreamDeckIcon
                 className={classNames(
                   'text-gray-400 group-hover:text-indigo-600',
                   'h-6 w-6 shrink-0'

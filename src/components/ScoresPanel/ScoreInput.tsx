@@ -1,13 +1,8 @@
-import {
-  CheckCircleIcon,
-  MinusIcon,
-  PencilIcon,
-  PlusIcon,
-  StarIcon,
-} from '@heroicons/react/24/outline';
+import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
 import { useState } from 'react';
 import Modal from '../Modal/Modal';
+import SoccerBallIcon from '../Icons/SoccerBallIcon';
 
 export interface Props {
   title: string;
@@ -41,7 +36,7 @@ export default function ScoreInput({
                 {teamNameFull}
               </h3>
             </div>
-            <div className="ml-4 mt-2 flex-shrink-0 [--base-size:1rem]">
+            <div className="ml-4 mt-2 flex-shrink-0 ring-1 ring-gray-300 [--base-size:1rem]">
               <ScoresTeamName
                 teamName={teamNameAbbreviated}
                 textColour={textColour}
@@ -75,7 +70,7 @@ export default function ScoreInput({
               style={{ backgroundColor: backgroundColour, color: textColour }}
               className="flex h-14 w-20 items-center justify-center rounded-l-md ring-1 ring-inset ring-gray-300"
             >
-              <StarIcon className="h-9 w-9" />
+              <SoccerBallIcon className="h-9 w-9" />
             </span>
             <span className="mx-auto">{title} Scored</span>
           </button>
