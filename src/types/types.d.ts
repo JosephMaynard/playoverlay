@@ -96,6 +96,7 @@ declare global {
       onAwayTeamScored: (callback: () => void) => () => void;
       enableKeyboardShortcuts: () => void;
       disableKeyboardShortcuts: () => void;
+      displayReady: () => void;
     };
   }
 }

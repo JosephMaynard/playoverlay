@@ -137,4 +137,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   enableKeyboardShortcuts: () => ipcRenderer.send('enable-keyboard-shortcuts'),
   disableKeyboardShortcuts: () =>
     ipcRenderer.send('disable-keyboard-shortcuts'),
+
+  // Handshake for initial state sync from main to display
+  displayReady: () => ipcRenderer.send('display-ready'),
 });
