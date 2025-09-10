@@ -9,7 +9,7 @@
   grid-template-rows: 1fr auto auto calc(var(--base-size) * 1.5);
   grid-template-areas:
     'empty empty empty empty empty'
-    'emptyLeft venue venue venue emptyRigth'
+    'emptyLeft venue venue venue emptyRight'
     'leftPadding homeTeam score awayTeam rightPadding'
     'bottom bottom bottom bottom bottom';
 }
@@ -167,8 +167,11 @@
 
 @keyframes venue_hidden {
   0% {
-    transform: translateX(0) translateZ(0);
+    transform: translateY(0) translateZ(0);
     display: block;
+  }
+  /* …other keyframe steps… */
+}
   }
   20% {
     transform: translateY(175%) translateZ(0);
