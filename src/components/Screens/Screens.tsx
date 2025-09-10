@@ -2,6 +2,7 @@ import { MatchState, Scores, Time } from '../../types';
 import { MatchSettings } from 'src/zodSchemas';
 import ScoresLayout from './ScoresLayout/ScoresLayout';
 import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
+import EndScreenLayout from './EndScreenLayout/EndScreenLayout';
 import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
 import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import { useEffect, useState } from 'react';
@@ -68,6 +69,11 @@ export default function Screens({
         settings={matchSettings}
         scores={scores}
         active={matchState.displayScreen === 'matchTitle'}
+      />
+      <EndScreenLayout
+        settings={matchSettings}
+        scores={scores}
+        active={matchState.displayScreen === 'endScreen'}
       />
       <PenaltiesLayout
         penalties={scores.penalties}

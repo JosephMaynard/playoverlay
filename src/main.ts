@@ -14,6 +14,12 @@ import {
 } from 'electron';
 import path from 'path';
 import { AppSettings, CustomScreen, MatchState, Scores, Time } from './types';
+import {
+  defaultAppSettings,
+  defaultMatchSettings,
+  defaultMatchState,
+  defaultScores,
+} from './constants';
 import { MatchSettings } from './zodSchemas';
 import {
   DISPLAY_WINDOW,
@@ -75,6 +81,13 @@ let displayWindow: BrowserWindow | null;
 let activationWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
+
+// Cached renderer state for reliable initial sync to display
+let cachedScores: Scores = { ...defaultScores };
+let cachedTime: Time = {};
+let cachedAppSettings: AppSettings = { ...defaultAppSettings };
+let cachedMatchSettings = { ...defaultMatchSettings };
+let cachedMatchState: MatchState = { ...defaultMatchState };
 
 // Prevent more than one instance of the app running
 const additionalData = { playOverlay: 'PlayOverlay' };
@@ -287,10 +300,12 @@ function openMainAndDisplayWindows() {
 // Setup IPC handlers
 function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
+    cachedScores = scores;
     displayWindow?.webContents.send('score-updated', scores);
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
+    cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
   });
 
@@ -300,16 +315,30 @@ function setupIPCHandlers() {
 
   ipcMain.on('update-match-settings', (_, teamSettings: MatchSettings) => {
     setMatchSettings(teamSettings);
+    cachedMatchSettings = teamSettings;
     displayWindow?.webContents.send('match-settings-updated', teamSettings);
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
     setAppSettings(appSettings);
+    cachedAppSettings = appSettings;
     displayWindow?.webContents.send('app-settings-updated', appSettings);
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
+    cachedMatchState = matchState;
     displayWindow?.webContents.send('match-state-updated', matchState);
+  });
+
+  // Display window signals it's ready to receive initial state
+  ipcMain.on('display-ready', () => {
+    if (!displayWindow) return;
+    // Send settings first, then state/scores/time
+    displayWindow.webContents.send('match-settings-updated', cachedMatchSettings);
+    displayWindow.webContents.send('app-settings-updated', cachedAppSettings);
+    displayWindow.webContents.send('match-state-updated', cachedMatchState);
+    displayWindow.webContents.send('score-updated', cachedScores);
+    displayWindow.webContents.send('time-updated', cachedTime);
   });
 
   ipcMain.on('toggle-fullscreen', () => {
@@ -620,6 +649,15 @@ const registerGlobalKeyboardShortcuts = () => {
 // App ready event
 app.on('ready', async () => {
   const isLicencedResult = await isLicensed();
+  // Initialize cached settings from storage so display gets something sane immediately
+  try {
+    const storedApp = await getAppSettings();
+    if (storedApp) cachedAppSettings = storedApp as AppSettings;
+  } catch {}
+  try {
+    const storedMatch = getMatchSettings();
+    if (storedMatch) cachedMatchSettings = storedMatch as MatchSettings;
+  } catch {}
   if (isLicencedResult.licenced === true) {
     createWindows();
     setupDisplayListeners();

@@ -70,12 +70,12 @@ export default function TimeControlPanel({
               selected: time.matchPhase === 'secondHalf',
             },
             {
-              label: 'Extra Time First Half',
+              label: 'Extra Time 1st Half',
               onClick: () => handleStartTime('extraTimeFirstHalf'),
               selected: time.matchPhase === 'extraTimeFirstHalf',
             },
             {
-              label: 'Extra Time Second Half',
+              label: 'Extra Time 2nd Half',
               onClick: () => handleStartTime('extraTimeSecondHalf'),
               selected: time.matchPhase === 'extraTimeSecondHalf',
             },

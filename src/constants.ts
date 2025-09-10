@@ -44,6 +44,7 @@ export const screens = {
   scoreBug: 'Score Bug',
   penalties: 'Penalties',
   custom: 'Custom Screens',
+  endScreen: 'End Screen',
 } as const;
 
 export type DisplayScreen = keyof typeof screens;

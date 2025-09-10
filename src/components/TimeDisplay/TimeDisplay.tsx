@@ -19,13 +19,13 @@ export default function TimeDisplay({
       {time.time ? (
         <div className="grid h-full w-full grid-cols-2 grid-rows-1">
           <div className="flex items-center justify-center">
-            <p className="text-center text-5xl font-semibold text-white">
+            <p className="text-center text-7xl font-semibold text-white">
               {time.time}
             </p>
           </div>
           <div className="flex flex-col items-center justify-center font-semibold">
             {time.matchPhase && (
-              <p className="mb-1 text-center tabular-nums text-white">
+              <p className="mb-1 text-center text-sm tabular-nums text-white">
                 {
                   getMatchPhases(
                     matchSettings.halfLength,
@@ -35,13 +35,12 @@ export default function TimeDisplay({
               </p>
             )}
             {time.remainingTime && (
-              <p className="text-center font-light text-white">
-                Time remaining:{' '}
+              <p className="text-center text-6xl font-normal text-white">
                 <span className="tabular-nums">{time.remainingTime}</span>
               </p>
             )}
             {time.additionalTime && (
-              <p className="mt-1 text-center font-light text-white">
+              <p className="mt-1 text-center text-sm font-light text-white">
                 Additional time:{' '}
                 <span className="font-semibold tabular-nums">
                   {time.additionalTime} minutes
