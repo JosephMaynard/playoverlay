@@ -167,11 +167,8 @@
 
 @keyframes venue_hidden {
   0% {
-    transform: translateY(0) translateZ(0);
+    transform: translateX(0) translateZ(0);
     display: block;
-  }
-  /* …other keyframe steps… */
-}
   }
   20% {
     transform: translateY(175%) translateZ(0);
