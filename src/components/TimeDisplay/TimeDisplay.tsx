@@ -19,7 +19,7 @@ export default function TimeDisplay({
       {time.time ? (
         <div className="grid h-full w-full grid-cols-2 grid-rows-1">
           <div className="flex items-center justify-center">
-            <p className="text-center text-7xl font-semibold text-white">
+            <p className="text-center font-semibold tabular-nums text-white [fontSize:5rem]">
               {time.time}
             </p>
           </div>

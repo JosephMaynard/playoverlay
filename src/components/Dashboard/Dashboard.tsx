@@ -176,20 +176,21 @@ export default function Dashboard() {
   const incrementTime = () => {
     seconds = seconds + 1;
     const currentTime = useTimeStore.getState().time;
+    const remainingSeconds =
+      (getMatchPhases(
+        matchSettings.halfLength,
+        matchSettings.extraTimeHalfLength
+      )?.[currentTime.matchPhase]?.end || 0) *
+        60 -
+      seconds;
+
     const updatedTime = {
       ...currentTime,
       time: timeToString(seconds),
-      remainingTime: timeToString(
-        Math.max(
-          (getMatchPhases(
-            matchSettings.halfLength,
-            matchSettings.extraTimeHalfLength
-          )?.[currentTime.matchPhase]?.end || 0) *
-            60 -
-            seconds,
-          0
-        )
-      ),
+      remainingTime:
+        remainingSeconds > 0
+          ? `-${timeToString(remainingSeconds)}`
+          : `+${timeToString(0 - remainingSeconds)}`,
     };
     setTime(updatedTime);
   };
@@ -211,9 +212,9 @@ export default function Dashboard() {
     setTime({
       time: timeToString(seconds),
       matchPhase,
-      remainingTime: timeToString(
+      remainingTime: `-${timeToString(
         Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
-      ),
+      )}`,
     });
 
     // Update matchPhase in matchState

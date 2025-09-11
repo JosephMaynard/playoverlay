@@ -1,4 +1,4 @@
-import { Time, Scores, MatchState } from 'src/types';
+import { Scores } from 'src/types';
 import './MatchTitleLayout.css';
 import { calculatePenalties } from '../../../utils';
 import { MatchSettings } from 'src/zodSchemas';
