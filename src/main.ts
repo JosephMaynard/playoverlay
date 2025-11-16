@@ -334,7 +334,10 @@ function setupIPCHandlers() {
   ipcMain.on('display-ready', () => {
     if (!displayWindow) return;
     // Send settings first, then state/scores/time
-    displayWindow.webContents.send('match-settings-updated', cachedMatchSettings);
+    displayWindow.webContents.send(
+      'match-settings-updated',
+      cachedMatchSettings
+    );
     displayWindow.webContents.send('app-settings-updated', cachedAppSettings);
     displayWindow.webContents.send('match-state-updated', cachedMatchState);
     displayWindow.webContents.send('score-updated', cachedScores);
@@ -615,23 +618,23 @@ function setupDisplayListeners() {
 
 // Keyboard shortcuts
 const registerKeyboardShortcuts = () => {
-  globalShortcut.register('Space', () => {
+  globalShortcut.register('CommandOrControl+Shift+Space', () => {
     mainWindow?.webContents.send('next-match-phase');
   });
 
-  globalShortcut.register('h', () => {
+  globalShortcut.register('CommandOrControl+Shift+h', () => {
     mainWindow?.webContents.send('home-team-scored');
   });
 
-  globalShortcut.register('a', () => {
+  globalShortcut.register('CommandOrControl+Shift+a', () => {
     mainWindow?.webContents.send('away-team-scored');
   });
 };
 
 const unregisterKeyboardShortcuts = () => {
-  globalShortcut.unregister('Space');
-  globalShortcut.unregister('h');
-  globalShortcut.unregister('a');
+  globalShortcut.unregister('CommandOrControl+Shift+Space');
+  globalShortcut.unregister('CommandOrControl+Shift+h');
+  globalShortcut.unregister('CommandOrControl+Shift+a');
 };
 
 const registerGlobalKeyboardShortcuts = () => {
