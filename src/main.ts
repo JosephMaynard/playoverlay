@@ -38,7 +38,6 @@ import {
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
 import sendToScreen from './main-functions/sendToScreen';
-import isLicensed, { getLicencedData } from './main-functions/isLicensed';
 import {
   handleFileDeletion,
   handleFileUpload,
@@ -56,6 +55,8 @@ import {
   deactivateLicenceKey,
   renewLicenceKey,
 } from './main-functions/apiRequests';
+
+import isLicensed, { getLicencedData } from './main-functions/isLicensed';
 import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
 
 Sentry.init({
@@ -543,7 +544,21 @@ function setupIPCHandlers() {
   });
 
   ipcMain.handle('get-licence-data', () => {
-    return getLicencedData();
+    // Make up fake licence data
+    // return getLicencedData();
+    return {
+      machine_description: 'Computer',
+      machine_id: 'abcd1234',
+      app_name: app.getName(),
+      app_version: app.getVersion(),
+      email: 'PlayOverlay',
+      user_id: 'PlayOverlay',
+      product_code: 'PlayOverlay',
+      description: 'PlayOverlay',
+      refresh_token: 'abcd1234',
+      iat: 0,
+      exp: 5559999990000,
+    };
   });
 
   ipcMain.on('open-activation-link', () => {
@@ -651,7 +666,9 @@ const registerGlobalKeyboardShortcuts = () => {
 
 // App ready event
 app.on('ready', async () => {
-  const isLicencedResult = await isLicensed();
+  // Disable licence and copy protection
+  // const isLicencedResult = await isLicensed();
+  const isLicencedResult = { licenced: true };
   // Initialize cached settings from storage so display gets something sane immediately
   try {
     const storedApp = await getAppSettings();
@@ -665,7 +682,7 @@ app.on('ready', async () => {
     createWindows();
     setupDisplayListeners();
     ensureWindowsAreVisible();
-    checkLicenceExpiry();
+    // checkLicenceExpiry();
   } else {
     createActivationWindow();
   }

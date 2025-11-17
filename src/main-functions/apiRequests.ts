@@ -28,6 +28,9 @@ export async function checkInternetConnection(): Promise<boolean> {
 }
 
 export async function renewLicenceKey() {
+  // Disable licence renewal
+  return;
+
   const isConnected = await checkInternetConnection();
   if (!isConnected) {
     throw new Error('No internet connection');
