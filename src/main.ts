@@ -56,8 +56,9 @@ import {
   renewLicenceKey,
 } from './main-functions/apiRequests';
 
-import isLicensed, { getLicencedData } from './main-functions/isLicensed';
-import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
+// Disable licencing
+// import isLicensed, { getLicencedData } from './main-functions/isLicensed';
+// import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
 
 Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
