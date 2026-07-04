@@ -3,7 +3,6 @@ import {
   app,
   BrowserWindow,
   ipcMain,
-  Settings,
   powerSaveBlocker,
   screen,
   Menu,
@@ -43,7 +42,6 @@ import {
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
-import sendToScreen from './main-functions/sendToScreen';
 import {
   handleFileDeletion,
   handleFileUpload,
@@ -75,6 +73,9 @@ let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
+// True while the renderer has shortcuts disabled (e.g. a text field is open),
+// so window focus events don't re-register them behind its back
+let keyboardShortcutsDisabled = false;
 
 // Cached renderer state for reliable initial sync to display
 let cachedScores: Scores = { ...defaultScores };
@@ -148,7 +149,9 @@ const createWindows = () => {
 
   // Keyboard shortcuts
   mainWindow.on('focus', () => {
-    registerKeyboardShortcuts();
+    if (!keyboardShortcutsDisabled) {
+      registerKeyboardShortcuts();
+    }
   });
 
   mainWindow.on('blur', () => {
@@ -222,10 +225,6 @@ function setupIPCHandlers() {
     cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
     persistLiveMatch();
-  });
-
-  ipcMain.on('update-settings', (_, settings: Settings) => {
-    displayWindow?.webContents.send('settings-updated', settings);
   });
 
   ipcMain.on('update-match-settings', (_, teamSettings: MatchSettings) => {
@@ -324,14 +323,6 @@ function setupIPCHandlers() {
     event.reply('screens-info', screen.getAllDisplays());
   });
 
-  ipcMain.on('move-window-to-screen', (_, screenId) => {
-    const displays = screen.getAllDisplays();
-    const display = displays.find((d) => d.id === screenId);
-    if (display) {
-      sendToScreen(displayWindow, display);
-    }
-  });
-
   ipcMain.handle('move-window-to-screen', (event, screenId) => {
     const displays = screen.getAllDisplays();
     const display = displays.find((d) => d.id === screenId);
@@ -428,12 +419,18 @@ function setupIPCHandlers() {
     shell.openExternal(url);
   });
 
+  // Disable/enable both shortcut sets (the focus set and the global Alt set)
+  // so no shortcut fires while the user is typing in a text field
   ipcMain.on('enable-keyboard-shortcuts', () => {
+    keyboardShortcutsDisabled = false;
     registerKeyboardShortcuts();
+    registerGlobalKeyboardShortcuts();
   });
 
   ipcMain.on('disable-keyboard-shortcuts', () => {
+    keyboardShortcutsDisabled = true;
     unregisterKeyboardShortcuts();
+    unregisterGlobalKeyboardShortcuts();
   });
 }
 
@@ -481,6 +478,12 @@ const registerGlobalKeyboardShortcuts = () => {
   globalShortcut.register('CommandOrControl+Alt+Shift+A', () => {
     mainWindow?.webContents.send('away-team-scored');
   });
+};
+
+const unregisterGlobalKeyboardShortcuts = () => {
+  globalShortcut.unregister('CommandOrControl+Alt+Shift+Space');
+  globalShortcut.unregister('CommandOrControl+Alt+Shift+H');
+  globalShortcut.unregister('CommandOrControl+Alt+Shift+A');
 };
 
 // App ready event
