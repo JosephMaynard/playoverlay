@@ -41,10 +41,13 @@ import {
 } from './main-functions/fileHandler';
 import { checkForUpdates } from './main-functions/apiRequests';
 
-Sentry.init({
-  dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
-  enabled: process.env.NODE_ENV === 'production',
-});
+// Crash reporting is opt-in: builds without SENTRY_DSN send nothing.
+if (__SENTRY_DSN__) {
+  Sentry.init({
+    dsn: __SENTRY_DSN__,
+    enabled: process.env.NODE_ENV === 'production',
+  });
+}
 
 const SHOW_DEV_TOOLS = false;
 

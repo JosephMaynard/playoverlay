@@ -10,6 +10,10 @@ declare global {
   const DISPLAY_WINDOW_VITE_DEV_SERVER_URL: string;
   const DISPLAY_WINDOW_VITE_NAME: string;
 
+  // Sentry DSN inlined at build time from the SENTRY_DSN env var.
+  // Empty string (the default) disables crash reporting entirely.
+  const __SENTRY_DSN__: string;
+
   namespace NodeJS {
     interface Process {
       // Used for hot reload after preload scripts.

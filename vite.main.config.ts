@@ -11,7 +11,10 @@ import {
 export default defineConfig((env) => {
   const forgeEnv = env as ConfigEnv<'build'>;
   const { forgeConfigSelf } = forgeEnv;
-  const define = getBuildDefine(forgeEnv);
+  const define = {
+    ...getBuildDefine(forgeEnv),
+    __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ''),
+  };
   const config: UserConfig = {
     build: {
       lib: {
