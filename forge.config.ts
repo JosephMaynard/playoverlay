@@ -9,6 +9,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: 'src/assets/appIcon',
+    appBundleId: 'com.playoverlay.app',
   },
   rebuildConfig: {},
   makers: [

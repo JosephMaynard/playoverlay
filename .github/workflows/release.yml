@@ -1,0 +1,61 @@
+name: Release
+
+# Push a tag like v0.15.0 to build Windows, macOS Intel, and macOS Apple
+# Silicon binaries and attach them to a draft GitHub release. Review the
+# draft on the Releases page and publish it to make it public (the in-app
+# update check reads the latest published release).
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" \
+            || gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}" \
+                 --draft --title "${{ github.ref_name }}" --generate-notes
+
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+          - os: macos-13 # Intel
+            arch: x64
+          - os: macos-latest # Apple Silicon
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build distributables
+        env:
+          # Optional: set the SENTRY_DSN repo secret to enable crash
+          # reporting in official builds. Unset means no telemetry.
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: npm run make -- --arch=${{ matrix.arch }}
+      - name: Upload to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob globstar
+          gh release upload "${{ github.ref_name }}" --repo "${{ github.repository }}" \
+            out/make/**/*.exe out/make/**/*.zip
