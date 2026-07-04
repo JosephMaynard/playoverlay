@@ -2,7 +2,14 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { Display, contextBridge, ipcRenderer } from 'electron';
-import { Scores, Time, AppSettings, MatchState, CustomScreen } from './types';
+import {
+  Scores,
+  Time,
+  AppSettings,
+  MatchState,
+  CustomScreen,
+  LiveMatch,
+} from './types';
 import { MatchSettings } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -96,6 +103,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: async () => {
     return await ipcRenderer.invoke('check-for-updates');
   },
+  getLiveMatch: (): Promise<LiveMatch | undefined> =>
+    ipcRenderer.invoke('get-live-match'),
   openUrlInBrowser: (url: string) =>
     ipcRenderer.send('open-url-in-browser', url),
 

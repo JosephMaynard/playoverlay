@@ -1,5 +1,5 @@
 import Store from 'electron-store';
-import { AppSettings, CustomScreen } from '../types';
+import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
 
@@ -13,6 +13,7 @@ const MATCH_SETTINGS = 'MATCH_SETTINGS';
 const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
+const LIVE_MATCH = 'LIVE_MATCH';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
 
@@ -114,4 +115,12 @@ export function getSavedMatchSettings() {
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
   storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
+}
+
+export function setLiveMatch(liveMatch: LiveMatch) {
+  storage.set(LIVE_MATCH, liveMatch);
+}
+
+export function getLiveMatch() {
+  return storage.get(LIVE_MATCH) as LiveMatch | undefined;
 }

@@ -11,7 +11,14 @@ import {
   globalShortcut,
 } from 'electron';
 import path from 'path';
-import { AppSettings, CustomScreen, MatchState, Scores, Time } from './types';
+import {
+  AppSettings,
+  CustomScreen,
+  LiveMatch,
+  MatchState,
+  Scores,
+  Time,
+} from './types';
 import {
   defaultAppSettings,
   defaultMatchSettings,
@@ -25,9 +32,11 @@ import {
   WindowName,
   getAppSettings,
   getCustomScreens,
+  getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
   setAppSettings,
+  setLiveMatch,
   setCustomScreens,
   setMatchSettings,
   setSavedMatchSettings,
@@ -73,6 +82,24 @@ let cachedTime: Time = {};
 let cachedAppSettings: AppSettings = { ...defaultAppSettings };
 let cachedMatchSettings = { ...defaultMatchSettings };
 let cachedMatchState: MatchState = { ...defaultMatchState };
+
+// Snapshot of the persisted live match taken at launch, before the
+// renderer's initial state pushes overwrite it. Offered to the dashboard
+// so an interrupted match can be restored.
+let liveMatchAtLaunch: LiveMatch | undefined;
+
+function persistLiveMatch() {
+  try {
+    setLiveMatch({
+      scores: cachedScores,
+      time: cachedTime,
+      matchState: cachedMatchState,
+      savedAt: Date.now(),
+    });
+  } catch (error) {
+    console.error('Error persisting live match:', error);
+  }
+}
 
 // Prevent more than one instance of the app running
 const additionalData = { playOverlay: 'PlayOverlay' };
@@ -188,11 +215,13 @@ function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
     cachedScores = scores;
     displayWindow?.webContents.send('score-updated', scores);
+    persistLiveMatch();
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
     cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
+    persistLiveMatch();
   });
 
   ipcMain.on('update-settings', (_, settings: Settings) => {
@@ -214,6 +243,11 @@ function setupIPCHandlers() {
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
     cachedMatchState = matchState;
     displayWindow?.webContents.send('match-state-updated', matchState);
+    persistLiveMatch();
+  });
+
+  ipcMain.handle('get-live-match', () => {
+    return liveMatchAtLaunch;
   });
 
   // Display window signals it's ready to receive initial state
@@ -463,6 +497,11 @@ app.on('ready', async () => {
     if (storedMatch) cachedMatchSettings = storedMatch as MatchSettings;
   } catch {
     // Ignore invalid or missing cached match settings.
+  }
+  try {
+    liveMatchAtLaunch = getLiveMatch();
+  } catch {
+    // Ignore invalid or missing persisted live match.
   }
   createWindows();
   setupDisplayListeners();
