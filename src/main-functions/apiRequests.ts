@@ -2,20 +2,16 @@ import dns from 'dns/promises';
 
 import compareSemver from './compareSemver';
 import { app } from 'electron';
-import { updatesSchema } from '../zodSchemas';
+import { githubReleaseSchema } from '../zodSchemas';
 
-const useLocalBackend = false;
-
-const API_BASE_URL =
-  useLocalBackend && process.env.NODE_ENV !== 'production'
-    ? 'http://localhost:3000/api'
-    : 'https://account.playoverlay.com/api';
-
-const API_AUTH_KEY = process.env.VITE_API_AUTH_KEY;
+// Update checks use the public GitHub Releases API; release tags are
+// expected to be semver, optionally prefixed with a "v" (e.g. v0.14.0).
+const GITHUB_RELEASES_API_URL =
+  'https://api.github.com/repos/JosephMaynard/playoverlay/releases/latest';
 
 export async function checkInternetConnection(): Promise<boolean> {
   try {
-    await dns.lookup('google.com');
+    await dns.lookup('github.com');
     return true;
   } catch (error) {
     return false;
@@ -28,12 +24,9 @@ export async function checkForUpdates() {
     throw new Error('No internet connection');
   }
   try {
-    const headers = API_AUTH_KEY
-      ? { Authorization: `Bearer ${API_AUTH_KEY}` }
-      : undefined;
-    const response = await fetch(`${API_BASE_URL}/check-updates`, {
+    const response = await fetch(GITHUB_RELEASES_API_URL, {
       method: 'GET',
-      headers,
+      headers: { Accept: 'application/vnd.github+json' },
     });
 
     if (!response.ok) {
@@ -42,23 +35,22 @@ export async function checkForUpdates() {
 
     const data = await response.json();
 
-    if (!data || data.success === false) {
-      throw new Error('Check for updates fetch failed');
+    const parsedRelease = githubReleaseSchema.safeParse(data);
+
+    if (parsedRelease.success === false) {
+      throw new Error(`Check for updates parse error ${parsedRelease.error}`);
     }
 
-    const parsedUpdateData = updatesSchema.safeParse(data);
-
-    if (parsedUpdateData.success === false) {
-      throw new Error(
-        `Check for updates parse error ${parsedUpdateData.error}`
-      );
-    }
+    const latestVersion = parsedRelease.data.tag_name.replace(/^v/, '');
 
     const newVersionAvailable =
-      compareSemver(parsedUpdateData.data.latestVersion, app.getVersion()) ===
-      1;
+      compareSemver(latestVersion, app.getVersion()) === 1;
 
-    return { ...parsedUpdateData.data, newVersionAvailable };
+    return {
+      latestVersion,
+      downloadUrl: parsedRelease.data.html_url,
+      newVersionAvailable,
+    };
   } catch (error) {
     console.error('Error checking for updates:', error);
     throw error;

@@ -5,6 +5,12 @@ export const updatesSchema = z.object({
   downloadUrl: z.string(),
 });
 
+// Relevant fields of the GitHub "get latest release" API response
+export const githubReleaseSchema = z.object({
+  tag_name: z.string(),
+  html_url: z.string(),
+});
+
 export type Updates = z.infer<typeof updatesSchema>;
 
 export interface UpdateStatus extends Updates {
