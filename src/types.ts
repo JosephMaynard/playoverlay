@@ -54,13 +54,6 @@ export interface CustomScreen {
   overlayLinks?: DisplayScreen[];
 }
 
-export interface SystemInfo {
-  machine_description: string;
-  machine_id: string;
-  app_name: string;
-  app_version: string;
-}
-
 export interface MatchPeriod {
   title: string;
   start: number;

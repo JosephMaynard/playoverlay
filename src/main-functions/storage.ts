@@ -1,17 +1,9 @@
 import Store from 'electron-store';
-import isDemoMode from './isDemoMode';
 import { AppSettings, CustomScreen } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
-import { renewLicenceKey } from './apiRequests';
-import { app } from 'electron';
 
-// @ts-ignore
-const API_AUTH_KEY = import.meta.env.VITE_API_AUTH_KEY;
-
-const storage = new Store({
-  encryptionKey: API_AUTH_KEY,
-});
+const storage = new Store();
 
 export const MAIN_WINDOW = 'MAIN_WINDOW';
 export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
@@ -20,11 +12,7 @@ const APP_SETTINGS = 'APP_SETTINGS';
 const MATCH_SETTINGS = 'MATCH_SETTINGS';
 const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
-const LICENCE_KEY = 'LICENCE_KEY';
-const RENEWAL_JWT = 'RENEWAL_JWT';
-const INSTALLED_VERSION = 'INSTALLED_VERSION';
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
-const LOGOS = 'LOGOS';
 
 export type WindowName = typeof MAIN_WINDOW | typeof DISPLAY_WINDOW;
 
@@ -99,56 +87,7 @@ function getVerifiedMatchSettings(): MatchSettings {
 }
 
 export function getMatchSettings() {
-  let matchSettings = getVerifiedMatchSettings();
-  if (matchSettings) {
-    if (isDemoMode() === true) {
-      matchSettings = {
-        ...matchSettings,
-        awayTeamNameAbbreviated: 'DEMO',
-        awayTeamNameFull: 'PlayOverlay Demo',
-        awayTeamBackgroundColour: '#0000CC',
-        awayTeamTextColour: '#FFFFFF',
-      };
-    }
-    return matchSettings;
-  }
-}
-
-export function removeDemoModeMatchSettings() {
-  let matchSettings = getVerifiedMatchSettings();
-  setMatchSettings({
-    ...matchSettings,
-    awayTeamNameFull: 'Away Team',
-    awayTeamNameAbbreviated: 'AWA',
-    awayTeamTextColour: '#ffffff',
-    awayTeamBackgroundColour: '#0000cc',
-  });
-}
-
-export function getLicenceKey() {
-  const licenceKey = storage.get(LICENCE_KEY);
-  if (licenceKey) {
-    return licenceKey;
-  }
-}
-
-export function setLicenceKey(licenceKey: string) {
-  storage.set(LICENCE_KEY, licenceKey);
-}
-
-export function getRenewalJWT() {
-  const RenewalJWT = storage.get(RENEWAL_JWT);
-  if (RenewalJWT) {
-    return RenewalJWT;
-  }
-}
-
-export function setRenewalJWT(RenewalJWT: string) {
-  storage.set(RENEWAL_JWT, RenewalJWT);
-}
-
-export function deleteLicenceKey() {
-  storage.delete(LICENCE_KEY);
+  return getVerifiedMatchSettings();
 }
 
 export function getCustomScreens() {
@@ -175,12 +114,4 @@ export function getSavedMatchSettings() {
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
   storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
-}
-
-export async function checkNewVersionInstalled() {
-  const prevInstalledVersion = storage.get(INSTALLED_VERSION);
-  if (prevInstalledVersion !== app.getVersion()) {
-    storage.set(INSTALLED_VERSION, app.getVersion());
-    await renewLicenceKey();
-  }
 }

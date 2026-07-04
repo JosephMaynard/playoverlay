@@ -19,13 +19,6 @@ export const defaultMatchSettings: MatchSettings = {
   extraTimeHalfLength: 15,
 };
 
-export const demoModeTeamSettingsOverrides: Partial<MatchSettings> = {
-  awayTeamNameFull: 'PlayOverlay Demo',
-  awayTeamNameAbbreviated: 'DEMO',
-  awayTeamTextColour: '#ffffff',
-  awayTeamBackgroundColour: '#0000cc',
-};
-
 export const defaultMatchState: MatchState = {
   displayScreen: 'scoreBug',
   penaltiesFirstTeam: 'home',

@@ -7,8 +7,6 @@ import {
   powerSaveBlocker,
   screen,
   Menu,
-  protocol,
-  dialog,
   shell,
   globalShortcut,
 } from 'electron';
@@ -25,7 +23,6 @@ import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
   WindowName,
-  deleteLicenceKey,
   getAppSettings,
   getCustomScreens,
   getMatchSettings,
@@ -42,23 +39,7 @@ import {
   handleFileDeletion,
   handleFileUpload,
 } from './main-functions/fileHandler';
-import isDemoMode from './main-functions/isDemoMode';
-import {
-  getSystemInfo,
-  getEncodedSystemInfo,
-} from './main-functions/getSystemInfo';
-import saveLicenceKey from './main-functions/saveLicenceKey';
-import openActivationLink from './main-functions/openActivationLink';
-import {
-  checkForUpdates,
-  checkInternetConnection,
-  deactivateLicenceKey,
-  renewLicenceKey,
-} from './main-functions/apiRequests';
-
-// Disable licencing
-// import isLicensed, { getLicencedData } from './main-functions/isLicensed';
-// import checkLicenceExpiry from './main-functions/checkLicenceExpiry';
+import { checkForUpdates } from './main-functions/apiRequests';
 
 Sentry.init({
   dsn: 'https://556706afa7ed94da620b5b704d9f6d50@o4507562253352960.ingest.de.sentry.io/4507562261610576',
@@ -68,7 +49,7 @@ Sentry.init({
 const SHOW_DEV_TOOLS = false;
 
 export const isDev = process.env.NODE_ENV === 'development';
-let quitWhenAllWindowsClose = true;
+const quitWhenAllWindowsClose = true;
 
 export const showDevTools = isDev && SHOW_DEV_TOOLS;
 
@@ -80,7 +61,6 @@ if (require('electron-squirrel-startup')) {
 
 let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
-let activationWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
 
@@ -98,102 +78,12 @@ const gotTheLock = app.requestSingleInstanceLock(additionalData);
 if (!gotTheLock && !isDev) {
   app.quit();
 } else {
-  app.on('second-instance', async (event, commandLine) => {
+  app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
-
-    if (process.platform !== 'darwin') {
-      const jwt = new URL(commandLine.pop()).searchParams.get('jwt');
-      if (jwt) {
-        const { error } = await saveLicenceKey(jwt, isDemoMode());
-        if (error) {
-          dialog.showErrorBox('An error occured', error);
-        }
-      }
-    }
   });
-}
-
-protocol.registerSchemesAsPrivileged([
-  { scheme: 'playoverlay', privileges: { standard: true, secure: true } },
-]);
-
-if (process.defaultApp) {
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('playoverlay', process.execPath, [
-      path.resolve(process.argv[1]),
-    ]);
-  }
-} else {
-  app.setAsDefaultProtocolClient('playoverlay');
-}
-
-// Function to create the registration window
-function createActivationWindow() {
-  activationWindow = new BrowserWindow({
-    autoHideMenuBar: true,
-    minWidth: 400,
-    minHeight: 400,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      backgroundThrottling: false,
-      contextIsolation: true,
-      nodeIntegration: false,
-      webSecurity: !isDev,
-    },
-  });
-
-  // Load the registration HTML or URL
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    activationWindow.loadURL(
-      `${ACTIVATION_WINDOW_VITE_DEV_SERVER_URL}/activation.html`
-    );
-  } else {
-    activationWindow.loadFile(
-      path.join(
-        __dirname,
-        `../renderer/${ACTIVATION_WINDOW_VITE_NAME}/activation.html`
-      )
-    );
-  }
-
-  activationWindow.on('closed', () => {
-    activationWindow = null;
-  });
-
-  ipcMain.handle('get-encoded-system-info-activation-window', async () => {
-    const systemInfo = await getEncodedSystemInfo();
-    return systemInfo;
-  });
-
-  ipcMain.handle(
-    'save-licence-key-activation-window',
-    async (event, licenceKey: string) => {
-      const saveLicenceKeyResult = await saveLicenceKey(licenceKey, true);
-      return saveLicenceKeyResult;
-    }
-  );
-
-  ipcMain.on('run-in-demo-mode', () => {
-    openMainAndDisplayWindows();
-  });
-
-  ipcMain.on('open-activation-link-activation-window', () => {
-    openActivationLink();
-  });
-
-  ipcMain.on('open-buy-now-link', () => {
-    shell.openExternal('https://account.playoverlay.com/');
-  });
-
-  // Open the DevTools in dev mode
-  if (showDevTools) {
-    activationWindow.webContents.openDevTools();
-  }
-
-  return activationWindow;
 }
 
 // Function to create main and display windows
@@ -263,7 +153,7 @@ const createWindows = () => {
   );
 
   mainWindow.webContents.session.setPermissionCheckHandler(
-    (webContents, permission, requestingOrigin, details) => {
+    (_webContents, permission, _requestingOrigin, _details) => {
       if (permission === 'hid') {
         return true;
       }
@@ -289,15 +179,6 @@ const createWindows = () => {
     displayWindow = null;
   });
 };
-
-// Function to open main and display windows
-function openMainAndDisplayWindows() {
-  if (activationWindow) {
-    activationWindow.close();
-    activationWindow = null;
-  }
-  createWindows();
-}
 
 // Setup IPC handlers
 function setupIPCHandlers() {
@@ -381,22 +262,7 @@ function setupIPCHandlers() {
   });
 
   ipcMain.on('get-version', (event) => {
-    event.returnValue = `${app.getVersion()}${isDemoMode() ? ' DEMO MODE' : ''}`;
-  });
-
-  ipcMain.handle('get-system-info', async () => {
-    const systemInfo = await getSystemInfo();
-    return systemInfo;
-  });
-
-  ipcMain.handle('save-licence-key', async (event, licenceKey: string) => {
-    const saveLicenceKeyResult = await saveLicenceKey(licenceKey, true);
-    return saveLicenceKeyResult;
-  });
-
-  ipcMain.handle('get-encoded-system-info', async () => {
-    const systemInfo = await getEncodedSystemInfo();
-    return systemInfo;
+    event.returnValue = app.getVersion();
   });
 
   ipcMain.handle('get-app-settings', async () => {
@@ -511,97 +377,12 @@ function setupIPCHandlers() {
     displayWindow?.webContents.send('custom-screens-updated', screens);
   });
 
-  ipcMain.handle('get-demo-mode', () => isDemoMode());
-
-  ipcMain.on('delete-licence-key', async () => {
-    const message =
-      'Unable to connect to the internet to delete this installation. You can delete it in your account at account.playoverlay.com';
-    try {
-      const success = await deactivateLicenceKey();
-
-      if (!success) {
-        console.error('Deactivate licence key API call failed');
-
-        await dialog.showMessageBox({
-          type: 'error',
-          buttons: ['OK'],
-          title: 'Error',
-          message,
-        });
-      }
-    } catch (err) {
-      console.error('Deactivate licence key API call failed');
-      await dialog.showMessageBox({
-        type: 'error',
-        buttons: ['OK'],
-        title: 'Error',
-        message,
-      });
-    }
-
-    deleteLicenceKey();
-    app.relaunch();
-    app.exit();
-  });
-
-  ipcMain.handle('get-licence-data', () => {
-    // Make up fake licence data
-    // return getLicencedData();
-    return {
-      machine_description: 'Computer',
-      machine_id: 'abcd1234',
-      app_name: app.getName(),
-      app_version: app.getVersion(),
-      email: 'PlayOverlay',
-      user_id: 'PlayOverlay',
-      product_code: 'PlayOverlay',
-      description: 'PlayOverlay',
-      refresh_token: 'abcd1234',
-      iat: 0,
-      exp: 5559999990000,
-    };
-  });
-
-  ipcMain.on('open-activation-link', () => {
-    openActivationLink();
-  });
-
-  ipcMain.handle('renew-licence-key', async () => {
-    try {
-      const token = await renewLicenceKey();
-      return { success: true, token };
-    } catch (error) {
-      console.error('Renew license key failed:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('deactivate-licence-key', async () => {
-    try {
-      const success = await deactivateLicenceKey();
-      return { success };
-    } catch (error) {
-      console.error('Delete license key failed:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
   ipcMain.handle('check-for-updates', async () => {
     try {
       const updates = await checkForUpdates();
       return { success: true, updates };
     } catch (error) {
       console.error('Check for updates failed:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle('check-internet-connection', async () => {
-    try {
-      const isConnected = await checkInternetConnection();
-      return { success: true, isConnected };
-    } catch (error) {
-      console.error('Check internet connection failed:', error);
       return { success: false, error: error.message };
     }
   });
@@ -667,26 +448,22 @@ const registerGlobalKeyboardShortcuts = () => {
 
 // App ready event
 app.on('ready', async () => {
-  // Disable licence and copy protection
-  // const isLicencedResult = await isLicensed();
-  const isLicencedResult = { licenced: true };
   // Initialize cached settings from storage so display gets something sane immediately
   try {
     const storedApp = await getAppSettings();
     if (storedApp) cachedAppSettings = storedApp as AppSettings;
-  } catch {}
+  } catch {
+    // Ignore invalid or missing cached app settings.
+  }
   try {
     const storedMatch = getMatchSettings();
     if (storedMatch) cachedMatchSettings = storedMatch as MatchSettings;
-  } catch {}
-  if (isLicencedResult.licenced === true) {
-    createWindows();
-    setupDisplayListeners();
-    ensureWindowsAreVisible();
-    // checkLicenceExpiry();
-  } else {
-    createActivationWindow();
+  } catch {
+    // Ignore invalid or missing cached match settings.
   }
+  createWindows();
+  setupDisplayListeners();
+  ensureWindowsAreVisible();
   const menu = Menu.buildFromTemplate([
     {
       label: 'PlayOverlay',
@@ -801,19 +578,6 @@ function ensureWindowsAreVisible() {
 
   checkAndMoveWindow(mainWindow, MAIN_WINDOW);
   checkAndMoveWindow(displayWindow, DISPLAY_WINDOW);
-}
-
-if (process.platform === 'darwin') {
-  // Handle the protocol. In this case, we choose to show an Error Box.
-  app.on('open-url', async (event, url) => {
-    const jwt = new URL(url).searchParams.get('jwt');
-    if (jwt) {
-      const { error } = await saveLicenceKey(jwt, isDemoMode());
-      if (error) {
-        dialog.showErrorBox('An error occured', error);
-      }
-    }
-  });
 }
 
 app.on('will-quit', () => {

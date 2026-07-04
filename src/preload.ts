@@ -38,10 +38,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPowerSaveBlockerStatus: () =>
     ipcRenderer.invoke('get-power-save-blocker-status'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
-  getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
-  getEncodedSystemInfo: () => ipcRenderer.invoke('get-encoded-system-info'),
-  getEncodedSystemInfoActivationWindow: () =>
-    ipcRenderer.invoke('get-encoded-system-info-activation-window'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
   getMatchSettings: () => ipcRenderer.invoke('get-match-settings'),
   moveWindowToScreen: (screenId: number) =>
@@ -97,32 +93,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('custom-screens-updated', listener);
     return () => ipcRenderer.removeListener('custom-screens-updated', listener);
   },
-  getDemoMode: () => ipcRenderer.invoke('get-demo-mode'),
-  saveLicenceKey: (licenceKey: string) =>
-    ipcRenderer.invoke('save-licence-key', licenceKey),
-  saveLicenceKeyActivationWindow: (licenceKey: string) =>
-    ipcRenderer.invoke('save-licence-key-activation-window', licenceKey),
-  deleteLicenceKey: () => ipcRenderer.send('delete-licence-key'),
-  getLicencedData: () => ipcRenderer.invoke('get-licence-data'),
-  runInDemoMode: () => ipcRenderer.send('run-in-demo-mode'),
-  openActivationLinkActivationWindow: () =>
-    ipcRenderer.send('open-activation-link-activation-window'),
-  openActivationLink: () => ipcRenderer.send('open-activation-link'),
-  openBuyNowLink: () => ipcRenderer.send('open-buy-now-link'),
-  renewLicenceKey: async () => {
-    return await ipcRenderer.invoke('renew-licence-key');
-  },
-  deactivateLicenceKey: async (encodedSystemInfo: string) => {
-    return await ipcRenderer.invoke(
-      'deactivate-licence-key',
-      encodedSystemInfo
-    );
-  },
   checkForUpdates: async () => {
     return await ipcRenderer.invoke('check-for-updates');
-  },
-  checkInternetConnection: async () => {
-    return await ipcRenderer.invoke('check-internet-connection');
   },
   openUrlInBrowser: (url: string) =>
     ipcRenderer.send('open-url-in-browser', url),

@@ -1,4 +1,4 @@
-import { AppSettings, MatchState } from 'src/types';
+import { AppSettings } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
@@ -11,7 +11,6 @@ export interface Props {
   matchSettings: MatchSettings;
   updateMatchSettings: (updatedSettings: Partial<MatchSettings>) => void;
   appSettings: AppSettings;
-  isDemoMode: boolean;
 }
 
 export default function MatchSettingsMenu({
@@ -20,7 +19,6 @@ export default function MatchSettingsMenu({
   matchSettings,
   updateMatchSettings,
   appSettings,
-  isDemoMode,
 }: Props) {
   return (
     <SideMenu
@@ -71,7 +69,6 @@ export default function MatchSettingsMenu({
           updateMatchSettings({ awayTeamBackgroundColour })
         }
         appSettings={appSettings}
-        disabled={isDemoMode}
       />
       <CollapsiblePanel title="Match Details">
         <div className="col-span-full mb-4">

@@ -31,16 +31,13 @@ import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
-
-// @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
 
-let seconds: number = 0;
+let seconds = 0;
 let interval: ReturnType<typeof setInterval>;
 
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
   const [paused, setPaused] = useState(false);
 
@@ -64,15 +61,6 @@ export default function Dashboard() {
   const setCustomGraphics = useCustomGraphicsStore(
     (state) => state.setCustomGraphics
   );
-
-  useEffect(() => {
-    const checkDemoMode = async () => {
-      const demoMode = await window.electronAPI.getDemoMode();
-      setIsDemoMode(demoMode);
-    };
-
-    checkDemoMode();
-  }, [isDemoMode]);
 
   // Check for updates on launch
   useEffect(() => {
@@ -99,7 +87,7 @@ export default function Dashboard() {
           window?.electronAPI?.updateMatchSettings(matchSettings);
         }
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         window?.electronAPI?.updateMatchSettings(matchSettings);
         console.error('Failed to load team settings:', error);
       });
@@ -114,7 +102,7 @@ export default function Dashboard() {
           window?.electronAPI?.updateAppSettings(appSettings);
         }
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
       });
@@ -395,7 +383,6 @@ export default function Dashboard() {
           matchSettings={matchSettings}
           updateMatchSettings={setMatchSettings}
           appSettings={appSettings}
-          isDemoMode={isDemoMode}
         />
         <CustomScreensMenu
           open={sideMenu === 'custom-screens'}
@@ -413,7 +400,6 @@ export default function Dashboard() {
         <SystemSettingsMenu
           open={sideMenu === 'system-settings'}
           setOpen={closeSideMenu}
-          isDemoMode={isDemoMode}
           incrementHomeTeamScore={incrementHomeTeamScore}
           incrementAwayTeamScore={incrementAwayTeamScore}
           stopTime={stopTime}
@@ -425,22 +411,7 @@ export default function Dashboard() {
           time={time}
         />
       </div>
-      {isDemoMode && (
-        <AppNotification
-          title="PlayOverlay Demo"
-          text="PlayOverlay is running in demo mode, some features have been disabled. To unlock all features, buy a licence from playoverlay.com or activatve an existing purchase."
-          icon={
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          }
-          buttonOnClick={() => {
-            window?.electronAPI?.openUrlInBrowser(
-              'https://account.playoverlay.com/'
-            );
-          }}
-          buttonText="Buy now"
-        />
-      )}
-      {!isDemoMode && updateStatus?.newVersionAvailable && (
+      {updateStatus?.newVersionAvailable && (
         <AppNotification
           title="Update available"
           text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
