@@ -46,7 +46,7 @@
     "vite-plugin-svgr": "^4.2.0"
   },
   "keywords": [],
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@elgato-stream-deck/webhid": "^7.0.2",
     "@sentry/electron": "^5.1.0",
