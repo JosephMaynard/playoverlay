@@ -10,7 +10,7 @@ export default function OverlaysLayout({ overlays, activeScreen }: Props) {
   return (
     <div className="absolute left-0 top-0 h-full w-full">
       {overlays
-        .filter((overlay) => overlay?.overlayLinks.includes(activeScreen))
+        .filter((overlay) => overlay?.overlayLinks?.includes(activeScreen))
         .map((overlay) => (
           <div
             key={overlay.filePath}

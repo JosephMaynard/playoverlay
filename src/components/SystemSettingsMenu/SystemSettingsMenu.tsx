@@ -40,7 +40,7 @@ export default function SystemSettingsMenu({
   time,
 }: Props) {
   const [currentModal, setCurrentModal] = useState<Modals>(null);
-  const [steamDeckConnected, setSteamDeckConnected] = useState(false);
+  const [streamDeckConnected, setStreamDeckConnected] = useState(false);
   const [streamDeckButtons, setStreamdeckButtons] = useState(0);
 
   const streamDeckButtonSets = [
@@ -139,13 +139,18 @@ export default function SystemSettingsMenu({
   };
 
   useEffect(() => {
-    if (steamDeckConnected) {
+    if (streamDeckConnected) {
       connectToStreamDeck(
         streamDeckButtonSets[streamDeckButtons],
         handleNextButtonSet
-      );
+      ).catch((error: unknown) => {
+        console.error('Failed to update Stream Deck:', error);
+        setStreamDeckConnected(false);
+      });
     }
-  }, [streamDeckButtons, steamDeckConnected, matchSettings]);
+    // time.matchPhase (not the whole ticking time object) so the phase
+    // highlight updates without redrawing the deck every second
+  }, [streamDeckButtons, streamDeckConnected, matchSettings, time.matchPhase]);
 
   return (
     <>
@@ -172,13 +177,16 @@ export default function SystemSettingsMenu({
           <li>
             <button
               className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
-              onClick={() => {
-                if (steamDeckConnected === false) {
-                  setSteamDeckConnected(true);
-                  connectToStreamDeck(
+              onClick={async () => {
+                if (streamDeckConnected) return;
+                try {
+                  await connectToStreamDeck(
                     streamDeckButtonSets[streamDeckButtons],
                     handleNextButtonSet
                   );
+                  setStreamDeckConnected(true);
+                } catch (error) {
+                  console.error('Failed to connect to Stream Deck:', error);
                 }
               }}
             >
@@ -189,7 +197,9 @@ export default function SystemSettingsMenu({
                 )}
                 aria-hidden="true"
               />
-              Connect to Stream Deck
+              {streamDeckConnected
+                ? 'Stream Deck connected'
+                : 'Connect to Stream Deck'}
             </button>
           </li>
         </ul>
