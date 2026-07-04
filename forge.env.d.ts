@@ -14,6 +14,11 @@ declare global {
   // Empty string (the default) disables crash reporting entirely.
   const __SENTRY_DSN__: string;
 
+  // Encryption key used by pre-open-source builds for config.json, inlined
+  // at build time from LEGACY_STORE_KEY so upgrades can migrate old
+  // settings. Empty string (the default) skips migration.
+  const __LEGACY_STORE_KEY__: string;
+
   namespace NodeJS {
     interface Process {
       // Used for hot reload after preload scripts.

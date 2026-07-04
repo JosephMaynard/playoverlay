@@ -1,9 +1,43 @@
+import fs from 'fs';
+import path from 'path';
+import { app } from 'electron';
 import Store from 'electron-store';
 import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
 
-const storage = new Store();
+// Builds made before the open source release encrypted config.json with a
+// build-time key. When LEGACY_STORE_KEY is provided at build time, an
+// encrypted config found on disk is decrypted once and rewritten as plain
+// JSON so existing users keep their settings. Builds without the key (the
+// default) skip this and, per electron-store behaviour, an unreadable
+// config resets to defaults.
+function createStorage(): Store {
+  if (__LEGACY_STORE_KEY__) {
+    try {
+      const configPath = path.join(app.getPath('userData'), 'config.json');
+      if (fs.existsSync(configPath)) {
+        const firstCharacter = fs
+          .readFileSync(configPath, 'utf8')
+          .trimStart()[0];
+        if (firstCharacter !== '{') {
+          const encrypted = new Store({ encryptionKey: __LEGACY_STORE_KEY__ });
+          const data = { ...encrypted.store };
+          fs.unlinkSync(configPath);
+          const plain = new Store();
+          plain.store = data;
+          console.log('Migrated legacy encrypted config to plain JSON');
+          return plain;
+        }
+      }
+    } catch (error) {
+      console.error('Legacy config migration failed:', error);
+    }
+  }
+  return new Store();
+}
+
+const storage = createStorage();
 
 export const MAIN_WINDOW = 'MAIN_WINDOW';
 export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
