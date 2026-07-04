@@ -1,72 +1,126 @@
 # PlayOverlay
 
-**PlayOverlay** is a desktop Electron application used to overlay real-time graphics—such as score bugs and penalty indicators—onto live soccer match video streams. It's designed for use during local league matches, with a dual-window setup to enable professional-quality visuals on a second display connected via HDMI.
+[![CI](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml/badge.svg)](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml)
 
-The graphics are keyed out using a solid color background and composited with the live feed using an external device like the Blackmagic ATEM Mini before being streamed to platforms like YouTube.
+**PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams — built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
 
-This repository is now distributed as a plain open source desktop app:
+It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device — for example a Blackmagic ATEM Mini — key out the background, and composite it over your camera feed before streaming.
 
-- No copy protection or licensing flow
-- No activation or demo mode
-- No bundled code obfuscation or V8 bytecode build step
-- App signing and notarization are left to whoever packages the app
+## How it works
 
----
+PlayOverlay runs two windows:
+
+- **Control window** — the dashboard where the operator updates scores, runs the match clock, tracks penalties, and switches screens.
+- **Display window** — a clean, fullscreen output showing the graphics on your chosen key colour. Put this on a second display connected to your mixer (e.g. via HDMI into an ATEM input), then chroma key it over the match feed.
 
 ## Features
 
-- Dual-window layout:
-  - **Main Window**: Control panel for entering scores, penalties, and managing overlays.
-  - **Display Window**: Fullscreen chroma-keyed output on a secondary display.
-- Score bug with:
-  - 3-letter team abbreviations
-  - Live score updates
-  - Match timer with stoppage time
-- Penalty shootout tracking:
-  - Automatically alternates between home/away
-  - Supports scored/missed outcomes
-  - Undo functionality to correct user mistakes
-- Custom key color for external compositing
-- Built with Electron + React + TypeScript
+- **Score bug** with team abbreviations, live scores, match clock, and stoppage time
+- **Match clock** driven by the system clock (no drift over a half), with pause/resume and quick time adjustments
+- **Crash recovery** — the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off
+- **Match phases** — first/second half and extra time, with configurable half lengths
+- **Penalty shootout tracker** — alternates teams automatically, records scored/missed, supports undo
+- **Screens** — match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
+- **Custom key colour** for whatever your mixer keys best
+- **Keyboard shortcuts** and **Elgato Stream Deck** support for goals, phase changes, and screen switching
+- **Saved match settings** — store team line-ups/colours and reload them per fixture
+- Multi-monitor aware: move the display window between screens, lock windows always-on-top, keep the machine awake while live
 
----
+## Download
 
-## Development
+Grab the latest release from the [Releases page](https://github.com/JosephMaynard/playoverlay/releases):
 
-Install dependencies with:
+| Platform | File |
+| --- | --- |
+| Windows | `playoverlay-…Setup.exe` |
+| macOS (Apple Silicon) | `playoverlay-darwin-arm64-….zip` |
+| macOS (Intel) | `playoverlay-darwin-x64-….zip` |
+
+### A note on unsigned builds
+
+The binaries are **not code-signed or notarized** (signing certificates cost money and this is a free project), so your OS will warn you on first launch:
+
+- **Windows**: SmartScreen may show "Windows protected your PC" — click **More info**, then **Run anyway**.
+- **macOS**: after unzipping, move `PlayOverlay.app` to Applications. If macOS reports the app is damaged or from an unidentified developer, clear the quarantine flag once from Terminal:
+
+  ```bash
+  xattr -cr /Applications/PlayOverlay.app
+  ```
+
+If you'd rather not trust an unsigned binary, build it yourself from source (below) — it's two commands.
+
+## Using it
+
+1. Open **Match Settings** and set team names, abbreviations, colours, venue, and half lengths.
+2. In **App Settings**, pick your key colour and whether screens auto-switch on phase changes.
+3. Move the display window to the output monitor and make it fullscreen.
+4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases.
+
+### Keyboard shortcuts
+
+While PlayOverlay is focused:
+
+| Shortcut | Action |
+| --- | --- |
+| `Cmd/Ctrl+Shift+Space` | Next match phase |
+| `Cmd/Ctrl+Shift+H` | Home team scored |
+| `Cmd/Ctrl+Shift+A` | Away team scored |
+
+The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`.
+
+### Stream Deck
+
+Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck**. The deck shows rotating button sets for scoring, match phases, and screen switching; the logo key cycles between sets. (Uses WebHID — close any other software that's holding the deck, including the official Stream Deck app.)
+
+## Updates
+
+On launch the app checks this repository's GitHub Releases for a newer version and shows a notification with a download link. Nothing is downloaded or installed automatically.
+
+## Building from source
+
+Prerequisites: [Node.js](https://nodejs.org) 20+ and npm.
 
 ```bash
+git clone https://github.com/JosephMaynard/playoverlay.git
+cd playoverlay
 npm install
+npm start          # run in development
 ```
 
-Run the app in development with:
+Package distributables for your current platform:
 
 ```bash
-npm start
+npm run make
 ```
 
-Type-check the project with:
+Cross-build for Intel from an Apple Silicon Mac (or vice versa):
 
 ```bash
-npm run ts-check
+npm run make -- --arch=x64    # or --arch=arm64
 ```
 
-### Build for Intel Mac on M1 Mac
+Type-check with `npm run ts-check`, lint with `npm run lint`.
 
-Run:
+Tagged releases (`v*`) are built automatically for Windows and both macOS architectures by the [release workflow](.github/workflows/release.yml) and attached to a draft GitHub release.
 
-```
-npm run make -- --arch=x64
-```
+## Privacy and telemetry
 
-### Electron Store File Locations
+Builds you make yourself send **no telemetry**: crash reporting (Sentry) is compiled out unless a `SENTRY_DSN` environment variable is set at build time. Official releases may include crash reporting if built with a DSN. The only network request a default build makes is the update check against the public GitHub API.
 
-- %APPDATA% on Windows
-- $XDG_CONFIG_HOME or ~/.config on Linux
-- ~/Library/Application Support/playoverlay/config.json on MacOS
+## Settings storage
 
-## Packaging Notes
+Settings are stored with [electron-store](https://github.com/sindresorhus/electron-store) in `config.json`:
 
-- Builds are produced with Electron Forge
-- Code signing and notarization are not configured in this repository
-- If you plan to distribute binaries, you will need to add your own platform-specific signing setup
+- **Windows**: `%APPDATA%/playoverlay`
+- **macOS**: `~/Library/Application Support/playoverlay`
+- **Linux**: `$XDG_CONFIG_HOME` or `~/.config/playoverlay`
+
+Uploaded images live in an `images` folder alongside it.
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR, please run `npm run ts-check` and describe how you tested the change (this app's job is to not fall over mid-match, so reliability fixes are especially appreciated).
+
+## License
+
+PlayOverlay is free to use for anything, **including commercial streaming work**. You may not sell the software itself or redistribute it under a different name or brand. See [LICENSE](LICENSE) for the exact terms (MIT with the Commons Clause and a branding condition).
