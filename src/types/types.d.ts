@@ -1,14 +1,12 @@
-import { deleteLicenceKey } from 'src/main-functions/storage';
 import {
   AppSettings,
+  LiveMatch,
   Scores,
   TeamSettingsInterface,
   Time,
   MatchState,
   Display,
-  SystemInfo,
 } from '../types';
-import { LicenceKeyData } from '../main-functions/validateJWT';
 import { MatchSettings } from '../zodSchemas';
 
 declare global {
@@ -56,40 +54,12 @@ declare global {
       onCustomScreensUpdated: (
         callback: (customScreens: CustomScreen[]) => void
       ) => () => void;
-      getDemoMode: () => boolean;
-      getSystemInfo: () => Promise<SystemInfo>;
-      getEncodedSystemInfo: () => Promise<string>;
-      getEncodedSystemInfoActivationWindow: () => Promise<string>;
-      saveLicenceKey: (
-        licenceKey: string
-      ) => Promise<{ success: boolean; error?: string }>;
-      saveLicenceKeyActivationWindow: (
-        licenceKey: string
-      ) => Promise<{ success: boolean; error?: string }>;
-      deleteLicenceKey: () => void;
-      getLicencedData: () => Promise<LicenceKeyData | undefined>;
-      runInDemoMode: () => void;
-      openActivationLinkActivationWindow: () => void;
-      openActivationLink: () => void;
-      openBuyNowLink: () => void;
-      renewLicenceKey: () => Promise<{
-        success: boolean;
-        token?: string;
-        error?: string;
-      }>;
-      deleteLicenceKey: (
-        encodedSystemInfo: string
-      ) => Promise<{ success: boolean; error?: string }>;
       checkForUpdates: () => Promise<{
         success: boolean;
         updates?: any;
         error?: string;
       }>;
-      checkInternetConnection: () => Promise<{
-        success: boolean;
-        isConnected?: boolean;
-        error?: string;
-      }>;
+      getLiveMatch: () => Promise<LiveMatch | undefined>;
       openUrlInBrowser: (url: string) => void;
       onNextMatchPhase: (callback: () => void) => () => void;
       onHomeTeamScored: (callback: () => void) => () => void;

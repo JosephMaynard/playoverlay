@@ -7,15 +7,15 @@ import {
   pluginHotRestart,
 } from './vite.base.config';
 
-// Disable copy prevention measures
-// import { bytecodePlugin } from 'electron-vite';
-// import { obfuscator } from 'rollup-obfuscator';
-
 // https://vitejs.dev/config
 export default defineConfig((env) => {
   const forgeEnv = env as ConfigEnv<'build'>;
   const { forgeConfigSelf } = forgeEnv;
-  const define = getBuildDefine(forgeEnv);
+  const define = {
+    ...getBuildDefine(forgeEnv),
+    __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ''),
+    __LEGACY_STORE_KEY__: JSON.stringify(process.env.LEGACY_STORE_KEY ?? ''),
+  };
   const config: UserConfig = {
     build: {
       lib: {
@@ -23,15 +23,9 @@ export default defineConfig((env) => {
         fileName: () => '[name].js',
         formats: ['cjs'],
       },
-      rollupOptions: {
-        external,
-        // plugins: [obfuscator()],
-      },
+      rollupOptions: { external },
     },
-    plugins: [
-      pluginHotRestart('restart'),
-      // bytecodePlugin()
-    ],
+    plugins: [pluginHotRestart('restart')],
     define,
     resolve: {
       // Load the Node.js entry.

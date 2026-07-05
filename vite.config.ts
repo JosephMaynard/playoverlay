@@ -9,7 +9,6 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         display: resolve(__dirname, 'display.html'),
-        activation: resolve(__dirname, 'activation.html'),
       },
     },
   },

@@ -36,6 +36,15 @@ export interface Time {
   matchPhase?: MatchPhase;
 }
 
+// Snapshot of the in-progress match, persisted so a crash or restart
+// mid-match doesn't lose the score and clock
+export interface LiveMatch {
+  scores: Scores;
+  time: Time;
+  matchState: MatchState;
+  savedAt: number;
+}
+
 export interface Display {
   id: number;
   bounds: {
@@ -52,13 +61,6 @@ export interface CustomScreen {
   url: string | null;
   type?: 'screen' | 'overlay';
   overlayLinks?: DisplayScreen[];
-}
-
-export interface SystemInfo {
-  machine_description: string;
-  machine_id: string;
-  app_name: string;
-  app_version: string;
 }
 
 export interface MatchPeriod {

@@ -5,8 +5,10 @@ import {
   AppSettings,
   Penalty,
   homeOrAway,
+  LiveMatch,
   MatchPhase,
   SideMenuType,
+  Time,
 } from '../../types';
 import { UpdateStatus } from '../../zodSchemas';
 
@@ -31,18 +33,23 @@ import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
-
-// @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
 
-let seconds: number = 0;
-let interval: ReturnType<typeof setInterval>;
+// The displayed clock is derived from a wall-clock anchor (baseSeconds plus
+// the real time elapsed since tickingSince) rather than counting interval
+// callbacks, so delayed timers can't make the clock drift over a half.
+let seconds = 0;
+let baseSeconds = 0;
+let tickingSince: number | null = null;
+let interval: ReturnType<typeof setInterval> | undefined;
 
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
   const [paused, setPaused] = useState(false);
+  const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
+    null
+  );
 
   const scores = useScoresStore((state) => state.scores);
   const setScores = useScoresStore((state) => state.setScores);
@@ -64,15 +71,6 @@ export default function Dashboard() {
   const setCustomGraphics = useCustomGraphicsStore(
     (state) => state.setCustomGraphics
   );
-
-  useEffect(() => {
-    const checkDemoMode = async () => {
-      const demoMode = await window.electronAPI.getDemoMode();
-      setIsDemoMode(demoMode);
-    };
-
-    checkDemoMode();
-  }, [isDemoMode]);
 
   // Check for updates on launch
   useEffect(() => {
@@ -99,7 +97,7 @@ export default function Dashboard() {
           window?.electronAPI?.updateMatchSettings(matchSettings);
         }
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         window?.electronAPI?.updateMatchSettings(matchSettings);
         console.error('Failed to load team settings:', error);
       });
@@ -114,7 +112,7 @@ export default function Dashboard() {
           window?.electronAPI?.updateAppSettings(appSettings);
         }
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
       });
@@ -130,6 +128,25 @@ export default function Dashboard() {
     window.electronAPI.onAwayTeamScored(() => {
       incrementAwayTeamScore();
     });
+
+    // Offer to restore a match that was in progress when the app last closed
+    window?.electronAPI
+      ?.getLiveMatch()
+      .then((liveMatch) => {
+        if (
+          liveMatch &&
+          (liveMatch.scores?.homeTeam > 0 ||
+            liveMatch.scores?.awayTeam > 0 ||
+            (liveMatch.scores?.penalties?.length ?? 0) > 0 ||
+            liveMatch.time?.matchPhase !== undefined ||
+            liveMatch.matchState?.previousMatchPhase !== undefined)
+        ) {
+          setRestorableMatch(liveMatch);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to check for a previous match:', error);
+      });
 
     fetchScreens();
 
@@ -173,66 +190,87 @@ export default function Dashboard() {
     window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
-  const incrementTime = () => {
-    seconds = seconds + 1;
+  // Push a new clock value (and any extra time fields) to the time store.
+  // Match settings are read fresh from the store so a half-length change
+  // mid-half takes effect immediately.
+  const applyTime = (newSeconds: number, timeUpdates: Partial<Time> = {}) => {
+    seconds = newSeconds;
     const currentTime = useTimeStore.getState().time;
+    const currentMatchSettings = useMatchSettingsStore.getState().matchSettings;
+    const matchPhase = timeUpdates.matchPhase ?? currentTime.matchPhase;
     const remainingSeconds =
       (getMatchPhases(
-        matchSettings.halfLength,
-        matchSettings.extraTimeHalfLength
-      )?.[currentTime.matchPhase]?.end || 0) *
+        currentMatchSettings.halfLength,
+        currentMatchSettings.extraTimeHalfLength
+      )?.[matchPhase]?.end || 0) *
         60 -
-      seconds;
+      newSeconds;
 
-    const updatedTime = {
+    setTime({
       ...currentTime,
-      time: timeToString(seconds),
+      ...timeUpdates,
+      time: timeToString(newSeconds),
       remainingTime:
         remainingSeconds > 0
           ? `-${timeToString(remainingSeconds)}`
           : `+${timeToString(0 - remainingSeconds)}`,
-    };
-    setTime(updatedTime);
+    });
   };
 
-  const startTime = (matchPhase: MatchPhase) => {
+  const tick = () => {
+    if (tickingSince === null) return;
+    const newSeconds =
+      baseSeconds + Math.round((Date.now() - tickingSince) / 1000);
+    if (newSeconds !== seconds) {
+      applyTime(newSeconds);
+    }
+  };
+
+  const startTicking = () => {
     if (interval) {
       clearInterval(interval);
     }
+    baseSeconds = seconds;
+    tickingSince = Date.now();
+    // Tick faster than once per second: each tick recomputes from the wall
+    // clock, so the displayed time stays accurate even after delays
+    interval = setInterval(tick, 250);
+  };
 
+  const stopTicking = () => {
+    if (interval) {
+      clearInterval(interval);
+      interval = undefined;
+    }
+    tickingSince = null;
+  };
+
+  const startTime = (matchPhase: MatchPhase) => {
+    stopTicking();
     setPaused(false);
 
     const phases = getMatchPhases(
-      matchSettings.halfLength,
-      matchSettings.extraTimeHalfLength
+      useMatchSettingsStore.getState().matchSettings.halfLength,
+      useMatchSettingsStore.getState().matchSettings.extraTimeHalfLength
     );
 
-    seconds = phases?.[matchPhase].start * 60;
-
-    setTime({
-      time: timeToString(seconds),
-      matchPhase,
-      remainingTime: `-${timeToString(
-        Math.max((phases?.[matchPhase]?.end || 0) * 60 - seconds, 0)
-      )}`,
-    });
+    applyTime(phases?.[matchPhase].start * 60, { matchPhase, paused: false });
 
     // Update matchPhase in matchState
     setMatchState({ matchPhase });
 
-    interval = setInterval(incrementTime, 1000);
+    startTicking();
   };
 
   const stopTime = () => {
-    if (interval) {
-      clearInterval(interval);
-    }
+    stopTicking();
 
     setTime({
       time: undefined,
       additionalTime: undefined,
       matchPhase: undefined,
       remainingTime: undefined,
+      paused: false,
     });
 
     setPaused(false);
@@ -246,14 +284,36 @@ export default function Dashboard() {
 
   const pause = () => {
     if (interval) {
-      clearInterval(interval);
+      stopTicking();
       setPaused(true);
+      setTime({ paused: true });
     }
   };
 
   const resume = () => {
-    interval = setInterval(incrementTime, 1000);
+    startTicking();
     setPaused(false);
+    setTime({ paused: false });
+  };
+
+  const restoreMatch = (liveMatch: LiveMatch) => {
+    stopTicking();
+
+    setScores(liveMatch.scores);
+    setMatchState(liveMatch.matchState);
+
+    if (liveMatch.time?.time) {
+      const [minutes, secs] = liveMatch.time.time.split(':').map(Number);
+      seconds = (minutes || 0) * 60 + (secs || 0);
+      baseSeconds = seconds;
+    }
+
+    // Restore with the clock paused; the operator resumes when ready
+    const clockWasRunning = liveMatch.time?.matchPhase !== undefined;
+    setTime({ ...liveMatch.time, paused: clockWasRunning });
+    setPaused(clockWasRunning);
+
+    setRestorableMatch(null);
   };
 
   const setPenalties = (penalties: Penalty[]) => {
@@ -352,8 +412,12 @@ export default function Dashboard() {
               pause={pause}
               resume={resume}
               adjustTime={(difference: number) => {
-                seconds = Math.max(seconds + difference - 1, -1);
-                incrementTime();
+                const newSeconds = Math.max(seconds + difference, 0);
+                baseSeconds = newSeconds;
+                if (tickingSince !== null) {
+                  tickingSince = Date.now();
+                }
+                applyTime(newSeconds);
               }}
               isPaused={paused}
               setAdditionalTime={(additionalTime: number) =>
@@ -395,7 +459,6 @@ export default function Dashboard() {
           matchSettings={matchSettings}
           updateMatchSettings={setMatchSettings}
           appSettings={appSettings}
-          isDemoMode={isDemoMode}
         />
         <CustomScreensMenu
           open={sideMenu === 'custom-screens'}
@@ -413,7 +476,6 @@ export default function Dashboard() {
         <SystemSettingsMenu
           open={sideMenu === 'system-settings'}
           setOpen={closeSideMenu}
-          isDemoMode={isDemoMode}
           incrementHomeTeamScore={incrementHomeTeamScore}
           incrementAwayTeamScore={incrementAwayTeamScore}
           stopTime={stopTime}
@@ -425,22 +487,24 @@ export default function Dashboard() {
           time={time}
         />
       </div>
-      {isDemoMode && (
+      {restorableMatch && (
         <AppNotification
-          title="PlayOverlay Demo"
-          text="PlayOverlay is running in demo mode, some features have been disabled. To unlock all features, buy a licence from playoverlay.com or activatve an existing purchase."
+          title="Restore previous match?"
+          text={`A match was in progress when PlayOverlay last closed (${
+            matchSettings.homeTeamNameAbbreviated
+          } ${restorableMatch.scores?.homeTeam ?? 0}–${
+            restorableMatch.scores?.awayTeam ?? 0
+          } ${matchSettings.awayTeamNameAbbreviated}${
+            restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
+          }). Restoring brings back the score and clock, with the clock paused.`}
           icon={
             <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
           }
-          buttonOnClick={() => {
-            window?.electronAPI?.openUrlInBrowser(
-              'https://account.playoverlay.com/'
-            );
-          }}
-          buttonText="Buy now"
+          buttonOnClick={() => restoreMatch(restorableMatch)}
+          buttonText="Restore"
         />
       )}
-      {!isDemoMode && updateStatus?.newVersionAvailable && (
+      {updateStatus?.newVersionAvailable && (
         <AppNotification
           title="Update available"
           text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}

@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# Yarn (project uses npm)
+.yarn/

@@ -16,6 +16,9 @@ export default defineConfig((env) => {
       outDir: `.vite/renderer/${name}`,
     },
     plugins: [pluginExposeRenderer(name)],
+    define: {
+      __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ''),
+    },
     resolve: {
       preserveSymlinks: true,
     },

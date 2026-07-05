@@ -99,7 +99,10 @@ async function createCanvasWithSVGFromFile(
   });
 }
 
-let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>>;
+let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>> = [];
+
+// Key reserved for the "next button set" logo button
+const NEXT_SET_KEY_INDEX = 5;
 
 export async function connectToStreamDeck(
   buttons: {
@@ -110,28 +113,38 @@ export async function connectToStreamDeck(
   }[],
   nextScreen: () => void
 ) {
-  if (connectedStreamDecks === undefined) {
+  if (!connectedStreamDecks[0]) {
     connectedStreamDecks = await requestStreamDecks();
   }
 
-  connectedStreamDecks[0]?.clearPanel();
-  connectedStreamDecks[0]?.removeAllListeners('down');
+  const streamDeck = connectedStreamDecks[0];
 
-  console.log('connectedStreamDecks', connectedStreamDecks);
+  if (!streamDeck) {
+    throw new Error(
+      'No Stream Deck found. Make sure it is plugged in and not in use by another application.'
+    );
+  }
+
+  streamDeck.clearPanel();
+  streamDeck.removeAllListeners('down');
+  streamDeck.removeAllListeners('error');
+
+  const keyCount = streamDeck.CONTROLS.filter(
+    (control) => control.type === 'button'
+  ).length;
 
   let isHandlingPress = false;
 
-  connectedStreamDecks[0].on('down', async (key: any) => {
+  streamDeck.on('down', async (key: any) => {
     if (isHandlingPress) return; // Skip if already handling a button press
     isHandlingPress = true;
 
     try {
-      if (key.index === 5) {
+      if (key.index === NEXT_SET_KEY_INDEX) {
         nextScreen();
       } else {
         buttons[key.index]?.onPress();
       }
-      console.log(key);
     } finally {
       // Set a short timeout to avoid rapid re-pressing
       setTimeout(() => {
@@ -142,22 +155,25 @@ export async function connectToStreamDeck(
 
   // Fired whenever an error is detected by the hid device.
   // Always add a listener for this event! If you don't, errors will be silently dropped.
-  connectedStreamDecks[0].on('error', (error: any) => {
+  streamDeck.on('error', (error: any) => {
     console.error(error);
   });
 
-  buttons.forEach(async (button, index) => {
-    await connectedStreamDecks[0].fillKeyCanvas(
-      index,
-      createCanvasWithText(
-        button.text,
-        button.textColor,
-        button.backgroundColor
-      )
-    );
-  });
+  buttons.slice(0, Math.min(NEXT_SET_KEY_INDEX, keyCount)).forEach(
+    async (button, index) => {
+      await streamDeck.fillKeyCanvas(
+        index,
+        createCanvasWithText(
+          button.text,
+          button.textColor,
+          button.backgroundColor
+        )
+      );
+    }
+  );
 
-  const canvas = await createCanvasWithSVGFromFile(logo);
-
-  await connectedStreamDecks[0].fillKeyCanvas(5, canvas);
+  if (keyCount > NEXT_SET_KEY_INDEX) {
+    const canvas = await createCanvasWithSVGFromFile(logo);
+    await streamDeck.fillKeyCanvas(NEXT_SET_KEY_INDEX, canvas);
+  }
 }
