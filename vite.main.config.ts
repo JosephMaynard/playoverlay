@@ -13,7 +13,6 @@ export default defineConfig((env) => {
   const { forgeConfigSelf } = forgeEnv;
   const define = {
     ...getBuildDefine(forgeEnv),
-    __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN ?? ''),
     __LEGACY_STORE_KEY__: JSON.stringify(process.env.LEGACY_STORE_KEY ?? ''),
   };
   const config: UserConfig = {
