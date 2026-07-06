@@ -105,7 +105,7 @@ Tagged releases (`v*`) are built automatically for Windows and both macOS archit
 
 ## Privacy and telemetry
 
-Builds you make yourself send **no telemetry**: crash reporting (Sentry) is compiled out unless a `SENTRY_DSN` environment variable is set at build time. Official releases may include crash reporting if built with a DSN. The only network request a default build makes is the update check against the public GitHub API.
+PlayOverlay does not include telemetry or crash reporting. The only network request a default build makes is the update check against the public GitHub API.
 
 ## Settings storage
 

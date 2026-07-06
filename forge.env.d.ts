@@ -10,10 +10,6 @@ declare global {
   const DISPLAY_WINDOW_VITE_DEV_SERVER_URL: string;
   const DISPLAY_WINDOW_VITE_NAME: string;
 
-  // Sentry DSN inlined at build time from the SENTRY_DSN env var.
-  // Empty string (the default) disables crash reporting entirely.
-  const __SENTRY_DSN__: string;
-
   // Encryption key used by pre-open-source builds for config.json, inlined
   // at build time from LEGACY_STORE_KEY so upgrades can migrate old
   // settings. Empty string (the default) skips migration.

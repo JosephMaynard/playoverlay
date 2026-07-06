@@ -46,10 +46,6 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build distributables
-        env:
-          # Optional: set the SENTRY_DSN repo secret to enable crash
-          # reporting in official builds. Unset means no telemetry.
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: npm run make -- --arch=${{ matrix.arch }}
       - name: Upload to release
         shell: bash

@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/electron/main';
 import {
   app,
   BrowserWindow,
@@ -47,14 +46,6 @@ import {
   handleFileUpload,
 } from './main-functions/fileHandler';
 import { checkForUpdates } from './main-functions/apiRequests';
-
-// Crash reporting is opt-in: builds without SENTRY_DSN send nothing.
-if (__SENTRY_DSN__) {
-  Sentry.init({
-    dsn: __SENTRY_DSN__,
-    enabled: process.env.NODE_ENV === 'production',
-  });
-}
 
 const SHOW_DEV_TOOLS = false;
 
