@@ -99,7 +99,9 @@ Cross-build for Intel from an Apple Silicon Mac (or vice versa):
 npm run make -- --arch=x64    # or --arch=arm64
 ```
 
-Type-check with `npm run ts-check`, lint with `npm run lint`.
+Type-check with `npm run ts-check`, run the test suite with `npm test`, and
+generate coverage with `npm run test:coverage`. Linting is available with
+`npm run lint`.
 
 Tagged releases (`v*`) are built automatically for Windows and both macOS architectures by the [release workflow](.github/workflows/release.yml) and attached to a draft GitHub release.
 
@@ -119,7 +121,10 @@ Uploaded images live in an `images` folder alongside it.
 
 ## Contributing
 
-Issues and pull requests are welcome. Before opening a PR, please run `npm run ts-check` and describe how you tested the change (this app's job is to not fall over mid-match, so reliability fixes are especially appreciated).
+Issues and pull requests are welcome. Before opening a PR, please run
+`npm run ts-check` and `npm test`, then describe how you tested the change
+(this app's job is to not fall over mid-match, so reliability fixes are
+especially appreciated).
 
 ## License
 
