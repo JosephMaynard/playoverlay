@@ -15,8 +15,11 @@ export const defaultMatchSettings: MatchSettings = {
   awayTeamNameAbbreviated: 'AWA',
   awayTeamTextColour: '#ffffff',
   awayTeamBackgroundColour: '#0000cc',
+  timerMode: 'football',
   halfLength: 45,
   extraTimeHalfLength: 15,
+  hasExtraTime: true,
+  hasPenalties: true,
 };
 
 export const defaultMatchState: MatchState = {

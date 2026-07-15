@@ -64,22 +64,15 @@ export interface CustomScreen {
 }
 
 export interface MatchPeriod {
+  id: string;
   title: string;
   start: number;
   end: number;
 }
-export interface MatchPhases {
-  firstHalf: MatchPeriod;
-  secondHalf: MatchPeriod;
-  extraTimeFirstHalf: MatchPeriod;
-  extraTimeSecondHalf: MatchPeriod;
-}
 
-export type MatchPhase =
-  | 'firstHalf'
-  | 'secondHalf'
-  | 'extraTimeFirstHalf'
-  | 'extraTimeSecondHalf';
+// Phase ids are no longer a fixed football-only set: generic timer mode
+// produces its own ids (period1, period2, ...), so this is just a string.
+export type MatchPhase = string;
 
 export type SideMenuType =
   | null

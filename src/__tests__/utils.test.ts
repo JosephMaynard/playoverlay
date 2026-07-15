@@ -5,11 +5,15 @@ import {
   checkColors,
   classNames,
   debounce,
-  getMatchPhases,
+  getNextPhaseId,
+  getPhaseById,
+  getPhaseList,
   insertValue,
   removeValue,
   timeToString,
 } from '../utils';
+import { defaultMatchSettings } from '../constants';
+import { MatchSettings } from '../zodSchemas';
 
 describe('utils', () => {
   describe('timeToString', () => {
@@ -53,22 +57,135 @@ describe('utils', () => {
     });
   });
 
-  describe('getMatchPhases', () => {
-    it('derives normal and extra-time phase ranges from match lengths', () => {
-      expect(getMatchPhases(40, 10)).toEqual({
-        firstHalf: { title: 'First Half', start: 0, end: 40 },
-        secondHalf: { title: 'Second Half', start: 40, end: 80 },
-        extraTimeFirstHalf: {
+  describe('getPhaseList', () => {
+    const footballSettings: MatchSettings = {
+      ...defaultMatchSettings,
+      halfLength: 40,
+      extraTimeHalfLength: 10,
+    };
+
+    it('derives the same football phases the old getMatchPhases produced (default timerMode)', () => {
+      expect(getPhaseList(footballSettings)).toEqual([
+        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
+        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+        {
+          id: 'extraTimeFirstHalf',
           title: 'Extra Time First Half',
           start: 80,
           end: 90,
         },
-        extraTimeSecondHalf: {
+        {
+          id: 'extraTimeSecondHalf',
           title: 'Extra Time Second Half',
           start: 90,
           end: 100,
         },
+      ]);
+    });
+
+    it('matches the historical defaults (45/15) when lengths are unset', () => {
+      expect(
+        getPhaseList({ ...defaultMatchSettings, halfLength: undefined, extraTimeHalfLength: undefined })
+      ).toEqual([
+        { id: 'firstHalf', title: 'First Half', start: 0, end: 45 },
+        { id: 'secondHalf', title: 'Second Half', start: 45, end: 90 },
+        {
+          id: 'extraTimeFirstHalf',
+          title: 'Extra Time First Half',
+          start: 90,
+          end: 105,
+        },
+        {
+          id: 'extraTimeSecondHalf',
+          title: 'Extra Time Second Half',
+          start: 105,
+          end: 120,
+        },
+      ]);
+    });
+
+    it('omits the extra-time phases when hasExtraTime is false', () => {
+      expect(
+        getPhaseList({ ...footballSettings, hasExtraTime: false })
+      ).toEqual([
+        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
+        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+      ]);
+    });
+
+    it('builds evenly-sized named periods in generic mode', () => {
+      expect(
+        getPhaseList({
+          ...defaultMatchSettings,
+          timerMode: 'generic',
+          periodCount: 3,
+          periodLength: 20,
+          periodName: 'Quarter',
+        })
+      ).toEqual([
+        { id: 'period1', title: 'Quarter 1', start: 0, end: 20 },
+        { id: 'period2', title: 'Quarter 2', start: 20, end: 40 },
+        { id: 'period3', title: 'Quarter 3', start: 40, end: 60 },
+      ]);
+    });
+
+    it('falls back to 4x10 minute periods named "Period" when unset', () => {
+      expect(
+        getPhaseList({ ...defaultMatchSettings, timerMode: 'generic' })
+      ).toEqual([
+        { id: 'period1', title: 'Period 1', start: 0, end: 10 },
+        { id: 'period2', title: 'Period 2', start: 10, end: 20 },
+        { id: 'period3', title: 'Period 3', start: 20, end: 30 },
+        { id: 'period4', title: 'Period 4', start: 30, end: 40 },
+      ]);
+    });
+  });
+
+  describe('getPhaseById', () => {
+    it('looks up a phase by id', () => {
+      expect(getPhaseById(defaultMatchSettings, 'secondHalf')).toEqual({
+        id: 'secondHalf',
+        title: 'Second Half',
+        start: 45,
+        end: 90,
       });
+    });
+
+    it('returns undefined for an undefined or unknown id', () => {
+      expect(getPhaseById(defaultMatchSettings, undefined)).toBeUndefined();
+      expect(getPhaseById(defaultMatchSettings, 'notAPhase')).toBeUndefined();
+    });
+  });
+
+  describe('getNextPhaseId', () => {
+    const phaseList = getPhaseList(defaultMatchSettings);
+
+    it('stops (returns undefined) when a phase is currently running', () => {
+      expect(getNextPhaseId(phaseList, 'firstHalf', undefined)).toBeUndefined();
+    });
+
+    it('starts at the first phase when nothing has run yet', () => {
+      expect(getNextPhaseId(phaseList, undefined, undefined)).toBe(
+        'firstHalf'
+      );
+    });
+
+    it('walks to the phase after previousPhaseId', () => {
+      expect(getNextPhaseId(phaseList, undefined, 'firstHalf')).toBe(
+        'secondHalf'
+      );
+      expect(getNextPhaseId(phaseList, undefined, 'secondHalf')).toBe(
+        'extraTimeFirstHalf'
+      );
+      expect(getNextPhaseId(phaseList, undefined, 'extraTimeFirstHalf')).toBe(
+        'extraTimeSecondHalf'
+      );
+    });
+
+    it('returns undefined once the last phase has finished', () => {
+      expect(
+        getNextPhaseId(phaseList, undefined, 'extraTimeSecondHalf')
+      ).toBeUndefined();
     });
   });
 

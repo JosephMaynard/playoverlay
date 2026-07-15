@@ -6,7 +6,7 @@ import { useState } from 'react';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
-import { classNames } from '../..//utils';
+import { classNames, getPhaseList } from '../..//utils';
 import { DisplayScreen } from '../../constants';
 import { MatchSettings } from '../../zodSchemas';
 
@@ -48,6 +48,11 @@ export default function TimeControlPanel({
       setDisplayScreen('scoreBug');
     }
   };
+  const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
+    label: phase.title,
+    onClick: () => handleStartTime(phase.id),
+    selected: time.matchPhase === phase.id,
+  }));
   return (
     <CollapsiblePanel title="Time" noPanelPadding>
       <TimeDisplay
@@ -59,26 +64,7 @@ export default function TimeControlPanel({
         <ButtonGrid
           className="mb-4"
           buttons={[
-            {
-              label: 'First Half',
-              onClick: () => handleStartTime('firstHalf'),
-              selected: time.matchPhase === 'firstHalf',
-            },
-            {
-              label: 'Second Half',
-              onClick: () => handleStartTime('secondHalf'),
-              selected: time.matchPhase === 'secondHalf',
-            },
-            {
-              label: 'Extra Time 1st Half',
-              onClick: () => handleStartTime('extraTimeFirstHalf'),
-              selected: time.matchPhase === 'extraTimeFirstHalf',
-            },
-            {
-              label: 'Extra Time 2nd Half',
-              onClick: () => handleStartTime('extraTimeSecondHalf'),
-              selected: time.matchPhase === 'extraTimeSecondHalf',
-            },
+            ...phaseButtons,
             {
               label: 'Stop',
               onClick: () => {

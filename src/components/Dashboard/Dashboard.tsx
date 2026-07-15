@@ -25,7 +25,12 @@ import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import DashboardHeader from './DashboardHeader';
 
-import { getMatchPhases, timeToString } from '../../utils';
+import {
+  getPhaseById,
+  getPhaseList,
+  getNextPhaseId,
+  timeToString,
+} from '../../utils';
 import { DisplayScreen } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
@@ -199,11 +204,7 @@ export default function Dashboard() {
     const currentMatchSettings = useMatchSettingsStore.getState().matchSettings;
     const matchPhase = timeUpdates.matchPhase ?? currentTime.matchPhase;
     const remainingSeconds =
-      (getMatchPhases(
-        currentMatchSettings.halfLength,
-        currentMatchSettings.extraTimeHalfLength
-      )?.[matchPhase]?.end || 0) *
-        60 -
+      (getPhaseById(currentMatchSettings, matchPhase)?.end || 0) * 60 -
       newSeconds;
 
     setTime({
@@ -249,12 +250,12 @@ export default function Dashboard() {
     stopTicking();
     setPaused(false);
 
-    const phases = getMatchPhases(
-      useMatchSettingsStore.getState().matchSettings.halfLength,
-      useMatchSettingsStore.getState().matchSettings.extraTimeHalfLength
+    const phase = getPhaseById(
+      useMatchSettingsStore.getState().matchSettings,
+      matchPhase
     );
 
-    applyTime(phases?.[matchPhase].start * 60, { matchPhase, paused: false });
+    applyTime((phase?.start ?? 0) * 60, { matchPhase, paused: false });
 
     // Update matchPhase in matchState
     setMatchState({ matchPhase });
@@ -346,20 +347,10 @@ export default function Dashboard() {
     const { previousMatchPhase, matchPhase } =
       useMatchStateStore.getState().matchState;
 
-    let nextPhase: MatchPhase | undefined;
-
-    if (matchPhase === undefined) {
-      if (previousMatchPhase === undefined) {
-        // Start from the first phase
-        nextPhase = 'firstHalf';
-      } else if (previousMatchPhase === 'firstHalf') {
-        nextPhase = 'secondHalf';
-      } else if (previousMatchPhase === 'secondHalf') {
-        nextPhase = 'extraTimeFirstHalf';
-      } else if (previousMatchPhase === 'extraTimeFirstHalf') {
-        nextPhase = 'extraTimeSecondHalf';
-      }
-    }
+    const phaseList = getPhaseList(
+      useMatchSettingsStore.getState().matchSettings
+    );
+    const nextPhase = getNextPhaseId(phaseList, matchPhase, previousMatchPhase);
 
     if (nextPhase) {
       startTime(nextPhase);
@@ -402,6 +393,7 @@ export default function Dashboard() {
                 updateMatchState={setMatchState}
                 matchState={matchState}
                 customGraphics={customGraphics}
+                matchSettings={matchSettings}
               />
             </div>
           </div>
@@ -442,15 +434,17 @@ export default function Dashboard() {
               time={time}
               updateScore={setScores}
             />
-            <PenaltiesPanel
-              penalties={scores.penalties}
-              setPenalties={setPenalties}
-              penaltiesFirstTeam={matchState.penaltiesFirstTeam}
-              setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-                setMatchState({ penaltiesFirstTeam })
-              }
-              matchSettings={matchSettings}
-            />
+            {matchSettings.hasPenalties !== false && (
+              <PenaltiesPanel
+                penalties={scores.penalties}
+                setPenalties={setPenalties}
+                penaltiesFirstTeam={matchState.penaltiesFirstTeam}
+                setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
+                  setMatchState({ penaltiesFirstTeam })
+                }
+                matchSettings={matchSettings}
+              />
+            )}
           </div>
         </main>
         <MatchSettingsMenu

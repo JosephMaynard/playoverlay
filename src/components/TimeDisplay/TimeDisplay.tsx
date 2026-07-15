@@ -1,6 +1,6 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
 import { Time } from '../../types';
-import { getMatchPhases } from '../../utils';
+import { getPhaseById } from '../../utils';
 import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
@@ -26,12 +26,7 @@ export default function TimeDisplay({
           <div className="flex flex-col items-center justify-center font-semibold">
             {time.matchPhase && (
               <p className="mb-1 text-center text-sm tabular-nums text-white">
-                {
-                  getMatchPhases(
-                    matchSettings.halfLength,
-                    matchSettings.extraTimeHalfLength
-                  )[time.matchPhase]?.title
-                }
+                {getPhaseById(matchSettings, time.matchPhase)?.title}
               </p>
             )}
             {time.remainingTime && (

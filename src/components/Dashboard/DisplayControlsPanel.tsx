@@ -2,11 +2,13 @@ import { CustomScreen, MatchState } from 'src/types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import { DisplayScreen, screens } from '../../constants';
+import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
   matchState: MatchState;
   customGraphics: CustomScreen[];
+  matchSettings: MatchSettings;
 }
 
 export function addCustomScreen(
@@ -42,6 +44,7 @@ export default function DisplayControlsPanel({
   updateMatchState,
   matchState,
   customGraphics,
+  matchSettings,
 }: Props) {
   const customScreens = customGraphics.filter(
     (graphic) => graphic.type === undefined || graphic.type === 'screen'
@@ -55,6 +58,10 @@ export default function DisplayControlsPanel({
         buttons={[
           ...Object.keys(screens)
             .filter((screen) => screen !== 'custom')
+            .filter(
+              (screen) =>
+                matchSettings.hasPenalties !== false || screen !== 'penalties'
+            )
             .map((screen) => ({
               label: screens[screen as DisplayScreen],
               onClick: () =>
