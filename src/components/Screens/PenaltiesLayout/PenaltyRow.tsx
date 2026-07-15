@@ -13,7 +13,9 @@ export default function PenaltyRow({ penalties, penaltiesTaken }: Props) {
     result: Penalty['result'] | 'not-taken';
   } => ({ result: 'not-taken' });
   const penaltiesToDisplay: (Penalty | ReturnType<typeof notTakenPenalty>)[] = [
-    ...penalties.slice(Math.floor((Math.ceil(penaltiesTaken / 2) - 1) / 5) * 5),
+    ...penalties.slice(
+      Math.max(0, Math.floor((Math.ceil(penaltiesTaken / 2) - 1) / 5) * 5)
+    ),
     ...Array.from(
       { length: 5 - ((penalties.length - 1) % 5) - 1 },
       notTakenPenalty

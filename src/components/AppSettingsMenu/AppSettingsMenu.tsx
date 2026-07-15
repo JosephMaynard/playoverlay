@@ -31,6 +31,9 @@ export default function AppSettingsMenu({
   const [recordingAction, setRecordingAction] = useState<
     keyof KeyboardShortcuts | null
   >(null);
+  const [shortcutConflictError, setShortcutConflictError] = useState<
+    string | null
+  >(null);
   const [browserSourceStatus, setBrowserSourceStatus] = useState<{
     running: boolean;
     port: number;
@@ -40,6 +43,26 @@ export default function AppSettingsMenu({
 
   const keyboardShortcuts = getKeyboardShortcuts(appSettings);
   const browserSource = getBrowserSourceSettings(appSettings);
+
+  const shortcutLabels: Record<keyof KeyboardShortcuts, string> = {
+    nextMatchPhase: 'Next match phase',
+    homeTeamScored: 'Home team scored',
+    awayTeamScored: 'Away team scored',
+  };
+
+  const [browserSourcePortDraft, setBrowserSourcePortDraft] = useState(
+    String(browserSource.port)
+  );
+  const [browserSourcePortError, setBrowserSourcePortError] = useState<
+    string | null
+  >(null);
+
+  // Keep the draft in sync when settings change from outside this input
+  // (e.g. loaded from disk, or committed by this same component).
+  useEffect(() => {
+    setBrowserSourcePortDraft(String(browserSource.port));
+    setBrowserSourcePortError(null);
+  }, [browserSource.port]);
 
   useEffect(() => {
     // Request initial screens information on component mount
@@ -94,10 +117,36 @@ export default function AppSettingsMenu({
     setIsLocked(false);
   };
 
+  const handleStartRecordingShortcut = (action: keyof KeyboardShortcuts) => {
+    setShortcutConflictError(null);
+    setRecordingAction(action);
+  };
+
+  const handleCancelRecordingShortcut = () => {
+    setShortcutConflictError(null);
+    setRecordingAction(null);
+  };
+
   const handleChangeShortcut = (
     action: keyof KeyboardShortcuts,
     accelerator: string
   ) => {
+    const conflictingAction = (
+      Object.keys(keyboardShortcuts) as Array<keyof KeyboardShortcuts>
+    ).find(
+      (otherAction) =>
+        otherAction !== action &&
+        keyboardShortcuts[otherAction] === accelerator
+    );
+
+    if (conflictingAction) {
+      setShortcutConflictError(
+        `Already used by "${shortcutLabels[conflictingAction]}".`
+      );
+      return;
+    }
+
+    setShortcutConflictError(null);
     updateAppSettings({
       keyboardShortcuts: { ...keyboardShortcuts, [action]: accelerator },
     });
@@ -125,12 +174,37 @@ export default function AppSettingsMenu({
     setTimeout(refreshBrowserSourceStatus, 400);
   };
 
+  // Only persist (and restart the server) once the user has finished typing
+  // a valid port — committing on every keystroke would restart the server
+  // on partial values like "4" or "47".
+  const commitBrowserSourcePort = () => {
+    const parsedPort = Number(browserSourcePortDraft);
+    if (
+      !Number.isInteger(parsedPort) ||
+      parsedPort < 1024 ||
+      parsedPort > 65535
+    ) {
+      setBrowserSourcePortError('Enter a port between 1024 and 65535.');
+      return;
+    }
+    setBrowserSourcePortError(null);
+    if (parsedPort !== browserSource.port) {
+      handleBrowserSourcePortChange(parsedPort);
+    }
+  };
+
   const browserSourceUrl = `http://127.0.0.1:${browserSource.port}/`;
 
   const handleCopyBrowserSourceUrl = () => {
-    navigator.clipboard.writeText(browserSourceUrl);
-    setCopiedBrowserSourceUrl(true);
-    setTimeout(() => setCopiedBrowserSourceUrl(false), 1500);
+    navigator.clipboard
+      .writeText(browserSourceUrl)
+      .then(() => {
+        setCopiedBrowserSourceUrl(true);
+        setTimeout(() => setCopiedBrowserSourceUrl(false), 1500);
+      })
+      .catch((error) => {
+        console.error('Failed to copy browser source URL:', error);
+      });
   };
 
   return (
@@ -154,8 +228,10 @@ export default function AppSettingsMenu({
             label="Next match phase"
             accelerator={keyboardShortcuts.nextMatchPhase}
             isRecording={recordingAction === 'nextMatchPhase'}
-            onStartRecording={() => setRecordingAction('nextMatchPhase')}
-            onCancelRecording={() => setRecordingAction(null)}
+            onStartRecording={() =>
+              handleStartRecordingShortcut('nextMatchPhase')
+            }
+            onCancelRecording={handleCancelRecordingShortcut}
             onChange={(accelerator) =>
               handleChangeShortcut('nextMatchPhase', accelerator)
             }
@@ -164,13 +240,20 @@ export default function AppSettingsMenu({
               keyboardShortcuts.nextMatchPhase ===
               defaultKeyboardShortcuts.nextMatchPhase
             }
+            externalError={
+              recordingAction === 'nextMatchPhase'
+                ? shortcutConflictError
+                : null
+            }
           />
           <KeyboardShortcutRow
             label="Home team scored"
             accelerator={keyboardShortcuts.homeTeamScored}
             isRecording={recordingAction === 'homeTeamScored'}
-            onStartRecording={() => setRecordingAction('homeTeamScored')}
-            onCancelRecording={() => setRecordingAction(null)}
+            onStartRecording={() =>
+              handleStartRecordingShortcut('homeTeamScored')
+            }
+            onCancelRecording={handleCancelRecordingShortcut}
             onChange={(accelerator) =>
               handleChangeShortcut('homeTeamScored', accelerator)
             }
@@ -179,13 +262,20 @@ export default function AppSettingsMenu({
               keyboardShortcuts.homeTeamScored ===
               defaultKeyboardShortcuts.homeTeamScored
             }
+            externalError={
+              recordingAction === 'homeTeamScored'
+                ? shortcutConflictError
+                : null
+            }
           />
           <KeyboardShortcutRow
             label="Away team scored"
             accelerator={keyboardShortcuts.awayTeamScored}
             isRecording={recordingAction === 'awayTeamScored'}
-            onStartRecording={() => setRecordingAction('awayTeamScored')}
-            onCancelRecording={() => setRecordingAction(null)}
+            onStartRecording={() =>
+              handleStartRecordingShortcut('awayTeamScored')
+            }
+            onCancelRecording={handleCancelRecordingShortcut}
             onChange={(accelerator) =>
               handleChangeShortcut('awayTeamScored', accelerator)
             }
@@ -193,6 +283,11 @@ export default function AppSettingsMenu({
             isDefault={
               keyboardShortcuts.awayTeamScored ===
               defaultKeyboardShortcuts.awayTeamScored
+            }
+            externalError={
+              recordingAction === 'awayTeamScored'
+                ? shortcutConflictError
+                : null
             }
           />
         </div>
@@ -240,12 +335,23 @@ export default function AppSettingsMenu({
             min={1024}
             max={65535}
             className="block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            value={browserSource.port}
+            value={browserSourcePortDraft}
             onChange={(event) => {
-              const port = Number(event.target.value);
-              if (!Number.isNaN(port)) handleBrowserSourcePortChange(port);
+              setBrowserSourcePortDraft(event.target.value);
+            }}
+            onBlur={commitBrowserSourcePort}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                commitBrowserSourcePort();
+              }
             }}
           />
+          {browserSourcePortError && (
+            <p className="mt-1 text-xs text-red-600">
+              {browserSourcePortError}
+            </p>
+          )}
         </div>
         <p className="mt-2 text-xs text-gray-500">
           Status:{' '}

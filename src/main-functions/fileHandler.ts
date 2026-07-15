@@ -31,6 +31,14 @@ export function saveImageFile(
   buffer: Buffer,
   fileName: string
 ): { filePath: string; url: string } | null {
+  // fileName can come from an IPC caller — resolve away any directory
+  // components so it can't escape the images dir (e.g. via '../../etc').
+  const safeFileName = path.basename(fileName);
+  if (!safeFileName || safeFileName !== fileName) {
+    console.error('Rejected unsafe file name:', fileName);
+    return null;
+  }
+
   const uniqueFileName = getUniqueFileName(imagesPath, fileName);
   const destination = path.join(imagesPath, uniqueFileName);
 
@@ -66,7 +74,7 @@ export async function handleFileUpload(
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('custom-screens-updated', screens);
     });
-    return `file://${saved.filePath}`;
+    return saved.url;
   } catch (error) {
     console.error('Error saving file:', error);
     return null;

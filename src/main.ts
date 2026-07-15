@@ -149,6 +149,22 @@ async function applyBrowserSourceSettings(settings: BrowserSourceSettings) {
   }
 }
 
+// Serializes applyBrowserSourceSettings calls so rapid settings changes
+// (e.g. toggling enabled then immediately changing the port) can't interleave
+// their stop/start work. Each call is chained onto the previous one and
+// errors are swallowed here (applyBrowserSourceSettings already handles its
+// own failures) so one bad call never breaks the chain for later ones.
+let browserSourceTransition = Promise.resolve();
+
+function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
+  browserSourceTransition = browserSourceTransition
+    .then(() => applyBrowserSourceSettings(settings))
+    .catch((error) => {
+      console.error('Error applying browser source settings:', error);
+    });
+  return browserSourceTransition;
+}
+
 function persistLiveMatch() {
   try {
     setLiveMatch({
@@ -312,10 +328,14 @@ function setupIPCHandlers() {
     // enabled; the focus set only registers while the main window has
     // focus.
     if (shortcutsChanged && !keyboardShortcutsDisabled) {
+      // Unregister both sets before registering either replacement — a new
+      // binding in one set could otherwise collide with a stale
+      // registration still held by the other.
+      const registerFocusSet = mainWindow?.isFocused() ?? false;
       unregisterGlobalKeyboardShortcuts();
+      unregisterKeyboardShortcuts();
       registerGlobalKeyboardShortcuts();
-      if (mainWindow?.isFocused()) {
-        unregisterKeyboardShortcuts();
+      if (registerFocusSet) {
         registerKeyboardShortcuts();
       }
     }
@@ -325,7 +345,7 @@ function setupIPCHandlers() {
       previousBrowserSource.enabled !== nextBrowserSource.enabled ||
       previousBrowserSource.port !== nextBrowserSource.port
     ) {
-      void applyBrowserSourceSettings(nextBrowserSource);
+      void queueBrowserSourceSettings(nextBrowserSource);
     }
   });
 
@@ -655,7 +675,7 @@ app.on('ready', async () => {
   // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
   // settings. Startup errors (e.g. a busy port) are caught inside and never
   // reach here.
-  void applyBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
+  void queueBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
   ensureWindowsAreVisible();

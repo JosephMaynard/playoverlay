@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomScreen } from '../../types';
+import convertFilePathToUrl from '../convertFilePathToUrl';
 
 const temporaryDirectories: string[] = [];
 
@@ -91,6 +92,19 @@ describe('fileHandler', () => {
     expect(fileHandler.saveImageFile(Buffer.from('uploaded'), 'logo.png')).toBeNull();
   });
 
+  it('saveImageFile rejects a file name that would escape the images directory', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const result = fileHandler.saveImageFile(
+      Buffer.from('malicious'),
+      '../../etc/passwd.png'
+    );
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
+  });
+
   it('uploads files with unique names, persists custom screen data, and notifies windows', async () => {
     const existingScreen: CustomScreen = {
       title: 'Existing',
@@ -115,7 +129,9 @@ describe('fileHandler', () => {
     );
     const uploadedPath = path.join(imagesPath, 'graphic-1.png');
 
-    expect(result).toBe(`file://${uploadedPath}`);
+    // handleFileUpload returns saveImageFile's already-encoded `url`, not a
+    // hand-rolled `file://` string.
+    expect(result).toBe(convertFilePathToUrl(uploadedPath));
     expect(fs.readFileSync(uploadedPath, 'utf8')).toBe('uploaded');
     expect(getScreens()).toEqual([
       existingScreen,

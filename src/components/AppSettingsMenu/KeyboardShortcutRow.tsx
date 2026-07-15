@@ -10,6 +10,9 @@ export interface Props {
   onChange: (accelerator: string) => void;
   onReset: () => void;
   isDefault: boolean;
+  // Error surfaced by the parent (e.g. "already assigned elsewhere") — takes
+  // priority over the row's own key-capture validation error.
+  externalError?: string | null;
 }
 
 // Turns an Electron accelerator like "CommandOrControl+Shift+H" into the
@@ -27,6 +30,7 @@ export default function KeyboardShortcutRow({
   onChange,
   onReset,
   isDefault,
+  externalError,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<HTMLDivElement>(null);
@@ -90,7 +94,7 @@ export default function KeyboardShortcutRow({
             onBlur={onCancelRecording}
             className="rounded-md bg-indigo-50 px-2 py-1 text-sm text-indigo-700 ring-1 ring-inset ring-indigo-300 focus:outline-none"
           >
-            {error || 'Press keys…'}
+            {externalError || error || 'Press keys…'}
           </div>
         ) : (
           <>

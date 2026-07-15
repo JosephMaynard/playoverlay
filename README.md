@@ -50,7 +50,7 @@ The binaries are **not code-signed or notarized** (signing certificates cost mon
   xattr -cr /Applications/PlayOverlay.app
   ```
 
-If you'd rather not trust an unsigned binary, build it yourself from source (below) — it's two commands.
+If you'd rather not trust an unsigned binary, build it yourself from source — see [Building from source](#building-from-source) below.
 
 ## Using it
 

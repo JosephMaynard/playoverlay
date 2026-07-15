@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { AppSettings } from 'src/types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -36,6 +36,7 @@ export default function TeamSettings({
   disabled,
 }: Props) {
   const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
 
   const handleLogoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -45,13 +46,17 @@ export default function TeamSettings({
     if (!file) {
       return;
     }
+    setLogoUploadError(null);
     try {
       const result = await window?.electronAPI?.uploadLogo(file);
       if (result) {
         setTeamLogo(result.url);
+      } else {
+        setLogoUploadError('Failed to upload logo. Please try again.');
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
+      setLogoUploadError('Failed to upload logo. Please try again.');
     }
   };
 
@@ -150,6 +155,9 @@ export default function TeamSettings({
             </button>
           )}
         </div>
+        {logoUploadError && (
+          <p className="mt-2 text-xs text-red-600">{logoUploadError}</p>
+        )}
       </div>
       <ColourPicker
         label={`${title} Text Colour`}

@@ -99,6 +99,36 @@ describe('displayTransport', () => {
     expect(timeCallback).not.toHaveBeenCalled();
   });
 
+  it('replays the latest cached payload to a subscriber that joins after it arrived', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    const transport = createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    // Snapshot arrives before anything subscribes.
+    socket.emitMessage({ channel: 'score-updated', payload: { homeTeam: 2, awayTeam: 1 } });
+
+    const lateCallback = vi.fn();
+    transport.onScoreUpdated(lateCallback);
+
+    expect(lateCallback).toHaveBeenCalledTimes(1);
+    expect(lateCallback).toHaveBeenCalledWith({ homeTeam: 2, awayTeam: 1 });
+
+    // Later live updates still dispatch normally.
+    socket.emitMessage({ channel: 'score-updated', payload: { homeTeam: 3, awayTeam: 1 } });
+    expect(lateCallback).toHaveBeenCalledTimes(2);
+    expect(lateCallback).toHaveBeenLastCalledWith({ homeTeam: 3, awayTeam: 1 });
+  });
+
+  it('does not replay a payload for a channel that has never received a message', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    const transport = createDisplayTransport();
+
+    const callback = vi.fn();
+    transport.onTimeUpdated(callback);
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
   it('stops delivering to a channel once unsubscribed', () => {
     delete (window as { electronAPI?: unknown }).electronAPI;
     const transport = createDisplayTransport();

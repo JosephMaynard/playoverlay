@@ -63,6 +63,13 @@ function createBrowserTransport(): DisplayTransport {
     'match-state-updated': new Set(),
   };
 
+  // The server pushes a full snapshot as soon as the socket opens, but a
+  // subscriber (e.g. a Display component re-mounting) can start listening
+  // after that snapshot has already arrived. Cache the latest payload per
+  // channel so a late subscribe() can replay it instead of waiting for the
+  // next live update.
+  const latestPayloads = new Map<Channel, unknown>();
+
   function connect() {
     const params = new URLSearchParams(window.location.search);
     const port = params.get('ws') ?? window.location.port;
@@ -75,6 +82,7 @@ function createBrowserTransport(): DisplayTransport {
           payload: unknown;
         };
         if (!CHANNELS.includes(channel)) return;
+        latestPayloads.set(channel, payload);
         listeners[channel].forEach((callback) => callback(payload));
       } catch (error) {
         console.error('Failed to parse browser-source message:', error);
@@ -95,6 +103,9 @@ function createBrowserTransport(): DisplayTransport {
   ): Unsubscribe {
     const wrapped = callback as (payload: unknown) => void;
     listeners[channel].add(wrapped);
+    if (latestPayloads.has(channel)) {
+      wrapped(latestPayloads.get(channel));
+    }
     return () => {
       listeners[channel].delete(wrapped);
     };
