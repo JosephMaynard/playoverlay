@@ -177,18 +177,12 @@ const createWindows = () => {
   );
 
   mainWindow.webContents.session.setPermissionCheckHandler(
-    (_webContents, permission, _requestingOrigin, _details) => {
-      if (permission === 'hid') {
-        return true;
-      }
-    }
+    (_webContents, permission) => permission === 'hid'
   );
 
-  mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-    if (details.deviceType === 'hid') {
-      return true;
-    }
-  });
+  mainWindow.webContents.session.setDevicePermissionHandler(
+    (details) => details.deviceType === 'hid'
+  );
 
   // Window closed event
   mainWindow.on('closed', () => {
@@ -427,12 +421,12 @@ function setupIPCHandlers() {
 
 // Setup display listeners
 function setupDisplayListeners() {
-  screen.on('display-added', (_, newDisplay) => {
+  screen.on('display-added', () => {
     ensureWindowsAreVisible(); // Ensure windows are visible when a display is added
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 
-  screen.on('display-removed', (_, oldDisplay) => {
+  screen.on('display-removed', () => {
     ensureWindowsAreVisible(); // Ensure windows are visible when a display is removed
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });

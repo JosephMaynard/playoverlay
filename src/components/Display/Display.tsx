@@ -57,22 +57,27 @@ const Display = () => {
       setMatchState(newSettings);
     };
 
-    window.electronAPI.onScoreUpdated(handleScoreUpdate);
-    window.electronAPI.onTimeUpdated(handleTimeUpdate);
-    window.electronAPI.onMatchSettingsUpdated(handleTeamSettingsUpdate);
-    window.electronAPI.onAppSettingsUpdated(handleAppSettingsUpdate);
-    window.electronAPI.onMatchStateUpdated(handleMatchSettingsUpdate);
+    const removeScoreListener = window.electronAPI.onScoreUpdated(handleScoreUpdate);
+    const removeTimeListener = window.electronAPI.onTimeUpdated(handleTimeUpdate);
+    const removeMatchSettingsListener = window.electronAPI.onMatchSettingsUpdated(
+      handleTeamSettingsUpdate
+    );
+    const removeAppSettingsListener = window.electronAPI.onAppSettingsUpdated(
+      handleAppSettingsUpdate
+    );
+    const removeMatchStateListener = window.electronAPI.onMatchStateUpdated(
+      handleMatchSettingsUpdate
+    );
 
     // After listeners are set up, request initial state from main
     window.electronAPI.displayReady();
 
-    // Cleanup listeners on component unmount
     return () => {
-      window.electronAPI.onScoreUpdated(() => {});
-      window.electronAPI.onTimeUpdated(() => {});
-      window.electronAPI.onMatchStateUpdated(() => {});
-      window.electronAPI.onAppSettingsUpdated(() => {});
-      window.electronAPI.onMatchStateUpdated(() => {});
+      removeScoreListener();
+      removeTimeListener();
+      removeMatchSettingsListener();
+      removeAppSettingsListener();
+      removeMatchStateListener();
     };
   }, []);
 

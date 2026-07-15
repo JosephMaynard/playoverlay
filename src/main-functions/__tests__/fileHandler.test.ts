@@ -146,7 +146,7 @@ describe('fileHandler', () => {
   });
 
   it('returns null when upload persistence fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, imagesPath, setCustomScreens } =
       await loadFileHandler();
     fs.rmSync(imagesPath, { force: true, recursive: true });
@@ -163,7 +163,7 @@ describe('fileHandler', () => {
   });
 
   it('returns false when deletion fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, setCustomScreens } = await loadFileHandler();
 
     expect(fileHandler.handleFileDeletion('/does/not/exist.png')).toBe(false);

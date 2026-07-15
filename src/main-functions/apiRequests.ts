@@ -13,7 +13,7 @@ export async function checkInternetConnection(): Promise<boolean> {
   try {
     await dns.lookup('github.com');
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

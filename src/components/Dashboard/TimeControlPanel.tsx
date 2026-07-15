@@ -124,7 +124,7 @@ export default function TimeControlPanel({
       </div>
       <WideModal
         open={modal === 'additionaTime'}
-        setOpen={(_) => {
+        setOpen={() => {
           setModal(undefined);
         }}
         title="Set Additional Time"
@@ -174,7 +174,7 @@ export default function TimeControlPanel({
       </WideModal>
       <WideModal
         open={modal === 'adjustTime'}
-        setOpen={(_) => {
+        setOpen={() => {
           setModal(undefined);
         }}
         title="Adjust Time"

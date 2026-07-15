@@ -6,12 +6,14 @@ import {
   external,
   pluginHotRestart,
 } from './vite.base.config';
+import { sharedDefine, sharedResolve } from './vite.shared.config';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
   const forgeEnv = env as ConfigEnv<'build'>;
   const { forgeConfigSelf } = forgeEnv;
   const define = {
+    ...sharedDefine,
     ...getBuildDefine(forgeEnv),
     __LEGACY_STORE_KEY__: JSON.stringify(process.env.LEGACY_STORE_KEY ?? ''),
   };
@@ -27,6 +29,7 @@ export default defineConfig((env) => {
     plugins: [pluginHotRestart('restart')],
     define,
     resolve: {
+      ...sharedResolve,
       // Load the Node.js entry.
       mainFields: ['module', 'jsnext:main', 'jsnext'],
     },

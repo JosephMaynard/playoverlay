@@ -78,7 +78,7 @@ On launch the app checks this repository's GitHub Releases for a newer version a
 
 ## Building from source
 
-Prerequisites: [Node.js](https://nodejs.org) 20+ and npm.
+Prerequisites: [Node.js](https://nodejs.org) 22.13+ (or 24+) and npm.
 
 ```bash
 git clone https://github.com/JosephMaynard/playoverlay.git
@@ -99,9 +99,10 @@ Cross-build for Intel from an Apple Silicon Mac (or vice versa):
 npm run make -- --arch=x64    # or --arch=arm64
 ```
 
-Type-check with `npm run ts-check`, run the test suite with `npm test`, and
-generate coverage with `npm run test:coverage`. Linting is available with
-`npm run lint`.
+Type-check with `npm run ts-check`, lint with `npm run lint`, run the test
+suite with `npm test`, and generate coverage with `npm run test:coverage`.
+The CI-only package sanity check is `npm run build:ci`; use `npm run make` to
+produce distributables.
 
 Tagged releases (`v*`) are built automatically for Windows and both macOS architectures by the [release workflow](.github/workflows/release.yml) and attached to a draft GitHub release.
 
@@ -122,10 +123,12 @@ Uploaded images live in an `images` folder alongside it.
 ## Contributing
 
 Issues and pull requests are welcome. Before opening a PR, please run
-`npm run ts-check` and `npm test`, then describe how you tested the change
+`npm run lint`, `npm run ts-check`, and `npm test`, then describe how you tested the change
 (this app's job is to not fall over mid-match, so reliability fixes are
 especially appreciated).
 
-## License
+## Source availability and licence
+
+PlayOverlay is **source-available**, not Open Source as defined by the Open Source Initiative. You are welcome to inspect the code, report bugs, and submit pull requests.
 
 PlayOverlay is free to use for anything, **including commercial streaming work**. You may not sell the software itself or redistribute it under a different name or brand. See [LICENSE](LICENSE) for the exact terms (MIT with the Commons Clause and a branding condition).

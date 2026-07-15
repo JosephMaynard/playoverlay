@@ -13,25 +13,35 @@ function installDisplayAPI(fullscreenStatus = false) {
     appSettings?: (settings: AppSettings) => void;
     matchState?: (state: MatchState) => void;
   } = {};
+  const removeScoreListener = vi.fn();
+  const removeTimeListener = vi.fn();
+  const removeMatchSettingsListener = vi.fn();
+  const removeAppSettingsListener = vi.fn();
+  const removeMatchStateListener = vi.fn();
   const electronAPI = {
     getFullscreenStatus: vi.fn().mockResolvedValue(fullscreenStatus),
     toggleFullscreen: vi.fn(),
     onScoreUpdated: vi.fn((callback: (scores: Scores) => void) => {
       callbacks.score = callback;
+      return removeScoreListener;
     }),
     onTimeUpdated: vi.fn((callback: (time: Time) => void) => {
       callbacks.time = callback;
+      return removeTimeListener;
     }),
     onMatchSettingsUpdated: vi.fn(
       (callback: (settings: typeof defaultMatchSettings) => void) => {
         callbacks.matchSettings = callback;
+        return removeMatchSettingsListener;
       }
     ),
     onAppSettingsUpdated: vi.fn((callback: (settings: AppSettings) => void) => {
       callbacks.appSettings = callback;
+      return removeAppSettingsListener;
     }),
     onMatchStateUpdated: vi.fn((callback: (state: MatchState) => void) => {
       callbacks.matchState = callback;
+      return removeMatchStateListener;
     }),
     displayReady: vi.fn(),
   } as unknown as Window['electronAPI'];
@@ -41,7 +51,15 @@ function installDisplayAPI(fullscreenStatus = false) {
     value: electronAPI,
   });
 
-  return { callbacks, electronAPI };
+  return {
+    callbacks,
+    electronAPI,
+    removeScoreListener,
+    removeTimeListener,
+    removeMatchSettingsListener,
+    removeAppSettingsListener,
+    removeMatchStateListener,
+  };
 }
 
 describe('Display', () => {
@@ -91,5 +109,18 @@ describe('Display', () => {
 
     expect(electronAPI.toggleFullscreen).toHaveBeenCalledTimes(1);
     expect(electronAPI.getFullscreenStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('removes every IPC listener when unmounted', () => {
+    const listeners = installDisplayAPI();
+    const { unmount } = render(<Display />);
+
+    unmount();
+
+    expect(listeners.removeScoreListener).toHaveBeenCalledTimes(1);
+    expect(listeners.removeTimeListener).toHaveBeenCalledTimes(1);
+    expect(listeners.removeMatchSettingsListener).toHaveBeenCalledTimes(1);
+    expect(listeners.removeAppSettingsListener).toHaveBeenCalledTimes(1);
+    expect(listeners.removeMatchStateListener).toHaveBeenCalledTimes(1);
   });
 });

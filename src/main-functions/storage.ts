@@ -6,7 +6,7 @@ import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
 
-// Builds made before the open source release encrypted config.json with a
+// Builds made before the source-available release encrypted config.json with a
 // build-time key. When LEGACY_STORE_KEY is provided at build time, an
 // encrypted config found on disk is decrypted once and rewritten as plain
 // JSON so existing users keep their settings. Builds without the key (the

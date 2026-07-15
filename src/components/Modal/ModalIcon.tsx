@@ -4,7 +4,6 @@ import {
   AdjustmentsHorizontalIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline';
-// @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
 
 export type Icon = 'warning' | 'clock' | 'adjust' | 'edit' | 'playoverlay-logo';

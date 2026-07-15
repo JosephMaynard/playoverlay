@@ -1,7 +1,6 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import ModalIcon, { Icon } from './ModalIcon';
 
 export interface Props {
   open: boolean;

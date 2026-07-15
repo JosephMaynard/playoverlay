@@ -29,7 +29,7 @@ function colorDistance(
 export function checkColors(
   color1: string,
   color2: string,
-  tolerance: number = 0.05
+  tolerance = 0.05
 ): boolean {
   // Convert hex colors to RGB
   const rgb1 = hexToRGB(color1);
@@ -63,8 +63,8 @@ export function classNames(...classes: string[]) {
 }
 
 export const getMatchPhases = (
-  halfLength: number = 45,
-  extraTimeHalfLength: number = 15
+  halfLength = 45,
+  extraTimeHalfLength = 15
 ): MatchPhases => ({
   firstHalf: {
     title: 'First Half',
@@ -109,9 +109,12 @@ export function removeValue(arr: string[], value: string): string[] {
   return arr.filter((item) => item !== value);
 }
 
-export const debounce = (func: (...args: any) => void, delay: number) => {
-  let timer: any;
-  return (...args: any) => {
+export const debounce = <Args extends unknown[]>(
+  func: (...args: Args) => void,
+  delay: number
+) => {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Args) => {
     clearTimeout(timer);
     timer = setTimeout(() => func(...args), delay);
   };

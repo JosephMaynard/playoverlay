@@ -1,17 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { sharedDefine, sharedResolve } from './vite.shared.config';
 
 export default defineConfig({
   plugins: [react()],
-  define: {
-    __LEGACY_STORE_KEY__: JSON.stringify(''),
-  },
-  resolve: {
-    alias: {
-      src: resolve(__dirname, 'src'),
-    },
-  },
+  define: sharedDefine,
+  resolve: sharedResolve,
   test: {
     environment: 'jsdom',
     globals: true,

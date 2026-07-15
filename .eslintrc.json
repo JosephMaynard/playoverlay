@@ -12,5 +12,27 @@
     "plugin:import/electron",
     "plugin:import/typescript"
   ],
-  "parser": "@typescript-eslint/parser"
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "import/core-modules": ["@vitejs/plugin-react", "vitest/config"],
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+        "paths": ["."]
+      }
+    }
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-unused-vars": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["src/test/**/*.{ts,tsx}"],
+      "rules": {
+        "@typescript-eslint/no-empty-function": "off"
+      }
+    }
+  ]
 }

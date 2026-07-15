@@ -7,23 +7,27 @@ import {
   MatchState,
   Display,
 } from '../types';
-import { MatchSettings } from '../zodSchemas';
+import { MatchSettings, UpdateStatus } from '../zodSchemas';
 
 declare global {
   interface Window {
     electronAPI: {
       updateScores: (scores: Scores) => void;
-      onScoreUpdated: (callback: (scores: Scores) => void) => void;
+      onScoreUpdated: (callback: (scores: Scores) => void) => () => void;
       updateTime: (time: Time) => void;
-      onTimeUpdated: (callback: (time: Time) => void) => void;
+      onTimeUpdated: (callback: (time: Time) => void) => () => void;
       updateMatchSettings: (settings: TeamSettingsInterface) => void;
       onMatchSettingsUpdated: (
         callback: (settings: TeamSettingsInterface) => void
-      ) => void;
+      ) => () => void;
       updateAppSettings: (settings: AppSettings) => void;
-      onAppSettingsUpdated: (callback: (settings: AppSettings) => void) => void;
+      onAppSettingsUpdated: (
+        callback: (settings: AppSettings) => void
+      ) => () => void;
       updateMatchState: (settings: MatchState) => void;
-      onMatchStateUpdated: (callback: (settings: MatchState) => void) => void;
+      onMatchStateUpdated: (
+        callback: (settings: MatchState) => void
+      ) => () => void;
       toggleFullscreen: () => void;
       getFullscreenStatus: () => boolean;
       startPowerSaveBlocker: () => void;
@@ -56,7 +60,7 @@ declare global {
       ) => () => void;
       checkForUpdates: () => Promise<{
         success: boolean;
-        updates?: any;
+        updates?: UpdateStatus;
         error?: string;
       }>;
       getLiveMatch: () => Promise<LiveMatch | undefined>;

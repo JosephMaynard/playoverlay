@@ -54,6 +54,7 @@ export default function ScoreInput({
           </div>
           <button
             type="button"
+            aria-label={`Edit ${teamNameFull} score`}
             className="absolute right-3 top-3 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={() => setEditScoreModalOpen(true)}
           >

@@ -1,7 +1,12 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { Display, contextBridge, ipcRenderer } from 'electron';
+import {
+  Display,
+  contextBridge,
+  ipcRenderer,
+  type IpcRendererEvent,
+} from 'electron';
 import {
   Scores,
   Time,
@@ -14,29 +19,49 @@ import { MatchSettings } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
-  onScoreUpdated: (callback: (scores: Scores) => void) =>
-    ipcRenderer.on('score-updated', (_, scores) => callback(scores)),
+  onScoreUpdated: (callback: (scores: Scores) => void) => {
+    const listener = (_: IpcRendererEvent, scores: Scores) =>
+      callback(scores);
+    ipcRenderer.on('score-updated', listener);
+    return () => ipcRenderer.removeListener('score-updated', listener);
+  },
   updateTime: (time: Time) => ipcRenderer.send('update-time', time),
-  onTimeUpdated: (callback: (time: Time) => void) =>
-    ipcRenderer.on('time-updated', (_, time) => callback(time)),
+  onTimeUpdated: (callback: (time: Time) => void) => {
+    const listener = (_: IpcRendererEvent, time: Time) =>
+      callback(time);
+    ipcRenderer.on('time-updated', listener);
+    return () => ipcRenderer.removeListener('time-updated', listener);
+  },
   updateMatchSettings: (matchSettings: MatchSettings) =>
     ipcRenderer.send('update-match-settings', matchSettings),
-  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) =>
-    ipcRenderer.on('match-settings-updated', (_, matchSettings) =>
-      callback(matchSettings)
-    ),
+  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) => {
+    const listener = (
+      _: IpcRendererEvent,
+      matchSettings: MatchSettings
+    ) => callback(matchSettings);
+    ipcRenderer.on('match-settings-updated', listener);
+    return () => ipcRenderer.removeListener('match-settings-updated', listener);
+  },
   updateAppSettings: (appSettings: AppSettings) =>
     ipcRenderer.send('update-app-settings', appSettings),
-  onAppSettingsUpdated: (callback: (appSettings: AppSettings) => void) =>
-    ipcRenderer.on('app-settings-updated', (_, appSettings) =>
-      callback(appSettings)
-    ),
+  onAppSettingsUpdated: (callback: (appSettings: AppSettings) => void) => {
+    const listener = (
+      _: IpcRendererEvent,
+      appSettings: AppSettings
+    ) => callback(appSettings);
+    ipcRenderer.on('app-settings-updated', listener);
+    return () => ipcRenderer.removeListener('app-settings-updated', listener);
+  },
   updateMatchState: (matchSettings: MatchState) =>
     ipcRenderer.send('update-match-state', matchSettings),
-  onMatchStateUpdated: (callback: (matchSettings: MatchState) => void) =>
-    ipcRenderer.on('match-state-updated', (_, matchSettings) =>
-      callback(matchSettings)
-    ),
+  onMatchStateUpdated: (callback: (matchSettings: MatchState) => void) => {
+    const listener = (
+      _: IpcRendererEvent,
+      matchSettings: MatchState
+    ) => callback(matchSettings);
+    ipcRenderer.on('match-state-updated', listener);
+    return () => ipcRenderer.removeListener('match-state-updated', listener);
+  },
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
   getFullscreenStatus: () => ipcRenderer.invoke('get-fullscreen-status'),
 
@@ -96,7 +121,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onCustomScreensUpdated: (
     callback: (customScreens: CustomScreen[]) => void
   ) => {
-    const listener = (_: any, screens: CustomScreen[]) => callback(screens);
+    const listener = (_: IpcRendererEvent, screens: CustomScreen[]) =>
+      callback(screens);
     ipcRenderer.on('custom-screens-updated', listener);
     return () => ipcRenderer.removeListener('custom-screens-updated', listener);
   },

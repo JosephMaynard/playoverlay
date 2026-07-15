@@ -5,8 +5,6 @@ import DragAndDropUploader from './DragAndDropUploader';
 import { CustomScreen } from '../../types';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Modal from '../Modal/Modal';
-import { DisplayScreen, screens } from '../../constants';
-import { arraysEqual, insertValue, removeValue } from '../../utils';
 import EditCustomScreen from './EditCustomScreen';
 import Empty from '../MatchSettingsMenu/Empty';
 
