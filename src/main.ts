@@ -24,6 +24,7 @@ import {
   defaultScores,
 } from './constants';
 import { MatchSettings } from './zodSchemas';
+import { deriveGlobalAccelerator, getKeyboardShortcuts } from './utils';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
@@ -220,9 +221,32 @@ function setupIPCHandlers() {
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
+    const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
+
     setAppSettings(appSettings);
     cachedAppSettings = appSettings;
     displayWindow?.webContents.send('app-settings-updated', appSettings);
+
+    const nextShortcuts = getKeyboardShortcuts(cachedAppSettings);
+    const shortcutsChanged =
+      previousShortcuts.nextMatchPhase !== nextShortcuts.nextMatchPhase ||
+      previousShortcuts.homeTeamScored !== nextShortcuts.homeTeamScored ||
+      previousShortcuts.awayTeamScored !== nextShortcuts.awayTeamScored;
+
+    // Re-register with the new bindings. If shortcuts are currently
+    // disabled (a side menu is open) both sets are already unregistered —
+    // leave them alone and let enable-keyboard-shortcuts pick up the new
+    // bindings when the menu closes. The global Alt set is always on while
+    // enabled; the focus set only registers while the main window has
+    // focus.
+    if (shortcutsChanged && !keyboardShortcutsDisabled) {
+      unregisterGlobalKeyboardShortcuts();
+      registerGlobalKeyboardShortcuts();
+      if (mainWindow?.isFocused()) {
+        unregisterKeyboardShortcuts();
+        registerKeyboardShortcuts();
+      }
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
@@ -441,42 +465,78 @@ function setupDisplayListeners() {
 }
 
 // Keyboard shortcuts
+// Track exactly which accelerators are registered right now (bindings can
+// change between a register and its matching unregister, e.g. via a
+// rebind), so unregistering always removes precisely those accelerators
+// and never leaves a stale one behind.
+let registeredFocusAccelerators: string[] = [];
+let registeredGlobalAccelerators: string[] = [];
+
+function getShortcutBindings(): Array<{ accelerator: string; channel: string }> {
+  const shortcuts = getKeyboardShortcuts(cachedAppSettings);
+  return [
+    { accelerator: shortcuts.nextMatchPhase, channel: 'next-match-phase' },
+    { accelerator: shortcuts.homeTeamScored, channel: 'home-team-scored' },
+    { accelerator: shortcuts.awayTeamScored, channel: 'away-team-scored' },
+  ];
+}
+
 const registerKeyboardShortcuts = () => {
-  globalShortcut.register('CommandOrControl+Shift+Space', () => {
-    mainWindow?.webContents.send('next-match-phase');
+  const failed: string[] = [];
+  registeredFocusAccelerators = [];
+
+  getShortcutBindings().forEach(({ accelerator, channel }) => {
+    const registered = globalShortcut.register(accelerator, () => {
+      mainWindow?.webContents.send(channel);
+    });
+    if (registered) {
+      registeredFocusAccelerators.push(accelerator);
+    } else {
+      failed.push(accelerator);
+    }
   });
 
-  globalShortcut.register('CommandOrControl+Shift+h', () => {
-    mainWindow?.webContents.send('home-team-scored');
-  });
-
-  globalShortcut.register('CommandOrControl+Shift+a', () => {
-    mainWindow?.webContents.send('away-team-scored');
-  });
+  if (failed.length > 0) {
+    console.error('Failed to register keyboard shortcut(s):', failed);
+  }
 };
 
 const unregisterKeyboardShortcuts = () => {
-  globalShortcut.unregister('CommandOrControl+Shift+Space');
-  globalShortcut.unregister('CommandOrControl+Shift+h');
-  globalShortcut.unregister('CommandOrControl+Shift+a');
+  registeredFocusAccelerators.forEach((accelerator) =>
+    globalShortcut.unregister(accelerator)
+  );
+  registeredFocusAccelerators = [];
 };
 
 const registerGlobalKeyboardShortcuts = () => {
-  globalShortcut.register('CommandOrControl+Alt+Shift+Space', () => {
-    mainWindow?.webContents.send('next-match-phase');
+  const failed: string[] = [];
+  registeredGlobalAccelerators = [];
+
+  getShortcutBindings().forEach(({ accelerator, channel }) => {
+    const globalAccelerator = deriveGlobalAccelerator(accelerator);
+    // Accelerators that already include Alt have no separate global variant.
+    if (!globalAccelerator) return;
+
+    const registered = globalShortcut.register(globalAccelerator, () => {
+      mainWindow?.webContents.send(channel);
+    });
+    if (registered) {
+      registeredGlobalAccelerators.push(globalAccelerator);
+    } else {
+      failed.push(globalAccelerator);
+    }
   });
-  globalShortcut.register('CommandOrControl+Alt+Shift+H', () => {
-    mainWindow?.webContents.send('home-team-scored');
-  });
-  globalShortcut.register('CommandOrControl+Alt+Shift+A', () => {
-    mainWindow?.webContents.send('away-team-scored');
-  });
+
+  if (failed.length > 0) {
+    console.error('Failed to register global keyboard shortcut(s):', failed);
+  }
 };
 
 const unregisterGlobalKeyboardShortcuts = () => {
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+Space');
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+H');
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+A');
+  registeredGlobalAccelerators.forEach((accelerator) =>
+    globalShortcut.unregister(accelerator)
+  );
+  registeredGlobalAccelerators = [];
 };
 
 // App ready event

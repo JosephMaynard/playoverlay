@@ -5,14 +5,17 @@ import {
   checkColors,
   classNames,
   debounce,
+  deriveGlobalAccelerator,
+  getKeyboardShortcuts,
   getNextPhaseId,
   getPhaseById,
   getPhaseList,
   insertValue,
+  keyboardEventToAccelerator,
   removeValue,
   timeToString,
 } from '../utils';
-import { defaultMatchSettings } from '../constants';
+import { defaultAppSettings, defaultKeyboardShortcuts, defaultMatchSettings } from '../constants';
 import { MatchSettings } from '../zodSchemas';
 
 describe('utils', () => {
@@ -222,6 +225,182 @@ describe('utils', () => {
   describe('removeValue', () => {
     it('removes every matching value', () => {
       expect(removeValue(['a', 'b', 'a'], 'a')).toEqual(['b']);
+    });
+  });
+
+  describe('getKeyboardShortcuts', () => {
+    it('falls back to the historical defaults when appSettings has no customization', () => {
+      expect(getKeyboardShortcuts(defaultAppSettings)).toEqual(
+        defaultKeyboardShortcuts
+      );
+    });
+
+    it('layers custom bindings on top of the defaults', () => {
+      expect(
+        getKeyboardShortcuts({
+          ...defaultAppSettings,
+          keyboardShortcuts: { ...defaultKeyboardShortcuts, homeTeamScored: 'CommandOrControl+Shift+J' },
+        })
+      ).toEqual({
+        ...defaultKeyboardShortcuts,
+        homeTeamScored: 'CommandOrControl+Shift+J',
+      });
+    });
+
+    it('fills in a missing individual action from the defaults', () => {
+      expect(
+        getKeyboardShortcuts({
+          ...defaultAppSettings,
+          keyboardShortcuts: {
+            nextMatchPhase: 'CommandOrControl+Shift+N',
+          } as Partial<typeof defaultKeyboardShortcuts> as typeof defaultKeyboardShortcuts,
+        })
+      ).toEqual({
+        ...defaultKeyboardShortcuts,
+        nextMatchPhase: 'CommandOrControl+Shift+N',
+      });
+    });
+  });
+
+  describe('deriveGlobalAccelerator', () => {
+    it('inserts Alt right after CommandOrControl, matching the historical global shortcuts', () => {
+      expect(deriveGlobalAccelerator('CommandOrControl+Shift+Space')).toBe(
+        'CommandOrControl+Alt+Shift+Space'
+      );
+      expect(deriveGlobalAccelerator('CommandOrControl+Shift+H')).toBe(
+        'CommandOrControl+Alt+Shift+H'
+      );
+      expect(deriveGlobalAccelerator('CommandOrControl+Shift+A')).toBe(
+        'CommandOrControl+Alt+Shift+A'
+      );
+    });
+
+    it('returns null when the accelerator already includes Alt', () => {
+      expect(deriveGlobalAccelerator('CommandOrControl+Alt+H')).toBeNull();
+      expect(deriveGlobalAccelerator('Alt+Shift+H')).toBeNull();
+    });
+
+    it('returns null when there is no CommandOrControl/Cmd/Ctrl modifier to anchor on', () => {
+      expect(deriveGlobalAccelerator('Shift+H')).toBeNull();
+    });
+  });
+
+  describe('keyboardEventToAccelerator', () => {
+    it('builds a CommandOrControl+Shift+<letter> accelerator from a keydown', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: true,
+          key: 'h',
+          code: 'KeyH',
+        })
+      ).toBe('CommandOrControl+Shift+H');
+    });
+
+    it('treats ctrlKey the same as metaKey', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: false,
+          ctrlKey: true,
+          altKey: false,
+          shiftKey: true,
+          key: 'a',
+          code: 'KeyA',
+        })
+      ).toBe('CommandOrControl+Shift+A');
+    });
+
+    it('maps the space key to "Space"', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: true,
+          key: ' ',
+          code: 'Space',
+        })
+      ).toBe('CommandOrControl+Shift+Space');
+    });
+
+    it('uses the physical key code for digits, ignoring a shifted symbol', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: true,
+          key: '@', // Shift+2 on a US layout
+          code: 'Digit2',
+        })
+      ).toBe('CommandOrControl+Shift+2');
+    });
+
+    it('supports F-keys', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: false,
+          key: 'F5',
+          code: 'F5',
+        })
+      ).toBe('CommandOrControl+F5');
+    });
+
+    it('allows Alt alone to satisfy the non-Shift modifier requirement', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: false,
+          ctrlKey: false,
+          altKey: true,
+          shiftKey: false,
+          key: 'k',
+          code: 'KeyK',
+        })
+      ).toBe('Alt+K');
+    });
+
+    it('returns null for a modifier-only keydown', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: false,
+          key: 'Meta',
+          code: 'MetaLeft',
+        })
+      ).toBeNull();
+    });
+
+    it('returns null when there is no non-Shift modifier', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: false,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: true,
+          key: 'h',
+          code: 'KeyH',
+        })
+      ).toBeNull();
+    });
+
+    it('returns null for keys it does not know how to bind', () => {
+      expect(
+        keyboardEventToAccelerator({
+          metaKey: true,
+          ctrlKey: false,
+          altKey: false,
+          shiftKey: false,
+          key: 'Escape',
+          code: 'Escape',
+        })
+      ).toBeNull();
     });
   });
 

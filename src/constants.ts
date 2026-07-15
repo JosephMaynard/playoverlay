@@ -1,9 +1,18 @@
-import { MatchState, AppSettings, Scores } from './types';
+import { MatchState, AppSettings, KeyboardShortcuts, Scores } from './types';
 import { MatchSettings } from './zodSchemas';
 
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
   autoSwitchScreens: true,
+};
+
+// The historical hardcoded shortcuts, unchanged so existing users notice
+// nothing. `getKeyboardShortcuts` in utils.ts merges these with any
+// bindings the user has customized.
+export const defaultKeyboardShortcuts: KeyboardShortcuts = {
+  nextMatchPhase: 'CommandOrControl+Shift+Space',
+  homeTeamScored: 'CommandOrControl+Shift+H',
+  awayTeamScored: 'CommandOrControl+Shift+A',
 };
 
 export const defaultMatchSettings: MatchSettings = {

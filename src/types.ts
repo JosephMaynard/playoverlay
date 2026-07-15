@@ -13,9 +13,16 @@ export interface Scores {
   penalties: Penalty[];
 }
 
+export interface KeyboardShortcuts {
+  nextMatchPhase: string;
+  homeTeamScored: string;
+  awayTeamScored: string;
+}
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
+  keyboardShortcuts?: KeyboardShortcuts;
 }
 
 export interface MatchState {

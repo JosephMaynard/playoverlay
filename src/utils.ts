@@ -1,5 +1,6 @@
-import { MatchPeriod, MatchPhase, Penalty } from './types';
+import { AppSettings, KeyboardShortcuts, MatchPeriod, MatchPhase, Penalty } from './types';
 import { MatchSettings } from './zodSchemas';
+import { defaultKeyboardShortcuts } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -165,6 +166,88 @@ export function insertValue(arr: string[], value: string): string[] {
 
 export function removeValue(arr: string[], value: string): string[] {
   return arr.filter((item) => item !== value);
+}
+
+// The active keyboard shortcut bindings: user customizations layered over
+// the historical defaults, so a config.json with no `keyboardShortcuts`
+// field (or one missing an individual action) behaves exactly as before.
+// Shared by main.ts (registration) and the renderer (settings UI).
+export function getKeyboardShortcuts(
+  appSettings: AppSettings
+): KeyboardShortcuts {
+  return {
+    ...defaultKeyboardShortcuts,
+    ...appSettings.keyboardShortcuts,
+  };
+}
+
+// The always-on global variant of a focus-only accelerator: Alt is inserted
+// right after the CommandOrControl/Cmd/Ctrl modifier. Accelerators that
+// already include Alt have no separate global variant.
+export function deriveGlobalAccelerator(accelerator: string): string | null {
+  const parts = accelerator.split('+');
+  if (parts.includes('Alt')) return null;
+
+  const primaryModifiers = [
+    'CommandOrControl',
+    'Command',
+    'Cmd',
+    'Control',
+    'Ctrl',
+  ];
+  const modifierIndex = parts.findIndex((part) =>
+    primaryModifiers.includes(part)
+  );
+  if (modifierIndex === -1) return null;
+
+  const partsWithAlt = [...parts];
+  partsWithAlt.splice(modifierIndex + 1, 0, 'Alt');
+  return partsWithAlt.join('+');
+}
+
+// Builds an Electron accelerator string from a keydown event's modifier
+// flags and physical key. Uses `code` (not `key`) for the main key so a
+// shifted digit/letter (e.g. Shift+2 producing '@' on a US layout) still
+// resolves to the physical "2"/"B" key. Returns null for modifier-only
+// keydowns, unsupported keys, and bindings with no non-Shift modifier
+// (plain letters/space must stay free for normal typing).
+export function keyboardEventToAccelerator({
+  metaKey,
+  ctrlKey,
+  altKey,
+  shiftKey,
+  key,
+  code,
+}: {
+  metaKey: boolean;
+  ctrlKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+  key: string;
+  code: string;
+}): string | null {
+  if (['Control', 'Meta', 'Alt', 'Shift'].includes(key)) return null;
+  if (!metaKey && !ctrlKey && !altKey) return null;
+
+  const modifiers: string[] = [];
+  if (metaKey || ctrlKey) modifiers.push('CommandOrControl');
+  if (altKey) modifiers.push('Alt');
+  if (shiftKey) modifiers.push('Shift');
+
+  let mainKey: string | null = null;
+  if (code === 'Space') {
+    mainKey = 'Space';
+  } else if (/^Key[A-Z]$/.test(code)) {
+    mainKey = code.slice(3);
+  } else if (/^Digit[0-9]$/.test(code)) {
+    mainKey = code.slice(5);
+  } else if (/^F(?:[1-9]|1[0-9]|2[0-4])$/.test(code)) {
+    mainKey = code;
+  }
+
+  if (!mainKey) return null;
+
+  return [...modifiers, mainKey].join('+');
 }
 
 export const debounce = <Args extends unknown[]>(

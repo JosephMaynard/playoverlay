@@ -58,7 +58,7 @@ If you'd rather not trust an unsigned binary, build it yourself from source (bel
 
 ### Keyboard shortcuts
 
-While PlayOverlay is focused:
+While PlayOverlay is focused, by default:
 
 | Shortcut | Action |
 | --- | --- |
@@ -66,7 +66,9 @@ While PlayOverlay is focused:
 | `Cmd/Ctrl+Shift+H` | Home team scored |
 | `Cmd/Ctrl+Shift+A` | Away team scored |
 
-The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`.
+The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H` — unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
+
+These are rebindable: open **Window Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). **Reset** restores that action's default.
 
 ### Stream Deck
 
