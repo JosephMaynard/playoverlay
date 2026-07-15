@@ -27,21 +27,38 @@ function getUniqueFileName(directory: string, fileName: string): string {
   return uniqueFileName;
 }
 
-export async function handleFileUpload(
+export function saveImageFile(
   buffer: Buffer,
-  fileName: string,
-  title: string
-): Promise<string | null> {
+  fileName: string
+): { filePath: string; url: string } | null {
   const uniqueFileName = getUniqueFileName(imagesPath, fileName);
   const destination = path.join(imagesPath, uniqueFileName);
 
   try {
     fs.writeFileSync(destination, buffer);
+    return { filePath: destination, url: convertFilePathToUrl(destination) };
+  } catch (error) {
+    console.error('Error saving file:', error);
+    return null;
+  }
+}
+
+export async function handleFileUpload(
+  buffer: Buffer,
+  fileName: string,
+  title: string
+): Promise<string | null> {
+  const saved = saveImageFile(buffer, fileName);
+  if (!saved) {
+    return null;
+  }
+
+  try {
     const screens = getCustomScreens() as CustomScreen[];
     screens.push({
       title,
-      filePath: destination,
-      url: convertFilePathToUrl(destination),
+      filePath: saved.filePath,
+      url: saved.url,
       type: 'screen',
       overlayLinks: [],
     });
@@ -49,7 +66,7 @@ export async function handleFileUpload(
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('custom-screens-updated', screens);
     });
-    return `file://${destination}`;
+    return `file://${saved.filePath}`;
   } catch (error) {
     console.error('Error saving file:', error);
     return null;

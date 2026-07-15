@@ -40,4 +40,55 @@ describe('ScoresLayout', () => {
     expect(screen.queryByText(/:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\+/)).not.toBeInTheDocument();
   });
+
+  it('renders no logo images when neither team has a logo set', () => {
+    const { container } = render(
+      <ScoresLayout
+        active
+        matchSettings={defaultMatchSettings}
+        scores={{ homeTeam: 0, awayTeam: 0, penalties: [] }}
+        time={{}}
+      />
+    );
+
+    expect(container.querySelectorAll('img')).toHaveLength(0);
+  });
+
+  it('renders logo images for whichever teams have a logo set, and widens the active width', () => {
+    const { container, rerender } = render(
+      <ScoresLayout
+        active
+        matchSettings={{
+          ...defaultMatchSettings,
+          homeTeamLogo: 'file:///tmp/images/home-logo.png',
+        }}
+        scores={{ homeTeam: 0, awayTeam: 0, penalties: [] }}
+        time={{}}
+      />
+    );
+
+    const singleLogoImages = container.querySelectorAll('img');
+    expect(singleLogoImages).toHaveLength(1);
+    expect(singleLogoImages[0]).toHaveAttribute(
+      'src',
+      'file:///tmp/images/home-logo.png'
+    );
+    expect(container.firstChild).toHaveClass('ScoresLayout_active_logos1');
+
+    rerender(
+      <ScoresLayout
+        active
+        matchSettings={{
+          ...defaultMatchSettings,
+          homeTeamLogo: 'file:///tmp/images/home-logo.png',
+          awayTeamLogo: 'file:///tmp/images/away-logo.png',
+        }}
+        scores={{ homeTeam: 0, awayTeam: 0, penalties: [] }}
+        time={{}}
+      />
+    );
+
+    expect(container.querySelectorAll('img')).toHaveLength(2);
+    expect(container.firstChild).toHaveClass('ScoresLayout_active_logos2');
+  });
 });

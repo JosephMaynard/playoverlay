@@ -110,6 +110,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   deleteImage: (filePath: string) =>
     ipcRenderer.invoke('delete-image', filePath),
+  uploadLogo: async (file: File) => {
+    const arrayBuffer = await file.arrayBuffer();
+    return ipcRenderer.invoke(
+      'upload-logo',
+      Buffer.from(arrayBuffer),
+      file.name
+    );
+  },
   getCustomScreens: (): Promise<CustomScreen[]> =>
     ipcRenderer.invoke('get-custom-screens'),
   setCustomScreens: (customScreens: CustomScreen[]) =>

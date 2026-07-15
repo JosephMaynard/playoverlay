@@ -44,6 +44,7 @@ import resetWindow from './main-functions/resetWindow';
 import {
   handleFileDeletion,
   handleFileUpload,
+  saveImageFile,
 } from './main-functions/fileHandler';
 import { checkForUpdates } from './main-functions/apiRequests';
 
@@ -350,6 +351,13 @@ function setupIPCHandlers() {
   ipcMain.handle('delete-image', async (_, filePath: string) => {
     return handleFileDeletion(filePath);
   });
+
+  ipcMain.handle(
+    'upload-logo',
+    async (_, buffer: Buffer, fileName: string) => {
+      return saveImageFile(buffer, fileName);
+    }
+  );
 
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();

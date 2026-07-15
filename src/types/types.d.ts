@@ -47,6 +47,9 @@ declare global {
       onLockStatus: (callback: (lockStatus: boolean) => void) => () => void;
       uploadImage: (file: File, title: string) => Promise<string | null>;
       deleteImage: (filePath: string) => Promise<boolean>;
+      uploadLogo: (
+        file: File
+      ) => Promise<{ filePath: string; url: string } | null>;
       getCustomScreens: () => Promise<CustomScreen[]>;
       setCustomScreens: (
         customScreens: CustomScreen[]

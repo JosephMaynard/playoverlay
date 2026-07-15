@@ -51,6 +51,10 @@ export default function MatchSettingsMenu({
         setBackgroundColour={(homeTeamBackgroundColour: string) =>
           updateMatchSettings({ homeTeamBackgroundColour })
         }
+        teamLogo={matchSettings.homeTeamLogo}
+        setTeamLogo={(homeTeamLogo: string | undefined) =>
+          updateMatchSettings({ homeTeamLogo })
+        }
         appSettings={appSettings}
       />
       <TeamSettings
@@ -70,6 +74,10 @@ export default function MatchSettingsMenu({
         backgroundColour={matchSettings.awayTeamBackgroundColour}
         setBackgroundColour={(awayTeamBackgroundColour: string) =>
           updateMatchSettings({ awayTeamBackgroundColour })
+        }
+        teamLogo={matchSettings.awayTeamLogo}
+        setTeamLogo={(awayTeamLogo: string | undefined) =>
+          updateMatchSettings({ awayTeamLogo })
         }
         appSettings={appSettings}
       />

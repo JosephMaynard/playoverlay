@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { AppSettings } from 'src/types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -13,6 +14,8 @@ export interface Props {
   setTextColour: (textColour: string) => void;
   backgroundColour: string;
   setBackgroundColour: (backgroundColour: string) => void;
+  teamLogo?: string;
+  setTeamLogo: (teamLogo: string | undefined) => void;
   appSettings: AppSettings;
   disabled?: boolean;
 }
@@ -27,9 +30,31 @@ export default function TeamSettings({
   setTextColour,
   backgroundColour,
   setBackgroundColour,
+  teamLogo,
+  setTeamLogo,
   appSettings,
   disabled,
 }: Props) {
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleLogoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+    try {
+      const result = await window?.electronAPI?.uploadLogo(file);
+      if (result) {
+        setTeamLogo(result.url);
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+    }
+  };
+
   return (
     <CollapsiblePanel title={title}>
       <div className="col-span-full mb-4">
@@ -86,6 +111,44 @@ export default function TeamSettings({
             disabled={disabled}
             readOnly={disabled}
           />
+        </div>
+      </div>
+      <div className="col-span-full mb-4">
+        <label className="block text-sm font-medium leading-6 text-gray-900">
+          {title} Logo
+        </label>
+        <div className="mt-2 flex items-center gap-3">
+          {teamLogo && (
+            <div
+              className="h-12 w-12 shrink-0 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm ring-1 ring-inset ring-gray-300"
+              style={{ backgroundImage: `url("${teamLogo}")` }}
+            />
+          )}
+          <button
+            type="button"
+            className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+            onClick={() => logoInputRef.current?.click()}
+            disabled={disabled}
+          >
+            Upload
+          </button>
+          <input
+            type="file"
+            ref={logoInputRef}
+            style={{ display: 'none' }}
+            accept="image/png, image/jpeg, image/svg+xml, image/webp"
+            onChange={handleLogoChange}
+          />
+          {teamLogo && (
+            <button
+              type="button"
+              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              onClick={() => setTeamLogo(undefined)}
+              disabled={disabled}
+            >
+              Remove
+            </button>
+          )}
         </div>
       </div>
       <ColourPicker
