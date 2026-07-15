@@ -13,6 +13,11 @@ export default defineConfig((env) => {
     root,
     mode,
     base: './',
+    // Each renderer dev server gets its own dep-optimization cache: the two
+    // servers run concurrently, and sharing the default node_modules/.vite
+    // lets one clobber the other's metadata, which loads two copies of React
+    // in the affected window (blank page, "Invalid hook call").
+    cacheDir: `node_modules/.vite/${name}`,
     build: {
       outDir: `.vite/renderer/${name}`,
     },

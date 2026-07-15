@@ -14,6 +14,9 @@ export default defineConfig((env) => {
     root,
     mode,
     base: './',
+    // Own dep-optimization cache per renderer dev server — see the note in
+    // vite.renderer.config.ts.
+    cacheDir: `node_modules/.vite/${name}`,
     build: {
       rollupOptions: {
         input: {
