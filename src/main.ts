@@ -482,8 +482,10 @@ function getShortcutBindings(): Array<{ accelerator: string; channel: string }> 
 }
 
 const registerKeyboardShortcuts = () => {
+  // Idempotent: clear any tracked registrations first so a repeated focus
+  // event can't reset the tracking while the shortcuts stay registered.
+  unregisterKeyboardShortcuts();
   const failed: string[] = [];
-  registeredFocusAccelerators = [];
 
   getShortcutBindings().forEach(({ accelerator, channel }) => {
     const registered = globalShortcut.register(accelerator, () => {
@@ -509,8 +511,9 @@ const unregisterKeyboardShortcuts = () => {
 };
 
 const registerGlobalKeyboardShortcuts = () => {
+  // Idempotent: see registerKeyboardShortcuts.
+  unregisterGlobalKeyboardShortcuts();
   const failed: string[] = [];
-  registeredGlobalAccelerators = [];
 
   getShortcutBindings().forEach(({ accelerator, channel }) => {
     const globalAccelerator = deriveGlobalAccelerator(accelerator);
