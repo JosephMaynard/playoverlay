@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AppSettings, Display, KeyboardShortcuts } from '../../types';
 import { defaultKeyboardShortcuts } from '../../constants';
-import { getKeyboardShortcuts } from '../../utils';
+import { classNames, getBrowserSourceSettings, getKeyboardShortcuts } from '../../utils';
+import { Switch } from '@headlessui/react';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import {
@@ -30,8 +31,15 @@ export default function AppSettingsMenu({
   const [recordingAction, setRecordingAction] = useState<
     keyof KeyboardShortcuts | null
   >(null);
+  const [browserSourceStatus, setBrowserSourceStatus] = useState<{
+    running: boolean;
+    port: number;
+    error?: string;
+  } | null>(null);
+  const [copiedBrowserSourceUrl, setCopiedBrowserSourceUrl] = useState(false);
 
   const keyboardShortcuts = getKeyboardShortcuts(appSettings);
+  const browserSource = getBrowserSourceSettings(appSettings);
 
   useEffect(() => {
     // Request initial screens information on component mount
@@ -54,6 +62,22 @@ export default function AppSettingsMenu({
       cleanupDisplayChange();
       cleanupLockStatus();
     };
+  }, []);
+
+  const refreshBrowserSourceStatus = () => {
+    if (!window?.electronAPI) return;
+    window.electronAPI
+      .getBrowserSourceStatus()
+      .then((status) => {
+        setBrowserSourceStatus(status);
+      })
+      .catch(() => {
+        // Ignore; the status line just won't update this time.
+      });
+  };
+
+  useEffect(() => {
+    refreshBrowserSourceStatus();
   }, []);
 
   const handleMoveWindow = (screenId: number) => {
@@ -87,6 +111,26 @@ export default function AppSettingsMenu({
         [action]: defaultKeyboardShortcuts[action],
       },
     });
+  };
+
+  const handleToggleBrowserSource = (enabled: boolean) => {
+    updateAppSettings({ browserSource: { ...browserSource, enabled } });
+    // The server (re)starts asynchronously in the main process; give it a
+    // moment before checking whether it actually came up.
+    setTimeout(refreshBrowserSourceStatus, 400);
+  };
+
+  const handleBrowserSourcePortChange = (port: number) => {
+    updateAppSettings({ browserSource: { ...browserSource, port } });
+    setTimeout(refreshBrowserSourceStatus, 400);
+  };
+
+  const browserSourceUrl = `http://127.0.0.1:${browserSource.port}/`;
+
+  const handleCopyBrowserSourceUrl = () => {
+    navigator.clipboard.writeText(browserSourceUrl);
+    setCopiedBrowserSourceUrl(true);
+    setTimeout(() => setCopiedBrowserSourceUrl(false), 1500);
   };
 
   return (
@@ -155,6 +199,74 @@ export default function AppSettingsMenu({
         <p className="mt-2 text-xs text-gray-500">
           Each shortcut also works system-wide (e.g. while OBS is focused)
           with Alt added, unless the shortcut already includes Alt.
+        </p>
+      </div>
+      <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
+        <h3 className="text-sm font-semibold text-gray-900">
+          OBS Browser Source
+        </h3>
+        <Switch.Group as="div" className="mt-2 flex items-center">
+          <Switch
+            checked={browserSource.enabled}
+            onChange={handleToggleBrowserSource}
+            className={classNames(
+              browserSource.enabled ? 'bg-indigo-600' : 'bg-gray-200',
+              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={classNames(
+                browserSource.enabled ? 'translate-x-5' : 'translate-x-0',
+                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+              )}
+            />
+          </Switch>
+          <Switch.Label as="span" className="ml-3 text-sm">
+            <span className="font-medium text-gray-900">Enable</span>
+          </Switch.Label>
+        </Switch.Group>
+        <label
+          htmlFor="browserSourcePort"
+          className="mt-3 block text-sm font-medium leading-6 text-gray-900"
+        >
+          Port
+        </label>
+        <div className="mt-1">
+          <input
+            type="number"
+            name="browserSourcePort"
+            id="browserSourcePort"
+            min={1024}
+            max={65535}
+            className="block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            value={browserSource.port}
+            onChange={(event) => {
+              const port = Number(event.target.value);
+              if (!Number.isNaN(port)) handleBrowserSourcePortChange(port);
+            }}
+          />
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Status:{' '}
+          {browserSourceStatus?.running ? 'Running' : 'Stopped'}
+          {browserSourceStatus?.error ? ` — ${browserSourceStatus.error}` : ''}
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <code className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">
+            {browserSourceUrl}
+          </code>
+          <button
+            type="button"
+            onClick={handleCopyBrowserSourceUrl}
+            className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+          >
+            {copiedBrowserSourceUrl ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Add as a Browser Source in OBS at your canvas resolution; the
+          background is transparent.
         </p>
       </div>
       {displays.length > 1 ? (

@@ -6,7 +6,7 @@ import { CustomScreen } from '../types';
 import convertFilePathToUrl from './convertFilePathToUrl';
 
 const userDataPath = app.getPath('userData');
-const imagesPath = path.join(userDataPath, 'images');
+export const imagesPath = path.join(userDataPath, 'images');
 
 // Ensure the images directory exists
 if (!fs.existsSync(imagesPath)) {

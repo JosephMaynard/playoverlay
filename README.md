@@ -13,6 +13,8 @@ PlayOverlay runs two windows:
 - **Control window** — the dashboard where the operator updates scores, runs the match clock, tracks penalties, and switches screens.
 - **Display window** — a clean, fullscreen output showing the graphics on your chosen key colour. Put this on a second display connected to your mixer (e.g. via HDMI into an ATEM input), then chroma key it over the match feed.
 
+If you're streaming through OBS instead of a hardware mixer, you can skip the second display and chroma key entirely — see [OBS browser source](#obs-browser-source) below.
+
 ## Features
 
 - **Score bug** with team abbreviations, live scores, match clock, and stoppage time
@@ -22,6 +24,7 @@ PlayOverlay runs two windows:
 - **Penalty shootout tracker** — alternates teams automatically, records scored/missed, supports undo
 - **Screens** — match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
 - **Custom key colour** for whatever your mixer keys best
+- **OBS browser source output** — an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
 - **Keyboard shortcuts** and **Elgato Stream Deck** support for goals, phase changes, and screen switching
 - **Saved match settings** — store team line-ups/colours and reload them per fixture
 - Multi-monitor aware: move the display window between screens, lock windows always-on-top, keep the machine awake while live
@@ -73,6 +76,16 @@ These are rebindable: open **Window Settings → Keyboard Shortcuts**, click **C
 ### Stream Deck
 
 Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck**. The deck shows rotating button sets for scoring, match phases, and screen switching; the logo key cycles between sets. (Uses WebHID — close any other software that's holding the deck, including the official Stream Deck app.)
+
+### OBS browser source
+
+Off by default. If you'd rather not manage a second display and chroma key, PlayOverlay can serve the display graphics directly as an OBS Browser Source, with a transparent background instead of a key colour:
+
+1. Open **Window Settings → OBS Browser Source** and switch it on (default port `4750`).
+2. In OBS, add a **Browser Source** pointed at the URL shown there (`http://127.0.0.1:<port>/`), sized to your canvas resolution.
+3. That's it — no chroma key needed, since the page background is transparent.
+
+The server only listens on `127.0.0.1` (never reachable from the network) and stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
 
 ## Updates
 

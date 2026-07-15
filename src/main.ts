@@ -11,6 +11,7 @@ import {
 import path from 'path';
 import {
   AppSettings,
+  BrowserSourceSettings,
   CustomScreen,
   LiveMatch,
   MatchState,
@@ -24,7 +25,11 @@ import {
   defaultScores,
 } from './constants';
 import { MatchSettings } from './zodSchemas';
-import { deriveGlobalAccelerator, getKeyboardShortcuts } from './utils';
+import {
+  deriveGlobalAccelerator,
+  getBrowserSourceSettings,
+  getKeyboardShortcuts,
+} from './utils';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
@@ -45,9 +50,19 @@ import resetWindow from './main-functions/resetWindow';
 import {
   handleFileDeletion,
   handleFileUpload,
+  imagesPath,
   saveImageFile,
 } from './main-functions/fileHandler';
+import convertFilePathToUrl from './main-functions/convertFilePathToUrl';
 import { checkForUpdates } from './main-functions/apiRequests';
+import {
+  broadcastToBrowserSources,
+  getBrowserSourceServerPort,
+  isBrowserSourceServerRunning,
+  rewriteFileUrls,
+  startBrowserSourceServer,
+  stopBrowserSourceServer,
+} from './main-functions/browserSourceServer';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -81,6 +96,58 @@ let cachedMatchState: MatchState = { ...defaultMatchState };
 // renderer's initial state pushes overwrite it. Offered to the dashboard
 // so an interrupted match can be restored.
 let liveMatchAtLaunch: LiveMatch | undefined;
+
+// Set when the browser source server most recently failed to start (e.g.
+// EADDRINUSE), so the settings UI can surface it. Cleared on a successful
+// (re)start or once the feature is disabled.
+let browserSourceError: string | undefined;
+
+function getImagesDirUrlPrefix(): string {
+  return `${convertFilePathToUrl(imagesPath)}/`;
+}
+
+// Every payload sent to a browser source (snapshot or broadcast) needs its
+// file:// image URLs rewritten to this server's /images/ route.
+function toBrowserSourcePayload<T>(payload: T): T {
+  return rewriteFileUrls(payload, getImagesDirUrlPrefix());
+}
+
+function broadcastToBrowserSourcesRewritten(channel: string, payload: unknown) {
+  broadcastToBrowserSources(channel, toBrowserSourcePayload(payload));
+}
+
+// Matches the order display-ready sends in: settings first, then
+// state/scores/time. Keep this in sync with that handler below.
+function getBrowserSourceSnapshot() {
+  return [
+    { channel: 'match-settings-updated', payload: toBrowserSourcePayload(cachedMatchSettings) },
+    { channel: 'app-settings-updated', payload: toBrowserSourcePayload(cachedAppSettings) },
+    { channel: 'match-state-updated', payload: toBrowserSourcePayload(cachedMatchState) },
+    { channel: 'score-updated', payload: toBrowserSourcePayload(cachedScores) },
+    { channel: 'time-updated', payload: toBrowserSourcePayload(cachedTime) },
+  ];
+}
+
+// Applies a (possibly changed) browser-source configuration: always stops
+// any running server first (idempotent if none is running), then restarts
+// it if enabled. Used both at launch and whenever settings change.
+async function applyBrowserSourceSettings(settings: BrowserSourceSettings) {
+  await stopBrowserSourceServer();
+  browserSourceError = undefined;
+
+  if (!settings.enabled) return;
+
+  const result = await startBrowserSourceServer({
+    port: settings.port,
+    imagesPath,
+    getSnapshot: getBrowserSourceSnapshot,
+  });
+
+  if (result.ok === false) {
+    browserSourceError = result.error;
+    console.error('Failed to start browser source server:', result.error);
+  }
+}
 
 function persistLiveMatch() {
   try {
@@ -205,12 +272,14 @@ function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
     cachedScores = scores;
     displayWindow?.webContents.send('score-updated', scores);
+    broadcastToBrowserSourcesRewritten('score-updated', scores);
     persistLiveMatch();
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
     cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
+    broadcastToBrowserSourcesRewritten('time-updated', time);
     persistLiveMatch();
   });
 
@@ -218,14 +287,17 @@ function setupIPCHandlers() {
     setMatchSettings(teamSettings);
     cachedMatchSettings = teamSettings;
     displayWindow?.webContents.send('match-settings-updated', teamSettings);
+    broadcastToBrowserSourcesRewritten('match-settings-updated', teamSettings);
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
     const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
+    const previousBrowserSource = getBrowserSourceSettings(cachedAppSettings);
 
     setAppSettings(appSettings);
     cachedAppSettings = appSettings;
     displayWindow?.webContents.send('app-settings-updated', appSettings);
+    broadcastToBrowserSourcesRewritten('app-settings-updated', appSettings);
 
     const nextShortcuts = getKeyboardShortcuts(cachedAppSettings);
     const shortcutsChanged =
@@ -247,16 +319,34 @@ function setupIPCHandlers() {
         registerKeyboardShortcuts();
       }
     }
+
+    const nextBrowserSource = getBrowserSourceSettings(cachedAppSettings);
+    if (
+      previousBrowserSource.enabled !== nextBrowserSource.enabled ||
+      previousBrowserSource.port !== nextBrowserSource.port
+    ) {
+      void applyBrowserSourceSettings(nextBrowserSource);
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
     cachedMatchState = matchState;
     displayWindow?.webContents.send('match-state-updated', matchState);
+    broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
     persistLiveMatch();
   });
 
   ipcMain.handle('get-live-match', () => {
     return liveMatchAtLaunch;
+  });
+
+  ipcMain.handle('get-browser-source-status', () => {
+    const settings = getBrowserSourceSettings(cachedAppSettings);
+    return {
+      running: isBrowserSourceServerRunning(),
+      port: getBrowserSourceServerPort() ?? settings.port,
+      error: browserSourceError,
+    };
   });
 
   // Display window signals it's ready to receive initial state
@@ -562,6 +652,10 @@ app.on('ready', async () => {
   } catch {
     // Ignore invalid or missing persisted live match.
   }
+  // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
+  // settings. Startup errors (e.g. a busy port) are caught inside and never
+  // reach here.
+  void applyBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
   ensureWindowsAreVisible();
@@ -683,4 +777,5 @@ function ensureWindowsAreVisible() {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+  void stopBrowserSourceServer();
 });

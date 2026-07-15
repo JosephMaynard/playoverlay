@@ -1,9 +1,25 @@
-import { MatchState, AppSettings, KeyboardShortcuts, Scores } from './types';
+import {
+  MatchState,
+  AppSettings,
+  BrowserSourceSettings,
+  KeyboardShortcuts,
+  Scores,
+} from './types';
 import { MatchSettings } from './zodSchemas';
+
+// Off by default; a config.json saved before this feature existed has no
+// `browserSource` key at all, and `getBrowserSourceSettings` in utils.ts
+// merges these defaults in wherever settings are read, so that's identical
+// to an explicit `enabled: false`.
+export const defaultBrowserSourceSettings: BrowserSourceSettings = {
+  enabled: false,
+  port: 4750,
+};
 
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
   autoSwitchScreens: true,
+  browserSource: { ...defaultBrowserSourceSettings },
 };
 
 // The historical hardcoded shortcuts, unchanged so existing users notice

@@ -71,6 +71,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-power-save-blocker-status'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
+  getBrowserSourceStatus: () => ipcRenderer.invoke('get-browser-source-status'),
   getMatchSettings: () => ipcRenderer.invoke('get-match-settings'),
   moveWindowToScreen: (screenId: number) =>
     ipcRenderer.invoke('move-window-to-screen', screenId),

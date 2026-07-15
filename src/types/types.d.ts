@@ -35,6 +35,11 @@ declare global {
       getPowerSaveBlockerStatus: () => boolean;
       getVersion: () => string;
       getAppSettings: () => Promise<AppSettings | undefined>;
+      getBrowserSourceStatus: () => Promise<{
+        running: boolean;
+        port: number;
+        error?: string;
+      }>;
       getMatchSettings: () => Promise<TeamSettingsInterface | undefined>;
       moveWindowToScreen: (screenId: number) => Promise<void>;
       onDisplayChange: (callback: (displays: Display[]) => void) => () => void;

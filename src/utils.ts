@@ -1,6 +1,13 @@
-import { AppSettings, KeyboardShortcuts, MatchPeriod, MatchPhase, Penalty } from './types';
+import {
+  AppSettings,
+  BrowserSourceSettings,
+  KeyboardShortcuts,
+  MatchPeriod,
+  MatchPhase,
+  Penalty,
+} from './types';
 import { MatchSettings } from './zodSchemas';
-import { defaultKeyboardShortcuts } from './constants';
+import { defaultBrowserSourceSettings, defaultKeyboardShortcuts } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -248,6 +255,19 @@ export function keyboardEventToAccelerator({
   if (!mainKey) return null;
 
   return [...modifiers, mainKey].join('+');
+}
+
+// The active browser-source settings: user configuration layered over the
+// defaults (off, port 4750), so a config.json with no `browserSource` field
+// (or one missing `port`/`enabled`) behaves exactly like today — no server.
+// Shared by main.ts (server lifecycle) and the renderer (settings UI).
+export function getBrowserSourceSettings(
+  appSettings: AppSettings
+): BrowserSourceSettings {
+  return {
+    ...defaultBrowserSourceSettings,
+    ...appSettings.browserSource,
+  };
 }
 
 export const debounce = <Args extends unknown[]>(

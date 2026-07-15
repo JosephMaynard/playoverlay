@@ -19,10 +19,18 @@ export interface KeyboardShortcuts {
   awayTeamScored: string;
 }
 
+// OBS Browser Source output: an optional local HTTP+WebSocket server that
+// serves the display view for use as an OBS browser source. Off by default.
+export interface BrowserSourceSettings {
+  enabled: boolean;
+  port: number;
+}
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
   keyboardShortcuts?: KeyboardShortcuts;
+  browserSource?: BrowserSourceSettings;
 }
 
 export interface MatchState {
