@@ -17,11 +17,12 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 ## Features
 
-- **Score bug** with team abbreviations, live scores, match clock, and stoppage time
+- **Score bug** with team abbreviations, optional team logos, live scores, match clock, and stoppage time
 - **Match clock** driven by the system clock (no drift over a half), with pause/resume and quick time adjustments
 - **Crash recovery** — the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off
-- **Match phases** — first/second half and extra time, with configurable half lengths
-- **Penalty shootout tracker** — alternates teams automatically, records scored/missed, supports undo
+- **Match phases** — first/second half with configurable half lengths, and extra time that can be toggled off per match
+- **Generic timer mode** — for sports that aren't halves-based, switch the timer to a configurable number of named periods (e.g. 4 × 12-minute quarters)
+- **Penalty shootout tracker** — alternates teams automatically, records scored/missed, supports undo, and can be toggled off for matches that don't need it
 - **Screens** — match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
 - **Custom key colour** for whatever your mixer keys best
 - **OBS browser source output** — an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
@@ -54,8 +55,8 @@ If you'd rather not trust an unsigned binary, build it yourself from source — 
 
 ## Using it
 
-1. Open **Match Settings** and set team names, abbreviations, colours, venue, and half lengths.
-2. In **App Settings**, pick your key colour and whether screens auto-switch on phase changes.
+1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
+2. In **Window Settings**, pick your key colour and whether screens auto-switch on phase changes.
 3. Move the display window to the output monitor and make it fullscreen.
 4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases.
 
