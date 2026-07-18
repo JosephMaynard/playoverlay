@@ -51,7 +51,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
               <button
                 type="button"
                 className="ml-auto p-2.5"
-                onMouseDown={() => setSideMenu(menuButton.menu as SideMenuType)}
+                onClick={() => setSideMenu(menuButton.menu as SideMenuType)}
                 title={menuButton.title}
               >
                 <menuButton.icon
@@ -81,7 +81,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
                 <button
                   type="button"
                   className="-m-2.5 p-2.5"
-                  onMouseDown={() =>
+                  onClick={() =>
                     setSideMenu(menuButton.menu as SideMenuType)
                   }
                   title={menuButton.title}

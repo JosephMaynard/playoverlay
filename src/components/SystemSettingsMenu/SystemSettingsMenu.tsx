@@ -138,7 +138,13 @@ export default function SystemSettingsMenu({
     }
     // time.matchPhase (not the whole ticking time object) so the phase
     // highlight updates without redrawing the deck every second
-  }, [streamDeckButtons, streamDeckConnected, matchSettings, time.matchPhase]);
+  }, [
+    streamDeckButtons,
+    streamDeckConnected,
+    matchSettings,
+    time.matchPhase,
+    autoSwitchScreens,
+  ]);
 
   return (
     <>

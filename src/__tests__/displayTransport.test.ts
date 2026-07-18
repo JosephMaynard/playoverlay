@@ -177,4 +177,62 @@ describe('displayTransport', () => {
     vi.advanceTimersByTime(2000);
     expect(MockWebSocket.instances).toHaveLength(2);
   });
+
+  it('schedules a reconnect instead of dying when the WebSocket constructor throws', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    class ThrowingWebSocket {
+      static attempts = 0;
+      constructor() {
+        ThrowingWebSocket.attempts += 1;
+        throw new SyntaxError("Failed to construct 'WebSocket': invalid URL");
+      }
+    }
+    vi.stubGlobal('WebSocket', ThrowingWebSocket);
+
+    expect(() => createDisplayTransport()).not.toThrow();
+    expect(ThrowingWebSocket.attempts).toBe(1);
+
+    // The normal reconnect path keeps retrying.
+    vi.advanceTimersByTime(2000);
+    expect(ThrowingWebSocket.attempts).toBe(2);
+    vi.advanceTimersByTime(2000);
+    expect(ThrowingWebSocket.attempts).toBe(3);
+  });
+
+  it('closes a socket that has been silent for 30s so the reconnect path fires', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    vi.advanceTimersByTime(29999);
+    expect(socket.closed).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    expect(socket.closed).toBe(true);
+
+    // The watchdog close routes through the normal reconnect path.
+    vi.advanceTimersByTime(2000);
+    expect(MockWebSocket.instances).toHaveLength(2);
+  });
+
+  it('keeps the socket open while messages keep arriving (watchdog resets)', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    vi.advanceTimersByTime(29999);
+    socket.emitMessage({ channel: 'time-updated', payload: { time: '12:00' } });
+
+    // A fresh 30s window starts after the message.
+    vi.advanceTimersByTime(29999);
+    expect(socket.closed).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    expect(socket.closed).toBe(true);
+  });
 });

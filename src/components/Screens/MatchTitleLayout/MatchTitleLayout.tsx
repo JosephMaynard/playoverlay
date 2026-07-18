@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Scores } from 'src/types';
 import './MatchTitleLayout.css';
 import { calculatePenalties } from '../../../utils';
@@ -12,9 +13,23 @@ export interface Props {
 export default function MatchTitleLayout({ scores, settings, active }: Props) {
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
     calculatePenalties(scores.penalties);
+  // The hidden animation starts from the fully-shown position, so it must
+  // not play on first mount (display window load / OBS browser-source
+  // reload would flash the layout on screen); only animate out after the
+  // layout has actually been shown. Same pattern as ScoreboardLayout.
+  const [hasBeenActive, setHasBeenActive] = useState(active);
+  useEffect(() => {
+    if (active) setHasBeenActive(true);
+  }, [active]);
   return (
     <div
-      className={`MatchTitleLayout ${active ? 'MatchTitleLayout_active' : 'MatchTitleLayout_hidden'} absolute left-0 top-0 h-full w-full`}
+      className={`MatchTitleLayout ${
+        active
+          ? 'MatchTitleLayout_active'
+          : hasBeenActive
+            ? 'MatchTitleLayout_hidden'
+            : ''
+      } absolute left-0 top-0 h-full w-full`}
     >
       {(settings?.venue || settings?.kickOffTime) && (
         <div className="MatchTitleLayout_venue flex flex-col items-center justify-center gap-1">

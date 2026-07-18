@@ -1,6 +1,6 @@
 import { DisplayScreen, screens } from '../../constants';
 import { CustomScreen } from '../../types';
-import { arraysEqual, insertValue, removeValue } from '../../utils';
+import { insertValue, removeValue } from '../../utils';
 import Modal from '../Modal/Modal';
 
 export interface Props {
@@ -19,6 +19,16 @@ export default function EditCustomScreen({
   keyColour,
 }: Props) {
   if (customScreenToEdit === null) return null;
+
+  // "All Screens" is checked when the overlay covers every currently-known
+  // screen. Overlays saved before a new screen key was added (e.g.
+  // `scoreboard`) may also contain only old ids, and strict list equality
+  // would never match them once the known-screens list grows — so tolerate
+  // extra unknown ids and only require the current screens to be present.
+  const overlayLinks = customScreenToEdit.overlayLinks || [];
+  const allScreensChecked = (Object.keys(screens) as DisplayScreen[]).every(
+    (screen) => overlayLinks.includes(screen)
+  );
 
   return (
     <Modal
@@ -41,7 +51,7 @@ export default function EditCustomScreen({
       />
       <div className="my-4">
         <label
-          htmlFor="custom-screen-title"
+          htmlFor="edit-custom-screen-title"
           className="block text-sm font-medium leading-6 text-gray-900"
         >
           Title
@@ -49,7 +59,7 @@ export default function EditCustomScreen({
         <div className="mt-2">
           <input
             type="text"
-            id="custom-screen-title"
+            id="edit-custom-screen-title"
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             value={customScreenToEdit?.title}
             onChange={(e) => handleOnChange({ title: e.target.value })}
@@ -122,10 +132,7 @@ export default function EditCustomScreen({
                   name="all"
                   type="checkbox"
                   className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                  checked={arraysEqual(
-                    Object.keys(screens),
-                    customScreenToEdit?.overlayLinks || []
-                  )}
+                  checked={allScreensChecked}
                   onChange={(e) => {
                     handleOnChange({
                       overlayLinks: e.target.checked

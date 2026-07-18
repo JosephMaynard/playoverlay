@@ -53,6 +53,11 @@ function createElectronTransport(): DisplayTransport {
 }
 
 const RECONNECT_DELAY_MS = 2000;
+// If nothing arrives for this long the connection is assumed half-open
+// (e.g. the TCP peer vanished without a FIN) and is torn down so the
+// reconnect path fires. The server pushes a full snapshot on every connect,
+// so a reconnect always yields fresh data.
+const LIVENESS_TIMEOUT_MS = 30000;
 
 function createBrowserTransport(): DisplayTransport {
   const listeners: Record<Channel, Set<(payload: unknown) => void>> = {
@@ -73,9 +78,32 @@ function createBrowserTransport(): DisplayTransport {
   function connect() {
     const params = new URLSearchParams(window.location.search);
     const port = params.get('ws') ?? window.location.port;
-    const socket = new WebSocket(`ws://${window.location.hostname}:${port}`);
+
+    // The constructor throws synchronously on a malformed URL (e.g. no
+    // `?ws=` param and an empty window.location.port gives `ws://host:`).
+    // Without this catch the whole transport would be dead forever.
+    let socket: WebSocket;
+    try {
+      socket = new WebSocket(`ws://${window.location.hostname}:${port}`);
+    } catch (error) {
+      console.error('Failed to open browser-source WebSocket:', error);
+      setTimeout(connect, RECONNECT_DELAY_MS);
+      return;
+    }
+
+    // Liveness watchdog: a half-open connection delivers neither messages
+    // nor a close event, silently freezing the scoreboard. Closing the
+    // socket after a silent period routes through the normal reconnect
+    // path below.
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
+    const resetWatchdog = () => {
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => socket.close(), LIVENESS_TIMEOUT_MS);
+    };
+    resetWatchdog();
 
     socket.onmessage = (event) => {
+      resetWatchdog();
       try {
         const { channel, payload } = JSON.parse(event.data as string) as {
           channel: Channel;
@@ -91,6 +119,7 @@ function createBrowserTransport(): DisplayTransport {
 
     // This runs for hours during a live stream — always try to come back.
     socket.onclose = () => {
+      clearTimeout(watchdog);
       setTimeout(connect, RECONNECT_DELAY_MS);
     };
   }

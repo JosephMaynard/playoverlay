@@ -109,7 +109,7 @@ export default function ScoreInput({
               onChange={(e) => {
                 const updatedScore = Number(e.target.value);
                 if (!Number.isNaN(updatedScore)) {
-                  setScore(updatedScore);
+                  setScore(Math.max(0, Math.trunc(updatedScore)));
                 }
               }}
               value={score}
@@ -118,11 +118,11 @@ export default function ScoreInput({
           <button
             type="button"
             className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            onClick={() => setScore(score + 1)}
           >
             <PlusIcon
               className="-ml-0.5 h-5 w-5 text-gray-400"
               aria-hidden="true"
-              onClick={() => setScore(score + 1)}
             />
           </button>
         </div>

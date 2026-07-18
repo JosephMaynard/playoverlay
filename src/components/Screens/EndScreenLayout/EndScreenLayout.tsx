@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Scores } from 'src/types';
 import './EndScreenLayout.css';
 import { calculatePenalties } from '../../../utils';
@@ -12,9 +13,23 @@ export interface Props {
 export default function EndScreenLayout({ scores, settings, active }: Props) {
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
     calculatePenalties(scores.penalties);
+  // The hidden animation starts from the fully-shown position, so it must
+  // not play on first mount (display window load / OBS browser-source
+  // reload would flash the layout on screen); only animate out after the
+  // layout has actually been shown. Same pattern as ScoreboardLayout.
+  const [hasBeenActive, setHasBeenActive] = useState(active);
+  useEffect(() => {
+    if (active) setHasBeenActive(true);
+  }, [active]);
   return (
     <div
-      className={`EndScreenLayout ${active ? 'EndScreenLayout_active' : 'EndScreenLayout_hidden'} absolute left-0 top-0 h-full w-full`}
+      className={`EndScreenLayout ${
+        active
+          ? 'EndScreenLayout_active'
+          : hasBeenActive
+            ? 'EndScreenLayout_hidden'
+            : ''
+      } absolute left-0 top-0 h-full w-full`}
     >
       <div className="EndScreenLayout_homeTeam flex items-center overflow-hidden">
         <div

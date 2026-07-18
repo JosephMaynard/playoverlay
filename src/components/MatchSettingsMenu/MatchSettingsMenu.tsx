@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { AppSettings } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
@@ -22,6 +23,47 @@ function parsePositiveNumberInput(value: string): number | undefined {
 function parsePositiveIntegerInput(value: string): number | undefined {
   const parsed = parsePositiveNumberInput(value);
   return parsed !== undefined && Number.isInteger(parsed) ? parsed : undefined;
+}
+
+// Numeric timer input that only commits once the user has finished typing
+// (blur or Enter) — committing on every keystroke would persist transient
+// values like the "1" while typing "12", which can delete the running phase
+// and stop the live clock. Same draft + commit pattern as the browser-source
+// port field in AppSettingsMenu.
+function DraftNumberInput({
+  id,
+  value,
+  commit,
+}: {
+  id: string;
+  value: string;
+  commit: (rawValue: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+
+  // Keep the draft in sync when settings change from outside this input
+  // (e.g. loaded from disk, restored, or committed by this same input).
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  return (
+    <input
+      type="number"
+      name={id}
+      id={id}
+      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => commit(draft)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit(draft);
+        }
+      }}
+    />
+  );
 }
 
 export interface Props {
@@ -170,15 +212,12 @@ export default function MatchSettingsMenu({
                 Number of Periods
               </label>
               <div className="mt-2">
-                <input
-                  type="number"
-                  name="periodCount"
+                <DraftNumberInput
                   id="periodCount"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={matchSettings.periodCount ?? 4}
-                  onChange={(e) =>
+                  value={String(matchSettings.periodCount ?? 4)}
+                  commit={(rawValue) =>
                     updateMatchSettings({
-                      periodCount: parsePositiveIntegerInput(e.target.value),
+                      periodCount: parsePositiveIntegerInput(rawValue),
                     })
                   }
                 />
@@ -192,15 +231,12 @@ export default function MatchSettingsMenu({
                 Period Length
               </label>
               <div className="mt-2">
-                <input
-                  type="number"
-                  name="periodLength"
+                <DraftNumberInput
                   id="periodLength"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={matchSettings.periodLength ?? 10}
-                  onChange={(e) =>
+                  value={String(matchSettings.periodLength ?? 10)}
+                  commit={(rawValue) =>
                     updateMatchSettings({
-                      periodLength: parsePositiveNumberInput(e.target.value),
+                      periodLength: parsePositiveNumberInput(rawValue),
                     })
                   }
                 />
@@ -240,15 +276,16 @@ export default function MatchSettingsMenu({
                 Half Length
               </label>
               <div className="mt-2">
-                <input
-                  type="number"
-                  name="halfLength"
+                <DraftNumberInput
                   id="halfLength"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={matchSettings.halfLength || ''}
-                  onChange={(e) =>
+                  value={
+                    matchSettings.halfLength
+                      ? String(matchSettings.halfLength)
+                      : ''
+                  }
+                  commit={(rawValue) =>
                     updateMatchSettings({
-                      halfLength: parsePositiveNumberInput(e.target.value),
+                      halfLength: parsePositiveNumberInput(rawValue),
                     })
                   }
                 />
@@ -263,17 +300,16 @@ export default function MatchSettingsMenu({
                   Extra Time Half Length
                 </label>
                 <div className="mt-2">
-                  <input
-                    type="number"
-                    name="extraTimeHalfLength"
+                  <DraftNumberInput
                     id="extraTimeHalfLength"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    value={matchSettings.extraTimeHalfLength || ''}
-                    onChange={(e) =>
+                    value={
+                      matchSettings.extraTimeHalfLength
+                        ? String(matchSettings.extraTimeHalfLength)
+                        : ''
+                    }
+                    commit={(rawValue) =>
                       updateMatchSettings({
-                        extraTimeHalfLength: parsePositiveNumberInput(
-                          e.target.value
-                        ),
+                        extraTimeHalfLength: parsePositiveNumberInput(rawValue),
                       })
                     }
                   />

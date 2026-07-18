@@ -1,4 +1,4 @@
-/* Some snimations used from MatchTitleLayout.css  */
+/* Some animations used from MatchTitleLayout.css  */
 
 .EndScreenLayout {
   --base-size: 2.5cqw;
@@ -14,6 +14,9 @@
     'emptyLeft venue venue venue emptyRight'
     'leftPadding homeTeam score awayTeam rightPadding'
     'bottom bottom bottom bottom bottom';
+  /* Hidden until first activated; the active/hidden animations take over
+     from here (see the hasBeenActive guard in the component). */
+  visibility: hidden;
 }
 
 .EndScreenLayout_active {
@@ -79,10 +82,12 @@
   0%,
   50% {
     transform: translateY(50%) translateZ(0);
+    visibility: visible;
   }
   70%,
   100% {
     transform: translateY(0) translateZ(0);
+    visibility: visible;
   }
 }
 

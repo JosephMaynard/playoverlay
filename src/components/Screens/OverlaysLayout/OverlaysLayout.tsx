@@ -6,7 +6,10 @@ export interface Props {
   activeScreen: DisplayScreen;
 }
 
-export default function OverlaysLayout({ overlays, activeScreen }: Props) {
+// `overlays` is defaulted so a malformed matchState arriving without an
+// overlays array (e.g. over the browser-source WebSocket) can't crash the
+// whole display tree.
+export default function OverlaysLayout({ overlays = [], activeScreen }: Props) {
   return (
     <div className="absolute left-0 top-0 h-full w-full">
       {overlays

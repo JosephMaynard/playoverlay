@@ -11,16 +11,11 @@ export interface Props {
 }
 
 export default function Scores({ scores, matchSettings, time, active }: Props) {
-  const logoCount =
-    (matchSettings.homeTeamLogo ? 1 : 0) + (matchSettings.awayTeamLogo ? 1 : 0);
-  const activeClass = active
-    ? `ScoresLayout_active ${
-        logoCount > 0 ? `ScoresLayout_active_logos${logoCount}` : ''
-      }`
-    : '';
-
+  // The reveal works by transitioning max-width with content-driven sizing
+  // (see ScoresLayout.css), so logos and extra chips need no per-count
+  // width modifier classes.
   return (
-    <div className={`ScoresLayout flex ${activeClass}`}>
+    <div className={`ScoresLayout flex ${active ? 'ScoresLayout_active' : ''}`}>
       {matchSettings.homeTeamLogo && (
         <div className="ScoresLayout_item ScoresLayout_logo">
           <img
