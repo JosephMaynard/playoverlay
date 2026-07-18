@@ -115,16 +115,25 @@ describe('browser source server lifecycle', () => {
     await new Promise<void>((resolve) => blocker.listen(0, '127.0.0.1', resolve));
     const port = (blocker.address() as net.AddressInfo).port;
 
-    const result = await startBrowserSourceServer({
-      port,
-      imagesPath: '/tmp/does-not-matter',
-      getSnapshot: () => [],
-    });
+    try {
+      const result = await startBrowserSourceServer({
+        port,
+        imagesPath: '/tmp/does-not-matter',
+        getSnapshot: () => [],
+      });
 
-    expect(result.ok).toBe(false);
-    expect(isBrowserSourceServerRunning()).toBe(false);
+      expect(result.ok).toBe(false);
+      expect(isBrowserSourceServerRunning()).toBe(false);
 
-    await new Promise<void>((resolve) => blocker.close(() => resolve()));
+      // Assert the actual resolved value of the shutdown rather than just
+      // that it doesn't throw, so a stop that silently resolves the wrong
+      // thing would still be caught.
+      await expect(stopBrowserSourceServer()).resolves.toBeUndefined();
+    } finally {
+      // Always close the blocker, even if an assertion above fails, so a
+      // failing test doesn't leak a listening socket into the next test.
+      await new Promise<void>((resolve) => blocker.close(() => resolve()));
+    }
   });
 
   it('resolves ok:false on a second start without stopping the first', async () => {

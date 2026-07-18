@@ -8,6 +8,22 @@ import { MatchSettings } from 'src/zodSchemas';
 import SavedMatchSettings from './SavedMatchSettings';
 import { classNames } from '../../utils';
 
+// Parses a numeric timer-input's raw string value; returns undefined (so the
+// engine falls back to its default) for anything that isn't a finite
+// positive number, rather than persisting 0/NaN/negative values.
+function parsePositiveNumberInput(value: string): number | undefined {
+  if (value.trim() === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+// Same as parsePositiveNumberInput, but additionally rejects fractional
+// values — used for periodCount, which must be a whole number of periods.
+function parsePositiveIntegerInput(value: string): number | undefined {
+  const parsed = parsePositiveNumberInput(value);
+  return parsed !== undefined && Number.isInteger(parsed) ? parsed : undefined;
+}
+
 export interface Props {
   sidebarOpen: boolean;
   setSidebarOpen: (sidebarOpen: boolean) => void;
@@ -162,7 +178,7 @@ export default function MatchSettingsMenu({
                   value={matchSettings.periodCount ?? 4}
                   onChange={(e) =>
                     updateMatchSettings({
-                      periodCount: Number(e.target.value || 0),
+                      periodCount: parsePositiveIntegerInput(e.target.value),
                     })
                   }
                 />
@@ -184,7 +200,7 @@ export default function MatchSettingsMenu({
                   value={matchSettings.periodLength ?? 10}
                   onChange={(e) =>
                     updateMatchSettings({
-                      periodLength: Number(e.target.value || 0),
+                      periodLength: parsePositiveNumberInput(e.target.value),
                     })
                   }
                 />
@@ -231,7 +247,9 @@ export default function MatchSettingsMenu({
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   value={matchSettings.halfLength || ''}
                   onChange={(e) =>
-                    updateMatchSettings({ halfLength: Number(e.target.value) })
+                    updateMatchSettings({
+                      halfLength: parsePositiveNumberInput(e.target.value),
+                    })
                   }
                 />
               </div>
@@ -253,7 +271,9 @@ export default function MatchSettingsMenu({
                     value={matchSettings.extraTimeHalfLength || ''}
                     onChange={(e) =>
                       updateMatchSettings({
-                        extraTimeHalfLength: Number(e.target.value || 0),
+                        extraTimeHalfLength: parsePositiveNumberInput(
+                          e.target.value
+                        ),
                       })
                     }
                   />

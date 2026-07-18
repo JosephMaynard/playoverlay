@@ -37,6 +37,11 @@ export default function TeamSettings({
 }: Props) {
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  // Bumped on every new upload and on Remove, so a slow upload that resolves
+  // after a newer action has already started can never overwrite it — even
+  // if the disabled styling below is somehow bypassed.
+  const logoUploadGenerationRef = useRef(0);
 
   const handleLogoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -46,18 +51,30 @@ export default function TeamSettings({
     if (!file) {
       return;
     }
+    const generation = ++logoUploadGenerationRef.current;
     setLogoUploadError(null);
+    setLogoUploading(true);
     try {
       const result = await window?.electronAPI?.uploadLogo(file);
+      if (logoUploadGenerationRef.current !== generation) return;
       if (result) {
         setTeamLogo(result.url);
       } else {
         setLogoUploadError('Failed to upload logo. Please try again.');
       }
     } catch (error) {
+      if (logoUploadGenerationRef.current !== generation) return;
       console.error('Error uploading logo:', error);
       setLogoUploadError('Failed to upload logo. Please try again.');
+    } finally {
+      setLogoUploading(false);
     }
+  };
+
+  const handleRemoveLogo = () => {
+    logoUploadGenerationRef.current += 1;
+    setLogoUploadError(null);
+    setTeamLogo(undefined);
   };
 
   return (
@@ -133,7 +150,7 @@ export default function TeamSettings({
             type="button"
             className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
             onClick={() => logoInputRef.current?.click()}
-            disabled={disabled}
+            disabled={disabled || logoUploading}
           >
             Upload
           </button>
@@ -147,9 +164,9 @@ export default function TeamSettings({
           {teamLogo && (
             <button
               type="button"
-              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              onClick={() => setTeamLogo(undefined)}
-              disabled={disabled}
+              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+              onClick={handleRemoveLogo}
+              disabled={disabled || logoUploading}
             >
               Remove
             </button>

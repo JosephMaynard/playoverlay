@@ -79,4 +79,24 @@ describe('zod schemas', () => {
       }).success
     ).toBe(false);
   });
+
+  it('degrades out-of-range numeric timer fields to undefined instead of failing the whole object', () => {
+    const result = matchSetingsSchema.safeParse({
+      homeTeamNameFull: 'Tigers',
+      homeTeamNameAbbreviated: 'TIG',
+      awayTeamNameFull: 'Bears',
+      awayTeamNameAbbreviated: 'BEA',
+      periodCount: 0,
+      halfLength: -5,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.periodCount).toBeUndefined();
+      expect(result.data.halfLength).toBeUndefined();
+      // The rest of the settings, including team names, survive untouched.
+      expect(result.data.homeTeamNameFull).toBe('Tigers');
+      expect(result.data.awayTeamNameFull).toBe('Bears');
+    }
+  });
 });

@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { AppSettings, Display, KeyboardShortcuts } from '../../types';
 import { defaultKeyboardShortcuts } from '../../constants';
-import { classNames, getBrowserSourceSettings, getKeyboardShortcuts } from '../../utils';
+import {
+  classNames,
+  deriveGlobalAccelerator,
+  getBrowserSourceSettings,
+  getKeyboardShortcuts,
+} from '../../utils';
 import { Switch } from '@headlessui/react';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -127,17 +132,42 @@ export default function AppSettingsMenu({
     setRecordingAction(null);
   };
 
+  // The effective bindings a candidate accelerator must be checked against:
+  // an action's base accelerator plus its derived system-wide (Alt-added)
+  // variant, since either one colliding with another action is a real
+  // conflict (e.g. while OBS is focused).
+  const effectiveAccelerators = (accelerator: string): string[] => {
+    const globalVariant = deriveGlobalAccelerator(accelerator);
+    return globalVariant ? [accelerator, globalVariant] : [accelerator];
+  };
+
+  // Shared by both the manual re-record flow and the reset-to-default flow:
+  // a candidate accelerator (or its derived global variant) conflicts if it
+  // matches any other action's base or derived-global accelerator.
+  const findShortcutConflict = (
+    action: keyof KeyboardShortcuts,
+    candidateAccelerator: string
+  ): keyof KeyboardShortcuts | undefined => {
+    const candidateVariants = effectiveAccelerators(candidateAccelerator);
+
+    return (
+      Object.keys(keyboardShortcuts) as Array<keyof KeyboardShortcuts>
+    ).find((otherAction) => {
+      if (otherAction === action) return false;
+      const otherVariants = effectiveAccelerators(
+        keyboardShortcuts[otherAction]
+      );
+      return candidateVariants.some((variant) =>
+        otherVariants.includes(variant)
+      );
+    });
+  };
+
   const handleChangeShortcut = (
     action: keyof KeyboardShortcuts,
     accelerator: string
   ) => {
-    const conflictingAction = (
-      Object.keys(keyboardShortcuts) as Array<keyof KeyboardShortcuts>
-    ).find(
-      (otherAction) =>
-        otherAction !== action &&
-        keyboardShortcuts[otherAction] === accelerator
-    );
+    const conflictingAction = findShortcutConflict(action, accelerator);
 
     if (conflictingAction) {
       setShortcutConflictError(
@@ -154,10 +184,25 @@ export default function AppSettingsMenu({
   };
 
   const handleResetShortcut = (action: keyof KeyboardShortcuts) => {
+    const defaultAccelerator = defaultKeyboardShortcuts[action];
+    const conflictingAction = findShortcutConflict(action, defaultAccelerator);
+
+    if (conflictingAction) {
+      // Surface the conflict the same way a manual re-record would, by
+      // attaching it to this action's recording row, instead of silently
+      // applying a default that collides with another shortcut.
+      setRecordingAction(action);
+      setShortcutConflictError(
+        `Already used by "${shortcutLabels[conflictingAction]}".`
+      );
+      return;
+    }
+
+    setShortcutConflictError(null);
     updateAppSettings({
       keyboardShortcuts: {
         ...keyboardShortcuts,
-        [action]: defaultKeyboardShortcuts[action],
+        [action]: defaultAccelerator,
       },
     });
   };

@@ -76,7 +76,7 @@ describe('fileHandler', () => {
 
     expect(result).toEqual({
       filePath: expectedPath,
-      url: `file://${expectedPath}`,
+      url: convertFilePathToUrl(expectedPath),
     });
     expect(fs.readFileSync(expectedPath, 'utf8')).toBe('new-logo');
     expect(getScreens()).toEqual([]);

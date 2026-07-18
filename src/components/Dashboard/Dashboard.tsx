@@ -10,7 +10,7 @@ import {
   SideMenuType,
   Time,
 } from '../../types';
-import { UpdateStatus } from '../../zodSchemas';
+import { MatchSettings, UpdateStatus } from '../../zodSchemas';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
@@ -195,6 +195,24 @@ export default function Dashboard() {
     window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
+  // Settings changes that remove the running phase — timer mode switch,
+  // extra time off, fewer periods — stop the clock instead of leaving it
+  // orphaned on a phase id that no longer exists.
+  const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
+    const mergedSettings = {
+      ...useMatchSettingsStore.getState().matchSettings,
+      ...settingsUpdate,
+    };
+    const { matchPhase } = useTimeStore.getState().time;
+    if (
+      matchPhase !== undefined &&
+      !getPhaseList(mergedSettings).some((phase) => phase.id === matchPhase)
+    ) {
+      stopTime();
+    }
+    setMatchSettings(settingsUpdate);
+  };
+
   // Push a new clock value (and any extra time fields) to the time store.
   // Match settings are read fresh from the store so a half-length change
   // mid-half takes effect immediately.
@@ -360,8 +378,13 @@ export default function Dashboard() {
       if (appSettings.autoSwitchScreens) {
         setMatchState({ displayScreen: 'scoreBug' });
       }
-    } else {
-      // No next phase, stop time
+    } else if (matchPhase !== undefined) {
+      // No next phase, and a phase is currently running (full time reached):
+      // stop the clock and record how far the match got. Guarded on
+      // matchPhase so a stray shortcut press after the match has already
+      // finished (matchPhase already undefined) is a no-op — otherwise it
+      // would overwrite previousMatchPhase and let the match restart from
+      // the first phase.
       stopTime();
 
       setMatchState({
@@ -451,7 +474,7 @@ export default function Dashboard() {
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
           matchSettings={matchSettings}
-          updateMatchSettings={setMatchSettings}
+          updateMatchSettings={updateMatchSettings}
           appSettings={appSettings}
         />
         <CustomScreensMenu
