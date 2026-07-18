@@ -409,6 +409,7 @@ export default function Dashboard() {
                 scores={scores}
                 time={time}
                 matchState={matchState}
+                clockFormat={appSettings.clockFormat}
               />
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">

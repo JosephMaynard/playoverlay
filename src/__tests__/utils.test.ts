@@ -6,6 +6,7 @@ import {
   classNames,
   debounce,
   deriveGlobalAccelerator,
+  formatTimeOfDay,
   getKeyboardShortcuts,
   getNextPhaseId,
   getPhaseById,
@@ -421,5 +422,24 @@ describe('utils', () => {
 
       vi.useRealTimers();
     });
+  });
+});
+
+describe('formatTimeOfDay', () => {
+  it('formats 24-hour times with zero padding', () => {
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 18, 20))).toBe('18:20');
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 9, 5), '24h')).toBe('09:05');
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 0, 0), '24h')).toBe('00:00');
+  });
+
+  it('formats 12-hour times with am/pm and no leading zero', () => {
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 18, 20), '12h')).toBe(
+      '6:20pm'
+    );
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 0, 5), '12h')).toBe('12:05am');
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 12, 0), '12h')).toBe(
+      '12:00pm'
+    );
+    expect(formatTimeOfDay(new Date(2026, 6, 18, 9, 30), '12h')).toBe('9:30am');
   });
 });

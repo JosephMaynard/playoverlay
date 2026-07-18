@@ -1,0 +1,113 @@
+.ScoreboardLayout {
+  /* cqw sizes against the Preview container and falls back to the viewport
+     in the fullscreen display window / browser source, so the board scales
+     with whatever screen it's on. Heights use fractions of the board rather
+     than fixed units so non-16:9 screens still fill cleanly. */
+  --base-size: 4cqw;
+  --animation-duration: 0.6s;
+  display: grid;
+  grid-template-columns: 1fr calc(var(--base-size) * 6.5);
+  background-color: #000000;
+  z-index: 20;
+  /* Hidden until first activated; the active/hidden animations take over
+     from here (see the hasBeenActive guard in the component). */
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ScoreboardLayout_active {
+  animation: scoreboard_active var(--animation-duration) forwards;
+}
+
+.ScoreboardLayout_hidden {
+  animation: scoreboard_hidden var(--animation-duration) forwards;
+  pointer-events: none;
+}
+
+.ScoreboardLayout_teams {
+  min-width: 0;
+}
+
+.ScoreboardLayout_teamRow {
+  flex: 1 1 0;
+  min-height: 0;
+  gap: calc(var(--base-size) * 0.75);
+  padding: 0 calc(var(--base-size) * 0.75);
+}
+
+.ScoreboardLayout_logo {
+  width: calc(var(--base-size) * 2.5);
+  height: calc(var(--base-size) * 2.5);
+  flex-shrink: 0;
+}
+
+.ScoreboardLayout_teamName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: calc(var(--base-size) * 1.25);
+  line-height: 1.1;
+}
+
+.ScoreboardLayout_score {
+  flex-shrink: 0;
+  min-width: calc(var(--base-size) * 2.5);
+  font-size: calc(var(--base-size) * 2.2);
+  line-height: 1;
+}
+
+.ScoreboardLayout_times {
+  background-color: #000000;
+  border-left: calc(var(--base-size) * 0.15) solid #ffffff;
+}
+
+.ScoreboardLayout_timeCell {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0 calc(var(--base-size) * 0.4);
+}
+
+.ScoreboardLayout_timeCell + .ScoreboardLayout_timeCell {
+  border-top: calc(var(--base-size) * 0.15) solid #ffffff;
+}
+
+.ScoreboardLayout_timeLabel {
+  font-size: calc(var(--base-size) * 0.55);
+  letter-spacing: 0.2em;
+  opacity: 0.75;
+}
+
+.ScoreboardLayout_timeValue {
+  font-size: calc(var(--base-size) * 1.55);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.ScoreboardLayout_meridiem {
+  font-size: calc(var(--base-size) * 0.9);
+}
+
+.ScoreboardLayout_additionalTime {
+  font-size: calc(var(--base-size) * 1);
+}
+
+@keyframes scoreboard_active {
+  0% {
+    opacity: 0;
+    visibility: visible;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@keyframes scoreboard_hidden {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

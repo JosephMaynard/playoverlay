@@ -1,6 +1,7 @@
 import {
   AppSettings,
   BrowserSourceSettings,
+  ClockFormat,
   KeyboardShortcuts,
   MatchPeriod,
   MatchPhase,
@@ -152,6 +153,20 @@ export function getNextPhaseId(
   if (previousIndex === -1) return undefined;
 
   return phaseList[previousIndex + 1]?.id;
+}
+
+// Time-of-day formatting for the spectator scoreboard clock.
+export function formatTimeOfDay(
+  date: Date,
+  format: ClockFormat = '24h'
+): string {
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  if (format === '12h') {
+    const suffix = date.getHours() >= 12 ? 'pm' : 'am';
+    const hours = date.getHours() % 12 || 12;
+    return `${hours}:${minutes}${suffix}`;
+  }
+  return `${date.getHours().toString().padStart(2, '0')}:${minutes}`;
 }
 
 export function arraysEqual(arr1?: string[], arr2?: string[]): boolean {
