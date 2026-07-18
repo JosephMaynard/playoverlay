@@ -81,6 +81,9 @@ let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
+// Set in 'before-quit' so window teardown during quit isn't mistaken for a
+// user closing the display window (which we recreate in production).
+let isQuitting = false;
 // True while the renderer has shortcuts disabled (e.g. a text field is open),
 // so window focus events don't re-register them behind its back
 let keyboardShortcutsDisabled = false;
@@ -215,20 +218,17 @@ if (!gotTheLock && !isDev) {
   });
 }
 
-// Function to create main and display windows
-const createWindows = () => {
-  mainWindow = createAppWindow(MAIN_WINDOW);
-  displayWindow = createAppWindow(DISPLAY_WINDOW);
+// Creates (or recreates) the display window, loads its URL, and wires it
+// into the module-level displayWindow variable so update forwarding and the
+// display-ready handshake keep working across recreations.
+const createDisplayWindow = () => {
+  const window = createAppWindow(DISPLAY_WINDOW);
+  displayWindow = window;
 
-  // Load URLs
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    displayWindow.loadURL(`${DISPLAY_WINDOW_VITE_DEV_SERVER_URL}/display.html`);
+    window.loadURL(`${DISPLAY_WINDOW_VITE_DEV_SERVER_URL}/display.html`);
   } else {
-    mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
-    );
-    displayWindow.loadFile(
+    window.loadFile(
       path.join(
         __dirname,
         `../renderer/${DISPLAY_WINDOW_VITE_NAME}/display.html`
@@ -236,10 +236,40 @@ const createWindows = () => {
     );
   }
 
+  if (showDevTools) {
+    window.webContents.openDevTools();
+  }
+
+  window.on('closed', () => {
+    if (displayWindow === window) {
+      displayWindow = null;
+    }
+    // In production a closed display window would silently swallow every
+    // update with no way to get output back — recreate it unless the app
+    // is quitting. The display-ready handshake resends the current state.
+    if (!isDev && !isQuitting) {
+      createDisplayWindow();
+    }
+  });
+};
+
+// Function to create main and display windows
+const createWindows = () => {
+  mainWindow = createAppWindow(MAIN_WINDOW);
+  createDisplayWindow();
+
+  // Load URLs
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    );
+  }
+
   // Open the DevTools in dev mode
   if (showDevTools) {
     mainWindow.webContents.openDevTools();
-    displayWindow.webContents.openDevTools();
   }
 
   // IPC Handlers
@@ -258,36 +288,34 @@ const createWindows = () => {
 
   registerGlobalKeyboardShortcuts();
 
-  mainWindow.webContents.session.on(
-    'select-hid-device',
-    (event, details, callback) => {
-      // Add events to handle devices being added or removed before the callback on
-      // `select-hid-device` is called.
-      mainWindow.webContents.session.on('hid-device-added', (event, device) => {
-        console.log('hid-device-added FIRED WITH', device);
-        // Optionally update details.deviceList
-      });
+  // Registered once on the session (not inside the select-hid-device
+  // handler, which would leak a new pair of listeners on every chooser
+  // invocation). The session is captured here so nothing below touches
+  // mainWindow, which may be null by the time a pending chooser resolves.
+  const mainSession = mainWindow.webContents.session;
 
-      mainWindow.webContents.session.on(
-        'hid-device-removed',
-        (event, device) => {
-          console.log('hid-device-removed FIRED WITH', device);
-          // Optionally update details.deviceList
-        }
-      );
+  mainSession.on('hid-device-added', (_event, device) => {
+    console.log('hid-device-added FIRED WITH', device);
+    // Optionally update details.deviceList
+  });
 
-      event.preventDefault();
-      if (details.deviceList && details.deviceList.length > 0) {
-        callback(details.deviceList[0].deviceId);
-      }
+  mainSession.on('hid-device-removed', (_event, device) => {
+    console.log('hid-device-removed FIRED WITH', device);
+    // Optionally update details.deviceList
+  });
+
+  mainSession.on('select-hid-device', (event, details, callback) => {
+    event.preventDefault();
+    if (details.deviceList && details.deviceList.length > 0) {
+      callback(details.deviceList[0].deviceId);
     }
-  );
+  });
 
-  mainWindow.webContents.session.setPermissionCheckHandler(
+  mainSession.setPermissionCheckHandler(
     (_webContents, permission) => permission === 'hid'
   );
 
-  mainWindow.webContents.session.setDevicePermissionHandler(
+  mainSession.setDevicePermissionHandler(
     (details) => details.deviceType === 'hid'
   );
 
@@ -298,10 +326,6 @@ const createWindows = () => {
       console.log('mainWindow closed');
       app.quit();
     }
-  });
-
-  displayWindow.on('closed', () => {
-    displayWindow = null;
   });
 };
 
@@ -411,32 +435,7 @@ function setupIPCHandlers() {
   });
 
   ipcMain.handle('get-fullscreen-status', () => {
-    return displayWindow?.isFullScreen();
-  });
-
-  ipcMain.handle('start-power-save-blocker', () => {
-    if (powerSaveBlockerId === null) {
-      powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
-    }
-    return powerSaveBlocker.isStarted(powerSaveBlockerId);
-  });
-
-  ipcMain.handle('stop-power-save-blocker', () => {
-    if (
-      powerSaveBlockerId !== null &&
-      powerSaveBlocker.isStarted(powerSaveBlockerId)
-    ) {
-      powerSaveBlocker.stop(powerSaveBlockerId);
-      powerSaveBlockerId = null;
-    }
-    return powerSaveBlockerId === null;
-  });
-
-  ipcMain.handle('get-power-save-blocker-status', () => {
-    return (
-      powerSaveBlockerId !== null &&
-      powerSaveBlocker.isStarted(powerSaveBlockerId)
-    );
+    return displayWindow?.isFullScreen() ?? false;
   });
 
   ipcMain.on('get-version', (event) => {
@@ -564,8 +563,21 @@ function setupIPCHandlers() {
     }
   });
 
-  ipcMain.on('open-url-in-browser', (event, url: string) => {
-    shell.openExternal(url);
+  ipcMain.on('open-url-in-browser', (_event, url: string) => {
+    // url comes from an IPC caller — only hand http(s) URLs to the OS.
+    // Anything else (file:, javascript:, custom protocols, unparseable
+    // strings) is logged and ignored.
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        console.error('Blocked non-http(s) URL from opening in browser:', url);
+        return;
+      }
+    } catch {
+      console.error('Blocked invalid URL from opening in browser:', url);
+      return;
+    }
+    void shell.openExternal(url);
   });
 
   // Disable/enable both shortcut sets (the focus set and the global Alt set)
@@ -620,9 +632,17 @@ const registerKeyboardShortcuts = () => {
   const failed: string[] = [];
 
   getShortcutBindings().forEach(({ accelerator, channel }) => {
-    const registered = globalShortcut.register(accelerator, () => {
-      mainWindow?.webContents.send(channel);
-    });
+    // globalShortcut.register only returns false for conflicts — a
+    // malformed accelerator string (e.g. from a corrupt config) THROWS, so
+    // catch it and keep going rather than crashing the main process.
+    let registered = false;
+    try {
+      registered = globalShortcut.register(accelerator, () => {
+        mainWindow?.webContents.send(channel);
+      });
+    } catch (error) {
+      console.error(`Invalid keyboard shortcut "${accelerator}":`, error);
+    }
     if (registered) {
       registeredFocusAccelerators.push(accelerator);
     } else {
@@ -652,9 +672,19 @@ const registerGlobalKeyboardShortcuts = () => {
     // Accelerators that already include Alt have no separate global variant.
     if (!globalAccelerator) return;
 
-    const registered = globalShortcut.register(globalAccelerator, () => {
-      mainWindow?.webContents.send(channel);
-    });
+    // See registerKeyboardShortcuts: register throws on malformed
+    // accelerators instead of returning false.
+    let registered = false;
+    try {
+      registered = globalShortcut.register(globalAccelerator, () => {
+        mainWindow?.webContents.send(channel);
+      });
+    } catch (error) {
+      console.error(
+        `Invalid global keyboard shortcut "${globalAccelerator}":`,
+        error
+      );
+    }
     if (registered) {
       registeredGlobalAccelerators.push(globalAccelerator);
     } else {
@@ -816,6 +846,10 @@ function ensureWindowsAreVisible() {
   checkAndMoveWindow(mainWindow, MAIN_WINDOW);
   checkAndMoveWindow(displayWindow, DISPLAY_WINDOW);
 }
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
 
 app.on('will-quit', () => {
   flushLiveMatch();

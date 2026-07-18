@@ -82,8 +82,18 @@ export async function handleFileUpload(
 }
 
 export function handleFileDeletion(filePath: string): boolean {
+  // filePath comes from an IPC caller — only delete files that actually
+  // live inside the images directory (same containment check as
+  // browserSourceServer's serveStaticFile).
+  const normalizedBase = path.normalize(imagesPath);
+  const target = path.normalize(path.resolve(filePath));
+  if (!target.startsWith(normalizedBase + path.sep)) {
+    console.error('Rejected deletion outside the images directory:', filePath);
+    return false;
+  }
+
   try {
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(target);
     const screens = getCustomScreens() as CustomScreen[];
     const updatedScreens = screens.filter(
       (screen: CustomScreen) => screen.filePath !== filePath

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { defaultAppSettings } from './constants';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -63,3 +64,30 @@ export const matchSetingsSchema = z.object({
 });
 
 export type MatchSettings = z.infer<typeof matchSetingsSchema>;
+
+// Stored app settings feed globalShortcut.register (which throws on a
+// malformed accelerator string) and the browser-source server, so corrupt
+// data must never make it out of storage unchecked. Same per-field
+// degradation pattern as matchSetingsSchema: an individual bad field falls
+// back to its default (or undefined) instead of failing the whole parse and
+// discarding the user's remaining settings.
+export const appSettingsSchema = z.object({
+  keyColour: z.string().catch(defaultAppSettings.keyColour),
+  autoSwitchScreens: z.boolean().catch(defaultAppSettings.autoSwitchScreens),
+  clockFormat: z.enum(['24h', '12h']).optional().catch(undefined),
+  browserSource: z
+    .object({
+      enabled: z.boolean(),
+      port: z.number(),
+    })
+    .optional()
+    .catch(undefined),
+  keyboardShortcuts: z
+    .object({
+      nextMatchPhase: z.string(),
+      homeTeamScored: z.string(),
+      awayTeamScored: z.string(),
+    })
+    .optional()
+    .catch(undefined),
+});

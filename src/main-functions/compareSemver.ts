@@ -2,7 +2,17 @@ export default function compareSemver(
   version1: string,
   version2: string
 ): number {
-  const parseSemver = (version: string) => version.split('.').map(Number);
+  // Strip any pre-release/build suffix ("0.16.0-beta.1", "1.0.0+build.5")
+  // before parsing, and treat unparseable parts as 0 so a malformed version
+  // never poisons the comparison with NaN (NaN !== NaN would report every
+  // comparison as a difference).
+  const parseSemver = (version: string) => {
+    const core = version.split(/[-+]/, 1)[0];
+    return core.split('.').map((part) => {
+      const parsed = Number(part);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    });
+  };
 
   const [major1, minor1, patch1] = parseSemver(version1);
   const [major2, minor2, patch2] = parseSemver(version2);

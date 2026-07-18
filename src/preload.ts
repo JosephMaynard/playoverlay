@@ -65,10 +65,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleFullscreen: () => ipcRenderer.send('toggle-fullscreen'),
   getFullscreenStatus: () => ipcRenderer.invoke('get-fullscreen-status'),
 
-  startPowerSaveBlocker: () => ipcRenderer.invoke('start-power-save-blocker'),
-  stopPowerSaveBlocker: () => ipcRenderer.invoke('stop-power-save-blocker'),
-  getPowerSaveBlockerStatus: () =>
-    ipcRenderer.invoke('get-power-save-blocker-status'),
   getVersion: () => ipcRenderer.sendSync('get-version'),
   getAppSettings: () => ipcRenderer.invoke('get-app-settings'),
   getBrowserSourceStatus: () => ipcRenderer.invoke('get-browser-source-status'),
@@ -143,12 +139,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openUrlInBrowser: (url: string) =>
     ipcRenderer.send('open-url-in-browser', url),
 
-  onNextMatchPhase: (callback: () => void) =>
-    ipcRenderer.on('next-match-phase', callback),
-  onHomeTeamScored: (callback: () => void) =>
-    ipcRenderer.on('home-team-scored', callback),
-  onAwayTeamScored: (callback: () => void) =>
-    ipcRenderer.on('away-team-scored', callback),
+  onNextMatchPhase: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('next-match-phase', listener);
+    return () => ipcRenderer.removeListener('next-match-phase', listener);
+  },
+  onHomeTeamScored: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('home-team-scored', listener);
+    return () => ipcRenderer.removeListener('home-team-scored', listener);
+  },
+  onAwayTeamScored: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('away-team-scored', listener);
+    return () => ipcRenderer.removeListener('away-team-scored', listener);
+  },
 
   enableKeyboardShortcuts: () => ipcRenderer.send('enable-keyboard-shortcuts'),
   disableKeyboardShortcuts: () =>
