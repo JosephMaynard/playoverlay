@@ -56,6 +56,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          shopt -s nullglob globstar
-          gh release upload "${{ github.ref_name }}" --repo "${{ github.repository }}" \
-            out/make/**/*.exe out/make/**/*.zip
+          # macOS runners ship bash 3.2 (no globstar), so use find; -print0
+          # with xargs -0 handles the space in the Squirrel "... Setup.exe"
+          # name, and --clobber makes re-runs idempotent.
+          find out/make -type f \( -name '*.exe' -o -name '*.zip' \) -print0 |
+            xargs -0 gh release upload "${{ github.ref_name }}" \
+              --repo "${{ github.repository }}" --clobber
