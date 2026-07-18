@@ -165,7 +165,13 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
   return browserSourceTransition;
 }
 
-function persistLiveMatch() {
+// Live-match writes are throttled: time updates arrive every second while
+// the clock runs, and each electron-store set() synchronously rewrites the
+// whole config file on the main thread. Deferring the write keeps crash
+// recovery at most ~2s stale while halving+ the disk churn over a match.
+let persistLiveMatchTimer: ReturnType<typeof setTimeout> | null = null;
+
+function writeLiveMatch() {
   try {
     setLiveMatch({
       scores: cachedScores,
@@ -175,6 +181,22 @@ function persistLiveMatch() {
     });
   } catch (error) {
     console.error('Error persisting live match:', error);
+  }
+}
+
+function persistLiveMatch() {
+  if (persistLiveMatchTimer) return;
+  persistLiveMatchTimer = setTimeout(() => {
+    persistLiveMatchTimer = null;
+    writeLiveMatch();
+  }, 2000);
+}
+
+function flushLiveMatch() {
+  if (persistLiveMatchTimer) {
+    clearTimeout(persistLiveMatchTimer);
+    persistLiveMatchTimer = null;
+    writeLiveMatch();
   }
 }
 
@@ -796,6 +818,7 @@ function ensureWindowsAreVisible() {
 }
 
 app.on('will-quit', () => {
+  flushLiveMatch();
   globalShortcut.unregisterAll();
   void stopBrowserSourceServer();
 });
