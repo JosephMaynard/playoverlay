@@ -97,7 +97,7 @@ describe('apiRequests', () => {
     });
 
     it('throws for non-OK GitHub responses', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -110,7 +110,7 @@ describe('apiRequests', () => {
     });
 
     it('throws when the GitHub response does not match the expected release shape', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
       mockSuccessfulFetch({
         name: 'Release without tag',
       });

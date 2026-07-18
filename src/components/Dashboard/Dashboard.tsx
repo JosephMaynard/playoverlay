@@ -10,7 +10,7 @@ import {
   SideMenuType,
   Time,
 } from '../../types';
-import { UpdateStatus } from '../../zodSchemas';
+import { MatchSettings, UpdateStatus } from '../../zodSchemas';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
@@ -25,7 +25,12 @@ import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import DashboardHeader from './DashboardHeader';
 
-import { getMatchPhases, timeToString } from '../../utils';
+import {
+  getPhaseById,
+  getPhaseList,
+  getNextPhaseId,
+  timeToString,
+} from '../../utils';
 import { DisplayScreen } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
@@ -190,6 +195,24 @@ export default function Dashboard() {
     window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
+  // Settings changes that remove the running phase — timer mode switch,
+  // extra time off, fewer periods — stop the clock instead of leaving it
+  // orphaned on a phase id that no longer exists.
+  const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
+    const mergedSettings = {
+      ...useMatchSettingsStore.getState().matchSettings,
+      ...settingsUpdate,
+    };
+    const { matchPhase } = useTimeStore.getState().time;
+    if (
+      matchPhase !== undefined &&
+      !getPhaseList(mergedSettings).some((phase) => phase.id === matchPhase)
+    ) {
+      stopTime();
+    }
+    setMatchSettings(settingsUpdate);
+  };
+
   // Push a new clock value (and any extra time fields) to the time store.
   // Match settings are read fresh from the store so a half-length change
   // mid-half takes effect immediately.
@@ -199,11 +222,7 @@ export default function Dashboard() {
     const currentMatchSettings = useMatchSettingsStore.getState().matchSettings;
     const matchPhase = timeUpdates.matchPhase ?? currentTime.matchPhase;
     const remainingSeconds =
-      (getMatchPhases(
-        currentMatchSettings.halfLength,
-        currentMatchSettings.extraTimeHalfLength
-      )?.[matchPhase]?.end || 0) *
-        60 -
+      (getPhaseById(currentMatchSettings, matchPhase)?.end || 0) * 60 -
       newSeconds;
 
     setTime({
@@ -249,12 +268,12 @@ export default function Dashboard() {
     stopTicking();
     setPaused(false);
 
-    const phases = getMatchPhases(
-      useMatchSettingsStore.getState().matchSettings.halfLength,
-      useMatchSettingsStore.getState().matchSettings.extraTimeHalfLength
+    const phase = getPhaseById(
+      useMatchSettingsStore.getState().matchSettings,
+      matchPhase
     );
 
-    applyTime(phases?.[matchPhase].start * 60, { matchPhase, paused: false });
+    applyTime((phase?.start ?? 0) * 60, { matchPhase, paused: false });
 
     // Update matchPhase in matchState
     setMatchState({ matchPhase });
@@ -346,20 +365,10 @@ export default function Dashboard() {
     const { previousMatchPhase, matchPhase } =
       useMatchStateStore.getState().matchState;
 
-    let nextPhase: MatchPhase | undefined;
-
-    if (matchPhase === undefined) {
-      if (previousMatchPhase === undefined) {
-        // Start from the first phase
-        nextPhase = 'firstHalf';
-      } else if (previousMatchPhase === 'firstHalf') {
-        nextPhase = 'secondHalf';
-      } else if (previousMatchPhase === 'secondHalf') {
-        nextPhase = 'extraTimeFirstHalf';
-      } else if (previousMatchPhase === 'extraTimeFirstHalf') {
-        nextPhase = 'extraTimeSecondHalf';
-      }
-    }
+    const phaseList = getPhaseList(
+      useMatchSettingsStore.getState().matchSettings
+    );
+    const nextPhase = getNextPhaseId(phaseList, matchPhase, previousMatchPhase);
 
     if (nextPhase) {
       startTime(nextPhase);
@@ -369,8 +378,13 @@ export default function Dashboard() {
       if (appSettings.autoSwitchScreens) {
         setMatchState({ displayScreen: 'scoreBug' });
       }
-    } else {
-      // No next phase, stop time
+    } else if (matchPhase !== undefined) {
+      // No next phase, and a phase is currently running (full time reached):
+      // stop the clock and record how far the match got. Guarded on
+      // matchPhase so a stray shortcut press after the match has already
+      // finished (matchPhase already undefined) is a no-op — otherwise it
+      // would overwrite previousMatchPhase and let the match restart from
+      // the first phase.
       stopTime();
 
       setMatchState({
@@ -402,6 +416,7 @@ export default function Dashboard() {
                 updateMatchState={setMatchState}
                 matchState={matchState}
                 customGraphics={customGraphics}
+                matchSettings={matchSettings}
               />
             </div>
           </div>
@@ -442,22 +457,24 @@ export default function Dashboard() {
               time={time}
               updateScore={setScores}
             />
-            <PenaltiesPanel
-              penalties={scores.penalties}
-              setPenalties={setPenalties}
-              penaltiesFirstTeam={matchState.penaltiesFirstTeam}
-              setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-                setMatchState({ penaltiesFirstTeam })
-              }
-              matchSettings={matchSettings}
-            />
+            {matchSettings.hasPenalties !== false && (
+              <PenaltiesPanel
+                penalties={scores.penalties}
+                setPenalties={setPenalties}
+                penaltiesFirstTeam={matchState.penaltiesFirstTeam}
+                setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
+                  setMatchState({ penaltiesFirstTeam })
+                }
+                matchSettings={matchSettings}
+              />
+            )}
           </div>
         </main>
         <MatchSettingsMenu
           sidebarOpen={sideMenu === 'team-settings'}
           setSidebarOpen={closeSideMenu}
           matchSettings={matchSettings}
-          updateMatchSettings={setMatchSettings}
+          updateMatchSettings={updateMatchSettings}
           appSettings={appSettings}
         />
         <CustomScreensMenu

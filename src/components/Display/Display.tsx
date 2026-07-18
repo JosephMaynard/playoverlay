@@ -9,8 +9,10 @@ import {
 } from '../../constants';
 import Screens from '../Screens/Screens';
 import { MatchSettings } from 'src/zodSchemas';
+import { createDisplayTransport } from '../../displayTransport';
 
 const Display = () => {
+  const [transport] = useState(() => createDisplayTransport());
   const [scores, setScores] = useState<Scores>(defaultScores);
   const [time, setTime] = useState<Time>({});
   const [matchSettings, setMatchSettings] =
@@ -22,12 +24,12 @@ const Display = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const checkFullscreenStatus = async () => {
-    const status = await window.electronAPI.getFullscreenStatus();
+    const status = await transport.getFullscreenStatus();
     setIsFullscreen(status);
   };
 
   const handleToggleFullscreen = () => {
-    window.electronAPI.toggleFullscreen();
+    transport.toggleFullscreen();
     checkFullscreenStatus(); // Update status after toggle
   };
 
@@ -57,29 +59,47 @@ const Display = () => {
       setMatchState(newSettings);
     };
 
-    window.electronAPI.onScoreUpdated(handleScoreUpdate);
-    window.electronAPI.onTimeUpdated(handleTimeUpdate);
-    window.electronAPI.onMatchSettingsUpdated(handleTeamSettingsUpdate);
-    window.electronAPI.onAppSettingsUpdated(handleAppSettingsUpdate);
-    window.electronAPI.onMatchStateUpdated(handleMatchSettingsUpdate);
+    const removeScoreListener = transport.onScoreUpdated(handleScoreUpdate);
+    const removeTimeListener = transport.onTimeUpdated(handleTimeUpdate);
+    const removeMatchSettingsListener = transport.onMatchSettingsUpdated(
+      handleTeamSettingsUpdate
+    );
+    const removeAppSettingsListener = transport.onAppSettingsUpdated(
+      handleAppSettingsUpdate
+    );
+    const removeMatchStateListener = transport.onMatchStateUpdated(
+      handleMatchSettingsUpdate
+    );
 
     // After listeners are set up, request initial state from main
-    window.electronAPI.displayReady();
+    transport.displayReady();
 
-    // Cleanup listeners on component unmount
     return () => {
-      window.electronAPI.onScoreUpdated(() => {});
-      window.electronAPI.onTimeUpdated(() => {});
-      window.electronAPI.onMatchStateUpdated(() => {});
-      window.electronAPI.onAppSettingsUpdated(() => {});
-      window.electronAPI.onMatchStateUpdated(() => {});
+      removeScoreListener();
+      removeTimeListener();
+      removeMatchSettingsListener();
+      removeAppSettingsListener();
+      removeMatchStateListener();
     };
-  }, []);
+  }, [transport]);
+
+  // OBS browser sources are transparent by default when the page itself
+  // paints no opaque background; make that explicit for browser-source mode
+  // (the Electron display window still always uses the chroma-key colour).
+  useEffect(() => {
+    if (!transport.isBrowserSource) return;
+    document.documentElement.style.background = 'transparent';
+    document.body.style.background = 'transparent';
+  }, [transport.isBrowserSource]);
 
   return (
     <div
       className={`relative h-screen overflow-hidden ${isFullscreen ? 'cursor-none' : ''}`}
-      style={{ backgroundColor: appSettings.keyColour }}
+      style={{
+        backgroundColor: transport.isBrowserSource
+          ? 'transparent'
+          : appSettings.keyColour,
+      }}
     >
       <Screens
         matchSettings={matchSettings}

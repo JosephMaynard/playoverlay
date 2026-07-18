@@ -1,6 +1,5 @@
 import { requestStreamDecks } from '@elgato-stream-deck/webhid';
 
-// @ts-ignore
 import logo from './assets/playoverlay-logo.svg';
 
 function createCanvasWithText(
@@ -135,7 +134,7 @@ export async function connectToStreamDeck(
 
   let isHandlingPress = false;
 
-  streamDeck.on('down', async (key: any) => {
+  streamDeck.on('down', async (key) => {
     if (isHandlingPress) return; // Skip if already handling a button press
     isHandlingPress = true;
 
@@ -155,7 +154,7 @@ export async function connectToStreamDeck(
 
   // Fired whenever an error is detected by the hid device.
   // Always add a listener for this event! If you don't, errors will be silently dropped.
-  streamDeck.on('error', (error: any) => {
+  streamDeck.on('error', (error) => {
     console.error(error);
   });
 

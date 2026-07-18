@@ -11,6 +11,7 @@ import {
 import path from 'path';
 import {
   AppSettings,
+  BrowserSourceSettings,
   CustomScreen,
   LiveMatch,
   MatchState,
@@ -24,6 +25,11 @@ import {
   defaultScores,
 } from './constants';
 import { MatchSettings } from './zodSchemas';
+import {
+  deriveGlobalAccelerator,
+  getBrowserSourceSettings,
+  getKeyboardShortcuts,
+} from './utils';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,
@@ -44,8 +50,19 @@ import resetWindow from './main-functions/resetWindow';
 import {
   handleFileDeletion,
   handleFileUpload,
+  imagesPath,
+  saveImageFile,
 } from './main-functions/fileHandler';
+import convertFilePathToUrl from './main-functions/convertFilePathToUrl';
 import { checkForUpdates } from './main-functions/apiRequests';
+import {
+  broadcastToBrowserSources,
+  getBrowserSourceServerPort,
+  isBrowserSourceServerRunning,
+  rewriteFileUrls,
+  startBrowserSourceServer,
+  stopBrowserSourceServer,
+} from './main-functions/browserSourceServer';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -79,6 +96,74 @@ let cachedMatchState: MatchState = { ...defaultMatchState };
 // renderer's initial state pushes overwrite it. Offered to the dashboard
 // so an interrupted match can be restored.
 let liveMatchAtLaunch: LiveMatch | undefined;
+
+// Set when the browser source server most recently failed to start (e.g.
+// EADDRINUSE), so the settings UI can surface it. Cleared on a successful
+// (re)start or once the feature is disabled.
+let browserSourceError: string | undefined;
+
+function getImagesDirUrlPrefix(): string {
+  return `${convertFilePathToUrl(imagesPath)}/`;
+}
+
+// Every payload sent to a browser source (snapshot or broadcast) needs its
+// file:// image URLs rewritten to this server's /images/ route.
+function toBrowserSourcePayload<T>(payload: T): T {
+  return rewriteFileUrls(payload, getImagesDirUrlPrefix());
+}
+
+function broadcastToBrowserSourcesRewritten(channel: string, payload: unknown) {
+  broadcastToBrowserSources(channel, toBrowserSourcePayload(payload));
+}
+
+// Matches the order display-ready sends in: settings first, then
+// state/scores/time. Keep this in sync with that handler below.
+function getBrowserSourceSnapshot() {
+  return [
+    { channel: 'match-settings-updated', payload: toBrowserSourcePayload(cachedMatchSettings) },
+    { channel: 'app-settings-updated', payload: toBrowserSourcePayload(cachedAppSettings) },
+    { channel: 'match-state-updated', payload: toBrowserSourcePayload(cachedMatchState) },
+    { channel: 'score-updated', payload: toBrowserSourcePayload(cachedScores) },
+    { channel: 'time-updated', payload: toBrowserSourcePayload(cachedTime) },
+  ];
+}
+
+// Applies a (possibly changed) browser-source configuration: always stops
+// any running server first (idempotent if none is running), then restarts
+// it if enabled. Used both at launch and whenever settings change.
+async function applyBrowserSourceSettings(settings: BrowserSourceSettings) {
+  await stopBrowserSourceServer();
+  browserSourceError = undefined;
+
+  if (!settings.enabled) return;
+
+  const result = await startBrowserSourceServer({
+    port: settings.port,
+    imagesPath,
+    getSnapshot: getBrowserSourceSnapshot,
+  });
+
+  if (result.ok === false) {
+    browserSourceError = result.error;
+    console.error('Failed to start browser source server:', result.error);
+  }
+}
+
+// Serializes applyBrowserSourceSettings calls so rapid settings changes
+// (e.g. toggling enabled then immediately changing the port) can't interleave
+// their stop/start work. Each call is chained onto the previous one and
+// errors are swallowed here (applyBrowserSourceSettings already handles its
+// own failures) so one bad call never breaks the chain for later ones.
+let browserSourceTransition = Promise.resolve();
+
+function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
+  browserSourceTransition = browserSourceTransition
+    .then(() => applyBrowserSourceSettings(settings))
+    .catch((error) => {
+      console.error('Error applying browser source settings:', error);
+    });
+  return browserSourceTransition;
+}
 
 function persistLiveMatch() {
   try {
@@ -177,18 +262,12 @@ const createWindows = () => {
   );
 
   mainWindow.webContents.session.setPermissionCheckHandler(
-    (_webContents, permission, _requestingOrigin, _details) => {
-      if (permission === 'hid') {
-        return true;
-      }
-    }
+    (_webContents, permission) => permission === 'hid'
   );
 
-  mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-    if (details.deviceType === 'hid') {
-      return true;
-    }
-  });
+  mainWindow.webContents.session.setDevicePermissionHandler(
+    (details) => details.deviceType === 'hid'
+  );
 
   // Window closed event
   mainWindow.on('closed', () => {
@@ -209,12 +288,14 @@ function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
     cachedScores = scores;
     displayWindow?.webContents.send('score-updated', scores);
+    broadcastToBrowserSourcesRewritten('score-updated', scores);
     persistLiveMatch();
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
     cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
+    broadcastToBrowserSourcesRewritten('time-updated', time);
     persistLiveMatch();
   });
 
@@ -222,22 +303,70 @@ function setupIPCHandlers() {
     setMatchSettings(teamSettings);
     cachedMatchSettings = teamSettings;
     displayWindow?.webContents.send('match-settings-updated', teamSettings);
+    broadcastToBrowserSourcesRewritten('match-settings-updated', teamSettings);
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
+    const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
+    const previousBrowserSource = getBrowserSourceSettings(cachedAppSettings);
+
     setAppSettings(appSettings);
     cachedAppSettings = appSettings;
     displayWindow?.webContents.send('app-settings-updated', appSettings);
+    broadcastToBrowserSourcesRewritten('app-settings-updated', appSettings);
+
+    const nextShortcuts = getKeyboardShortcuts(cachedAppSettings);
+    const shortcutsChanged =
+      previousShortcuts.nextMatchPhase !== nextShortcuts.nextMatchPhase ||
+      previousShortcuts.homeTeamScored !== nextShortcuts.homeTeamScored ||
+      previousShortcuts.awayTeamScored !== nextShortcuts.awayTeamScored;
+
+    // Re-register with the new bindings. If shortcuts are currently
+    // disabled (a side menu is open) both sets are already unregistered —
+    // leave them alone and let enable-keyboard-shortcuts pick up the new
+    // bindings when the menu closes. The global Alt set is always on while
+    // enabled; the focus set only registers while the main window has
+    // focus.
+    if (shortcutsChanged && !keyboardShortcutsDisabled) {
+      // Unregister both sets before registering either replacement — a new
+      // binding in one set could otherwise collide with a stale
+      // registration still held by the other.
+      const registerFocusSet = mainWindow?.isFocused() ?? false;
+      unregisterGlobalKeyboardShortcuts();
+      unregisterKeyboardShortcuts();
+      registerGlobalKeyboardShortcuts();
+      if (registerFocusSet) {
+        registerKeyboardShortcuts();
+      }
+    }
+
+    const nextBrowserSource = getBrowserSourceSettings(cachedAppSettings);
+    if (
+      previousBrowserSource.enabled !== nextBrowserSource.enabled ||
+      previousBrowserSource.port !== nextBrowserSource.port
+    ) {
+      void queueBrowserSourceSettings(nextBrowserSource);
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
     cachedMatchState = matchState;
     displayWindow?.webContents.send('match-state-updated', matchState);
+    broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
     persistLiveMatch();
   });
 
   ipcMain.handle('get-live-match', () => {
     return liveMatchAtLaunch;
+  });
+
+  ipcMain.handle('get-browser-source-status', () => {
+    const settings = getBrowserSourceSettings(cachedAppSettings);
+    return {
+      running: isBrowserSourceServerRunning(),
+      port: getBrowserSourceServerPort() ?? settings.port,
+      error: browserSourceError,
+    };
   });
 
   // Display window signals it's ready to receive initial state
@@ -357,6 +486,13 @@ function setupIPCHandlers() {
     return handleFileDeletion(filePath);
   });
 
+  ipcMain.handle(
+    'upload-logo',
+    async (_, buffer: Buffer, fileName: string) => {
+      return saveImageFile(buffer, fileName);
+    }
+  );
+
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();
   });
@@ -427,54 +563,93 @@ function setupIPCHandlers() {
 
 // Setup display listeners
 function setupDisplayListeners() {
-  screen.on('display-added', (_, newDisplay) => {
+  screen.on('display-added', () => {
     ensureWindowsAreVisible(); // Ensure windows are visible when a display is added
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 
-  screen.on('display-removed', (_, oldDisplay) => {
+  screen.on('display-removed', () => {
     ensureWindowsAreVisible(); // Ensure windows are visible when a display is removed
     mainWindow?.webContents.send('display-change', screen.getAllDisplays());
   });
 }
 
 // Keyboard shortcuts
+// Track exactly which accelerators are registered right now (bindings can
+// change between a register and its matching unregister, e.g. via a
+// rebind), so unregistering always removes precisely those accelerators
+// and never leaves a stale one behind.
+let registeredFocusAccelerators: string[] = [];
+let registeredGlobalAccelerators: string[] = [];
+
+function getShortcutBindings(): Array<{ accelerator: string; channel: string }> {
+  const shortcuts = getKeyboardShortcuts(cachedAppSettings);
+  return [
+    { accelerator: shortcuts.nextMatchPhase, channel: 'next-match-phase' },
+    { accelerator: shortcuts.homeTeamScored, channel: 'home-team-scored' },
+    { accelerator: shortcuts.awayTeamScored, channel: 'away-team-scored' },
+  ];
+}
+
 const registerKeyboardShortcuts = () => {
-  globalShortcut.register('CommandOrControl+Shift+Space', () => {
-    mainWindow?.webContents.send('next-match-phase');
+  // Idempotent: clear any tracked registrations first so a repeated focus
+  // event can't reset the tracking while the shortcuts stay registered.
+  unregisterKeyboardShortcuts();
+  const failed: string[] = [];
+
+  getShortcutBindings().forEach(({ accelerator, channel }) => {
+    const registered = globalShortcut.register(accelerator, () => {
+      mainWindow?.webContents.send(channel);
+    });
+    if (registered) {
+      registeredFocusAccelerators.push(accelerator);
+    } else {
+      failed.push(accelerator);
+    }
   });
 
-  globalShortcut.register('CommandOrControl+Shift+h', () => {
-    mainWindow?.webContents.send('home-team-scored');
-  });
-
-  globalShortcut.register('CommandOrControl+Shift+a', () => {
-    mainWindow?.webContents.send('away-team-scored');
-  });
+  if (failed.length > 0) {
+    console.error('Failed to register keyboard shortcut(s):', failed);
+  }
 };
 
 const unregisterKeyboardShortcuts = () => {
-  globalShortcut.unregister('CommandOrControl+Shift+Space');
-  globalShortcut.unregister('CommandOrControl+Shift+h');
-  globalShortcut.unregister('CommandOrControl+Shift+a');
+  registeredFocusAccelerators.forEach((accelerator) =>
+    globalShortcut.unregister(accelerator)
+  );
+  registeredFocusAccelerators = [];
 };
 
 const registerGlobalKeyboardShortcuts = () => {
-  globalShortcut.register('CommandOrControl+Alt+Shift+Space', () => {
-    mainWindow?.webContents.send('next-match-phase');
+  // Idempotent: see registerKeyboardShortcuts.
+  unregisterGlobalKeyboardShortcuts();
+  const failed: string[] = [];
+
+  getShortcutBindings().forEach(({ accelerator, channel }) => {
+    const globalAccelerator = deriveGlobalAccelerator(accelerator);
+    // Accelerators that already include Alt have no separate global variant.
+    if (!globalAccelerator) return;
+
+    const registered = globalShortcut.register(globalAccelerator, () => {
+      mainWindow?.webContents.send(channel);
+    });
+    if (registered) {
+      registeredGlobalAccelerators.push(globalAccelerator);
+    } else {
+      failed.push(globalAccelerator);
+    }
   });
-  globalShortcut.register('CommandOrControl+Alt+Shift+H', () => {
-    mainWindow?.webContents.send('home-team-scored');
-  });
-  globalShortcut.register('CommandOrControl+Alt+Shift+A', () => {
-    mainWindow?.webContents.send('away-team-scored');
-  });
+
+  if (failed.length > 0) {
+    console.error('Failed to register global keyboard shortcut(s):', failed);
+  }
 };
 
 const unregisterGlobalKeyboardShortcuts = () => {
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+Space');
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+H');
-  globalShortcut.unregister('CommandOrControl+Alt+Shift+A');
+  registeredGlobalAccelerators.forEach((accelerator) =>
+    globalShortcut.unregister(accelerator)
+  );
+  registeredGlobalAccelerators = [];
 };
 
 // App ready event
@@ -497,6 +672,10 @@ app.on('ready', async () => {
   } catch {
     // Ignore invalid or missing persisted live match.
   }
+  // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
+  // settings. Startup errors (e.g. a busy port) are caught inside and never
+  // reach here.
+  void queueBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
   ensureWindowsAreVisible();
@@ -618,4 +797,5 @@ function ensureWindowsAreVisible() {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+  void stopBrowserSourceServer();
 });

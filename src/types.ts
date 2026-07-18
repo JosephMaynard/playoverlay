@@ -13,9 +13,24 @@ export interface Scores {
   penalties: Penalty[];
 }
 
+export interface KeyboardShortcuts {
+  nextMatchPhase: string;
+  homeTeamScored: string;
+  awayTeamScored: string;
+}
+
+// OBS Browser Source output: an optional local HTTP+WebSocket server that
+// serves the display view for use as an OBS browser source. Off by default.
+export interface BrowserSourceSettings {
+  enabled: boolean;
+  port: number;
+}
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
+  keyboardShortcuts?: KeyboardShortcuts;
+  browserSource?: BrowserSourceSettings;
 }
 
 export interface MatchState {
@@ -64,22 +79,15 @@ export interface CustomScreen {
 }
 
 export interface MatchPeriod {
+  id: string;
   title: string;
   start: number;
   end: number;
 }
-export interface MatchPhases {
-  firstHalf: MatchPeriod;
-  secondHalf: MatchPeriod;
-  extraTimeFirstHalf: MatchPeriod;
-  extraTimeSecondHalf: MatchPeriod;
-}
 
-export type MatchPhase =
-  | 'firstHalf'
-  | 'secondHalf'
-  | 'extraTimeFirstHalf'
-  | 'extraTimeSecondHalf';
+// Phase ids are no longer a fixed football-only set: generic timer mode
+// produces its own ids (period1, period2, ...), so this is just a string.
+export type MatchPhase = string;
 
 export type SideMenuType =
   | null

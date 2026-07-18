@@ -11,8 +11,25 @@ export interface Props {
 }
 
 export default function Scores({ scores, matchSettings, time, active }: Props) {
+  const logoCount =
+    (matchSettings.homeTeamLogo ? 1 : 0) + (matchSettings.awayTeamLogo ? 1 : 0);
+  const activeClass = active
+    ? `ScoresLayout_active ${
+        logoCount > 0 ? `ScoresLayout_active_logos${logoCount}` : ''
+      }`
+    : '';
+
   return (
-    <div className={`ScoresLayout flex ${active ? 'ScoresLayout_active' : ''}`}>
+    <div className={`ScoresLayout flex ${activeClass}`}>
+      {matchSettings.homeTeamLogo && (
+        <div className="ScoresLayout_item ScoresLayout_logo">
+          <img
+            src={matchSettings.homeTeamLogo}
+            alt=""
+            className="h-full w-full object-contain"
+          />
+        </div>
+      )}
       <ScoresTeamName
         textColour={matchSettings.homeTeamTextColour}
         backgroundColour={matchSettings.homeTeamBackgroundColour}
@@ -27,6 +44,15 @@ export default function Scores({ scores, matchSettings, time, active }: Props) {
         backgroundColour={matchSettings.awayTeamBackgroundColour}
         teamName={matchSettings.awayTeamNameAbbreviated}
       />
+      {matchSettings.awayTeamLogo && (
+        <div className="ScoresLayout_item ScoresLayout_logo">
+          <img
+            src={matchSettings.awayTeamLogo}
+            alt=""
+            className="h-full w-full object-contain"
+          />
+        </div>
+      )}
       {time.time && (
         <div className="ScoresLayout_item ScoresLayout_time bg-black text-center text-white">
           {time.time}

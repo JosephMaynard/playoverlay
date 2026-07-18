@@ -53,10 +53,14 @@ describe('zod schemas', () => {
         awayTeamBackgroundColour: '#eeeeee',
         venue: 'Main Pitch',
         kickOffTime: '19:45',
+        timerMode: 'football',
         halfLength: 45,
         extraTimeHalfLength: 15,
         hasExtraTime: true,
         hasPenalties: true,
+        periodCount: 4,
+        periodLength: 10,
+        periodName: 'Quarter',
         hideCustomGraphics: ['sponsor-board'],
         hideScreens: ['endScreen'],
         saveDate: '2026-07-06',
@@ -74,5 +78,25 @@ describe('zod schemas', () => {
         awayTeamNameAbbreviated: 'BEA',
       }).success
     ).toBe(false);
+  });
+
+  it('degrades out-of-range numeric timer fields to undefined instead of failing the whole object', () => {
+    const result = matchSetingsSchema.safeParse({
+      homeTeamNameFull: 'Tigers',
+      homeTeamNameAbbreviated: 'TIG',
+      awayTeamNameFull: 'Bears',
+      awayTeamNameAbbreviated: 'BEA',
+      periodCount: 0,
+      halfLength: -5,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.periodCount).toBeUndefined();
+      expect(result.data.halfLength).toBeUndefined();
+      // The rest of the settings, including team names, survive untouched.
+      expect(result.data.homeTeamNameFull).toBe('Tigers');
+      expect(result.data.awayTeamNameFull).toBe('Bears');
+    }
   });
 });

@@ -29,7 +29,9 @@ describe('ScoreInput', () => {
     const user = userEvent.setup();
     render(<ScoreInput {...baseProps} setScore={setScore} />);
 
-    await user.click(screen.getAllByRole('button')[0]);
+    await user.click(
+      screen.getByRole('button', { name: 'Edit Tigers score' })
+    );
     fireEvent.change(await screen.findByLabelText('Tigers score'), {
       target: { value: '5' },
     });

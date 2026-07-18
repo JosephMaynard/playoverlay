@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomScreen } from '../../types';
+import convertFilePathToUrl from '../convertFilePathToUrl';
 
 const temporaryDirectories: string[] = [];
 
@@ -62,6 +63,48 @@ describe('fileHandler', () => {
     expect(fs.existsSync(imagesPath)).toBe(true);
   });
 
+  it('saveImageFile writes a unique file and returns its path and url without touching custom screens', async () => {
+    const { fileHandler, imagesPath, setCustomScreens, getScreens } =
+      await loadFileHandler();
+    fs.writeFileSync(path.join(imagesPath, 'logo.png'), 'existing');
+
+    const result = fileHandler.saveImageFile(
+      Buffer.from('new-logo'),
+      'logo.png'
+    );
+    const expectedPath = path.join(imagesPath, 'logo-1.png');
+
+    expect(result).toEqual({
+      filePath: expectedPath,
+      url: convertFilePathToUrl(expectedPath),
+    });
+    expect(fs.readFileSync(expectedPath, 'utf8')).toBe('new-logo');
+    expect(getScreens()).toEqual([]);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('saveImageFile returns null when the write fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+    fs.rmSync(imagesPath, { force: true, recursive: true });
+    fs.writeFileSync(imagesPath, 'not a directory');
+
+    expect(fileHandler.saveImageFile(Buffer.from('uploaded'), 'logo.png')).toBeNull();
+  });
+
+  it('saveImageFile rejects a file name that would escape the images directory', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const result = fileHandler.saveImageFile(
+      Buffer.from('malicious'),
+      '../../etc/passwd.png'
+    );
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
+  });
+
   it('uploads files with unique names, persists custom screen data, and notifies windows', async () => {
     const existingScreen: CustomScreen = {
       title: 'Existing',
@@ -86,7 +129,9 @@ describe('fileHandler', () => {
     );
     const uploadedPath = path.join(imagesPath, 'graphic-1.png');
 
-    expect(result).toBe(`file://${uploadedPath}`);
+    // handleFileUpload returns saveImageFile's already-encoded `url`, not a
+    // hand-rolled `file://` string.
+    expect(result).toBe(convertFilePathToUrl(uploadedPath));
     expect(fs.readFileSync(uploadedPath, 'utf8')).toBe('uploaded');
     expect(getScreens()).toEqual([
       existingScreen,
@@ -146,7 +191,7 @@ describe('fileHandler', () => {
   });
 
   it('returns null when upload persistence fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, imagesPath, setCustomScreens } =
       await loadFileHandler();
     fs.rmSync(imagesPath, { force: true, recursive: true });
@@ -163,7 +208,7 @@ describe('fileHandler', () => {
   });
 
   it('returns false when deletion fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, setCustomScreens } = await loadFileHandler();
 
     expect(fileHandler.handleFileDeletion('/does/not/exist.png')).toBe(false);

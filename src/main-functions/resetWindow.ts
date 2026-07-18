@@ -4,9 +4,9 @@ import { WindowName, setWindowPosition, setWindowSize } from './storage';
 export default function resetWindow(
   window: BrowserWindow | null,
   windowName: WindowName,
-  offset: number = 0,
-  windowWidth: number = 800,
-  windowHeight: number = 600
+  offset = 0,
+  windowWidth = 800,
+  windowHeight = 600
 ) {
   if (window) {
     if (window.isMinimized()) window.restore();

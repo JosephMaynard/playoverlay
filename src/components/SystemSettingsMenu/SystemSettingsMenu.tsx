@@ -3,7 +3,7 @@ import {
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import SideMenu from '../SideMenu/SideMenu';
-import { classNames } from '../../utils';
+import { classNames, getPhaseList } from '../../utils';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
 import { connectToStreamDeck } from '../../stream-deck';
@@ -72,36 +72,24 @@ export default function SystemSettingsMenu({
       },
     ],
     [
-      {
-        text: 'First Half',
-        onPress: () => handleStartTime('firstHalf'),
-        textColor: 'black',
-        backgroundColor: time.matchPhase === 'firstHalf' ? '#86EFAC' : 'white',
-      },
-      {
-        text: 'Second Half',
-        onPress: () => handleStartTime('secondHalf'),
-        textColor: 'black',
-        backgroundColor: time.matchPhase === 'secondHalf' ? '#86EFAC' : 'white',
-      },
-      {
-        text: 'Extra Time First Half',
-        onPress: () => handleStartTime('extraTimeFirstHalf'),
-        textColor: 'black',
-        backgroundColor:
-          time.matchPhase === 'extraTimeFirstHalf' ? '#86EFAC' : 'white',
-      },
-      {
-        text: 'Extra Time Second Half',
-        onPress: () => handleStartTime('extraTimeSecondHalf'),
-        textColor: 'black',
-        backgroundColor:
-          time.matchPhase === 'extraTimeSecondHalf' ? '#86EFAC' : 'white',
-      },
+      // Deck buttons are limited to 5 usable keys (the 6th is the "next
+      // set" logo key), so only the first 5 phases are offered here.
+      ...getPhaseList(matchSettings)
+        .slice(0, 5)
+        .map((phase) => ({
+          text: phase.title,
+          onPress: () => handleStartTime(phase.id),
+          textColor: 'black',
+          backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
+        })),
     ],
     [
       ...Object.keys(screens)
         .filter((screen) => screen !== 'custom')
+        .filter(
+          (screen) =>
+            matchSettings.hasPenalties !== false || screen !== 'penalties'
+        )
         .map((screen) => ({
           text: screens[screen as DisplayScreen],
           textColor: 'black',

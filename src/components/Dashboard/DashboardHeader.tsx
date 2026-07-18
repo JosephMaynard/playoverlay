@@ -3,10 +3,8 @@ import {
   ComputerDesktopIcon,
   PhotoIcon,
   UserGroupIcon,
-  BookmarkSquareIcon,
 } from '@heroicons/react/24/outline';
 
-// @ts-ignore
 import logo from '../../assets/playoverlay-logo.svg';
 import { SideMenuType } from '../../types';
 

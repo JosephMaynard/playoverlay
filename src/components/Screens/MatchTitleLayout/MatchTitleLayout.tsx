@@ -16,13 +16,22 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
     <div
       className={`MatchTitleLayout ${active ? 'MatchTitleLayout_active' : 'MatchTitleLayout_hidden'} absolute left-0 top-0 h-full w-full`}
     >
-      {settings?.venue && (
-        <div className="MatchTitleLayout_venue flex justify-center">
-          <div
-            className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
-          >
-            {settings.venue}
-          </div>
+      {(settings?.venue || settings?.kickOffTime) && (
+        <div className="MatchTitleLayout_venue flex flex-col items-center justify-center gap-1">
+          {settings?.venue && (
+            <div
+              className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
+            >
+              {settings.venue}
+            </div>
+          )}
+          {settings?.kickOffTime && (
+            <div
+              className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
+            >
+              Kick-off {settings.kickOffTime}
+            </div>
+          )}
         </div>
       )}
       <div className="MatchTitleLayout_homeTeam flex items-center overflow-hidden">

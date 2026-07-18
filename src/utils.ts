@@ -1,4 +1,13 @@
-import { MatchPhases, Penalty } from './types';
+import {
+  AppSettings,
+  BrowserSourceSettings,
+  KeyboardShortcuts,
+  MatchPeriod,
+  MatchPhase,
+  Penalty,
+} from './types';
+import { MatchSettings } from './zodSchemas';
+import { defaultBrowserSourceSettings, defaultKeyboardShortcuts } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -29,7 +38,7 @@ function colorDistance(
 export function checkColors(
   color1: string,
   color2: string,
-  tolerance: number = 0.05
+  tolerance = 0.05
 ): boolean {
   // Convert hex colors to RGB
   const rgb1 = hexToRGB(color1);
@@ -62,31 +71,88 @@ export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export const getMatchPhases = (
-  halfLength: number = 45,
-  extraTimeHalfLength: number = 15
-): MatchPhases => ({
-  firstHalf: {
-    title: 'First Half',
-    start: 0,
-    end: halfLength,
-  },
-  secondHalf: {
-    title: 'Second Half',
-    start: halfLength,
-    end: halfLength * 2,
-  },
-  extraTimeFirstHalf: {
-    title: 'Extra Time First Half',
-    start: halfLength * 2,
-    end: halfLength * 2 + extraTimeHalfLength,
-  },
-  extraTimeSecondHalf: {
-    title: 'Extra Time Second Half',
-    start: halfLength * 2 + extraTimeHalfLength,
-    end: (halfLength + extraTimeHalfLength) * 2,
-  },
-});
+// The ordered list of timer phases/periods for the current match settings.
+// Football mode reproduces the historical firstHalf/secondHalf/extraTime*
+// phases exactly (dropping the extra-time phases when hasExtraTime is
+// explicitly false); generic mode builds N evenly-sized periods named from
+// periodName.
+export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
+  if (matchSettings.timerMode === 'generic') {
+    const periodCount = matchSettings.periodCount ?? 4;
+    const periodLength = matchSettings.periodLength ?? 10;
+    const periodName = matchSettings.periodName?.trim() || 'Period';
+
+    return Array.from({ length: periodCount }, (_, index) => {
+      const number = index + 1;
+      return {
+        id: `period${number}`,
+        title: `${periodName} ${number}`,
+        start: index * periodLength,
+        end: number * periodLength,
+      };
+    });
+  }
+
+  const halfLength = matchSettings.halfLength ?? 45;
+  const extraTimeHalfLength = matchSettings.extraTimeHalfLength ?? 15;
+
+  const phases: MatchPeriod[] = [
+    { id: 'firstHalf', title: 'First Half', start: 0, end: halfLength },
+    {
+      id: 'secondHalf',
+      title: 'Second Half',
+      start: halfLength,
+      end: halfLength * 2,
+    },
+  ];
+
+  if (matchSettings.hasExtraTime !== false) {
+    phases.push(
+      {
+        id: 'extraTimeFirstHalf',
+        title: 'Extra Time First Half',
+        start: halfLength * 2,
+        end: halfLength * 2 + extraTimeHalfLength,
+      },
+      {
+        id: 'extraTimeSecondHalf',
+        title: 'Extra Time Second Half',
+        start: halfLength * 2 + extraTimeHalfLength,
+        end: (halfLength + extraTimeHalfLength) * 2,
+      }
+    );
+  }
+
+  return phases;
+}
+
+export function getPhaseById(
+  matchSettings: MatchSettings,
+  id?: MatchPhase
+): MatchPeriod | undefined {
+  if (id === undefined) return undefined;
+  return getPhaseList(matchSettings).find((phase) => phase.id === id);
+}
+
+// Pure walk over the phase list: mirrors the Dashboard's historical
+// "next match phase" semantics — pressing next while a phase is running
+// stops the clock instead of advancing it; otherwise it starts the first
+// phase, or the one after previousPhaseId (undefined once the list ends).
+export function getNextPhaseId(
+  phaseList: MatchPeriod[],
+  currentPhaseId: MatchPhase | undefined,
+  previousPhaseId: MatchPhase | undefined
+): MatchPhase | undefined {
+  if (currentPhaseId !== undefined) return undefined;
+  if (previousPhaseId === undefined) return phaseList[0]?.id;
+
+  const previousIndex = phaseList.findIndex(
+    (phase) => phase.id === previousPhaseId
+  );
+  if (previousIndex === -1) return undefined;
+
+  return phaseList[previousIndex + 1]?.id;
+}
 
 export function arraysEqual(arr1?: string[], arr2?: string[]): boolean {
   if (arr1 === undefined || arr2 === undefined || arr1.length !== arr2.length)
@@ -109,9 +175,107 @@ export function removeValue(arr: string[], value: string): string[] {
   return arr.filter((item) => item !== value);
 }
 
-export const debounce = (func: (...args: any) => void, delay: number) => {
-  let timer: any;
-  return (...args: any) => {
+// The active keyboard shortcut bindings: user customizations layered over
+// the historical defaults, so a config.json with no `keyboardShortcuts`
+// field (or one missing an individual action) behaves exactly as before.
+// Shared by main.ts (registration) and the renderer (settings UI).
+export function getKeyboardShortcuts(
+  appSettings: AppSettings
+): KeyboardShortcuts {
+  return {
+    ...defaultKeyboardShortcuts,
+    ...appSettings.keyboardShortcuts,
+  };
+}
+
+// The always-on global variant of a focus-only accelerator: Alt is inserted
+// right after the CommandOrControl/Cmd/Ctrl modifier. Accelerators that
+// already include Alt have no separate global variant.
+export function deriveGlobalAccelerator(accelerator: string): string | null {
+  const parts = accelerator.split('+');
+  if (parts.includes('Alt')) return null;
+
+  const primaryModifiers = [
+    'CommandOrControl',
+    'Command',
+    'Cmd',
+    'Control',
+    'Ctrl',
+  ];
+  const modifierIndex = parts.findIndex((part) =>
+    primaryModifiers.includes(part)
+  );
+  if (modifierIndex === -1) return null;
+
+  const partsWithAlt = [...parts];
+  partsWithAlt.splice(modifierIndex + 1, 0, 'Alt');
+  return partsWithAlt.join('+');
+}
+
+// Builds an Electron accelerator string from a keydown event's modifier
+// flags and physical key. Uses `code` (not `key`) for the main key so a
+// shifted digit/letter (e.g. Shift+2 producing '@' on a US layout) still
+// resolves to the physical "2"/"B" key. Returns null for modifier-only
+// keydowns, unsupported keys, and bindings with no non-Shift modifier
+// (plain letters/space must stay free for normal typing).
+export function keyboardEventToAccelerator({
+  metaKey,
+  ctrlKey,
+  altKey,
+  shiftKey,
+  key,
+  code,
+}: {
+  metaKey: boolean;
+  ctrlKey: boolean;
+  altKey: boolean;
+  shiftKey: boolean;
+  key: string;
+  code: string;
+}): string | null {
+  if (['Control', 'Meta', 'Alt', 'Shift'].includes(key)) return null;
+  if (!metaKey && !ctrlKey && !altKey) return null;
+
+  const modifiers: string[] = [];
+  if (metaKey || ctrlKey) modifiers.push('CommandOrControl');
+  if (altKey) modifiers.push('Alt');
+  if (shiftKey) modifiers.push('Shift');
+
+  let mainKey: string | null = null;
+  if (code === 'Space') {
+    mainKey = 'Space';
+  } else if (/^Key[A-Z]$/.test(code)) {
+    mainKey = code.slice(3);
+  } else if (/^Digit[0-9]$/.test(code)) {
+    mainKey = code.slice(5);
+  } else if (/^F(?:[1-9]|1[0-9]|2[0-4])$/.test(code)) {
+    mainKey = code;
+  }
+
+  if (!mainKey) return null;
+
+  return [...modifiers, mainKey].join('+');
+}
+
+// The active browser-source settings: user configuration layered over the
+// defaults (off, port 4750), so a config.json with no `browserSource` field
+// (or one missing `port`/`enabled`) behaves exactly like today — no server.
+// Shared by main.ts (server lifecycle) and the renderer (settings UI).
+export function getBrowserSourceSettings(
+  appSettings: AppSettings
+): BrowserSourceSettings {
+  return {
+    ...defaultBrowserSourceSettings,
+    ...appSettings.browserSource,
+  };
+}
+
+export const debounce = <Args extends unknown[]>(
+  func: (...args: Args) => void,
+  delay: number
+) => {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Args) => {
     clearTimeout(timer);
     timer = setTimeout(() => func(...args), delay);
   };
