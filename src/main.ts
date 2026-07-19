@@ -308,6 +308,9 @@ const createWindows = () => {
     event.preventDefault();
     if (details.deviceList && details.deviceList.length > 0) {
       callback(details.deviceList[0].deviceId);
+    } else {
+      // Cancel the request explicitly so it isn't left pending forever
+      callback();
     }
   });
 
@@ -577,7 +580,9 @@ function setupIPCHandlers() {
       console.error('Blocked invalid URL from opening in browser:', url);
       return;
     }
-    void shell.openExternal(url);
+    shell.openExternal(url).catch((error) => {
+      console.error('Failed to open URL in browser:', error);
+    });
   });
 
   // Disable/enable both shortcut sets (the focus set and the global Alt set)

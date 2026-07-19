@@ -404,8 +404,7 @@ export default function Dashboard() {
     // Read fresh from the store: this runs from an IPC shortcut listener
     // registered at mount, whose closure would otherwise hold the very
     // first render's appSettings (auto-switch always on).
-    const { autoSwitchScreens } =
-      useAppSettingsStore.getState().appSettings;
+    const { autoSwitchScreens } = useAppSettingsStore.getState().appSettings;
 
     if (nextPhase) {
       startTime(nextPhase);
@@ -549,36 +548,36 @@ export default function Dashboard() {
         aria-live="assertive"
         className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center gap-4 px-4 py-6 sm:items-end sm:p-6"
       >
-      {restorableMatch && (
-        <AppNotification
-          title="Restore previous match?"
-          text={`A match was in progress when PlayOverlay last closed (${
-            matchSettings.homeTeamNameAbbreviated
-          } ${restorableMatch.scores?.homeTeam ?? 0}–${
-            restorableMatch.scores?.awayTeam ?? 0
-          } ${matchSettings.awayTeamNameAbbreviated}${
-            restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
-          }). Restoring brings back the score and clock, with the clock paused.`}
-          icon={
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          }
-          buttonOnClick={() => restoreMatch(restorableMatch)}
-          buttonText="Restore"
-        />
-      )}
-      {updateStatus?.newVersionAvailable && (
-        <AppNotification
-          title="Update available"
-          text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
-          icon={
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          }
-          buttonOnClick={() => {
-            window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
-          }}
-          buttonText="Download now"
-        />
-      )}
+        {restorableMatch && (
+          <AppNotification
+            title="Restore previous match?"
+            text={`A match was in progress when PlayOverlay last closed (${
+              matchSettings.homeTeamNameAbbreviated
+            } ${restorableMatch.scores?.homeTeam ?? 0}–${
+              restorableMatch.scores?.awayTeam ?? 0
+            } ${matchSettings.awayTeamNameAbbreviated}${
+              restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
+            }). Restoring brings back the score and clock, with the clock paused.`}
+            icon={
+              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+            }
+            buttonOnClick={() => restoreMatch(restorableMatch)}
+            buttonText="Restore"
+          />
+        )}
+        {updateStatus?.newVersionAvailable && (
+          <AppNotification
+            title="Update available"
+            text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
+            icon={
+              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+            }
+            buttonOnClick={() => {
+              window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
+            }}
+            buttonText="Download now"
+          />
+        )}
       </div>
     </>
   );

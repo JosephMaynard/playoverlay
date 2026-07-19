@@ -202,13 +202,13 @@ describe('displayTransport', () => {
     expect(ThrowingWebSocket.attempts).toBe(3);
   });
 
-  it('closes a socket that has been silent for 30s so the reconnect path fires', () => {
+  it('closes a socket that misses the heartbeat window so the reconnect path fires', () => {
     delete (window as { electronAPI?: unknown }).electronAPI;
     vi.useFakeTimers();
     createDisplayTransport();
     const socket = MockWebSocket.instances[0];
 
-    vi.advanceTimersByTime(29999);
+    vi.advanceTimersByTime(39999);
     expect(socket.closed).toBe(false);
 
     vi.advanceTimersByTime(1);
@@ -225,14 +225,31 @@ describe('displayTransport', () => {
     createDisplayTransport();
     const socket = MockWebSocket.instances[0];
 
-    vi.advanceTimersByTime(29999);
+    vi.advanceTimersByTime(39999);
     socket.emitMessage({ channel: 'time-updated', payload: { time: '12:00' } });
 
-    // A fresh 30s window starts after the message.
-    vi.advanceTimersByTime(29999);
+    // A fresh 40s window starts after the message.
+    vi.advanceTimersByTime(39999);
     expect(socket.closed).toBe(false);
 
     vi.advanceTimersByTime(1);
     expect(socket.closed).toBe(true);
+  });
+
+  it('stays open on an idle-but-healthy connection fed by server heartbeats', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    // Simulate the server's 15s application-level heartbeat with no match
+    // data flowing for several minutes.
+    for (let i = 0; i < 20; i++) {
+      vi.advanceTimersByTime(15000);
+      socket.emitMessage({ channel: 'heartbeat', payload: null });
+    }
+
+    expect(socket.closed).toBe(false);
+    expect(MockWebSocket.instances).toHaveLength(1);
   });
 });

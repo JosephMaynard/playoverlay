@@ -247,4 +247,23 @@ describe('fileHandler', () => {
     expect(fs.existsSync(configPath)).toBe(true);
     expect(setCustomScreens).not.toHaveBeenCalled();
   });
+
+  it('refuses to delete through a symlink inside images that targets an outside file', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath, setCustomScreens } =
+      await loadFileHandler();
+    const outsideDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'playoverlay-outside-')
+    );
+    temporaryDirectories.push(outsideDirectory);
+    const outsideFilePath = path.join(outsideDirectory, 'target.png');
+    fs.writeFileSync(outsideFilePath, 'outside');
+    const linkPath = path.join(imagesPath, 'sneaky-link.png');
+    fs.symlinkSync(outsideFilePath, linkPath);
+
+    expect(fileHandler.handleFileDeletion(linkPath)).toBe(false);
+    expect(fs.existsSync(outsideFilePath)).toBe(true);
+    expect(fs.lstatSync(linkPath).isSymbolicLink()).toBe(true);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
 });

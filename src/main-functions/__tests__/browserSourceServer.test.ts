@@ -104,6 +104,37 @@ describe('browser source server lifecycle', () => {
     client.close();
   });
 
+  it('sends application-level heartbeats so idle clients stay alive', async () => {
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: '/tmp/does-not-matter',
+      getSnapshot: () => [],
+      heartbeatIntervalMs: 40,
+    });
+    const port = getBrowserSourceServerPort();
+
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    const heartbeats: unknown[] = [];
+
+    await new Promise<void>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('message', (data) => {
+        const message = JSON.parse(data.toString());
+        if (message.channel === 'heartbeat') {
+          heartbeats.push(message);
+          if (heartbeats.length === 2) resolve();
+        }
+      });
+    });
+
+    expect(heartbeats).toEqual([
+      { channel: 'heartbeat', payload: null },
+      { channel: 'heartbeat', payload: null },
+    ]);
+
+    client.close();
+  });
+
   it('does not broadcast to anything once stopped', () => {
     expect(() =>
       broadcastToBrowserSources('score-updated', { homeTeam: 0, awayTeam: 0 })

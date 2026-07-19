@@ -96,9 +96,9 @@ describe('Display', () => {
     expect(screen.getAllByText('TIG').length).toBeGreaterThan(0);
     expect(screen.getAllByText('BEA').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/3 - 2/).length).toBeGreaterThan(0);
-    // The match clock renders in both the score bug and the (hidden)
-    // spectator scoreboard, so match on all occurrences
-    expect(screen.getAllByText('63:21').length).toBeGreaterThan(0);
+    // The match clock renders in exactly two places: the score bug and the
+    // (hidden) spectator scoreboard
+    expect(screen.getAllByText('63:21')).toHaveLength(2);
     expect(container.firstChild).toHaveStyle({ backgroundColor: '#123456' });
   });
 
