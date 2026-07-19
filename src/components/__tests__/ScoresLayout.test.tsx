@@ -54,7 +54,7 @@ describe('ScoresLayout', () => {
     expect(container.querySelectorAll('img')).toHaveLength(0);
   });
 
-  it('renders logo images for whichever teams have a logo set, and widens the active width', () => {
+  it('renders logo images for whichever teams have a logo set', () => {
     const { container, rerender } = render(
       <ScoresLayout
         active
@@ -73,7 +73,9 @@ describe('ScoresLayout', () => {
       'src',
       'file:///tmp/images/home-logo.png'
     );
-    expect(container.firstChild).toHaveClass('ScoresLayout_active_logos1');
+    // The reveal is content-sized via max-width, so a single active class
+    // covers any logo count.
+    expect(container.firstChild).toHaveClass('ScoresLayout_active');
 
     rerender(
       <ScoresLayout
@@ -89,6 +91,6 @@ describe('ScoresLayout', () => {
     );
 
     expect(container.querySelectorAll('img')).toHaveLength(2);
-    expect(container.firstChild).toHaveClass('ScoresLayout_active_logos2');
+    expect(container.firstChild).toHaveClass('ScoresLayout_active');
   });
 });

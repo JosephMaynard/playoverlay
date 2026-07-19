@@ -35,6 +35,9 @@ export default function TeamSettings({
   appSettings,
   disabled,
 }: Props) {
+  // This component is rendered once per team, so DOM ids must be unique
+  // per panel — otherwise labels focus the other team's input.
+  const idPrefix = title.toLowerCase().replace(/\s+/g, '-');
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -81,7 +84,7 @@ export default function TeamSettings({
     <CollapsiblePanel title={title}>
       <div className="col-span-full mb-4">
         <label
-          htmlFor="teamNameFull"
+          htmlFor={`${idPrefix}-teamNameFull`}
           className="block text-sm font-medium leading-6 text-gray-900"
         >
           {title} Name
@@ -89,8 +92,8 @@ export default function TeamSettings({
         <div className="mt-2">
           <input
             type="text"
-            name="teamNameFull"
-            id="teamNameFull"
+            name={`${idPrefix}-teamNameFull`}
+            id={`${idPrefix}-teamNameFull`}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
             onChange={(e) => {
               if (disabled !== true) {
@@ -112,7 +115,7 @@ export default function TeamSettings({
       </div>
       <div className="col-span-full mb-4">
         <label
-          htmlFor="homeTeamNameAbbreviated"
+          htmlFor={`${idPrefix}-teamNameAbbreviated`}
           className="block text-sm font-medium leading-6 text-gray-900"
         >
           {title} Name Abbreviated
@@ -120,8 +123,8 @@ export default function TeamSettings({
         <div className="mt-2">
           <input
             type="text"
-            name="homeTeamNameAbbreviated"
-            id="homeTeamNameAbbreviated"
+            name={`${idPrefix}-teamNameAbbreviated`}
+            id={`${idPrefix}-teamNameAbbreviated`}
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
             maxLength={3}
             onChange={(e) => {

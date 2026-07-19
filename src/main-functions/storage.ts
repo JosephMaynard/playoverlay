@@ -4,14 +4,20 @@ import { app } from 'electron';
 import Store from 'electron-store';
 import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
-import { matchSetingsSchema, MatchSettings } from '../zodSchemas';
+import {
+  appSettingsSchema,
+  matchSetingsSchema,
+  MatchSettings,
+} from '../zodSchemas';
 
 // Builds made before the source-available release encrypted config.json with a
 // build-time key. When LEGACY_STORE_KEY is provided at build time, an
 // encrypted config found on disk is decrypted once and rewritten as plain
 // JSON so existing users keep their settings. Builds without the key (the
-// default) skip this and, per electron-store behaviour, an unreadable
-// config resets to defaults.
+// default) skip this; electron-store THROWS on an unreadable config (it does
+// not reset to defaults), so an unparseable config.json is moved aside to
+// config.json.bak — preserving the user's data for a keyed rescue — and the
+// app starts with a fresh store instead of crash-looping before app.ready.
 function createStorage(): Store {
   if (__LEGACY_STORE_KEY__) {
     try {
@@ -34,7 +40,26 @@ function createStorage(): Store {
       console.error('Legacy config migration failed:', error);
     }
   }
-  return new Store();
+  try {
+    return new Store();
+  } catch (error) {
+    console.error(
+      'config.json is unreadable; moving it aside and starting fresh:',
+      error
+    );
+    try {
+      const configPath = path.join(app.getPath('userData'), 'config.json');
+      if (fs.existsSync(configPath)) {
+        fs.renameSync(configPath, `${configPath}.bak`);
+      }
+    } catch (renameError) {
+      console.error('Failed to move aside unreadable config.json:', renameError);
+    }
+    // If the rename succeeded config.json is gone and this is a clean start;
+    // if it failed, clearInvalidConfig lets the store reset rather than
+    // throwing again and crash-looping the app.
+    return new Store({ clearInvalidConfig: true });
+  }
 }
 
 const storage = createStorage();
@@ -91,7 +116,13 @@ export function setAppSettings(appSettings: AppSettings) {
 export function getAppSettings() {
   const appSettings = storage.get(APP_SETTINGS);
   if (appSettings) {
-    return appSettings;
+    // Validate before anything (e.g. globalShortcut.register) consumes the
+    // stored data; individually corrupt fields degrade to their defaults,
+    // and a wholly corrupt value behaves like no stored settings at all.
+    const verified = appSettingsSchema.safeParse(appSettings);
+    if (verified.success) {
+      return verified.data;
+    }
   }
 }
 

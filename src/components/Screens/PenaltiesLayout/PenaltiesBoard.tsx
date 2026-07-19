@@ -45,7 +45,7 @@ export default function PenaltiesBoard({
         penaltiesTaken={penalties.length}
       />
 
-      <div className="PenaltiesBoard_score bg-white text-center font-bold text-black [padding:calc(--base-size)]">
+      <div className="PenaltiesBoard_score bg-white text-center font-bold text-black">
         {penaltiesFirstTeam === 'home'
           ? homeTeamPenaltiesScored
           : awayTeamPenaltiesScored}

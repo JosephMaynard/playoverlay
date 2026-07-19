@@ -19,6 +19,7 @@ export const defaultBrowserSourceSettings: BrowserSourceSettings = {
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',
   autoSwitchScreens: true,
+  clockFormat: '24h',
   browserSource: { ...defaultBrowserSourceSettings },
 };
 
@@ -66,6 +67,7 @@ export const screens = {
   penalties: 'Penalties',
   custom: 'Custom Screens',
   endScreen: 'End Screen',
+  scoreboard: 'Scoreboard',
 } as const;
 
 export type DisplayScreen = keyof typeof screens;

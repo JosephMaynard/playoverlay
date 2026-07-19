@@ -265,6 +265,29 @@ export default function AppSettingsMenu({
         />
       </div>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
+        <h3 className="mb-2 text-base font-semibold leading-6 text-gray-900">
+          Scoreboard Clock
+        </h3>
+        <p className="mb-3 text-sm text-gray-500">
+          Time-of-day format on the spectator scoreboard screen.
+        </p>
+        <ButtonGrid
+          compact
+          buttons={[
+            {
+              label: '24-hour',
+              onClick: () => updateAppSettings({ clockFormat: '24h' }),
+              selected: (appSettings.clockFormat ?? '24h') === '24h',
+            },
+            {
+              label: 'AM/PM',
+              onClick: () => updateAppSettings({ clockFormat: '12h' }),
+              selected: appSettings.clockFormat === '12h',
+            },
+          ]}
+        />
+      </div>
+      <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
         <h3 className="text-sm font-semibold text-gray-900">
           Keyboard Shortcuts
         </h3>

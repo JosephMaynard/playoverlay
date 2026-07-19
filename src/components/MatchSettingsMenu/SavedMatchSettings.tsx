@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
+import { defaultMatchSettings } from '../../constants';
 import WideModal from '../Modal/WideModal';
 import Empty from './Empty';
 import { nanoid } from 'nanoid';
@@ -31,7 +32,13 @@ export default function SavedMatchSettings({
   const fetchSavedMatchSettings = async () => {
     const storedMatchSettings =
       await window?.electronAPI?.getSavedMatchSettings();
-    setSavedMatchSettings(storedMatchSettings);
+    // Rows saved before saveId existed get one assigned here, so
+    // delete-by-saveId can't remove multiple rows and React keys are stable.
+    setSavedMatchSettings(
+      (storedMatchSettings ?? []).map((settings) =>
+        settings.saveId ? settings : { ...settings, saveId: nanoid() }
+      )
+    );
   };
 
   const handleSave = async () => {
@@ -94,7 +101,7 @@ export default function SavedMatchSettings({
       <WideModal
         open={modal === 'show-saved-match-settings'}
         setOpen={() => setModal(null)}
-        title="Save Match Settings"
+        title="Open Saved Match Settings"
       >
         {savedMatchSettings.length === 0 ? (
           <Empty
@@ -112,10 +119,12 @@ export default function SavedMatchSettings({
                   <p className="max-w-full truncate text-sm font-semibold leading-6 text-gray-900">
                     {savedMatchSetting.saveTitle}
                   </p>
-                  <p className="mt-1 text-xs leading-6 text-gray-600">
-                    Saved:{' '}
-                    {new Date(savedMatchSetting.saveDate).toLocaleString()}
-                  </p>
+                  {savedMatchSetting.saveDate && (
+                    <p className="mt-1 text-xs leading-6 text-gray-600">
+                      Saved:{' '}
+                      {new Date(savedMatchSetting.saveDate).toLocaleString()}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -164,13 +173,25 @@ export default function SavedMatchSettings({
       </Modal>
       <Modal
         open={!!savedMatchSettingsToRestore}
-        setOpen={() => setSavedMatchSettingsToDelete(null)}
+        setOpen={() => setSavedMatchSettingsToRestore(null)}
         title="Restore Saved Match Settings?"
         actionButtonLabel="Restore"
         actionButtonColor="green"
         icon="warning"
         action={() => {
-          setMatchSettings(savedMatchSettingsToRestore);
+          if (savedMatchSettingsToRestore) {
+            // Restore as a replace against the defaults (not a merge into the
+            // current settings), and keep the save-slot metadata out of the
+            // live match settings.
+            const restoredSettings = {
+              ...defaultMatchSettings,
+              ...savedMatchSettingsToRestore,
+            };
+            delete restoredSettings.saveTitle;
+            delete restoredSettings.saveDate;
+            delete restoredSettings.saveId;
+            setMatchSettings(restoredSettings);
+          }
           setSavedMatchSettingsToRestore(null);
           setModal(null);
         }}
@@ -194,7 +215,7 @@ export default function SavedMatchSettings({
       >
         <div className="my-4">
           <label
-            htmlFor="custom-screen-title"
+            htmlFor="saved-match-settings-name"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
             Name
@@ -202,7 +223,7 @@ export default function SavedMatchSettings({
           <div className="mt-2">
             <input
               type="text"
-              id="custom-screen-title"
+              id="saved-match-settings-name"
               className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               value={savedMatchName}
               onChange={(e) => setSavedMatchName(e.target.value)}

@@ -12,6 +12,9 @@
     'emptyLeft venue venue venue emptyRigth'
     'leftPadding homeTeam score awayTeam rightPadding'
     'bottom bottom bottom bottom bottom';
+  /* Hidden until first activated; the active/hidden animations take over
+     from here (see the hasBeenActive guard in the component). */
+  visibility: hidden;
 }
 
 .MatchTitleLayout_active {
@@ -92,10 +95,12 @@
 @keyframes layout_active {
   0% {
     transform: translateY(50%) translateZ(0);
+    visibility: visible;
   }
   40%,
   100% {
     transform: translateY(0) translateZ(0);
+    visibility: visible;
   }
 }
 
@@ -103,9 +108,11 @@
   0%,
   60% {
     transform: translateY(0) translateZ(0);
+    visibility: visible;
   }
   100% {
     transform: translateY(50%) translateZ(0);
+    visibility: hidden;
   }
 }
 

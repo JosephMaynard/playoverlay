@@ -122,15 +122,15 @@ export default function Dashboard() {
         console.error('Failed to load app settings:', error);
       });
 
-    window.electronAPI.onNextMatchPhase(() => {
+    const unsubscribeNextPhase = window.electronAPI.onNextMatchPhase(() => {
       nextMatchPhase();
     });
 
-    window.electronAPI.onHomeTeamScored(() => {
+    const unsubscribeHomeScored = window.electronAPI.onHomeTeamScored(() => {
       incrementHomeTeamScore();
     });
 
-    window.electronAPI.onAwayTeamScored(() => {
+    const unsubscribeAwayScored = window.electronAPI.onAwayTeamScored(() => {
       incrementAwayTeamScore();
     });
 
@@ -161,9 +161,13 @@ export default function Dashboard() {
       }
     );
 
-    // Clean up the listener on unmount
+    // Clean up the listeners on unmount so a remount can never double-fire
+    // a shortcut (one press = two goals)
     return () => {
       unsubscribe();
+      unsubscribeNextPhase();
+      unsubscribeHomeScored();
+      unsubscribeAwayScored();
     };
   }, []);
 
@@ -204,11 +208,22 @@ export default function Dashboard() {
       ...settingsUpdate,
     };
     const { matchPhase } = useTimeStore.getState().time;
+    const newPhaseList = getPhaseList(mergedSettings);
     if (
       matchPhase !== undefined &&
-      !getPhaseList(mergedSettings).some((phase) => phase.id === matchPhase)
+      !newPhaseList.some((phase) => phase.id === matchPhase)
     ) {
       stopTime();
+    }
+    // A stopped match's previousMatchPhase can also vanish from the new
+    // phase list (e.g. extra time turned off after extra time was played);
+    // clear it so the next-phase shortcut isn't left permanently dead.
+    const { previousMatchPhase } = useMatchStateStore.getState().matchState;
+    if (
+      previousMatchPhase !== undefined &&
+      !newPhaseList.some((phase) => phase.id === previousMatchPhase)
+    ) {
+      setMatchState({ previousMatchPhase: undefined });
     }
     setMatchSettings(settingsUpdate);
   };
@@ -238,8 +253,20 @@ export default function Dashboard() {
 
   const tick = () => {
     if (tickingSince === null) return;
-    const newSeconds =
+    let newSeconds =
       baseSeconds + Math.round((Date.now() - tickingSince) / 1000);
+
+    // The anchor is the system clock, which can step (NTP sync, manual
+    // change) or pause (laptop sleep). A backwards step or a jump of more
+    // than a few seconds between ticks is not real match time — re-anchor
+    // at the current value instead of leaping the on-air clock.
+    if (newSeconds < seconds || newSeconds > seconds + 5) {
+      baseSeconds = seconds;
+      tickingSince = Date.now();
+      newSeconds = seconds;
+    }
+
+    newSeconds = Math.max(0, newSeconds);
     if (newSeconds !== seconds) {
       applyTime(newSeconds);
     }
@@ -267,6 +294,8 @@ export default function Dashboard() {
   const startTime = (matchPhase: MatchPhase) => {
     stopTicking();
     setPaused(false);
+    // Starting a phase supersedes any offer to restore a previous match
+    setRestorableMatch(null);
 
     const phase = getPhaseById(
       useMatchSettingsStore.getState().matchSettings,
@@ -344,6 +373,7 @@ export default function Dashboard() {
   };
 
   const incrementHomeTeamScore = () => {
+    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     const updatedScores = {
       ...prevScores,
@@ -353,6 +383,7 @@ export default function Dashboard() {
   };
 
   const incrementAwayTeamScore = () => {
+    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     const updatedScores = {
       ...prevScores,
@@ -370,12 +401,17 @@ export default function Dashboard() {
     );
     const nextPhase = getNextPhaseId(phaseList, matchPhase, previousMatchPhase);
 
+    // Read fresh from the store: this runs from an IPC shortcut listener
+    // registered at mount, whose closure would otherwise hold the very
+    // first render's appSettings (auto-switch always on).
+    const { autoSwitchScreens } = useAppSettingsStore.getState().appSettings;
+
     if (nextPhase) {
       startTime(nextPhase);
       setMatchState({
         matchPhase: nextPhase,
       });
-      if (appSettings.autoSwitchScreens) {
+      if (autoSwitchScreens) {
         setMatchState({ displayScreen: 'scoreBug' });
       }
     } else if (matchPhase !== undefined) {
@@ -390,7 +426,7 @@ export default function Dashboard() {
       setMatchState({
         matchPhase: undefined,
         previousMatchPhase: matchPhase,
-        displayScreen: appSettings.autoSwitchScreens
+        displayScreen: autoSwitchScreens
           ? 'matchTitle'
           : useMatchStateStore.getState().matchState.displayScreen,
       });
@@ -409,6 +445,7 @@ export default function Dashboard() {
                 scores={scores}
                 time={time}
                 matchState={matchState}
+                clockFormat={appSettings.clockFormat}
               />
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">
@@ -436,10 +473,9 @@ export default function Dashboard() {
               }}
               isPaused={paused}
               setAdditionalTime={(additionalTime: number) =>
-                setTime({
-                  ...time,
-                  additionalTime: additionalTime || undefined,
-                })
+                // setTime merges; spreading the render-scope time here
+                // would overwrite a fresher tick with stale clock strings
+                setTime({ additionalTime: additionalTime || undefined })
               }
               startTime={startTime}
               stopTime={stopTime}
@@ -455,7 +491,11 @@ export default function Dashboard() {
               matchSettings={matchSettings}
               scores={scores}
               time={time}
-              updateScore={setScores}
+              updateScore={(updatedScores: Scores) => {
+                // Editing the score supersedes the restore offer
+                setRestorableMatch(null);
+                setScores(updatedScores);
+              }}
             />
             {matchSettings.hasPenalties !== false && (
               <PenaltiesPanel
@@ -504,36 +544,41 @@ export default function Dashboard() {
           time={time}
         />
       </div>
-      {restorableMatch && (
-        <AppNotification
-          title="Restore previous match?"
-          text={`A match was in progress when PlayOverlay last closed (${
-            matchSettings.homeTeamNameAbbreviated
-          } ${restorableMatch.scores?.homeTeam ?? 0}–${
-            restorableMatch.scores?.awayTeam ?? 0
-          } ${matchSettings.awayTeamNameAbbreviated}${
-            restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
-          }). Restoring brings back the score and clock, with the clock paused.`}
-          icon={
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          }
-          buttonOnClick={() => restoreMatch(restorableMatch)}
-          buttonText="Restore"
-        />
-      )}
-      {updateStatus?.newVersionAvailable && (
-        <AppNotification
-          title="Update available"
-          text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
-          icon={
-            <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
-          }
-          buttonOnClick={() => {
-            window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
-          }}
-          buttonText="Download now"
-        />
-      )}
+      <div
+        aria-live="assertive"
+        className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center gap-4 px-4 py-6 sm:items-end sm:p-6"
+      >
+        {restorableMatch && (
+          <AppNotification
+            title="Restore previous match?"
+            text={`A match was in progress when PlayOverlay last closed (${
+              matchSettings.homeTeamNameAbbreviated
+            } ${restorableMatch.scores?.homeTeam ?? 0}–${
+              restorableMatch.scores?.awayTeam ?? 0
+            } ${matchSettings.awayTeamNameAbbreviated}${
+              restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
+            }). Restoring brings back the score and clock, with the clock paused.`}
+            icon={
+              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+            }
+            buttonOnClick={() => restoreMatch(restorableMatch)}
+            buttonText="Restore"
+          />
+        )}
+        {updateStatus?.newVersionAvailable && (
+          <AppNotification
+            title="Update available"
+            text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
+            icon={
+              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+            }
+            buttonOnClick={() => {
+              window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
+            }}
+            buttonText="Download now"
+          />
+        )}
+      </div>
     </>
   );
 }

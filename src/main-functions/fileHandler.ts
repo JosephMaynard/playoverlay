@@ -82,8 +82,32 @@ export async function handleFileUpload(
 }
 
 export function handleFileDeletion(filePath: string): boolean {
+  // filePath comes from an IPC caller — only delete files that actually
+  // live inside the images directory. realpath resolves symlinks/junctions
+  // first, so a link placed inside the directory can't smuggle the check
+  // past a target elsewhere on disk (a link's resolved path falls outside
+  // the real base and is refused).
+  let realTarget: string;
+  let realBase: string;
   try {
-    fs.unlinkSync(filePath);
+    realTarget = fs.realpathSync(path.resolve(filePath));
+    realBase = fs.realpathSync(imagesPath);
+  } catch (error) {
+    console.error('Error resolving path for deletion:', filePath, error);
+    return false;
+  }
+  const relative = path.relative(realBase, realTarget);
+  if (
+    relative === '' ||
+    relative.startsWith('..') ||
+    path.isAbsolute(relative)
+  ) {
+    console.error('Rejected deletion outside the images directory:', filePath);
+    return false;
+  }
+
+  try {
+    fs.unlinkSync(realTarget);
     const screens = getCustomScreens() as CustomScreen[];
     const updatedScreens = screens.filter(
       (screen: CustomScreen) => screen.filePath !== filePath

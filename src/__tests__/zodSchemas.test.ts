@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appSettingsSchema,
   githubReleaseSchema,
   matchSetingsSchema,
   updatesSchema,
 } from '../zodSchemas';
+import { defaultAppSettings } from '../constants';
 
 describe('zod schemas', () => {
   it('validates the public update response shape', () => {
@@ -97,6 +99,78 @@ describe('zod schemas', () => {
       // The rest of the settings, including team names, survive untouched.
       expect(result.data.homeTeamNameFull).toBe('Tigers');
       expect(result.data.awayTeamNameFull).toBe('Bears');
+    }
+  });
+
+  it('accepts a full app settings shape', () => {
+    const settings = {
+      keyColour: '#00ff00',
+      autoSwitchScreens: false,
+      clockFormat: '12h',
+      browserSource: { enabled: true, port: 4750 },
+      keyboardShortcuts: {
+        nextMatchPhase: 'CommandOrControl+Shift+Space',
+        homeTeamScored: 'CommandOrControl+Shift+H',
+        awayTeamScored: 'CommandOrControl+Shift+A',
+      },
+    };
+
+    const result = appSettingsSchema.safeParse(settings);
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual(settings);
+    }
+  });
+
+  it('degrades corrupt app settings fields individually instead of failing the whole parse', () => {
+    const result = appSettingsSchema.safeParse({
+      keyColour: 42,
+      autoSwitchScreens: 'yes',
+      clockFormat: '13h',
+      browserSource: { enabled: 'maybe', port: 'high' },
+      // A malformed accelerator shape must never reach
+      // globalShortcut.register, which throws on invalid input.
+      keyboardShortcuts: { nextMatchPhase: 123 },
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.keyColour).toBe(defaultAppSettings.keyColour);
+      expect(result.data.autoSwitchScreens).toBe(
+        defaultAppSettings.autoSwitchScreens
+      );
+      expect(result.data.clockFormat).toBeUndefined();
+      expect(result.data.browserSource).toBeUndefined();
+      expect(result.data.keyboardShortcuts).toBeUndefined();
+    }
+  });
+
+  it('keeps valid app settings fields while degrading only the bad ones', () => {
+    const result = appSettingsSchema.safeParse({
+      keyColour: '#123456',
+      autoSwitchScreens: true,
+      keyboardShortcuts: 'not-an-object',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.keyColour).toBe('#123456');
+      expect(result.data.autoSwitchScreens).toBe(true);
+      expect(result.data.keyboardShortcuts).toBeUndefined();
+    }
+  });
+
+  it('fills defaults for app settings fields that are missing entirely', () => {
+    const result = appSettingsSchema.safeParse({});
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.keyColour).toBe(defaultAppSettings.keyColour);
+      expect(result.data.autoSwitchScreens).toBe(
+        defaultAppSettings.autoSwitchScreens
+      );
+      expect(result.data.clockFormat).toBeUndefined();
     }
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Button from '../ButtonGrid/Button';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 
@@ -19,6 +19,13 @@ const DragAndDropUploader: React.FC<Props> = ({
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Revoke each preview object URL once it's replaced or the uploader
+  // unmounts, so previews don't leak blobs for the app's lifetime.
+  useEffect(() => {
+    if (!imageUrl?.startsWith('blob:')) return;
+    return () => URL.revokeObjectURL(imageUrl);
+  }, [imageUrl]);
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -59,13 +66,15 @@ const DragAndDropUploader: React.FC<Props> = ({
     }
     try {
       const url = await window?.electronAPI?.uploadImage(file, title);
+      // Only close the dialog when the upload actually succeeded —
+      // otherwise it would close silently with no graphic added.
       if (url) {
-        setImageUrl(url);
         setFile(null);
-        setTitle('');
-        setError(null); // Clear any previous error
+        setError(null);
+        close();
+      } else {
+        setError('Failed to upload the image. Please try again.');
       }
-      close();
     } catch (err) {
       setError('Failed to upload the image. Please try again.');
       console.error(err);
@@ -134,7 +143,7 @@ const DragAndDropUploader: React.FC<Props> = ({
 
       <div className="my-4">
         <label
-          htmlFor="custom-screen-title"
+          htmlFor="add-custom-screen-title"
           className="block text-sm font-medium leading-6 text-gray-900"
         >
           Title
@@ -142,7 +151,7 @@ const DragAndDropUploader: React.FC<Props> = ({
         <div className="mt-2">
           <input
             type="text"
-            id="custom-screen-title"
+            id="add-custom-screen-title"
             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             onChange={(e) => setTitle(e.target.value)}
             value={title}

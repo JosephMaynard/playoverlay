@@ -151,12 +151,15 @@ describe('fileHandler', () => {
   });
 
   it('deletes a file, removes the matching custom screen, and notifies windows', async () => {
-    const temporaryDirectory = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'playoverlay-existing-file-')
-    );
-    temporaryDirectories.push(temporaryDirectory);
-    const deletedFilePath = path.join(temporaryDirectory, 'delete-me.png');
-    const keptFilePath = path.join(temporaryDirectory, 'keep-me.png');
+    const {
+      fileHandler,
+      imagesPath,
+      setCustomScreens,
+      webContentsSend,
+      getScreens,
+    } = await loadFileHandler();
+    const deletedFilePath = path.join(imagesPath, 'delete-me.png');
+    const keptFilePath = path.join(imagesPath, 'keep-me.png');
     fs.writeFileSync(deletedFilePath, 'delete');
     fs.writeFileSync(keptFilePath, 'keep');
     const deletedScreen: CustomScreen = {
@@ -173,12 +176,10 @@ describe('fileHandler', () => {
       type: 'overlay',
       overlayLinks: ['scoreBug'],
     };
-    const {
-      fileHandler,
-      setCustomScreens,
-      webContentsSend,
-      getScreens,
-    } = await loadFileHandler([deletedScreen, keptScreen]);
+    // Seed the mocked storage with both screens, then forget the seeding
+    // call so assertions below only see handleFileDeletion's own calls.
+    setCustomScreens([deletedScreen, keptScreen]);
+    setCustomScreens.mockClear();
 
     expect(fileHandler.handleFileDeletion(deletedFilePath)).toBe(true);
 
@@ -209,9 +210,60 @@ describe('fileHandler', () => {
 
   it('returns false when deletion fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const { fileHandler, setCustomScreens } = await loadFileHandler();
+    const { fileHandler, imagesPath, setCustomScreens } =
+      await loadFileHandler();
 
-    expect(fileHandler.handleFileDeletion('/does/not/exist.png')).toBe(false);
+    expect(
+      fileHandler.handleFileDeletion(path.join(imagesPath, 'missing.png'))
+    ).toBe(false);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('refuses to delete a file outside the images directory', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, setCustomScreens } = await loadFileHandler();
+    const outsideDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'playoverlay-outside-')
+    );
+    temporaryDirectories.push(outsideDirectory);
+    const outsideFilePath = path.join(outsideDirectory, 'outside.png');
+    fs.writeFileSync(outsideFilePath, 'outside');
+
+    expect(fileHandler.handleFileDeletion(outsideFilePath)).toBe(false);
+    expect(fs.existsSync(outsideFilePath)).toBe(true);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('refuses a traversal path that resolves outside the images directory', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath, setCustomScreens } =
+      await loadFileHandler();
+    const userDataPath = path.dirname(imagesPath);
+    const configPath = path.join(userDataPath, 'config.json');
+    fs.writeFileSync(configPath, '{}');
+    const traversalPath = path.join(imagesPath, '..', 'config.json');
+
+    expect(fileHandler.handleFileDeletion(traversalPath)).toBe(false);
+    expect(fs.existsSync(configPath)).toBe(true);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('refuses to delete through a symlink inside images that targets an outside file', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath, setCustomScreens } =
+      await loadFileHandler();
+    const outsideDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'playoverlay-outside-')
+    );
+    temporaryDirectories.push(outsideDirectory);
+    const outsideFilePath = path.join(outsideDirectory, 'target.png');
+    fs.writeFileSync(outsideFilePath, 'outside');
+    const linkPath = path.join(imagesPath, 'sneaky-link.png');
+    fs.symlinkSync(outsideFilePath, linkPath);
+
+    expect(fileHandler.handleFileDeletion(linkPath)).toBe(false);
+    expect(fs.existsSync(outsideFilePath)).toBe(true);
+    expect(fs.lstatSync(linkPath).isSymbolicLink()).toBe(true);
     expect(setCustomScreens).not.toHaveBeenCalled();
   });
 });

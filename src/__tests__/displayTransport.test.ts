@@ -177,4 +177,79 @@ describe('displayTransport', () => {
     vi.advanceTimersByTime(2000);
     expect(MockWebSocket.instances).toHaveLength(2);
   });
+
+  it('schedules a reconnect instead of dying when the WebSocket constructor throws', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    class ThrowingWebSocket {
+      static attempts = 0;
+      constructor() {
+        ThrowingWebSocket.attempts += 1;
+        throw new SyntaxError("Failed to construct 'WebSocket': invalid URL");
+      }
+    }
+    vi.stubGlobal('WebSocket', ThrowingWebSocket);
+
+    expect(() => createDisplayTransport()).not.toThrow();
+    expect(ThrowingWebSocket.attempts).toBe(1);
+
+    // The normal reconnect path keeps retrying.
+    vi.advanceTimersByTime(2000);
+    expect(ThrowingWebSocket.attempts).toBe(2);
+    vi.advanceTimersByTime(2000);
+    expect(ThrowingWebSocket.attempts).toBe(3);
+  });
+
+  it('closes a socket that misses the heartbeat window so the reconnect path fires', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    vi.advanceTimersByTime(39999);
+    expect(socket.closed).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    expect(socket.closed).toBe(true);
+
+    // The watchdog close routes through the normal reconnect path.
+    vi.advanceTimersByTime(2000);
+    expect(MockWebSocket.instances).toHaveLength(2);
+  });
+
+  it('keeps the socket open while messages keep arriving (watchdog resets)', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    vi.advanceTimersByTime(39999);
+    socket.emitMessage({ channel: 'time-updated', payload: { time: '12:00' } });
+
+    // A fresh 40s window starts after the message.
+    vi.advanceTimersByTime(39999);
+    expect(socket.closed).toBe(false);
+
+    vi.advanceTimersByTime(1);
+    expect(socket.closed).toBe(true);
+  });
+
+  it('stays open on an idle-but-healthy connection fed by server heartbeats', () => {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    vi.useFakeTimers();
+    createDisplayTransport();
+    const socket = MockWebSocket.instances[0];
+
+    // Simulate the server's 15s application-level heartbeat with no match
+    // data flowing for several minutes.
+    for (let i = 0; i < 20; i++) {
+      vi.advanceTimersByTime(15000);
+      socket.emitMessage({ channel: 'heartbeat', payload: null });
+    }
+
+    expect(socket.closed).toBe(false);
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
 });

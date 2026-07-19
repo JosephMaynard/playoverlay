@@ -1,8 +1,8 @@
 import {
   AppSettings,
+  CustomScreen,
   LiveMatch,
   Scores,
-  TeamSettingsInterface,
   Time,
   MatchState,
   Display,
@@ -16,9 +16,9 @@ declare global {
       onScoreUpdated: (callback: (scores: Scores) => void) => () => void;
       updateTime: (time: Time) => void;
       onTimeUpdated: (callback: (time: Time) => void) => () => void;
-      updateMatchSettings: (settings: TeamSettingsInterface) => void;
+      updateMatchSettings: (settings: MatchSettings) => void;
       onMatchSettingsUpdated: (
-        callback: (settings: TeamSettingsInterface) => void
+        callback: (settings: MatchSettings) => void
       ) => () => void;
       updateAppSettings: (settings: AppSettings) => void;
       onAppSettingsUpdated: (
@@ -29,10 +29,7 @@ declare global {
         callback: (settings: MatchState) => void
       ) => () => void;
       toggleFullscreen: () => void;
-      getFullscreenStatus: () => boolean;
-      startPowerSaveBlocker: () => void;
-      stopPowerSaveBlocker: () => void;
-      getPowerSaveBlockerStatus: () => boolean;
+      getFullscreenStatus: () => Promise<boolean>;
       getVersion: () => string;
       getAppSettings: () => Promise<AppSettings | undefined>;
       getBrowserSourceStatus: () => Promise<{
@@ -40,7 +37,7 @@ declare global {
         port: number;
         error?: string;
       }>;
-      getMatchSettings: () => Promise<TeamSettingsInterface | undefined>;
+      getMatchSettings: () => Promise<MatchSettings | undefined>;
       moveWindowToScreen: (screenId: number) => Promise<void>;
       onDisplayChange: (callback: (displays: Display[]) => void) => () => void;
       getScreenInfo: () => void;

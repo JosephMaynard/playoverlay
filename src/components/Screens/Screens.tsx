@@ -1,4 +1,4 @@
-import { MatchState, Scores, Time } from '../../types';
+import { ClockFormat, MatchState, Scores, Time } from '../../types';
 import { MatchSettings } from 'src/zodSchemas';
 import ScoresLayout from './ScoresLayout/ScoresLayout';
 import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
@@ -6,12 +6,14 @@ import EndScreenLayout from './EndScreenLayout/EndScreenLayout';
 import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
 import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
+import ScoreboardLayout from './ScoreboardLayout/ScoreboardLayout';
 
 export interface Props {
   matchSettings: MatchSettings;
   scores: Scores;
   time: Time;
   matchState: MatchState;
+  clockFormat?: ClockFormat;
 }
 
 export default function Screens({
@@ -19,6 +21,7 @@ export default function Screens({
   scores,
   time,
   matchState,
+  clockFormat,
 }: Props) {
   return (
     <>
@@ -51,6 +54,13 @@ export default function Screens({
       <CustomScreenLayout
         active={matchState.displayScreen === 'custom'}
         customScreenImageUrl={matchState.customScreenImageUrl}
+      />
+      <ScoreboardLayout
+        matchSettings={matchSettings}
+        scores={scores}
+        time={time}
+        active={matchState.displayScreen === 'scoreboard'}
+        clockFormat={clockFormat}
       />
     </>
   );

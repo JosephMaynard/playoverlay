@@ -26,9 +26,12 @@ export interface BrowserSourceSettings {
   port: number;
 }
 
+export type ClockFormat = '24h' | '12h';
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
+  clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
   browserSource?: BrowserSourceSettings;
 }

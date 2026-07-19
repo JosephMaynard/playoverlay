@@ -14,7 +14,17 @@ export interface StartBrowserSourceServerOptions {
   port: number;
   imagesPath: string;
   getSnapshot: () => SnapshotMessage[];
+  // Overridable for tests; see HEARTBEAT_INTERVAL_MS.
+  heartbeatIntervalMs?: number;
 }
+
+// Browser pages cannot observe protocol-level ping frames, so the server
+// sends an application-level heartbeat message on this interval. It keeps
+// the client's liveness watchdog fed while no match data is flowing (idle
+// connections would otherwise be indistinguishable from half-open ones).
+// Must be comfortably shorter than the client watchdog in
+// displayTransport.ts, which tolerates one missed beat.
+const HEARTBEAT_INTERVAL_MS = 15000;
 
 export type StartBrowserSourceServerResult =
   | { ok: true }
@@ -128,6 +138,7 @@ export function rewriteFileUrls<T>(
 
 let server: http.Server | null = null;
 let wss: WebSocketServer | null = null;
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 const sockets = new Set<WebSocket>();
 
 export function isBrowserSourceServerRunning(): boolean {
@@ -209,6 +220,9 @@ export function startBrowserSourceServer(
       httpServer.on('error', (error) => {
         console.error('Browser source server error:', error);
       });
+      heartbeatInterval = setInterval(() => {
+        broadcastToBrowserSources('heartbeat', null);
+      }, opts.heartbeatIntervalMs ?? HEARTBEAT_INTERVAL_MS);
       resolve({ ok: true });
     };
 
@@ -222,6 +236,10 @@ export function startBrowserSourceServer(
 // intend to immediately restart on the same port (e.g. a settings change)
 // don't race the OS into a transient EADDRINUSE.
 export function stopBrowserSourceServer(): Promise<void> {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
   sockets.forEach((socket) => socket.terminate());
   sockets.clear();
   wss?.close();

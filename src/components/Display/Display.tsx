@@ -106,6 +106,7 @@ const Display = () => {
         scores={scores}
         time={time}
         matchState={matchState}
+        clockFormat={appSettings.clockFormat}
       />
       {!isFullscreen && (
         <button

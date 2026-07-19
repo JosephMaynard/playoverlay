@@ -87,7 +87,7 @@ export default function CustomScreensMenu({
         <ul role="list" className="divide-y divide-gray-100">
           {customGraphics?.length === 0 && (
             <Empty
-              title="No Custom Grapics"
+              title="No Custom Graphics"
               description='Click the "Add Custom Graphic" button to add custom graphics'
             />
           )}

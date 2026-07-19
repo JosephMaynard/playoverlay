@@ -40,7 +40,7 @@ export default function TimeControlPanel({
   setDisplayScreen,
 }: Props) {
   const [modal, setModal] = useState<
-    'adjustTime' | 'additionaTime' | undefined
+    'adjustTime' | 'additionalTime' | undefined
   >();
   const handleStartTime = (matchPhase: MatchPhase) => {
     startTime(matchPhase);
@@ -78,7 +78,7 @@ export default function TimeControlPanel({
             },
             {
               label: 'Set Additional Time',
-              onClick: () => setModal('additionaTime'),
+              onClick: () => setModal('additionalTime'),
               backgroundColor: 'bg-indigo-600',
               color: 'text-white',
             },
@@ -109,7 +109,7 @@ export default function TimeControlPanel({
         </Switch.Group>
       </div>
       <WideModal
-        open={modal === 'additionaTime'}
+        open={modal === 'additionalTime'}
         setOpen={() => {
           setModal(undefined);
         }}

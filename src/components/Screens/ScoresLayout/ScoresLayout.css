@@ -5,20 +5,17 @@
   left: calc(var(--base-size) * 1.5);
   font-size: var(--base-size);
   overflow: hidden;
-  width: 0;
-  transition: width 0.6s;
+  /* The reveal transitions max-width rather than a fixed width so the
+     content (logos, additional-time chip, double-digit scores) sizes
+     itself and can never clip. */
+  width: fit-content;
+  max-width: 0;
+  transition: max-width 0.6s;
 }
 
 .ScoresLayout_active {
-  width: calc(var(--base-size) * 20);
-}
-
-.ScoresLayout_active_logos1 {
-  width: calc(var(--base-size) * 22.4);
-}
-
-.ScoresLayout_active_logos2 {
-  width: calc(var(--base-size) * 24.8);
+  /* Generous cap — the content's own width decides the visible size. */
+  max-width: calc(var(--base-size) * 30);
 }
 
 .ScoresLayout_item {
