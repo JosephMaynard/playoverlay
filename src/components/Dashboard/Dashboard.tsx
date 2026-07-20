@@ -118,7 +118,7 @@ export default function Dashboard() {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
       })
-      // Whether or not stored settings existed, the load has now completed —
+      // Whether or not stored settings existed, the load has now completed -
       // the first-run language picker can decide whether to show.
       .finally(() => {
         markSettingsLoaded();
@@ -212,8 +212,8 @@ export default function Dashboard() {
     window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
-  // Settings changes that remove the running phase — timer mode switch,
-  // extra time off, fewer periods — stop the clock instead of leaving it
+  // Settings changes that remove the running phase, timer mode switch,
+  // extra time off, fewer periods, stop the clock instead of leaving it
   // orphaned on a phase id that no longer exists.
   const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
     const mergedSettings = {
@@ -270,7 +270,7 @@ export default function Dashboard() {
     setScores(liveMatch.scores);
     // Restore fully replaces the match state. The store setter merges and
     // both defaultMatchState and the snapshot may omit optional keys, so the
-    // optional fields are cleared explicitly first — otherwise one left over
+    // optional fields are cleared explicitly first, otherwise one left over
     // from the current session (e.g. a customScreenImageUrl, or a stale
     // matchPhase) would survive into the restored match.
     setMatchState({
@@ -329,7 +329,7 @@ export default function Dashboard() {
       // No next phase, and a phase is currently running (full time reached):
       // stop the clock and record how far the match got. Guarded on
       // matchPhase so a stray shortcut press after the match has already
-      // finished (matchPhase already undefined) is a no-op — otherwise it
+      // finished (matchPhase already undefined) is a no-op, otherwise it
       // would overwrite previousMatchPhase and let the match restart from
       // the first phase.
       clock.stopTime();

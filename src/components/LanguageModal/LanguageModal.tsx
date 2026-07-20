@@ -14,11 +14,11 @@ export interface Props {
 }
 
 // First-run language picker. Renders on the control window only (App.tsx
-// mounts it alongside Dashboard) — DisplayApp.tsx never imports it, so it
+// mounts it alongside Dashboard), DisplayApp.tsx never imports it, so it
 // can never appear on the display window or a browser source. Shown only
 // while appSettings.language is unset, pre-selected to the detected OS/
 // browser locale; confirming is what actually sets the language (dismissing
-// via Esc/backdrop/close just hides it for the rest of this session — it
+// via Esc/backdrop/close just hides it for the rest of this session, it
 // isn't a "reject a language" action, so it doesn't persist anything, and
 // the picker will offer again on the next launch until the operator
 // confirms a choice).

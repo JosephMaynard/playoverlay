@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Copiado!",
       "copy": "Copiar",
-      "customScreenHint": "Qualquer tela integrada pode ser fixada dessa forma ao adicionar <code>?screen=</code> à URL — útil para exibir em uma TV do local uma visualização diferente da do OBS. Telas personalizadas não podem ser fixadas; essa visualização acompanha o operador.",
+      "customScreenHint": "Qualquer tela integrada pode ser fixada dessa forma ao adicionar <code>?screen=</code> à URL, útil para exibir em uma TV do local uma visualização diferente da do OBS. Telas personalizadas não podem ser fixadas; essa visualização acompanha o operador.",
       "enable": "Ativar",
       "hint": "Adicione como fonte de vídeo do navegador no OBS, na resolução da sua tela; o fundo é transparente.",
       "port": "Porta",
@@ -16,7 +16,7 @@
       "status": "Status: {{state}}",
       "statusRunning": "Em execução",
       "statusStopped": "Parado",
-      "statusWithError": "Status: {{state}} — {{error}}",
+      "statusWithError": "Status: {{state}}, {{error}}",
       "title": "Fonte de vídeo do navegador OBS"
     },
     "displays": {

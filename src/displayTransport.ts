@@ -1,7 +1,7 @@
 // Abstracts how the display view receives state so the exact same
 // components render both in the Electron display window (via IPC) and as a
 // plain web page loaded as an OBS browser source (via WebSocket). Electron
-// mode delegates 1:1 to window.electronAPI — nothing about its behavior
+// mode delegates 1:1 to window.electronAPI, nothing about its behavior
 // changes.
 import { AppSettings, MatchState, Scores, Time } from './types';
 import { MatchSettings } from './zodSchemas';
@@ -120,7 +120,7 @@ function createBrowserTransport(): DisplayTransport {
       }
     };
 
-    // This runs for hours during a live stream — always try to come back.
+    // This runs for hours during a live stream, always try to come back.
     socket.onclose = () => {
       clearTimeout(watchdog);
       setTimeout(connect, RECONNECT_DELAY_MS);

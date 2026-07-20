@@ -20,14 +20,14 @@ function parsePositiveNumberInput(value: string): number | undefined {
 }
 
 // Same as parsePositiveNumberInput, but additionally rejects fractional
-// values — used for periodCount, which must be a whole number of periods.
+// values, used for periodCount, which must be a whole number of periods.
 function parsePositiveIntegerInput(value: string): number | undefined {
   const parsed = parsePositiveNumberInput(value);
   return parsed !== undefined && Number.isInteger(parsed) ? parsed : undefined;
 }
 
 // Numeric timer input that only commits once the user has finished typing
-// (blur or Enter) — committing on every keystroke would persist transient
+// (blur or Enter), committing on every keystroke would persist transient
 // values like the "1" while typing "12", which can delete the running phase
 // and stop the live clock. Same draft + commit pattern as the browser-source
 // port field in AppSettingsMenu.

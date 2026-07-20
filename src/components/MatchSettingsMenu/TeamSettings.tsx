@@ -38,13 +38,13 @@ export default function TeamSettings({
 }: Props) {
   const { t } = useTranslation();
   // This component is rendered once per team, so DOM ids must be unique
-  // per panel — otherwise labels focus the other team's input.
+  // per panel, otherwise labels focus the other team's input.
   const idPrefix = title.toLowerCase().replace(/\s+/g, '-');
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   // Bumped on every new upload and on Remove, so a slow upload that resolves
-  // after a newer action has already started can never overwrite it — even
+  // after a newer action has already started can never overwrite it, even
   // if the disabled styling below is somehow bypassed.
   const logoUploadGenerationRef = useRef(0);
 

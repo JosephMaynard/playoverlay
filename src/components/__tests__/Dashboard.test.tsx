@@ -457,7 +457,7 @@ describe('Dashboard match engine', () => {
       fireEvent.click(restoreButton);
 
       // Full replace: the store now holds the snapshot's settings over
-      // defaults, not a merge with whatever was loaded before the restore —
+      // defaults, not a merge with whatever was loaded before the restore -
       // the field the snapshot omitted reverts to its default instead of
       // keeping the stale current value.
       expect(stores.matchSettings.getState().matchSettings).toEqual({
@@ -565,7 +565,7 @@ describe('Dashboard match engine', () => {
       expect(stores.time.getState().time.time).toBeUndefined();
       // previousMatchPhase is set to the just-stopped phase and then
       // immediately cleared again, since that same phase (extraTimeSecondHalf)
-      // is also absent from the new (no-extra-time) phase list — see the
+      // is also absent from the new (no-extra-time) phase list, see the
       // "stopped match's previousMatchPhase can also vanish" comment in
       // Dashboard's updateMatchSettings.
       expect(

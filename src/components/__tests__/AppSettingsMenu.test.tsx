@@ -6,7 +6,7 @@ import { AppSettings } from '../../types';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 
 // AppSettingsMenu's screen/lock-status effect unsubscribes these on
-// unmount, so — even though this test never triggers a display change —
+// unmount, so, even though this test never triggers a display change -
 // they must be mocked (not left as `window.electronAPI` being entirely
 // undefined) or unmount throws.
 function installElectronAPI() {

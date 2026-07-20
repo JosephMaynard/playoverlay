@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Copiado!",
       "copy": "Copiar",
-      "customScreenHint": "Qualquer ecrã incorporado pode ser fixado desta forma ao adicionar <code>?screen=</code> ao URL — útil para mostrar numa TV do recinto uma vista diferente da do OBS. Os ecrãs personalizados não podem ser fixados; essa vista segue o operador.",
+      "customScreenHint": "Qualquer ecrã incorporado pode ser fixado desta forma ao adicionar <code>?screen=</code> ao URL, útil para mostrar numa TV do recinto uma vista diferente da do OBS. Os ecrãs personalizados não podem ser fixados; essa vista segue o operador.",
       "enable": "Ativar",
       "hint": "Adicione como fonte de vídeo do navegador no OBS, na resolução da sua tela; o fundo é transparente.",
       "port": "Porta",
@@ -16,7 +16,7 @@
       "status": "Estado: {{state}}",
       "statusRunning": "Em execução",
       "statusStopped": "Parado",
-      "statusWithError": "Estado: {{state}} — {{error}}",
+      "statusWithError": "Estado: {{state}}, {{error}}",
       "title": "Fonte de vídeo do navegador OBS"
     },
     "displays": {

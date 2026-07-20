@@ -72,7 +72,7 @@ const DragAndDropUploader: React.FC<Props> = ({
     }
     try {
       const url = await window?.electronAPI?.uploadImage(file, title);
-      // Only close the dialog when the upload actually succeeded —
+      // Only close the dialog when the upload actually succeeded -
       // otherwise it would close silently with no graphic added.
       if (url) {
         setFile(null);

@@ -81,7 +81,7 @@ export function classNames(...classes: string[]) {
 // phases exactly (dropping the extra-time phases when hasExtraTime is
 // explicitly false); generic mode builds N evenly-sized periods named from
 // periodName. Titles are returned as an i18next key (+ params) rather than a
-// baked English string — see getPhaseTitle below for rendering it.
+// baked English string, see getPhaseTitle below for rendering it.
 export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   if (matchSettings.timerMode === 'generic') {
     // Defence in depth: schema validation clamps periodCount on every write
@@ -174,7 +174,7 @@ export function getPhaseById(
 }
 
 // Pure walk over the phase list: mirrors the Dashboard's historical
-// "next match phase" semantics — pressing next while a phase is running
+// "next match phase" semantics, pressing next while a phase is running
 // stops the clock instead of advancing it; otherwise it starts the first
 // phase, or the one after previousPhaseId (undefined once the list ends).
 export function getNextPhaseId(
@@ -312,7 +312,7 @@ export function keyboardEventToAccelerator({
 
 // The active browser-source settings: user configuration layered over the
 // defaults (off, port 4750), so a config.json with no `browserSource` field
-// (or one missing `port`/`enabled`) behaves exactly like today — no server.
+// (or one missing `port`/`enabled`) behaves exactly like today, no server.
 // Shared by main.ts (server lifecycle) and the renderer (settings UI).
 export function getBrowserSourceSettings(
   appSettings: AppSettings
@@ -341,7 +341,7 @@ export function chunkArray<T>(items: T[], size: number): T[][] {
 // Seconds remaining until a "HH:MM" kick-off time, interpreted as today in
 // the local timezone. Returns null when the string isn't a valid 24-hour
 // HH:MM time or the moment has already arrived/passed today (no next-day
-// rollover — a kick-off time is only ever "today"). Uses Math.ceil so a
+// rollover, a kick-off time is only ever "today"). Uses Math.ceil so a
 // consumer ticking once a second never displays 0 while time remains.
 export function secondsUntilKickOff(
   kickOffTime: string,

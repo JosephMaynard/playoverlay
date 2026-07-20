@@ -16,7 +16,7 @@
       "status": "Estado: {{state}}",
       "statusRunning": "En ejecución",
       "statusStopped": "Detenido",
-      "statusWithError": "Estado: {{state}} — {{error}}",
+      "statusWithError": "Estado: {{state}}, {{error}}",
       "title": "Fuente de video del navegador de OBS"
     },
     "displays": {

@@ -20,7 +20,7 @@ export const defaultBrowserSourceSettings: BrowserSourceSettings = {
 // `language` is deliberately omitted (left unset): that's what tells the
 // control window to show the first-run language picker. An existing
 // config.json saved before v0.18 has no `language` key either, so it
-// behaves identically to a brand-new install — the picker fires once, and
+// behaves identically to a brand-new install, the picker fires once, and
 // is pre-filled from the OS locale either way.
 export const defaultAppSettings: AppSettings = {
   keyColour: '#0000FF',

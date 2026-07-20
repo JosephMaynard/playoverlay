@@ -4,7 +4,7 @@
 // synchronous and no <Suspense> boundary is needed.
 //
 // English namespaces are auto-loaded from ./locales/en/*.json by filename, so
-// a new area of the UI just adds its own `en/<namespace>.json` — no edit to
+// a new area of the UI just adds its own `en/<namespace>.json`, no edit to
 // this file, which lets string-extraction work happen in parallel without
 // colliding here. The other language catalogues are added in W3.
 /// <reference types="vite/client" />
@@ -15,7 +15,7 @@ export const defaultNS = 'common';
 
 // Eagerly import every namespace JSON for every locale. Keyed by
 // './locales/<lang>/<namespace>.json', so adding a language is just dropping
-// its `locales/<lang>/*.json` files — no edit here.
+// its `locales/<lang>/*.json` files, no edit here.
 const localeModules = import.meta.glob('./locales/*/*.json', {
   eager: true,
 }) as Record<string, { default: Record<string, unknown> }>;

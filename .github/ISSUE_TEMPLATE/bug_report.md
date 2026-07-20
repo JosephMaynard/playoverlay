@@ -20,7 +20,7 @@ assignees: ''
 - [ ] Spectator scoreboard / other
 
 **Steps to reproduce**
-<!-- Be as specific as you can — the exact buttons/shortcuts pressed, in order -->
+<!-- Be as specific as you can, the exact buttons/shortcuts pressed, in order -->
 
 1.
 2.
@@ -33,4 +33,4 @@ assignees: ''
 <!-- What actually happened. Include screenshots if useful -->
 
 **Additional context**
-<!-- Anything else — was this mid-match? Did it happen once or every time? -->
+<!-- Anything else, was this mid-match? Did it happen once or every time? -->

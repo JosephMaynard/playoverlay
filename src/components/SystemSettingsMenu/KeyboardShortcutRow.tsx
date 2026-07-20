@@ -11,7 +11,7 @@ export interface Props {
   onChange: (accelerator: string) => void;
   onReset: () => void;
   isDefault: boolean;
-  // Error surfaced by the parent (e.g. "already assigned elsewhere") — takes
+  // Error surfaced by the parent (e.g. "already assigned elsewhere"), takes
   // priority over the row's own key-capture validation error.
   externalError?: string | null;
 }

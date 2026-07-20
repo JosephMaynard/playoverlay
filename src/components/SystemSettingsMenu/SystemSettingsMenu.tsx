@@ -223,7 +223,7 @@ export default function SystemSettingsMenu({
   };
 
   // Only persist (and restart the server) once the user has finished typing
-  // a valid port — committing on every keystroke would restart the server
+  // a valid port, committing on every keystroke would restart the server
   // on partial values like "4" or "47".
   const commitBrowserSourcePort = () => {
     const parsedPort = Number(browserSourcePortDraft);

@@ -8,7 +8,7 @@ import { useAppSettingsStore } from './store/appSettings';
 import { detectLanguage } from './utils';
 
 // Thin wrapper around Dashboard: owns the two pieces of i18n wiring that
-// don't belong inside Dashboard itself (which is owned by a later wave) —
+// don't belong inside Dashboard itself (which is owned by a later wave) -
 // keeping the control window's own UI in sync with the operator's chosen
 // (or detected, pending choice) language, and gating the first-run picker.
 // Both read the same appSettings zustand store Dashboard populates from IPC
@@ -27,7 +27,7 @@ function ControlRoot() {
     <>
       <Dashboard />
       {/* Held back until settings have loaded, so the picker only appears on
-          a genuine first run — not as a flash while a returning user's saved
+          a genuine first run, not as a flash while a returning user's saved
           language arrives async over IPC. */}
       {settingsLoaded && (
         <LanguageModal

@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Kopiert!",
       "copy": "Kopieren",
-      "customScreenHint": "Jeder integrierte Bildschirm kann auf diese Weise fixiert werden, indem Sie <code>?screen=</code> an die URL anhängen — nützlich, um einem Fernseher vor Ort eine andere Ansicht als OBS zu liefern. Benutzerdefinierte Bildschirme können nicht fixiert werden; diese Ansicht folgt dem Bediener.",
+      "customScreenHint": "Jeder integrierte Bildschirm kann auf diese Weise fixiert werden, indem Sie <code>?screen=</code> an die URL anhängen, nützlich, um einem Fernseher vor Ort eine andere Ansicht als OBS zu liefern. Benutzerdefinierte Bildschirme können nicht fixiert werden; diese Ansicht folgt dem Bediener.",
       "enable": "Aktivieren",
       "hint": "Fügen Sie sie in OBS als Browserquelle in Ihrer Canvas-Auflösung hinzu; der Hintergrund ist transparent.",
       "port": "Port",
@@ -16,7 +16,7 @@
       "status": "Status: {{state}}",
       "statusRunning": "Aktiv",
       "statusStopped": "Gestoppt",
-      "statusWithError": "Status: {{state}} — {{error}}",
+      "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS-Browserquelle"
     },
     "displays": {

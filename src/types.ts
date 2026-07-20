@@ -40,7 +40,7 @@ export interface AppSettings {
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
   browserSource?: BrowserSourceSettings;
-  // Unset means "not yet chosen" — drives the first-run language picker.
+  // Unset means "not yet chosen", drives the first-run language picker.
   // Once set, it rides the same IPC mirror as the rest of AppSettings, so
   // the operator's choice (not OS locale) drives on-air text everywhere.
   language?: LanguageCode;
@@ -100,7 +100,7 @@ export interface CustomScreen {
 // translate it via getPhaseTitle(t, phase). `titleParams` carries whatever
 // the key needs to interpolate: the period number for generic phases, plus
 // the user's custom period name (raw, never itself translated) when one was
-// set in Match Settings. `id`/`start`/`end` are unchanged — matchState and
+// set in Match Settings. `id`/`start`/`end` are unchanged, matchState and
 // persistence depend on `id` staying stable.
 export interface MatchPeriod {
   id: string;

@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Copied!",
       "copy": "Copy",
-      "customScreenHint": "Any built-in screen can be pinned this way by adding <code>?screen=</code> to the URL — useful for feeding a venue TV a different view than OBS. Custom screens can't be pinned; that view follows the operator.",
+      "customScreenHint": "Any built-in screen can be pinned this way by adding <code>?screen=</code> to the URL, useful for feeding a venue TV a different view than OBS. Custom screens can't be pinned; that view follows the operator.",
       "enable": "Enable",
       "hint": "Add as a Browser Source in OBS at your canvas resolution; the background is transparent.",
       "port": "Port",
@@ -16,7 +16,7 @@
       "status": "Status: {{state}}",
       "statusRunning": "Running",
       "statusStopped": "Stopped",
-      "statusWithError": "Status: {{state}} — {{error}}",
+      "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS Browser Source"
     },
     "displays": {

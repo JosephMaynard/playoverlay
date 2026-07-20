@@ -38,7 +38,7 @@ export default function EditCustomScreen({
   // "All Screens" is checked when the overlay covers every currently-known
   // screen. Overlays saved before a new screen key was added (e.g.
   // `scoreboard`) may also contain only old ids, and strict list equality
-  // would never match them once the known-screens list grows — so tolerate
+  // would never match them once the known-screens list grows, so tolerate
   // extra unknown ids and only require the current screens to be present.
   const overlayLinks = customScreenToEdit.overlayLinks || [];
   const allScreensChecked = (Object.keys(screens) as DisplayScreen[]).every(

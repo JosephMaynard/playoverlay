@@ -31,7 +31,7 @@ export function saveImageFile(
   buffer: Buffer,
   fileName: string
 ): { filePath: string; url: string } | null {
-  // fileName can come from an IPC caller — resolve away any directory
+  // fileName can come from an IPC caller, resolve away any directory
   // components so it can't escape the images dir (e.g. via '../../etc').
   const safeFileName = path.basename(fileName);
   if (!safeFileName || safeFileName !== fileName) {
@@ -82,7 +82,7 @@ export async function handleFileUpload(
 }
 
 export function handleFileDeletion(filePath: string): boolean {
-  // filePath comes from an IPC caller — only delete files that actually
+  // filePath comes from an IPC caller, only delete files that actually
   // live inside the images directory. realpath resolves symlinks/junctions
   // first, so a link placed inside the directory can't smuggle the check
   // past a target elsewhere on disk (a link's resolved path falls outside

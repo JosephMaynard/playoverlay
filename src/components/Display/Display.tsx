@@ -112,7 +112,7 @@ const Display = () => {
   }, [transport]);
 
   // The operator's language choice (pushed over the same app-settings
-  // channel as keyColour/clockFormat) drives the on-air text here — never
+  // channel as keyColour/clockFormat) drives the on-air text here, never
   // this window's own OS/browser locale. detectLanguage() only fills in
   // before the operator has confirmed a choice (appSettings.language still
   // unset), exactly like the control window's own fallback.

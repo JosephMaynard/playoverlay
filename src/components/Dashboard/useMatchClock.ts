@@ -79,7 +79,7 @@ export default function useMatchClock(): UseMatchClock {
 
     // The anchor is the system clock, which can step (NTP sync, manual
     // change) or pause (laptop sleep). A backwards step or a jump of more
-    // than a few seconds between ticks is not real match time — re-anchor
+    // than a few seconds between ticks is not real match time, re-anchor
     // at the current value instead of leaping the on-air clock.
     if (
       newSeconds < secondsRef.current ||

@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Copié !",
       "copy": "Copier",
-      "customScreenHint": "Tout écran intégré peut être épinglé de cette façon en ajoutant <code>?screen=</code> à l'URL — utile pour envoyer à une TV de salle une vue différente de celle d'OBS. Les écrans personnalisés ne peuvent pas être épinglés ; cette vue suit l'opérateur.",
+      "customScreenHint": "Tout écran intégré peut être épinglé de cette façon en ajoutant <code>?screen=</code> à l'URL, utile pour envoyer à une TV de salle une vue différente de celle d'OBS. Les écrans personnalisés ne peuvent pas être épinglés ; cette vue suit l'opérateur.",
       "enable": "Activer",
       "hint": "Ajoutez-la comme source navigateur dans OBS à la résolution de votre canevas ; l'arrière-plan est transparent.",
       "port": "Port",
@@ -16,7 +16,7 @@
       "status": "Statut : {{state}}",
       "statusRunning": "En cours d'exécution",
       "statusStopped": "Arrêté",
-      "statusWithError": "Statut : {{state}} — {{error}}",
+      "statusWithError": "Statut : {{state}}, {{error}}",
       "title": "Source navigateur OBS"
     },
     "displays": {

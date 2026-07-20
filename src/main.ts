@@ -246,7 +246,7 @@ const createDisplayWindow = () => {
       displayWindow = null;
     }
     // In production a closed display window would silently swallow every
-    // update with no way to get output back — recreate it unless the app
+    // update with no way to get output back, recreate it unless the app
     // is quitting. The display-ready handshake resends the current state.
     if (!isDev && !isQuitting) {
       createDisplayWindow();
@@ -372,13 +372,13 @@ function setupIPCHandlers() {
       previousShortcuts.awayTeamScored !== nextShortcuts.awayTeamScored;
 
     // Re-register with the new bindings. If shortcuts are currently
-    // disabled (a side menu is open) both sets are already unregistered —
+    // disabled (a side menu is open) both sets are already unregistered -
     // leave them alone and let enable-keyboard-shortcuts pick up the new
     // bindings when the menu closes. The global Alt set is always on while
     // enabled; the focus set only registers while the main window has
     // focus.
     if (shortcutsChanged && !keyboardShortcutsDisabled) {
-      // Unregister both sets before registering either replacement — a new
+      // Unregister both sets before registering either replacement, a new
       // binding in one set could otherwise collide with a stale
       // registration still held by the other.
       const registerFocusSet = mainWindow?.isFocused() ?? false;
@@ -568,7 +568,7 @@ function setupIPCHandlers() {
   });
 
   ipcMain.on('open-url-in-browser', (_event, url: string) => {
-    // url comes from an IPC caller — only hand http(s) URLs to the OS.
+    // url comes from an IPC caller, only hand http(s) URLs to the OS.
     // Anything else (file:, javascript:, custom protocols, unparseable
     // strings) is logged and ignored.
     try {
@@ -638,7 +638,7 @@ const registerKeyboardShortcuts = () => {
   const failed: string[] = [];
 
   getShortcutBindings().forEach(({ accelerator, channel }) => {
-    // globalShortcut.register only returns false for conflicts — a
+    // globalShortcut.register only returns false for conflicts, a
     // malformed accelerator string (e.g. from a corrupt config) THROWS, so
     // catch it and keep going rather than crashing the main process.
     let registered = false;

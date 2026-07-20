@@ -16,7 +16,7 @@ import {
 // tests in storage.test.ts substitute a MockStore), because the failure they
 // guard against lives inside electron-store/conf: with clearInvalidConfig
 // defaulting to false, constructing a Store over a non-JSON config.json
-// throws a SyntaxError at module load — e.g. a 0.14 user with an encrypted
+// throws a SyntaxError at module load, e.g. a 0.14 user with an encrypted
 // config upgrading to a keyless build would crash-loop before app.ready.
 //
 // electron-store natively requires 'electron' from node_modules (vitest

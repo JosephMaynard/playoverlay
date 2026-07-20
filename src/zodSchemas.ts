@@ -79,8 +79,8 @@ export const appSettingsSchema = z.object({
   keyColour: z.string().catch(defaultAppSettings.keyColour),
   autoSwitchScreens: z.boolean().catch(defaultAppSettings.autoSwitchScreens),
   clockFormat: z.enum(['24h', '12h']).optional().catch(undefined),
-  // Unset (undefined) is a meaningful value here — it's what triggers the
-  // first-run language picker — so an invalid stored value degrades to
+  // Unset (undefined) is a meaningful value here, it's what triggers the
+  // first-run language picker, so an invalid stored value degrades to
   // undefined (re-showing the picker) rather than a default language.
   language: z
     .enum(['en', 'fr', 'de', 'it', 'es-ES', 'es-419', 'pt-PT', 'pt-BR'])

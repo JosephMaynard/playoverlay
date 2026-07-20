@@ -7,7 +7,7 @@
     "browserSource": {
       "copied": "Copiato!",
       "copy": "Copia",
-      "customScreenHint": "Qualsiasi schermata integrata può essere fissata in questo modo aggiungendo <code>?screen=</code> all'URL — utile per inviare a una TV della sede una vista diversa da quella di OBS. Le schermate personalizzate non possono essere fissate; quella vista segue l'operatore.",
+      "customScreenHint": "Qualsiasi schermata integrata può essere fissata in questo modo aggiungendo <code>?screen=</code> all'URL, utile per inviare a una TV della sede una vista diversa da quella di OBS. Le schermate personalizzate non possono essere fissate; quella vista segue l'operatore.",
       "enable": "Attiva",
       "hint": "Aggiungila come Sorgente Browser in OBS alla risoluzione del tuo canvas; lo sfondo è trasparente.",
       "port": "Porta",
@@ -16,7 +16,7 @@
       "status": "Stato: {{state}}",
       "statusRunning": "In esecuzione",
       "statusStopped": "Interrotto",
-      "statusWithError": "Stato: {{state}} — {{error}}",
+      "statusWithError": "Stato: {{state}}, {{error}}",
       "title": "Sorgente Browser OBS"
     },
     "displays": {
