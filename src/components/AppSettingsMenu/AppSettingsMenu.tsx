@@ -77,7 +77,7 @@ export default function AppSettingsMenu({
           disabled={isLocked}
         />
       </CollapsiblePanel>
-      <CollapsiblePanel title={t('settings:appMenu.title')}>
+      <CollapsiblePanel title={t('settings:appMenu.windowControls.title')}>
         {displays.length > 1 ? (
           <ButtonGrid
             compact

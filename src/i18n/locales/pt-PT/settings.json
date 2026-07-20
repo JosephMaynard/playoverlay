@@ -50,7 +50,8 @@
       "lockWindows": "Bloquear janelas",
       "resetPositions": "Repor posições",
       "toggleFullscreen": "Alternar ecrã inteiro",
-      "unlockWindows": "Desbloquear janelas"
+      "unlockWindows": "Desbloquear janelas",
+      "title": "Janelas"
     }
   },
   "customScreens": {

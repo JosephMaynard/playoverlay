@@ -50,7 +50,8 @@
       "lockWindows": "Fenster sperren",
       "resetPositions": "Positionen zurücksetzen",
       "toggleFullscreen": "Vollbild umschalten",
-      "unlockWindows": "Fenster entsperren"
+      "unlockWindows": "Fenster entsperren",
+      "title": "Fenster"
     }
   },
   "customScreens": {

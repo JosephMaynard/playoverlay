@@ -50,7 +50,8 @@
       "lockWindows": "Lock Windows",
       "resetPositions": "Reset positions",
       "toggleFullscreen": "Toggle Fullscreen",
-      "unlockWindows": "Unlock Windows"
+      "unlockWindows": "Unlock Windows",
+      "title": "Windows"
     }
   },
   "customScreens": {

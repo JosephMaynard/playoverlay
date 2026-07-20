@@ -50,7 +50,8 @@
       "lockWindows": "Bloquear ventanas",
       "resetPositions": "Restablecer posiciones",
       "toggleFullscreen": "Alternar pantalla completa",
-      "unlockWindows": "Desbloquear ventanas"
+      "unlockWindows": "Desbloquear ventanas",
+      "title": "Ventanas"
     }
   },
   "customScreens": {

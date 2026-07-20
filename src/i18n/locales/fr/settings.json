@@ -50,7 +50,8 @@
       "lockWindows": "Verrouiller les fenêtres",
       "resetPositions": "Réinitialiser les positions",
       "toggleFullscreen": "Basculer le plein écran",
-      "unlockWindows": "Déverrouiller les fenêtres"
+      "unlockWindows": "Déverrouiller les fenêtres",
+      "title": "Fenêtres"
     }
   },
   "customScreens": {

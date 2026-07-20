@@ -50,7 +50,8 @@
       "lockWindows": "Blocca finestre",
       "resetPositions": "Reimposta posizioni",
       "toggleFullscreen": "Attiva/disattiva schermo intero",
-      "unlockWindows": "Sblocca finestre"
+      "unlockWindows": "Sblocca finestre",
+      "title": "Finestre"
     }
   },
   "customScreens": {

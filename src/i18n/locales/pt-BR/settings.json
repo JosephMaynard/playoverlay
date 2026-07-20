@@ -50,7 +50,8 @@
       "lockWindows": "Bloquear janelas",
       "resetPositions": "Redefinir posições",
       "toggleFullscreen": "Alternar tela cheia",
-      "unlockWindows": "Desbloquear janelas"
+      "unlockWindows": "Desbloquear janelas",
+      "title": "Janelas"
     }
   },
   "customScreens": {
