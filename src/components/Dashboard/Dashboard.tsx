@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Scores,
@@ -40,6 +41,7 @@ import { useCustomGraphicsStore } from '../../store/customGraphics';
 import logo from '../../assets/playoverlay-logo.svg';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
@@ -432,36 +434,51 @@ export default function Dashboard() {
       >
         {restorableMatch && (
           <AppNotification
-            title="Restore previous match?"
-            text={`A match was in progress when PlayOverlay last closed (${
-              restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
-              matchSettings.homeTeamNameAbbreviated
-            } ${restorableMatch.scores?.homeTeam ?? 0}–${
-              restorableMatch.scores?.awayTeam ?? 0
-            } ${
-              restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
-              matchSettings.awayTeamNameAbbreviated
-            }${
-              restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
-            }). Restoring brings back the score and clock, with the clock paused.`}
+            title={t('dashboard:notifications.restoreMatch.title')}
+            text={
+              restorableMatch.time?.time
+                ? t('dashboard:notifications.restoreMatch.bodyWithTime', {
+                    homeTeam:
+                      restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
+                      matchSettings.homeTeamNameAbbreviated,
+                    homeScore: restorableMatch.scores?.homeTeam ?? 0,
+                    awayScore: restorableMatch.scores?.awayTeam ?? 0,
+                    awayTeam:
+                      restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+                      matchSettings.awayTeamNameAbbreviated,
+                    time: restorableMatch.time.time,
+                  })
+                : t('dashboard:notifications.restoreMatch.body', {
+                    homeTeam:
+                      restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
+                      matchSettings.homeTeamNameAbbreviated,
+                    homeScore: restorableMatch.scores?.homeTeam ?? 0,
+                    awayScore: restorableMatch.scores?.awayTeam ?? 0,
+                    awayTeam:
+                      restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+                      matchSettings.awayTeamNameAbbreviated,
+                  })
+            }
             icon={
               <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
             }
             buttonOnClick={() => restoreMatch(restorableMatch)}
-            buttonText="Restore"
+            buttonText={t('settings:matchMenu.saved.restore')}
           />
         )}
         {updateStatus?.newVersionAvailable && (
           <AppNotification
-            title="Update available"
-            text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
+            title={t('dashboard:notifications.updateAvailable.title')}
+            text={t('dashboard:notifications.updateAvailable.body', {
+              version: updateStatus?.latestVersion,
+            })}
             icon={
               <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
             }
             buttonOnClick={() => {
               window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
             }}
-            buttonText="Download now"
+            buttonText={t('dashboard:notifications.updateAvailable.button')}
           />
         )}
       </div>

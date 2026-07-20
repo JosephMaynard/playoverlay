@@ -50,7 +50,7 @@ export default function TimeControlPanel({
     selected: time.matchPhase === phase.id,
   }));
   return (
-    <CollapsiblePanel title="Time" noPanelPadding>
+    <CollapsiblePanel title={t('dashboard:timeControl.title')} noPanelPadding>
       <TimeDisplay
         time={time}
         matchSettings={matchSettings}
@@ -62,13 +62,13 @@ export default function TimeControlPanel({
           buttons={[
             ...phaseButtons,
             {
-              label: 'Stop',
+              label: t('settings:system.stop'),
               onClick: () => stopTime(),
               backgroundColor: 'bg-red-700',
               color: 'text-white',
             },
             {
-              label: 'Set Additional Time',
+              label: t('dashboard:timeControl.setAdditionalTime'),
               onClick: () => setModal('additionalTime'),
               backgroundColor: 'bg-indigo-600',
               color: 'text-white',
@@ -94,7 +94,7 @@ export default function TimeControlPanel({
           </Switch>
           <Switch.Label as="span" className="ml-3 text-sm">
             <span className="font-medium text-gray-900">
-              Auto switch screens on start and stop
+              {t('dashboard:timeControl.autoSwitchLabel')}
             </span>
           </Switch.Label>
         </Switch.Group>
@@ -104,7 +104,7 @@ export default function TimeControlPanel({
         setOpen={() => {
           setModal(undefined);
         }}
-        title="Set Additional Time"
+        title={t('dashboard:timeControl.setAdditionalTime')}
       >
         <div className="mb-2 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
@@ -131,14 +131,16 @@ export default function TimeControlPanel({
         <ButtonGrid
           buttons={[
             ...Array.from(new Array(17)).map((_, index) => ({
-              label: `${index + 1}min`,
+              label: t('dashboard:timeControl.additionalTimeMinutes', {
+                n: index + 1,
+              }),
               onClick: () => {
                 setAdditionalTime(index + 1);
                 setModal(undefined);
               },
             })),
             {
-              label: 'Clear',
+              label: t('dashboard:timeControl.clear'),
               onClick: () => {
                 setAdditionalTime();
                 setModal(undefined);
@@ -154,7 +156,7 @@ export default function TimeControlPanel({
         setOpen={() => {
           setModal(undefined);
         }}
-        title="Adjust Time"
+        title={t('dashboard:timeControl.adjustTimeModalTitle')}
       >
         <TimeDisplay time={time} matchSettings={matchSettings} />
 
@@ -166,7 +168,7 @@ export default function TimeControlPanel({
               className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-600)}
             >
-              -10m
+              {t('dashboard:timeControl.adjustMinutes', { sign: '-', n: 10 })}
             </button>
             <button
               type="button"
@@ -174,7 +176,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-60)}
             >
-              -1m
+              {t('dashboard:timeControl.adjustMinutes', { sign: '-', n: 1 })}
             </button>
             <button
               type="button"
@@ -182,7 +184,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-10)}
             >
-              -10s
+              {t('dashboard:timeControl.adjustSeconds', { sign: '-', n: 10 })}
             </button>
             <button
               type="button"
@@ -190,7 +192,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(-1)}
             >
-              -1s
+              {t('dashboard:timeControl.adjustSeconds', { sign: '-', n: 1 })}
             </button>
             {isPaused ? (
               <button
@@ -217,7 +219,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(1)}
             >
-              +1s
+              {t('dashboard:timeControl.adjustSeconds', { sign: '+', n: 1 })}
             </button>
             <button
               type="button"
@@ -225,7 +227,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(10)}
             >
-              +10s
+              {t('dashboard:timeControl.adjustSeconds', { sign: '+', n: 10 })}
             </button>
             <button
               type="button"
@@ -233,7 +235,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(60)}
             >
-              +1m
+              {t('dashboard:timeControl.adjustMinutes', { sign: '+', n: 1 })}
             </button>
             <button
               type="button"
@@ -241,7 +243,7 @@ export default function TimeControlPanel({
               className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
               onClick={() => adjustTime(600)}
             >
-              +10m
+              {t('dashboard:timeControl.adjustMinutes', { sign: '+', n: 10 })}
             </button>
           </span>
         </div>

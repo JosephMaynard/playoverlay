@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MatchSettings } from 'src/zodSchemas';
 import { Scores, Time } from '../../types';
 
@@ -15,11 +16,12 @@ export default function ScoresPanel({
   scores,
   updateScore,
 }: Props) {
+  const { t } = useTranslation();
   return (
-    <CollapsiblePanel title="Scores">
+    <CollapsiblePanel title={t('dashboard:scoresPanel.title')}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <ScoreInput
-          title="Home Team"
+          title={t('settings:matchMenu.homeTeam')}
           score={scores.homeTeam}
           id="homeTeamScore"
           setScore={(homeTeam: number) => updateScore({ homeTeam })}
@@ -29,7 +31,7 @@ export default function ScoresPanel({
           teamNameAbbreviated={matchSettings.homeTeamNameAbbreviated}
         />
         <ScoreInput
-          title="Away Team"
+          title={t('settings:matchMenu.awayTeam')}
           score={scores.awayTeam}
           id="awayTeamScore"
           setScore={(awayTeam: number) => updateScore({ awayTeam })}
