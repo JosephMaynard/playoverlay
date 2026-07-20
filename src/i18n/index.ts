@@ -13,23 +13,25 @@ import { initReactI18next } from 'react-i18next';
 
 export const defaultNS = 'common';
 
-// Eagerly import every English namespace JSON. Keyed by bare filename, e.g.
-// './locales/en/settings.json' -> namespace 'settings'.
-const enModules = import.meta.glob('./locales/en/*.json', {
+// Eagerly import every namespace JSON for every locale. Keyed by
+// './locales/<lang>/<namespace>.json', so adding a language is just dropping
+// its `locales/<lang>/*.json` files — no edit here.
+const localeModules = import.meta.glob('./locales/*/*.json', {
   eager: true,
 }) as Record<string, { default: Record<string, unknown> }>;
 
-const enNamespaces: Record<string, Record<string, unknown>> = {};
-for (const [path, module] of Object.entries(enModules)) {
-  const namespace = path.split('/').pop()!.replace(/\.json$/, '');
-  enNamespaces[namespace] = module.default;
+const resources: Record<string, Record<string, Record<string, unknown>>> = {};
+for (const [path, module] of Object.entries(localeModules)) {
+  const parts = path.split('/');
+  const namespace = parts.pop()!.replace(/\.json$/, '');
+  const lang = parts.pop()!;
+  (resources[lang] ??= {})[namespace] = module.default;
 }
 
-export const resources = {
-  en: enNamespaces,
-};
+export { resources };
 
-export const namespaces = Object.keys(enNamespaces);
+// Namespaces are derived from English (the complete base catalogue).
+export const namespaces = Object.keys(resources.en ?? {});
 
 // Guards against a duplicate init if this module is imported more than once
 // (hot-reload, or a test re-importing it): i18next would otherwise reset the
