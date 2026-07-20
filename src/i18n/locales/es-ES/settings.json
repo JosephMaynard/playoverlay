@@ -1,0 +1,166 @@
+{
+  "actions": {
+    "delete": "Eliminar",
+    "save": "Guardar"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "¡Copiado!",
+      "copy": "Copiar",
+      "customScreenHint": "Cualquier pantalla integrada se puede fijar así añadiendo <code>?screen=</code> a la URL; resulta útil para mostrar en un televisor del recinto una vista distinta a la de OBS. Las pantallas personalizadas no se pueden fijar: esa vista sigue al operador.",
+      "enable": "Activar",
+      "hint": "Añádela como fuente de vídeo del navegador en OBS con la resolución de tu lienzo; el fondo es transparente.",
+      "port": "Puerto",
+      "portError": "Introduce un puerto entre 1024 y 65535.",
+      "scoreboardView": "Vista del marcador",
+      "status": "Estado: {{state}}",
+      "statusRunning": "En ejecución",
+      "statusStopped": "Detenido",
+      "statusWithError": "Estado: {{state}} — {{error}}",
+      "title": "Fuente de vídeo del navegador de OBS"
+    },
+    "displays": {
+      "moveToScreen": "Mover a la pantalla {{n}}",
+      "none": "No se han detectado pantallas externas."
+    },
+    "keyColour": "Color clave",
+    "keyboardShortcutRow": {
+      "change": "Cambiar",
+      "invalidKey": "Esa tecla no se puede usar en un atajo.",
+      "needModifier": "Incluye Cmd/Ctrl o Alt en el atajo.",
+      "pressKeys": "Pulsa las teclas…",
+      "pressKeysFor": "Pulsa las teclas para {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "Gol del equipo visitante",
+      "conflict": "Ya lo usa «{{label}}».",
+      "globalHint": "Cada atajo también funciona en todo el sistema (por ejemplo, mientras OBS está en primer plano) añadiendo Alt, a menos que el atajo ya incluya Alt.",
+      "homeTeamScored": "Gol del equipo local",
+      "nextMatchPhase": "Siguiente fase del partido",
+      "title": "Atajos de teclado"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Formato de la hora del día en la pantalla del marcador para espectadores.",
+      "title": "Reloj del marcador",
+      "twentyFourHour": "24 horas"
+    },
+    "title": "Configuración de la ventana",
+    "windowControls": {
+      "lockWindows": "Bloquear ventanas",
+      "resetPositions": "Restablecer posiciones",
+      "toggleFullscreen": "Alternar pantalla completa",
+      "unlockWindows": "Desbloquear ventanas"
+    }
+  },
+  "customScreens": {
+    "add": "Añadir gráfico personalizado",
+    "addModalTitle": "Añadir pantalla personalizada",
+    "deleteConfirmAction": "Eliminar pantalla personalizada",
+    "deleteConfirmBody": "¿Seguro que quieres eliminar la pantalla personalizada «{{title}}»?",
+    "deleteConfirmTitle": "¿Eliminar la pantalla personalizada?",
+    "edit": "Editar",
+    "editModal": {
+      "allScreens": "Todas las pantallas",
+      "overlayScreens": "Mostrar superposición en las pantallas",
+      "saveChanges": "Guardar cambios",
+      "title": "Editar gráfico personalizado",
+      "type": "Tipo"
+    },
+    "emptyDescription": "Haz clic en el botón «{{action}}» para añadir gráficos personalizados",
+    "emptyTitle": "Sin gráficos personalizados",
+    "title": "Gráficos personalizados",
+    "typeLine": "Tipo: {{type}}",
+    "typeOverlay": "Superposición",
+    "typeScreen": "Pantalla personalizada",
+    "uploader": {
+      "defaultTitle": "Pantalla personalizada {{n}}",
+      "deleteImage": "Eliminar imagen",
+      "dragDropHint": "Arrastra y suelta aquí un archivo de imagen, o haz clic para seleccionar uno",
+      "dropHere": "Suelta el archivo aquí…",
+      "image": "Imagen",
+      "missingFields": "Proporciona un archivo y un título.",
+      "selectFile": "Haz clic para seleccionar uno",
+      "titleLabel": "Título",
+      "uploadFailed": "No se pudo subir la imagen. Inténtalo de nuevo.",
+      "uploadedImage": "Imagen subida:"
+    }
+  },
+  "language": {
+    "description": "Idioma usado para los menús y los gráficos en pantalla.",
+    "modal": {
+      "confirm": "Confirmar",
+      "description": "Elige el idioma que usa PlayOverlay para sus menús y gráficos en pantalla. Puedes cambiarlo más tarde en Configuración de la ventana.",
+      "title": "Elige un idioma"
+    },
+    "title": "Idioma"
+  },
+  "matchMenu": {
+    "awayTeam": "Equipo visitante",
+    "details": {
+      "extraTime": "Prórroga",
+      "extraTimeHalfLength": "Duración de la parte de la prórroga",
+      "football": "Fútbol",
+      "generic": "Genérico",
+      "halfLength": "Duración de la parte",
+      "kickOffTime": "Hora de inicio",
+      "penalties": "Penaltis",
+      "periodCount": "Número de periodos",
+      "periodLength": "Duración del periodo",
+      "periodNameLabel": "Nombre del periodo",
+      "periodNamePlaceholder": "Periodo",
+      "timerMode": "Modo del cronómetro",
+      "title": "Detalles del partido",
+      "venue": "Sede"
+    },
+    "homeTeam": "Equipo local",
+    "saved": {
+      "deleteConfirmBody": "¿Seguro que quieres eliminar la configuración de partido guardada «{{title}}»?",
+      "deleteModalTitle": "¿Eliminar la configuración de partido guardada?",
+      "emptyDescription": "Haz clic en el botón «{{action}}» para guardar la configuración del partido",
+      "emptyTitle": "Sin configuraciones de partido guardadas",
+      "nameLabel": "Nombre",
+      "openSaved": "Abrir configuración de partido guardada",
+      "restore": "Restaurar",
+      "restoreConfirmBody": "¿Seguro que quieres restaurar la configuración de partido guardada? La configuración actual se sobrescribirá si continúas.",
+      "restoreModalTitle": "¿Restaurar la configuración de partido guardada?",
+      "saveCurrent": "Guardar la configuración de partido actual",
+      "saveModalTitle": "¿Guardar la configuración del partido?",
+      "savedAt": "Guardado: {{date}}",
+      "title": "Guardar/restaurar configuración de partido"
+    },
+    "team": {
+      "abbreviatedLabel": "Nombre abreviado de {{team}}",
+      "backgroundColourLabel": "Color de fondo de {{team}}",
+      "logoLabel": "Logotipo de {{team}}",
+      "logoUploadError": "No se pudo subir el logotipo. Inténtalo de nuevo.",
+      "nameLabel": "Nombre de {{team}}",
+      "remove": "Quitar",
+      "textColourLabel": "Color del texto de {{team}}",
+      "upload": "Subir"
+    },
+    "title": "Configuración del partido"
+  },
+  "system": {
+    "about": "Acerca de",
+    "aboutModal": {
+      "product": "Producto",
+      "title": "Acerca de PlayOverlay",
+      "version": "Versión"
+    },
+    "connectStreamDeck": "Conectar con Stream Deck",
+    "screens": {
+      "custom": "Pantallas personalizadas",
+      "endScreen": "Pantalla final",
+      "matchTitle": "Título del partido",
+      "none": "Ninguna",
+      "penalties": "Penaltis",
+      "scoreBug": "Marcador compacto",
+      "scoreboard": "Marcador"
+    },
+    "stop": "Detener",
+    "streamDeckConnected": "Stream Deck conectado",
+    "teamScored": "Gol de {{team}}",
+    "title": "Configuración del sistema"
+  }
+}

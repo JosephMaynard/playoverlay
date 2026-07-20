@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Superposiciones",
+    "title": "Controles de pantalla"
+  },
+  "header": {
+    "openMenu": "Abrir menú de {{title}}",
+    "teamSettings": "Configuración del equipo"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Había un partido en curso la última vez que se cerró PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Al restaurar se recuperan el marcador y el crono, con el crono en pausa.",
+      "bodyWithTime": "Había un partido en curso la última vez que se cerró PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). Al restaurar se recuperan el marcador y el crono, con el crono en pausa.",
+      "title": "¿Restaurar el partido anterior?"
+    },
+    "updateAvailable": {
+      "body": "Ya está disponible una nueva versión de PlayOverlay (v{{version}}).",
+      "button": "Descargar ahora",
+      "title": "Actualización disponible"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Fallo",
+    "nextPenalty": "Siguiente penalti de {{team}} ({{side}}):",
+    "resetConfirmAction": "Restablecer penaltis",
+    "resetConfirmBody": "¿Seguro que quieres restablecer los penaltis?",
+    "resetConfirmTitle": "¿Restablecer los penaltis?",
+    "resetPenalties": "Restablecer penaltis",
+    "score": "Gol",
+    "teamFirst": "{{team}} primero",
+    "undoPenalty": "Deshacer penalti"
+  },
+  "scoreInput": {
+    "editScore": "Editar marcador",
+    "editScoreAria": "Editar marcador de {{team}}",
+    "scoreLabel": "Marcador de {{team}}",
+    "scored": "Gol de {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Marcadores"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Ajustar tiempo",
+    "autoSwitchLabel": "Cambiar de pantalla automáticamente al iniciar y detener",
+    "clear": "Borrar",
+    "setAdditionalTime": "Establecer tiempo añadido",
+    "title": "Tiempo"
+  }
+}
