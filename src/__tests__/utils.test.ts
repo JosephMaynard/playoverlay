@@ -683,8 +683,9 @@ describe('nearestSupportedLanguage', () => {
     expect(nearestSupportedLanguage('pt-AO')).toBe('pt-PT');
   });
 
-  it('maps es-ES to es-ES', () => {
+  it('maps es-ES to es-ES, including BCP-47 extension locales', () => {
     expect(nearestSupportedLanguage('es-ES')).toBe('es-ES');
+    expect(nearestSupportedLanguage('es-ES-u-nu-latn')).toBe('es-ES');
   });
 
   it('maps other Spanish locales (bare es, es-MX, es-AR, es-419) to es-419', () => {

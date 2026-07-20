@@ -136,9 +136,10 @@ describe('Zustand stores', () => {
 
   it('tracks whether persisted settings have loaded (gates the first-run picker)', () => {
     installElectronAPI();
-    useAppSettingsStore.setState({ settingsLoaded: false });
 
-    expect(useAppSettingsStore.getState().settingsLoaded).toBe(false);
+    // Defaults to false so the picker stays hidden until the async load runs.
+    expect(useAppSettingsStore.getInitialState().settingsLoaded).toBe(false);
+
     useAppSettingsStore.getState().markSettingsLoaded();
     expect(useAppSettingsStore.getState().settingsLoaded).toBe(true);
   });

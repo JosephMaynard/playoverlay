@@ -91,7 +91,7 @@
     "description": "Idioma usado para los menús y los gráficos en pantalla.",
     "modal": {
       "confirm": "Confirmar",
-      "description": "Elige el idioma que usa PlayOverlay para sus menús y gráficos en pantalla. Puedes cambiarlo más tarde en Configuración de la ventana.",
+      "description": "Elige el idioma que usa PlayOverlay para sus menús y gráficos en pantalla. Puedes cambiarlo más tarde en Configuración del sistema.",
       "title": "Elige un idioma"
     },
     "title": "Idioma"

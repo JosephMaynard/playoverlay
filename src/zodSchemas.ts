@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { defaultAppSettings } from './constants';
+import { supportedLanguageCodes } from './types';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -83,7 +84,7 @@ export const appSettingsSchema = z.object({
   // first-run language picker, so an invalid stored value degrades to
   // undefined (re-showing the picker) rather than a default language.
   language: z
-    .enum(['en', 'fr', 'de', 'it', 'es-ES', 'es-419', 'pt-PT', 'pt-BR'])
+    .enum(supportedLanguageCodes)
     .optional()
     .catch(undefined),
   browserSource: z

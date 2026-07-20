@@ -470,7 +470,7 @@ export default function Dashboard() {
                   })
             }
             icon={
-              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
             }
             buttonOnClick={() => restoreMatch(restorableMatch)}
             buttonText={t('settings:matchMenu.saved.restore')}
@@ -483,7 +483,7 @@ export default function Dashboard() {
               version: updateStatus?.latestVersion,
             })}
             icon={
-              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
             }
             buttonOnClick={() => {
               window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);

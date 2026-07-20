@@ -91,7 +91,7 @@
     "description": "Sprache für Menüs und Live-Grafiken.",
     "modal": {
       "confirm": "Bestätigen",
-      "description": "Wählen Sie die Sprache, die PlayOverlay für seine Menüs und Live-Grafiken verwendet. Sie können dies später in den Fenstereinstellungen ändern.",
+      "description": "Wählen Sie die Sprache, die PlayOverlay für seine Menüs und Live-Grafiken verwendet. Sie können dies später in den Systemeinstellungen ändern.",
       "title": "Sprache wählen"
     },
     "title": "Sprache"

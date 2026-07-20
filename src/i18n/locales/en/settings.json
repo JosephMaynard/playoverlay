@@ -91,7 +91,7 @@
     "description": "Language used for menus and on-air graphics.",
     "modal": {
       "confirm": "Confirm",
-      "description": "Pick the language PlayOverlay uses for its menus and on-air graphics. You can change this later in Window Settings.",
+      "description": "Pick the language PlayOverlay uses for its menus and on-air graphics. You can change this later in System Settings.",
       "title": "Choose a language"
     },
     "title": "Language"

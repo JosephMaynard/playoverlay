@@ -375,9 +375,10 @@ export function nearestSupportedLanguage(locale: string): LanguageCode {
     return lower === 'pt-br' || lower.startsWith('pt-br') ? 'pt-BR' : 'pt-PT';
   }
   if (lower.startsWith('es')) {
-    // es-ES -> es-ES; any other Spanish (bare "es", es-MX, es-AR, es-419,
-    // ...) -> es-419, the neutral pan-regional Latin American catalogue.
-    return lower === 'es-es' ? 'es-ES' : 'es-419';
+    // es-ES (incl. extension locales like es-ES-u-nu-latn) -> es-ES; any
+    // other Spanish (bare "es", es-MX, es-AR, es-419, ...) -> es-419, the
+    // neutral pan-regional Latin American catalogue.
+    return lower === 'es-es' || lower.startsWith('es-es-') ? 'es-ES' : 'es-419';
   }
   if (lower.startsWith('fr')) return 'fr';
   if (lower.startsWith('de')) return 'de';

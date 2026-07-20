@@ -15,5 +15,6 @@
   "loadingSpinner": {
     "alt": "PlayOverlay-Logo"
   },
+  "logoAlt": "PlayOverlay-Logo",
   "reset": "Zurücksetzen"
 }

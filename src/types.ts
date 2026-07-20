@@ -31,8 +31,20 @@ export type ClockFormat = '24h' | '12h';
 
 // The eight shipped catalogues (see src/i18n). Both Spanish and Portuguese
 // ship two regional variants rather than one, per the locked language spec.
-export type LanguageCode =
-  'en' | 'fr' | 'de' | 'it' | 'es-ES' | 'es-419' | 'pt-PT' | 'pt-BR';
+// Single source of truth: the zod schema, the picker options, and the type
+// all derive from this tuple so they can never drift apart.
+export const supportedLanguageCodes = [
+  'en',
+  'fr',
+  'de',
+  'it',
+  'es-ES',
+  'es-419',
+  'pt-PT',
+  'pt-BR',
+] as const;
+
+export type LanguageCode = (typeof supportedLanguageCodes)[number];
 
 export interface AppSettings {
   keyColour: string;

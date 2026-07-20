@@ -9,7 +9,7 @@
       "copy": "Copiar",
       "customScreenHint": "Qualquer ecrã incorporado pode ser fixado desta forma ao adicionar <code>?screen=</code> ao URL, útil para mostrar numa TV do recinto uma vista diferente da do OBS. Os ecrãs personalizados não podem ser fixados; essa vista segue o operador.",
       "enable": "Ativar",
-      "hint": "Adicione como fonte de vídeo do navegador no OBS, na resolução da sua tela; o fundo é transparente.",
+      "hint": "Adicione como fonte de vídeo do navegador no OBS, na resolução do seu ecrã; o fundo é transparente.",
       "port": "Porta",
       "portError": "Introduza uma porta entre 1024 e 65535.",
       "scoreboardView": "Vista do marcador",
@@ -91,7 +91,7 @@
     "description": "Idioma utilizado nos menus e nos gráficos no ecrã.",
     "modal": {
       "confirm": "Confirmar",
-      "description": "Escolha o idioma que o PlayOverlay utiliza nos seus menus e gráficos no ecrã. Pode alterá-lo mais tarde em Definições de janela.",
+      "description": "Escolha o idioma que o PlayOverlay utiliza nos seus menus e gráficos no ecrã. Pode alterá-lo mais tarde em Definições do sistema.",
       "title": "Escolha um idioma"
     },
     "title": "Idioma"
