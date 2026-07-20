@@ -113,6 +113,12 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 
 **Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
 
+## Languages
+
+The interface and the on-screen graphics are available in English, French, German, Italian, Spanish (Spain and Latin America), and Portuguese (Portugal and Brazil). PlayOverlay picks a language from your system on first launch; you can change it any time under **System Settings → Language**, and it applies to both the operator dashboard and the on-air graphics. Team names, abbreviations, and venues are always shown exactly as you type them.
+
+The translations are **machine-generated and have not been reviewed by native speakers**, so some wording — especially the on-air football terms — may read a little off. If you spot a mistake, please [open an issue](https://github.com/JosephMaynard/playoverlay/issues) and it'll get fixed.
+
 ## Updates
 
 On launch the app checks this repository's GitHub Releases for a newer version and shows a notification with a download link. Nothing is downloaded or installed automatically.
