@@ -75,22 +75,22 @@ function serveStaticFile(
   });
 }
 
-interface RequestListenerOptions {
+export interface RequestListenerOptions {
   port: number;
   imagesPath: string;
   devServerUrl?: string;
   rootDir?: string;
 }
 
-function createRequestListener(
+export function createRequestListener(
   options: RequestListenerOptions
 ): http.RequestListener {
   return (req, res) => {
+    let requestUrl: URL;
     let pathname: string;
     try {
-      pathname = decodeURIComponent(
-        new URL(req.url ?? '/', 'http://localhost').pathname
-      );
+      requestUrl = new URL(req.url ?? '/', 'http://localhost');
+      pathname = decodeURIComponent(requestUrl.pathname);
     } catch {
       res.writeHead(400);
       res.end('Bad request');
@@ -104,9 +104,15 @@ function createRequestListener(
     }
 
     if (options.devServerUrl) {
-      const target =
-        pathname === '/' ? `/display.html?ws=${options.port}` : pathname;
-      res.writeHead(302, { Location: `${options.devServerUrl}${target}` });
+      // Preserve incoming query params (e.g. a browser-source `?screen=`
+      // pin) across the redirect to the Vite dev server, merging in the
+      // `ws` param it needs to reach this server's WebSocket port.
+      const target = pathname === '/' ? '/display.html' : pathname;
+      const params = new URLSearchParams(requestUrl.search);
+      params.set('ws', String(options.port));
+      res.writeHead(302, {
+        Location: `${options.devServerUrl}${target}?${params.toString()}`,
+      });
       res.end();
       return;
     }

@@ -1,9 +1,33 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings } from '../../constants';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { defaultMatchSettings, defaultMatchState } from '../../constants';
 import { AppSettings, MatchState, Scores, Time } from '../../types';
 import Display from '../Display/Display';
+
+// Minimal WebSocket stub for browser-source mode (no window.electronAPI),
+// matching the pattern in src/__tests__/displayTransport.test.ts.
+class MockWebSocket {
+  static instances: MockWebSocket[] = [];
+  onmessage: ((event: { data: string }) => void) | null = null;
+  onclose: (() => void) | null = null;
+  onopen: (() => void) | null = null;
+  url: string;
+
+  constructor(url: string) {
+    this.url = url;
+    MockWebSocket.instances.push(this);
+  }
+
+  send() {}
+  close() {
+    this.onclose?.();
+  }
+
+  emitMessage(data: unknown) {
+    this.onmessage?.({ data: JSON.stringify(data) });
+  }
+}
 
 function installDisplayAPI(fullscreenStatus = false) {
   const callbacks: {
@@ -124,5 +148,79 @@ describe('Display', () => {
     expect(listeners.removeMatchSettingsListener).toHaveBeenCalledTimes(1);
     expect(listeners.removeAppSettingsListener).toHaveBeenCalledTimes(1);
     expect(listeners.removeMatchStateListener).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Display browser-source ?screen= override', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    window.history.pushState({}, '', '/display.html');
+  });
+
+  async function renderBrowserSource(search: string) {
+    delete (window as { electronAPI?: unknown }).electronAPI;
+    MockWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', MockWebSocket);
+    window.history.pushState({}, '', `/display.html${search}`);
+
+    const { container } = render(<Display />);
+    // Flush the fullscreen-status promise (resolves immediately in browser
+    // mode) before driving further state, so its resolution doesn't land
+    // outside of act().
+    await act(async () => {});
+    const socket = MockWebSocket.instances[0];
+
+    act(() => {
+      socket.emitMessage({
+        channel: 'match-state-updated',
+        payload: {
+          ...defaultMatchState,
+          displayScreen: 'matchTitle',
+        } satisfies MatchState,
+      });
+    });
+
+    return container;
+  }
+
+  it('pins the screen named by ?screen= regardless of the current matchState', async () => {
+    const container = await renderBrowserSource('?ws=4750&screen=scoreboard');
+
+    expect(
+      container.querySelector('.ScoreboardLayout_active')
+    ).not.toBeNull();
+    expect(container.querySelector('.MatchTitleLayout_active')).toBeNull();
+  });
+
+  it('follows matchState when ?screen= names something invalid', async () => {
+    const container = await renderBrowserSource('?ws=4750&screen=bogus');
+
+    expect(container.querySelector('.MatchTitleLayout_active')).not.toBeNull();
+    expect(container.querySelector('.ScoreboardLayout_active')).toBeNull();
+  });
+
+  it('follows matchState when ?screen= is absent', async () => {
+    const container = await renderBrowserSource('?ws=4750');
+
+    expect(container.querySelector('.MatchTitleLayout_active')).not.toBeNull();
+    expect(container.querySelector('.ScoreboardLayout_active')).toBeNull();
+  });
+
+  it('never applies an override in Electron mode, even if ?screen= is present', async () => {
+    window.history.pushState({}, '', '/display.html?screen=scoreboard');
+    const { callbacks } = installDisplayAPI();
+    const { container } = render(<Display />);
+    await waitFor(() => expect(callbacks.matchState).toBeDefined());
+
+    act(() => {
+      callbacks.matchState?.({
+        ...defaultMatchState,
+        displayScreen: 'matchTitle',
+      });
+    });
+
+    expect(container.querySelector('.MatchTitleLayout_active')).not.toBeNull();
+    expect(container.querySelector('.ScoreboardLayout_active')).toBeNull();
   });
 });

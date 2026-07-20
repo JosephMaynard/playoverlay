@@ -88,6 +88,21 @@ Off by default. If you'd rather not manage a second display and chroma key, Play
 
 The server only listens on `127.0.0.1` (never reachable from the network) and stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
 
+#### Pinned views
+
+Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else — e.g. the spectator scoreboard — from the same running app, both fed by the same local server.
+
+| `?screen=` value | Shows                    |
+| ---------------- | ------------------------- |
+| _(none)_          | Follows the operator (default) |
+| `matchTitle`      | Match title screen        |
+| `scoreBug`        | Score bug                 |
+| `penalties`       | Penalties screen           |
+| `endScreen`       | End screen                 |
+| `scoreboard`       | Spectator scoreboard       |
+
+**Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. An unrecognised or missing value falls back to following the operator.
+
 ## Updates
 
 On launch the app checks this repository's GitHub Releases for a newer version and shows a notification with a download link. Nothing is downloaded or installed automatically.

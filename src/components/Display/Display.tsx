@@ -6,13 +6,33 @@ import {
   defaultMatchState,
   defaultMatchSettings,
   defaultScores,
+  DisplayScreen,
+  screens,
 } from '../../constants';
 import Screens from '../Screens/Screens';
 import { MatchSettings } from 'src/zodSchemas';
 import { createDisplayTransport } from '../../displayTransport';
 
+// Lets a browser-source URL pin a specific screen regardless of what the
+// operator currently has selected, e.g. `?screen=scoreboard` for a venue TV
+// while the OBS feed (no override) keeps following the operator. 'custom'
+// is excluded: it depends on which custom screen the operator has picked,
+// which has no meaningful "pinned" value.
+function parseScreenOverride(search: string): DisplayScreen | null {
+  const value = new URLSearchParams(search).get('screen');
+  if (!value || value === 'custom') return null;
+  return value in screens ? (value as DisplayScreen) : null;
+}
+
 const Display = () => {
   const [transport] = useState(() => createDisplayTransport());
+  // Read once at mount: the pinned screen (if any) never changes for the
+  // lifetime of this page load.
+  const [screenOverride] = useState(() =>
+    typeof window === 'undefined'
+      ? null
+      : parseScreenOverride(window.location.search)
+  );
   const [scores, setScores] = useState<Scores>(defaultScores);
   const [time, setTime] = useState<Time>({});
   const [matchSettings, setMatchSettings] =
@@ -105,7 +125,11 @@ const Display = () => {
         matchSettings={matchSettings}
         scores={scores}
         time={time}
-        matchState={matchState}
+        matchState={
+          transport.isBrowserSource && screenOverride
+            ? { ...matchState, displayScreen: screenOverride }
+            : matchState
+        }
         clockFormat={appSettings.clockFormat}
       />
       {!isFullscreen && (

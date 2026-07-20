@@ -45,6 +45,7 @@ export default function AppSettingsMenu({
     error?: string;
   } | null>(null);
   const [copiedBrowserSourceUrl, setCopiedBrowserSourceUrl] = useState(false);
+  const [copiedScoreboardUrl, setCopiedScoreboardUrl] = useState(false);
 
   const keyboardShortcuts = getKeyboardShortcuts(appSettings);
   const browserSource = getBrowserSourceSettings(appSettings);
@@ -239,6 +240,7 @@ export default function AppSettingsMenu({
   };
 
   const browserSourceUrl = `http://127.0.0.1:${browserSource.port}/`;
+  const scoreboardBrowserSourceUrl = `http://127.0.0.1:${browserSource.port}/?screen=scoreboard`;
 
   const handleCopyBrowserSourceUrl = () => {
     navigator.clipboard
@@ -249,6 +251,18 @@ export default function AppSettingsMenu({
       })
       .catch((error) => {
         console.error('Failed to copy browser source URL:', error);
+      });
+  };
+
+  const handleCopyScoreboardUrl = () => {
+    navigator.clipboard
+      .writeText(scoreboardBrowserSourceUrl)
+      .then(() => {
+        setCopiedScoreboardUrl(true);
+        setTimeout(() => setCopiedScoreboardUrl(false), 1500);
+      })
+      .catch((error) => {
+        console.error('Failed to copy scoreboard browser source URL:', error);
       });
   };
 
@@ -441,6 +455,32 @@ export default function AppSettingsMenu({
         <p className="mt-2 text-xs text-gray-500">
           Add as a Browser Source in OBS at your canvas resolution; the
           background is transparent.
+        </p>
+        <label
+          htmlFor="scoreboardBrowserSourceUrl"
+          className="mt-3 block text-sm font-medium leading-6 text-gray-900"
+        >
+          Scoreboard view
+        </label>
+        <div className="mt-1 flex items-center gap-2">
+          <code
+            id="scoreboardBrowserSourceUrl"
+            className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs"
+          >
+            {scoreboardBrowserSourceUrl}
+          </code>
+          <button
+            type="button"
+            onClick={handleCopyScoreboardUrl}
+            className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+          >
+            {copiedScoreboardUrl ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Any screen can be pinned this way by adding{' '}
+          <code>?screen=</code> to the URL — useful for feeding a venue TV
+          a different view than OBS.
         </p>
       </div>
       {displays.length > 1 ? (

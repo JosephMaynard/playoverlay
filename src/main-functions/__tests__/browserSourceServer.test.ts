@@ -1,8 +1,10 @@
+import http from 'http';
 import net from 'net';
 import { WebSocket } from 'ws';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   broadcastToBrowserSources,
+  createRequestListener,
   getBrowserSourceServerAddress,
   getBrowserSourceServerPort,
   isBrowserSourceServerRunning,
@@ -10,6 +12,28 @@ import {
   startBrowserSourceServer,
   stopBrowserSourceServer,
 } from '../browserSourceServer';
+
+// A minimal fake matching just enough of http.ServerResponse for
+// createRequestListener's dev-redirect branch, which only calls writeHead
+// and end.
+function createFakeResponse() {
+  const res = {
+    statusCode: undefined as number | undefined,
+    headers: undefined as http.OutgoingHttpHeaders | undefined,
+    writeHead: vi.fn(
+      (statusCode: number, headers?: http.OutgoingHttpHeaders) => {
+        res.statusCode = statusCode;
+        res.headers = headers;
+        return res;
+      }
+    ),
+    end: vi.fn(),
+  };
+  return res as unknown as http.ServerResponse & {
+    statusCode?: number;
+    headers?: http.OutgoingHttpHeaders;
+  };
+}
 
 describe('rewriteFileUrls', () => {
   it('rewrites every occurrence of the images-dir file:// prefix to /images/', () => {
@@ -44,6 +68,80 @@ describe('rewriteFileUrls', () => {
     const payload = { homeTeam: 2, awayTeam: 1, penalties: [] as string[] };
 
     expect(rewriteFileUrls(payload, 'file:///images/')).toEqual(payload);
+  });
+});
+
+describe('createRequestListener dev-redirect', () => {
+  // In dev (Vite dev server running), requests to the browser-source http
+  // server are 302-redirected to the dev server. This must preserve
+  // incoming query params (e.g. a browser-source `?screen=` pin) rather
+  // than dropping them, while still merging in the `ws` param the client
+  // needs to reach this server's own WebSocket port.
+  const listener = createRequestListener({
+    port: 4750,
+    imagesPath: '/tmp/does-not-matter',
+    devServerUrl: 'http://localhost:5173',
+  });
+
+  it('redirects the root path to display.html with a ws param, no other query', () => {
+    const res = createFakeResponse();
+    listener({ url: '/' } as http.IncomingMessage, res);
+
+    expect(res.writeHead).toHaveBeenCalledWith(302, {
+      Location: 'http://localhost:5173/display.html?ws=4750',
+    });
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it('preserves a ?screen= param on the root path, merged with ws', () => {
+    const res = createFakeResponse();
+    listener(
+      { url: '/?screen=scoreboard' } as http.IncomingMessage,
+      res
+    );
+
+    const location = (
+      res.writeHead as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls[0][1].Location as string;
+    const url = new URL(location);
+    expect(url.origin + url.pathname).toBe(
+      'http://localhost:5173/display.html'
+    );
+    expect(url.searchParams.get('ws')).toBe('4750');
+    expect(url.searchParams.get('screen')).toBe('scoreboard');
+  });
+
+  it('preserves query params on a non-root path too', () => {
+    const res = createFakeResponse();
+    listener(
+      { url: '/some/asset.js?foo=bar' } as http.IncomingMessage,
+      res
+    );
+
+    const location = (
+      res.writeHead as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls[0][1].Location as string;
+    const url = new URL(location);
+    expect(url.origin + url.pathname).toBe(
+      'http://localhost:5173/some/asset.js'
+    );
+    expect(url.searchParams.get('ws')).toBe('4750');
+    expect(url.searchParams.get('foo')).toBe('bar');
+  });
+
+  it('overrides an existing ws param with the server’s actual port', () => {
+    const res = createFakeResponse();
+    listener(
+      { url: '/?ws=9999&screen=scoreboard' } as http.IncomingMessage,
+      res
+    );
+
+    const location = (
+      res.writeHead as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls[0][1].Location as string;
+    const url = new URL(location);
+    expect(url.searchParams.get('ws')).toBe('4750');
+    expect(url.searchParams.get('screen')).toBe('scoreboard');
   });
 });
 
