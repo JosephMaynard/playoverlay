@@ -285,6 +285,46 @@ export function getBrowserSourceSettings(
   };
 }
 
+// Splits `items` into consecutive chunks of at most `size` elements each.
+// Used to page the Stream Deck's button sets (5 usable keys per set) across
+// however many phases/screens the current match settings produce. A
+// non-positive size can't make progress, so it degenerates to a single
+// chunk rather than looping forever.
+export function chunkArray<T>(items: T[], size: number): T[][] {
+  if (size <= 0) return [items];
+
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+// Seconds remaining until a "HH:MM" kick-off time, interpreted as today in
+// the local timezone. Returns null when the string isn't a valid 24-hour
+// HH:MM time or the moment has already arrived/passed today (no next-day
+// rollover — a kick-off time is only ever "today"). Uses Math.ceil so a
+// consumer ticking once a second never displays 0 while time remains.
+export function secondsUntilKickOff(
+  kickOffTime: string,
+  now: Date
+): number | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(kickOffTime);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+
+  const kickOff = new Date(now);
+  kickOff.setHours(hours, minutes, 0, 0);
+
+  const diffMs = kickOff.getTime() - now.getTime();
+  if (diffMs <= 0) return null;
+
+  return Math.ceil(diffMs / 1000);
+}
+
 export const debounce = <Args extends unknown[]>(
   func: (...args: Args) => void,
   delay: number

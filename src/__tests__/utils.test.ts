@@ -3,6 +3,7 @@ import {
   arraysEqual,
   calculatePenalties,
   checkColors,
+  chunkArray,
   classNames,
   debounce,
   deriveGlobalAccelerator,
@@ -14,6 +15,7 @@ import {
   insertValue,
   keyboardEventToAccelerator,
   removeValue,
+  secondsUntilKickOff,
   timeToString,
 } from '../utils';
 import { defaultAppSettings, defaultKeyboardShortcuts, defaultMatchSettings } from '../constants';
@@ -423,6 +425,41 @@ describe('utils', () => {
       vi.useRealTimers();
     });
   });
+
+  describe('chunkArray', () => {
+    it('splits an array into chunks of the given size', () => {
+      expect(chunkArray([1, 2, 3, 4, 5, 6, 7], 5)).toEqual([
+        [1, 2, 3, 4, 5],
+        [6, 7],
+      ]);
+    });
+
+    it('returns a single exact chunk when the array length is a multiple of size', () => {
+      expect(chunkArray([1, 2, 3, 4], 2)).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
+    });
+
+    it('returns one chunk holding everything when size is >= the array length', () => {
+      expect(chunkArray(['a', 'b'], 5)).toEqual([['a', 'b']]);
+    });
+
+    it('returns an empty array of chunks for an empty input', () => {
+      expect(chunkArray([], 5)).toEqual([]);
+    });
+
+    it('does not mutate the source array', () => {
+      const source = [1, 2, 3];
+      chunkArray(source, 2);
+      expect(source).toEqual([1, 2, 3]);
+    });
+
+    it('degenerates to a single chunk for a non-positive size instead of looping forever', () => {
+      expect(chunkArray([1, 2, 3], 0)).toEqual([[1, 2, 3]]);
+      expect(chunkArray([1, 2, 3], -1)).toEqual([[1, 2, 3]]);
+    });
+  });
 });
 
 describe('formatTimeOfDay', () => {
@@ -441,5 +478,53 @@ describe('formatTimeOfDay', () => {
       '12:00pm'
     );
     expect(formatTimeOfDay(new Date(2026, 6, 18, 9, 30), '12h')).toBe('9:30am');
+  });
+});
+
+describe('secondsUntilKickOff', () => {
+  it('returns the whole seconds remaining until a later kick-off time today', () => {
+    const now = new Date(2026, 6, 18, 19, 44, 0, 0);
+    expect(secondsUntilKickOff('19:45', now)).toBe(60);
+  });
+
+  it('rounds up so a consumer ticking once a second never reads 0 early', () => {
+    const now = new Date(2026, 6, 18, 19, 44, 30, 500);
+    expect(secondsUntilKickOff('19:45', now)).toBe(30);
+  });
+
+  it('returns null once the kick-off time has passed today (no next-day rollover)', () => {
+    const now = new Date(2026, 6, 18, 19, 45, 1, 0);
+    expect(secondsUntilKickOff('19:45', now)).toBeNull();
+  });
+
+  it('returns null exactly at kick-off (0 is not a positive countdown)', () => {
+    const now = new Date(2026, 6, 18, 19, 45, 0, 0);
+    expect(secondsUntilKickOff('19:45', now)).toBeNull();
+  });
+
+  it('handles the midnight kick-off edge: 00:00 counts as already past once any time has elapsed today', () => {
+    const now = new Date(2026, 6, 18, 0, 0, 1, 0);
+    expect(secondsUntilKickOff('00:00', now)).toBeNull();
+  });
+
+  it('handles the midnight kick-off edge: 23:59 stays reachable right up to the last second', () => {
+    const now = new Date(2026, 6, 18, 23, 58, 59, 0);
+    expect(secondsUntilKickOff('23:59', now)).toBe(1);
+  });
+
+  it('accepts a single-digit hour', () => {
+    const now = new Date(2026, 6, 18, 8, 59, 0, 0);
+    expect(secondsUntilKickOff('9:00', now)).toBe(60);
+  });
+
+  it('returns null for garbage or malformed input', () => {
+    const now = new Date(2026, 6, 18, 12, 0, 0, 0);
+    expect(secondsUntilKickOff('', now)).toBeNull();
+    expect(secondsUntilKickOff('not a time', now)).toBeNull();
+    expect(secondsUntilKickOff('25:00', now)).toBeNull();
+    expect(secondsUntilKickOff('12:60', now)).toBeNull();
+    expect(secondsUntilKickOff('12:5', now)).toBeNull();
+    expect(secondsUntilKickOff('12:05:00', now)).toBeNull();
+    expect(secondsUntilKickOff('12', now)).toBeNull();
   });
 });

@@ -1,13 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Scores } from 'src/types';
 import './MatchTitleLayout.css';
-import { calculatePenalties } from '../../../utils';
+import { calculatePenalties, secondsUntilKickOff } from '../../../utils';
 import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   scores: Scores;
   settings: MatchSettings;
   active: boolean;
+}
+
+// Formats a positive countdown (whole seconds) as "M:SS", switching to
+// "H:MM:SS" once it reaches an hour or more.
+function formatCountdown(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const paddedSeconds = seconds.toString().padStart(2, '0');
+  if (hours >= 1) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${paddedSeconds}`;
+  }
+  return `${minutes}:${paddedSeconds}`;
 }
 
 export default function MatchTitleLayout({ scores, settings, active }: Props) {
@@ -21,6 +34,21 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
   useEffect(() => {
     if (active) setHasBeenActive(true);
   }, [active]);
+
+  // Kick-off countdown: only ticks while this screen is on screen, mirroring
+  // ScoreboardLayout's wall-clock pattern (interval scoped to `active`).
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!active) return;
+    setNow(new Date());
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, [active]);
+
+  const secondsToKickOff = settings?.kickOffTime
+    ? secondsUntilKickOff(settings.kickOffTime, now)
+    : null;
+
   return (
     <div
       className={`MatchTitleLayout ${
@@ -45,6 +73,11 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
               className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
             >
               Kick-off {settings.kickOffTime}
+            </div>
+          )}
+          {active && secondsToKickOff !== null && secondsToKickOff > 0 && (
+            <div className="MatchTitleLayout_venue_inner MatchTitleLayout_venue_inner_active z-0 max-w-full truncate bg-black text-center text-white">
+              Starts in {formatCountdown(secondsToKickOff)}
             </div>
           )}
         </div>

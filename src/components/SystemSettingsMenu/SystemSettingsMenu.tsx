@@ -3,10 +3,10 @@ import {
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import SideMenu from '../SideMenu/SideMenu';
-import { classNames, getPhaseList } from '../../utils';
+import { chunkArray, classNames, getPhaseList } from '../../utils';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
-import { connectToStreamDeck } from '../../stream-deck';
+import { connectToStreamDeck, NEXT_SET_KEY_INDEX } from '../../stream-deck';
 import { MatchPhase, MatchState, Time } from '../../types';
 import { DisplayScreen, screens } from '../../constants';
 import StreamDeckIcon from '../Icons/StreamDeckIcon';
@@ -41,57 +41,59 @@ export default function SystemSettingsMenu({
   const [streamDeckConnected, setStreamDeckConnected] = useState(false);
   const [streamDeckButtons, setStreamdeckButtons] = useState(0);
 
+  const scoringButtons = [
+    {
+      text: `${matchSettings.homeTeamNameFull} Scored`,
+      textColor: matchSettings.homeTeamTextColour,
+      backgroundColor: matchSettings.homeTeamBackgroundColour,
+      onPress: incrementHomeTeamScore,
+    },
+    {
+      text: `${matchSettings.awayTeamNameFull} Scored`,
+      textColor: matchSettings.awayTeamTextColour,
+      backgroundColor: matchSettings.awayTeamBackgroundColour,
+      onPress: incrementAwayTeamScore,
+    },
+    {
+      text: 'Stop',
+      textColor: 'white',
+      backgroundColor: 'red',
+      onPress: () => stopTime(),
+    },
+  ];
+
+  const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
+    text: phase.title,
+    onPress: () => startTime(phase.id),
+    textColor: 'black',
+    backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
+  }));
+
+  const screenButtons = Object.keys(screens)
+    .filter((screen) => screen !== 'custom')
+    .filter(
+      (screen) =>
+        matchSettings.hasPenalties !== false || screen !== 'penalties'
+    )
+    .map((screen) => ({
+      text: screens[screen as DisplayScreen],
+      textColor: 'black',
+      backgroundColor: 'white',
+      onPress: () =>
+        updateMatchState({
+          displayScreen: screen as DisplayScreen,
+          customScreenImageUrl: undefined,
+        }),
+    }));
+
+  // Deck buttons are limited to NEXT_SET_KEY_INDEX usable keys per set (the
+  // key after that is the "next set" logo key), so phases and screens page
+  // across as many sets as they need instead of silently dropping the tail
+  // (generic mode can have dozens of phases; screens now include scoreboard).
   const streamDeckButtonSets = [
-    [
-      {
-        text: `${matchSettings.homeTeamNameFull} Scored`,
-        textColor: matchSettings.homeTeamTextColour,
-        backgroundColor: matchSettings.homeTeamBackgroundColour,
-        onPress: incrementHomeTeamScore,
-      },
-      {
-        text: `${matchSettings.awayTeamNameFull} Scored`,
-        textColor: matchSettings.awayTeamTextColour,
-        backgroundColor: matchSettings.awayTeamBackgroundColour,
-        onPress: incrementAwayTeamScore,
-      },
-      {
-        text: 'Stop',
-        textColor: 'white',
-        backgroundColor: 'red',
-        onPress: () => stopTime(),
-      },
-    ],
-    [
-      // Deck buttons are limited to 5 usable keys (the 6th is the "next
-      // set" logo key), so only the first 5 phases are offered here.
-      ...getPhaseList(matchSettings)
-        .slice(0, 5)
-        .map((phase) => ({
-          text: phase.title,
-          onPress: () => startTime(phase.id),
-          textColor: 'black',
-          backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
-        })),
-    ],
-    [
-      ...Object.keys(screens)
-        .filter((screen) => screen !== 'custom')
-        .filter(
-          (screen) =>
-            matchSettings.hasPenalties !== false || screen !== 'penalties'
-        )
-        .map((screen) => ({
-          text: screens[screen as DisplayScreen],
-          textColor: 'black',
-          backgroundColor: 'white',
-          onPress: () =>
-            updateMatchState({
-              displayScreen: screen as DisplayScreen,
-              customScreenImageUrl: undefined,
-            }),
-        })),
-    ],
+    scoringButtons,
+    ...chunkArray(phaseButtons, NEXT_SET_KEY_INDEX),
+    ...chunkArray(screenButtons, NEXT_SET_KEY_INDEX),
   ];
 
   const nextButtonSet = () => {
