@@ -30,7 +30,7 @@ import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
 import { getPhaseList, getNextPhaseId } from '../../utils';
-import { defaultMatchSettings } from '../../constants';
+import { defaultMatchSettings, defaultMatchState } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
@@ -258,7 +258,18 @@ export default function Dashboard() {
       }
     }
     setScores(liveMatch.scores);
-    setMatchState(liveMatch.matchState);
+    // Restore fully replaces the match state. The store setter merges and
+    // both defaultMatchState and the snapshot may omit optional keys, so the
+    // optional fields are cleared explicitly first — otherwise one left over
+    // from the current session (e.g. a customScreenImageUrl, or a stale
+    // matchPhase) would survive into the restored match.
+    setMatchState({
+      matchPhase: undefined,
+      previousMatchPhase: undefined,
+      customScreenImageUrl: undefined,
+      ...defaultMatchState,
+      ...liveMatch.matchState,
+    });
     clock.restoreClock(liveMatch.time);
     setRestorableMatch(null);
   };

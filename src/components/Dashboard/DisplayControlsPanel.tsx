@@ -88,7 +88,10 @@ export default function DisplayControlsPanel({
                   displayScreen: 'custom',
                   customScreenImageUrl: customScreen.url ?? undefined,
                 }),
-              selected: matchState.customScreenImageUrl === customScreen.url,
+              selected:
+                matchState.displayScreen === 'custom' &&
+                matchState.customScreenImageUrl ===
+                  (customScreen.url ?? undefined),
             }))}
           />
         </>

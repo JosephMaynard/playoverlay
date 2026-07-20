@@ -111,7 +111,7 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 | `endScreen`       | End screen                 |
 | `scoreboard`       | Spectator scoreboard       |
 
-**Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. An unrecognised or missing value falls back to following the operator.
+**Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
 
 ## Updates
 

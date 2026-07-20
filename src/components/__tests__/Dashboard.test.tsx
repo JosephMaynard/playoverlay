@@ -396,6 +396,30 @@ describe('Dashboard match engine', () => {
       expect(stores.time.getState().time.time).toBe('61:08');
     });
 
+    it('replaces match state on restore so a stray field from the current session cannot survive', async () => {
+      const liveMatch = fixture(); // matchState has no customScreenImageUrl
+      const { stores } = await renderDashboard({ liveMatch });
+
+      // Simulate the operator having a custom screen showing before restore
+      act(() =>
+        stores.matchState.getState().setMatchState({
+          displayScreen: 'custom',
+          customScreenImageUrl: 'file:///old/custom.png',
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+
+      // Full replace: the snapshot's matchState wins and the stale custom
+      // image is gone, not merged in.
+      expect(
+        stores.matchState.getState().matchState.customScreenImageUrl
+      ).toBeUndefined();
+      expect(stores.matchState.getState().matchState.displayScreen).toBe(
+        'scoreBug'
+      );
+    });
+
     it('prompts with the snapshot\'s team abbreviations and applies its match settings on restore, ahead of scores/state/time', async () => {
       // The snapshot deliberately OMITS a field (hasExtraTime) that the
       // currently loaded settings set to a non-default value: a full

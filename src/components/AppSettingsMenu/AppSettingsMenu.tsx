@@ -478,9 +478,10 @@ export default function AppSettingsMenu({
           </button>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Any screen can be pinned this way by adding{' '}
+          Any built-in screen can be pinned this way by adding{' '}
           <code>?screen=</code> to the URL — useful for feeding a venue TV
-          a different view than OBS.
+          a different view than OBS. Custom screens can&apos;t be pinned; that
+          view follows the operator.
         </p>
       </div>
       {displays.length > 1 ? (
