@@ -42,6 +42,8 @@ jobs:
             arch: x64
           - os: macos-latest # Apple Silicon
             arch: arm64
+          - os: ubuntu-latest
+            arch: x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -52,6 +54,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        # MakerRpm shells out to rpmbuild, which Ubuntu runners don't
+        # guarantee; MakerDeb needs dpkg/fakeroot (present, but cheap to pin)
+        run: sudo apt-get update && sudo apt-get install -y rpm dpkg fakeroot
       - name: Build distributables
         run: npm run make -- --arch=${{ matrix.arch }}
       - name: Upload to release
@@ -62,6 +69,6 @@ jobs:
           # macOS runners ship bash 3.2 (no globstar), so use find; -print0
           # with xargs -0 handles the space in the Squirrel "... Setup.exe"
           # name, and --clobber makes re-runs idempotent.
-          find out/make -type f \( -name '*.exe' -o -name '*.zip' \) -print0 |
+          find out/make -type f \( -name '*.exe' -o -name '*.zip' -o -name '*.deb' -o -name '*.rpm' \) -print0 |
             xargs -0 gh release upload "${{ github.ref_name }}" \
               --repo "${{ github.repository }}" --clobber

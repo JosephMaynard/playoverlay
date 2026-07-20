@@ -13,6 +13,7 @@
     "plugin:import/typescript"
   ],
   "parser": "@typescript-eslint/parser",
+  "plugins": ["react-hooks"],
   "settings": {
     "import/core-modules": ["@vitejs/plugin-react", "vitest/config"],
     "import/resolver": {
@@ -25,7 +26,9 @@
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-require-imports": "off",
-    "@typescript-eslint/no-unused-vars": "warn"
+    "@typescript-eslint/no-unused-vars": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   },
   "overrides": [
     {

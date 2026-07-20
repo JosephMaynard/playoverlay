@@ -181,6 +181,7 @@ function writeLiveMatch() {
       time: cachedTime,
       matchState: cachedMatchState,
       savedAt: Date.now(),
+      matchSettings: cachedMatchSettings,
     });
   } catch (error) {
     console.error('Error persisting live match:', error);

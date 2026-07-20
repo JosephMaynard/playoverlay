@@ -4,7 +4,7 @@ import { insertValue, removeValue } from '../../utils';
 import Modal from '../Modal/Modal';
 
 export interface Props {
-  customScreenToEdit: CustomScreen;
+  customScreenToEdit: CustomScreen | null;
   setCustomScreenToEdit: (customScreen: CustomScreen | null) => void;
   handleSaveChanges: () => void;
   handleOnChange: (change: Partial<CustomScreen>) => void;

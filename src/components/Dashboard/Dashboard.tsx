@@ -8,9 +8,12 @@ import {
   LiveMatch,
   MatchPhase,
   SideMenuType,
-  Time,
 } from '../../types';
-import { MatchSettings, UpdateStatus } from '../../zodSchemas';
+import {
+  MatchSettings,
+  matchSetingsSchema,
+  UpdateStatus,
+} from '../../zodSchemas';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
@@ -24,14 +27,10 @@ import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import DashboardHeader from './DashboardHeader';
+import useMatchClock from './useMatchClock';
 
-import {
-  getPhaseById,
-  getPhaseList,
-  getNextPhaseId,
-  timeToString,
-} from '../../utils';
-import { DisplayScreen } from '../../constants';
+import { getPhaseList, getNextPhaseId } from '../../utils';
+import { defaultMatchSettings, defaultMatchState } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
@@ -40,21 +39,14 @@ import { useTimeStore } from '../../store/time';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
 import logo from '../../assets/playoverlay-logo.svg';
 
-// The displayed clock is derived from a wall-clock anchor (baseSeconds plus
-// the real time elapsed since tickingSince) rather than counting interval
-// callbacks, so delayed timers can't make the clock drift over a half.
-let seconds = 0;
-let baseSeconds = 0;
-let tickingSince: number | null = null;
-let interval: ReturnType<typeof setInterval> | undefined;
-
 export default function Dashboard() {
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
-  const [paused, setPaused] = useState(false);
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
     null
   );
+
+  const clock = useMatchClock();
 
   const scores = useScoresStore((state) => state.scores);
   const setScores = useScoresStore((state) => state.setScores);
@@ -81,7 +73,7 @@ export default function Dashboard() {
   useEffect(() => {
     const checkForUpdates = async () => {
       const currentUpdateStatus = await window.electronAPI.checkForUpdates();
-      setUpdateStatus(currentUpdateStatus.updates);
+      setUpdateStatus(currentUpdateStatus.updates ?? null);
     };
 
     checkForUpdates();
@@ -169,6 +161,17 @@ export default function Dashboard() {
       unsubscribeHomeScored();
       unsubscribeAwayScored();
     };
+    // Mount-only: seeds the main process with the initial scores/matchState/
+    // time (ongoing changes are mirrored to IPC by each store's setter, per
+    // house style), fetches settings once, and registers shortcut/update
+    // listeners for the component's lifetime. The listener callbacks
+    // (nextMatchPhase, incrementHomeTeamScore, etc.) read fresh state via
+    // each zustand store's getState() rather than closing over this scope,
+    // so they never go stale. Re-running this effect on every dependency
+    // change would instead tear down and re-register the listeners on every
+    // render (risking a dropped shortcut mid-swap) and keep re-posting the
+    // stale initial scores/matchState/time over IPC.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchScreens = async () => {
@@ -213,7 +216,8 @@ export default function Dashboard() {
       matchPhase !== undefined &&
       !newPhaseList.some((phase) => phase.id === matchPhase)
     ) {
-      stopTime();
+      // Settings edits never switch the operator's display screen.
+      clock.stopTime({ autoSwitch: false });
     }
     // A stopped match's previousMatchPhase can also vanish from the new
     // phase list (e.g. extra time turned off after extra time was played);
@@ -228,139 +232,45 @@ export default function Dashboard() {
     setMatchSettings(settingsUpdate);
   };
 
-  // Push a new clock value (and any extra time fields) to the time store.
-  // Match settings are read fresh from the store so a half-length change
-  // mid-half takes effect immediately.
-  const applyTime = (newSeconds: number, timeUpdates: Partial<Time> = {}) => {
-    seconds = newSeconds;
-    const currentTime = useTimeStore.getState().time;
-    const currentMatchSettings = useMatchSettingsStore.getState().matchSettings;
-    const matchPhase = timeUpdates.matchPhase ?? currentTime.matchPhase;
-    const remainingSeconds =
-      (getPhaseById(currentMatchSettings, matchPhase)?.end || 0) * 60 -
-      newSeconds;
-
-    setTime({
-      ...currentTime,
-      ...timeUpdates,
-      time: timeToString(newSeconds),
-      remainingTime:
-        remainingSeconds > 0
-          ? `-${timeToString(remainingSeconds)}`
-          : `+${timeToString(0 - remainingSeconds)}`,
-    });
-  };
-
-  const tick = () => {
-    if (tickingSince === null) return;
-    let newSeconds =
-      baseSeconds + Math.round((Date.now() - tickingSince) / 1000);
-
-    // The anchor is the system clock, which can step (NTP sync, manual
-    // change) or pause (laptop sleep). A backwards step or a jump of more
-    // than a few seconds between ticks is not real match time — re-anchor
-    // at the current value instead of leaping the on-air clock.
-    if (newSeconds < seconds || newSeconds > seconds + 5) {
-      baseSeconds = seconds;
-      tickingSince = Date.now();
-      newSeconds = seconds;
-    }
-
-    newSeconds = Math.max(0, newSeconds);
-    if (newSeconds !== seconds) {
-      applyTime(newSeconds);
-    }
-  };
-
-  const startTicking = () => {
-    if (interval) {
-      clearInterval(interval);
-    }
-    baseSeconds = seconds;
-    tickingSince = Date.now();
-    // Tick faster than once per second: each tick recomputes from the wall
-    // clock, so the displayed time stays accurate even after delays
-    interval = setInterval(tick, 250);
-  };
-
-  const stopTicking = () => {
-    if (interval) {
-      clearInterval(interval);
-      interval = undefined;
-    }
-    tickingSince = null;
-  };
-
+  // Starting a phase supersedes any offer to restore a previous match. That
+  // belongs here rather than in the clock hook: it's Dashboard-local UI
+  // state the hook has no notion of.
   const startTime = (matchPhase: MatchPhase) => {
-    stopTicking();
-    setPaused(false);
-    // Starting a phase supersedes any offer to restore a previous match
     setRestorableMatch(null);
-
-    const phase = getPhaseById(
-      useMatchSettingsStore.getState().matchSettings,
-      matchPhase
-    );
-
-    applyTime((phase?.start ?? 0) * 60, { matchPhase, paused: false });
-
-    // Update matchPhase in matchState
-    setMatchState({ matchPhase });
-
-    startTicking();
-  };
-
-  const stopTime = () => {
-    stopTicking();
-
-    setTime({
-      time: undefined,
-      additionalTime: undefined,
-      matchPhase: undefined,
-      remainingTime: undefined,
-      paused: false,
-    });
-
-    setPaused(false);
-
-    // Update matchState with matchPhase undefined and previousMatchPhase set to the phase that just ended
-    setMatchState({
-      previousMatchPhase: useMatchStateStore.getState().matchState.matchPhase,
-      matchPhase: undefined,
-    });
-  };
-
-  const pause = () => {
-    if (interval) {
-      stopTicking();
-      setPaused(true);
-      setTime({ paused: true });
-    }
-  };
-
-  const resume = () => {
-    startTicking();
-    setPaused(false);
-    setTime({ paused: false });
+    clock.startTime(matchPhase);
   };
 
   const restoreMatch = (liveMatch: LiveMatch) => {
-    stopTicking();
-
-    setScores(liveMatch.scores);
-    setMatchState(liveMatch.matchState);
-
-    if (liveMatch.time?.time) {
-      const [minutes, secs] = liveMatch.time.time.split(':').map(Number);
-      seconds = (minutes || 0) * 60 + (secs || 0);
-      baseSeconds = seconds;
+    // Applied first (full replace, so no stray field from whatever's
+    // currently loaded survives) so the clock and phase list below
+    // reinterpret the snapshot's scores/state/time against the settings
+    // that were active when it was taken. Older snapshots predate this
+    // field and simply keep whatever match settings are already loaded.
+    if (liveMatch.matchSettings) {
+      // Validate the snapshot's settings the same way stored MATCH_SETTINGS
+      // are validated on load: the LIVE_MATCH snapshot is otherwise the only
+      // path that writes match settings without a schema check, so a corrupt
+      // config.json could feed e.g. an out-of-range periodCount straight into
+      // getPhaseList. A failed parse falls back to the current settings.
+      const parsed = matchSetingsSchema.safeParse(liveMatch.matchSettings);
+      if (parsed.success) {
+        setMatchSettings({ ...defaultMatchSettings, ...parsed.data });
+      }
     }
-
-    // Restore with the clock paused; the operator resumes when ready
-    const clockWasRunning = liveMatch.time?.matchPhase !== undefined;
-    setTime({ ...liveMatch.time, paused: clockWasRunning });
-    setPaused(clockWasRunning);
-
+    setScores(liveMatch.scores);
+    // Restore fully replaces the match state. The store setter merges and
+    // both defaultMatchState and the snapshot may omit optional keys, so the
+    // optional fields are cleared explicitly first — otherwise one left over
+    // from the current session (e.g. a customScreenImageUrl, or a stale
+    // matchPhase) would survive into the restored match.
+    setMatchState({
+      matchPhase: undefined,
+      previousMatchPhase: undefined,
+      customScreenImageUrl: undefined,
+      ...defaultMatchState,
+      ...liveMatch.matchState,
+    });
+    clock.restoreClock(liveMatch.time);
     setRestorableMatch(null);
   };
 
@@ -401,19 +311,10 @@ export default function Dashboard() {
     );
     const nextPhase = getNextPhaseId(phaseList, matchPhase, previousMatchPhase);
 
-    // Read fresh from the store: this runs from an IPC shortcut listener
-    // registered at mount, whose closure would otherwise hold the very
-    // first render's appSettings (auto-switch always on).
-    const { autoSwitchScreens } = useAppSettingsStore.getState().appSettings;
-
     if (nextPhase) {
+      // startTime (and the clock hook underneath it) handles the matchState
+      // update and the auto-switch-screens behaviour.
       startTime(nextPhase);
-      setMatchState({
-        matchPhase: nextPhase,
-      });
-      if (autoSwitchScreens) {
-        setMatchState({ displayScreen: 'scoreBug' });
-      }
     } else if (matchPhase !== undefined) {
       // No next phase, and a phase is currently running (full time reached):
       // stop the clock and record how far the match got. Guarded on
@@ -421,15 +322,7 @@ export default function Dashboard() {
       // finished (matchPhase already undefined) is a no-op — otherwise it
       // would overwrite previousMatchPhase and let the match restart from
       // the first phase.
-      stopTime();
-
-      setMatchState({
-        matchPhase: undefined,
-        previousMatchPhase: matchPhase,
-        displayScreen: autoSwitchScreens
-          ? 'matchTitle'
-          : useMatchStateStore.getState().matchState.displayScreen,
-      });
+      clock.stopTime();
     }
   };
 
@@ -461,30 +354,20 @@ export default function Dashboard() {
             <TimeControlPanel
               time={time}
               matchSettings={matchSettings}
-              pause={pause}
-              resume={resume}
-              adjustTime={(difference: number) => {
-                const newSeconds = Math.max(seconds + difference, 0);
-                baseSeconds = newSeconds;
-                if (tickingSince !== null) {
-                  tickingSince = Date.now();
-                }
-                applyTime(newSeconds);
-              }}
-              isPaused={paused}
+              pause={clock.pause}
+              resume={clock.resume}
+              adjustTime={clock.adjustTime}
+              isPaused={clock.paused}
               setAdditionalTime={(additionalTime: number) =>
                 // setTime merges; spreading the render-scope time here
                 // would overwrite a fresher tick with stale clock strings
                 setTime({ additionalTime: additionalTime || undefined })
               }
               startTime={startTime}
-              stopTime={stopTime}
+              stopTime={clock.stopTime}
               autoSwitchScreens={appSettings.autoSwitchScreens}
               setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
                 updateAppSettings({ autoSwitchScreens })
-              }
-              setDisplayScreen={(displayScreen: DisplayScreen) =>
-                setMatchState({ displayScreen })
               }
             />
             <ScoresPanel
@@ -535,12 +418,11 @@ export default function Dashboard() {
           setOpen={closeSideMenu}
           incrementHomeTeamScore={incrementHomeTeamScore}
           incrementAwayTeamScore={incrementAwayTeamScore}
-          stopTime={stopTime}
+          stopTime={clock.stopTime}
           matchSettings={matchSettings}
           startTime={startTime}
           updateMatchState={setMatchState}
           matchState={matchState}
-          autoSwitchScreens={appSettings.autoSwitchScreens}
           time={time}
         />
       </div>
@@ -552,10 +434,14 @@ export default function Dashboard() {
           <AppNotification
             title="Restore previous match?"
             text={`A match was in progress when PlayOverlay last closed (${
+              restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
               matchSettings.homeTeamNameAbbreviated
             } ${restorableMatch.scores?.homeTeam ?? 0}–${
               restorableMatch.scores?.awayTeam ?? 0
-            } ${matchSettings.awayTeamNameAbbreviated}${
+            } ${
+              restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+              matchSettings.awayTeamNameAbbreviated
+            }${
               restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
             }). Restoring brings back the score and clock, with the clock paused.`}
             icon={

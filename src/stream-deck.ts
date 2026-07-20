@@ -100,8 +100,11 @@ async function createCanvasWithSVGFromFile(
 
 let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>> = [];
 
-// Key reserved for the "next button set" logo button
-const NEXT_SET_KEY_INDEX = 5;
+// Key reserved for the "next button set" logo button. Since usable buttons
+// occupy indices 0..NEXT_SET_KEY_INDEX-1, this also doubles as the number of
+// buttons per set — shared with SystemSettingsMenu's deck-page chunking so
+// the two stay in sync.
+export const NEXT_SET_KEY_INDEX = 5;
 
 export async function connectToStreamDeck(
   buttons: {

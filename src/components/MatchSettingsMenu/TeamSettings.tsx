@@ -10,9 +10,9 @@ export interface Props {
   teamNameAbbreviated: string;
   setTeamNameFull: (teamName: string) => void;
   setTeamNameAbbreviated: (teamName: string) => void;
-  textColour: string;
+  textColour?: string;
   setTextColour: (textColour: string) => void;
-  backgroundColour: string;
+  backgroundColour?: string;
   setBackgroundColour: (backgroundColour: string) => void;
   teamLogo?: string;
   setTeamLogo: (teamLogo: string | undefined) => void;

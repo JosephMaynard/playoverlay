@@ -1,7 +1,7 @@
 export interface Props {
   teamName: string;
-  textColour: string;
-  backgroundColour: string;
+  textColour?: string;
+  backgroundColour?: string;
 }
 
 export default function ScoresTeamName({
