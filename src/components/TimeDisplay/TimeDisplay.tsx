@@ -1,6 +1,7 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
+import { Trans, useTranslation } from 'react-i18next';
 import { Time } from '../../types';
-import { getPhaseById } from '../../utils';
+import { getPhaseById, getPhaseTitle } from '../../utils';
 import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
@@ -14,6 +15,10 @@ export default function TimeDisplay({
   matchSettings,
   openAdjustmentsModal,
 }: Props) {
+  const { t } = useTranslation();
+  const currentPhase = time.matchPhase
+    ? getPhaseById(matchSettings, time.matchPhase)
+    : undefined;
   return (
     <div className="relative flex min-h-32 flex-col items-center justify-center bg-black py-1">
       {time.time ? (
@@ -24,9 +29,9 @@ export default function TimeDisplay({
             </p>
           </div>
           <div className="flex flex-col items-center justify-center font-semibold">
-            {time.matchPhase && (
+            {currentPhase && (
               <p className="mb-1 text-center text-sm tabular-nums text-white">
-                {getPhaseById(matchSettings, time.matchPhase)?.title}
+                {getPhaseTitle(t, currentPhase)}
               </p>
             )}
             {time.remainingTime && (
@@ -36,10 +41,13 @@ export default function TimeDisplay({
             )}
             {time.additionalTime && (
               <p className="mt-1 text-center text-sm font-light text-white">
-                Additional time:{' '}
-                <span className="font-semibold tabular-nums">
-                  {time.additionalTime} minutes
-                </span>
+                <Trans
+                  i18nKey="screens:timeDisplay.additionalTime"
+                  values={{ minutes: time.additionalTime }}
+                  components={{
+                    bold: <span className="font-semibold tabular-nums" />,
+                  }}
+                />
               </p>
             )}
           </div>
@@ -47,7 +55,7 @@ export default function TimeDisplay({
       ) : (
         <div className="flex h-full items-center justify-center">
           <p className="text-center text-5xl font-semibold text-white">
-            Not running
+            {t('screens:timeDisplay.notRunning')}
           </p>
         </div>
       )}

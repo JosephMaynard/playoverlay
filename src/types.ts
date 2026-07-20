@@ -95,9 +95,17 @@ export interface CustomScreen {
   overlayLinks?: DisplayScreen[];
 }
 
+// `titleKey` is an i18next key (namespaced, e.g. "screens:phase.firstHalf")
+// rather than a baked English string, so the rendering component can
+// translate it via getPhaseTitle(t, phase). `titleParams` carries whatever
+// the key needs to interpolate: the period number for generic phases, plus
+// the user's custom period name (raw, never itself translated) when one was
+// set in Match Settings. `id`/`start`/`end` are unchanged — matchState and
+// persistence depend on `id` staying stable.
 export interface MatchPeriod {
   id: string;
-  title: string;
+  titleKey: string;
+  titleParams?: { n?: number; name?: string };
   start: number;
   end: number;
 }

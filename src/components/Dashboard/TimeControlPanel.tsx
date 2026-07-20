@@ -3,10 +3,11 @@ import { Time, MatchPhase } from '../../types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
-import { classNames, getPhaseList } from '../..//utils';
+import { classNames, getPhaseList, getPhaseTitle } from '../..//utils';
 import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
@@ -36,6 +37,7 @@ export default function TimeControlPanel({
   autoSwitchScreens,
   setAutoSwitchScreens,
 }: Props) {
+  const { t } = useTranslation();
   const [modal, setModal] = useState<
     'adjustTime' | 'additionalTime' | undefined
   >();
@@ -43,7 +45,7 @@ export default function TimeControlPanel({
   // startTime/stopTime themselves (centralised in useMatchClock); this
   // panel just triggers them.
   const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
-    label: phase.title,
+    label: getPhaseTitle(t, phase),
     onClick: () => startTime(phase.id),
     selected: time.matchPhase === phase.id,
   }));

@@ -80,7 +80,8 @@ export function classNames(...classes: string[]) {
 // Football mode reproduces the historical firstHalf/secondHalf/extraTime*
 // phases exactly (dropping the extra-time phases when hasExtraTime is
 // explicitly false); generic mode builds N evenly-sized periods named from
-// periodName.
+// periodName. Titles are returned as an i18next key (+ params) rather than a
+// baked English string — see getPhaseTitle below for rendering it.
 export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   if (matchSettings.timerMode === 'generic') {
     // Defence in depth: schema validation clamps periodCount on every write
@@ -92,13 +93,21 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
         ? Math.min(rawPeriodCount, 100)
         : 4;
     const periodLength = matchSettings.periodLength ?? 10;
-    const periodName = matchSettings.periodName?.trim() || 'Period';
+    // A custom periodName is user-entered text (e.g. "Quarter", "Innings"),
+    // never translated; only the "Period" fallback used when it's unset is a
+    // fixed English UI string, so it gets its own translation key.
+    const customPeriodName = matchSettings.periodName?.trim();
 
     return Array.from({ length: periodCount }, (_, index) => {
       const number = index + 1;
       return {
         id: `period${number}`,
-        title: `${periodName} ${number}`,
+        titleKey: customPeriodName
+          ? 'screens:phase.customPeriod'
+          : 'screens:phase.period',
+        titleParams: customPeriodName
+          ? { name: customPeriodName, n: number }
+          : { n: number },
         start: index * periodLength,
         end: number * periodLength,
       };
@@ -109,10 +118,15 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   const extraTimeHalfLength = matchSettings.extraTimeHalfLength ?? 15;
 
   const phases: MatchPeriod[] = [
-    { id: 'firstHalf', title: 'First Half', start: 0, end: halfLength },
+    {
+      id: 'firstHalf',
+      titleKey: 'screens:phase.firstHalf',
+      start: 0,
+      end: halfLength,
+    },
     {
       id: 'secondHalf',
-      title: 'Second Half',
+      titleKey: 'screens:phase.secondHalf',
       start: halfLength,
       end: halfLength * 2,
     },
@@ -122,13 +136,13 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
     phases.push(
       {
         id: 'extraTimeFirstHalf',
-        title: 'Extra Time First Half',
+        titleKey: 'screens:phase.extraTimeFirstHalf',
         start: halfLength * 2,
         end: halfLength * 2 + extraTimeHalfLength,
       },
       {
         id: 'extraTimeSecondHalf',
-        title: 'Extra Time Second Half',
+        titleKey: 'screens:phase.extraTimeSecondHalf',
         start: halfLength * 2 + extraTimeHalfLength,
         end: (halfLength + extraTimeHalfLength) * 2,
       }
@@ -136,6 +150,19 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   }
 
   return phases;
+}
+
+// Renders a MatchPeriod's title via the caller's i18next `t` function. Pure
+// aside from the translation lookup: every call site that displays a phase's
+// name (TimeControlPanel, SystemSettingsMenu's Stream Deck buttons,
+// TimeDisplay) goes through this so it's always derived the same way.
+// Dashboard.tsx only ever reads a phase's id/start/end, never its title, so
+// it has no call site here.
+export function getPhaseTitle(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  phase: MatchPeriod
+): string {
+  return t(phase.titleKey, phase.titleParams);
 }
 
 export function getPhaseById(

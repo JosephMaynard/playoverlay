@@ -14,6 +14,7 @@ import {
   getNextPhaseId,
   getPhaseById,
   getPhaseList,
+  getPhaseTitle,
   insertValue,
   keyboardEventToAccelerator,
   nearestSupportedLanguage,
@@ -27,6 +28,7 @@ import {
   defaultMatchSettings,
 } from '../constants';
 import { MatchSettings } from '../zodSchemas';
+import i18n from '../i18n';
 
 describe('utils', () => {
   describe('timeToString', () => {
@@ -79,17 +81,27 @@ describe('utils', () => {
 
     it('derives the same football phases the old getMatchPhases produced (default timerMode)', () => {
       expect(getPhaseList(footballSettings)).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
-        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 40,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 40,
+          end: 80,
+        },
         {
           id: 'extraTimeFirstHalf',
-          title: 'Extra Time First Half',
+          titleKey: 'screens:phase.extraTimeFirstHalf',
           start: 80,
           end: 90,
         },
         {
           id: 'extraTimeSecondHalf',
-          title: 'Extra Time Second Half',
+          titleKey: 'screens:phase.extraTimeSecondHalf',
           start: 90,
           end: 100,
         },
@@ -104,17 +116,27 @@ describe('utils', () => {
           extraTimeHalfLength: undefined,
         })
       ).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 45 },
-        { id: 'secondHalf', title: 'Second Half', start: 45, end: 90 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 45,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 45,
+          end: 90,
+        },
         {
           id: 'extraTimeFirstHalf',
-          title: 'Extra Time First Half',
+          titleKey: 'screens:phase.extraTimeFirstHalf',
           start: 90,
           end: 105,
         },
         {
           id: 'extraTimeSecondHalf',
-          title: 'Extra Time Second Half',
+          titleKey: 'screens:phase.extraTimeSecondHalf',
           start: 105,
           end: 120,
         },
@@ -125,12 +147,22 @@ describe('utils', () => {
       expect(
         getPhaseList({ ...footballSettings, hasExtraTime: false })
       ).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
-        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 40,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 40,
+          end: 80,
+        },
       ]);
     });
 
-    it('builds evenly-sized named periods in generic mode', () => {
+    it('builds evenly-sized named periods in generic mode, carrying the custom period name as a titleParam (never translated)', () => {
       expect(
         getPhaseList({
           ...defaultMatchSettings,
@@ -140,20 +172,62 @@ describe('utils', () => {
           periodName: 'Quarter',
         })
       ).toEqual([
-        { id: 'period1', title: 'Quarter 1', start: 0, end: 20 },
-        { id: 'period2', title: 'Quarter 2', start: 20, end: 40 },
-        { id: 'period3', title: 'Quarter 3', start: 40, end: 60 },
+        {
+          id: 'period1',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 1 },
+          start: 0,
+          end: 20,
+        },
+        {
+          id: 'period2',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 2 },
+          start: 20,
+          end: 40,
+        },
+        {
+          id: 'period3',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 3 },
+          start: 40,
+          end: 60,
+        },
       ]);
     });
 
-    it('falls back to 4x10 minute periods named "Period" when unset', () => {
+    it('falls back to 4x10 minute periods using the translatable "Period" key when unset', () => {
       expect(
         getPhaseList({ ...defaultMatchSettings, timerMode: 'generic' })
       ).toEqual([
-        { id: 'period1', title: 'Period 1', start: 0, end: 10 },
-        { id: 'period2', title: 'Period 2', start: 10, end: 20 },
-        { id: 'period3', title: 'Period 3', start: 20, end: 30 },
-        { id: 'period4', title: 'Period 4', start: 30, end: 40 },
+        {
+          id: 'period1',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 1 },
+          start: 0,
+          end: 10,
+        },
+        {
+          id: 'period2',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 2 },
+          start: 10,
+          end: 20,
+        },
+        {
+          id: 'period3',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 3 },
+          start: 20,
+          end: 30,
+        },
+        {
+          id: 'period4',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 4 },
+          start: 30,
+          end: 40,
+        },
       ]);
     });
 
@@ -189,7 +263,7 @@ describe('utils', () => {
     it('looks up a phase by id', () => {
       expect(getPhaseById(defaultMatchSettings, 'secondHalf')).toEqual({
         id: 'secondHalf',
-        title: 'Second Half',
+        titleKey: 'screens:phase.secondHalf',
         start: 45,
         end: 90,
       });
@@ -198,6 +272,32 @@ describe('utils', () => {
     it('returns undefined for an undefined or unknown id', () => {
       expect(getPhaseById(defaultMatchSettings, undefined)).toBeUndefined();
       expect(getPhaseById(defaultMatchSettings, 'notAPhase')).toBeUndefined();
+    });
+  });
+
+  describe('getPhaseTitle', () => {
+    it('renders a football phase title via the real English catalogue', () => {
+      const phase = getPhaseById(defaultMatchSettings, 'secondHalf')!;
+      expect(getPhaseTitle(i18n.t, phase)).toBe('Second Half');
+    });
+
+    it('renders a generic period title, interpolating the period number', () => {
+      const [period1, , period3] = getPhaseList({
+        ...defaultMatchSettings,
+        timerMode: 'generic',
+      });
+      expect(getPhaseTitle(i18n.t, period1)).toBe('Period 1');
+      expect(getPhaseTitle(i18n.t, period3)).toBe('Period 3');
+    });
+
+    it('renders a custom period name as-is (untranslated), with the period number appended', () => {
+      const [period1, period2] = getPhaseList({
+        ...defaultMatchSettings,
+        timerMode: 'generic',
+        periodName: 'Quarter',
+      });
+      expect(getPhaseTitle(i18n.t, period1)).toBe('Quarter 1');
+      expect(getPhaseTitle(i18n.t, period2)).toBe('Quarter 2');
     });
   });
 

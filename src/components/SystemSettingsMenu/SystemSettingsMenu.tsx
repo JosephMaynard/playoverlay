@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import {
-  InformationCircleIcon,
-} from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 import SideMenu from '../SideMenu/SideMenu';
-import { chunkArray, classNames, getPhaseList } from '../../utils';
+import {
+  chunkArray,
+  classNames,
+  getPhaseList,
+  getPhaseTitle,
+} from '../../utils';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
 import { connectToStreamDeck, NEXT_SET_KEY_INDEX } from '../../stream-deck';
@@ -37,6 +41,7 @@ export default function SystemSettingsMenu({
   updateMatchState,
   time,
 }: Props) {
+  const { t } = useTranslation();
   const [currentModal, setCurrentModal] = useState<Modals>(null);
   const [streamDeckConnected, setStreamDeckConnected] = useState(false);
   const [streamDeckButtons, setStreamdeckButtons] = useState(0);
@@ -66,7 +71,7 @@ export default function SystemSettingsMenu({
   ];
 
   const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
-    text: phase.title,
+    text: getPhaseTitle(t, phase),
     onPress: () => startTime(phase.id),
     textColor: 'black',
     backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
@@ -75,8 +80,7 @@ export default function SystemSettingsMenu({
   const screenButtons = Object.keys(screens)
     .filter((screen) => screen !== 'custom')
     .filter(
-      (screen) =>
-        matchSettings.hasPenalties !== false || screen !== 'penalties'
+      (screen) => matchSettings.hasPenalties !== false || screen !== 'penalties'
     )
     .map((screen) => ({
       text: screens[screen as DisplayScreen],
