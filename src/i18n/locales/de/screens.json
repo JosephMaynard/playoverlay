@@ -1,0 +1,25 @@
+{
+  "matchTitle": {
+    "kickOff": "Anstoß {{time}}",
+    "startsIn": "Anstoß in {{countdown}}"
+  },
+  "penalties": "Elfmeterschießen",
+  "phase": {
+    "customPeriod": "{{name}} {{n}}",
+    "extraTimeFirstHalf": "1. Halbzeit der Verlängerung",
+    "extraTimeSecondHalf": "2. Halbzeit der Verlängerung",
+    "firstHalf": "1. Halbzeit",
+    "period": "Periode {{n}}",
+    "secondHalf": "2. Halbzeit"
+  },
+  "scoreboard": {
+    "am": "am",
+    "match": "Spielzeit",
+    "pm": "pm",
+    "time": "Uhrzeit"
+  },
+  "timeDisplay": {
+    "additionalTime": "Nachspielzeit: <bold>{{minutes}} Minuten</bold>",
+    "notRunning": "Angehalten"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "cancel": "Annulla",
+  "close": "Chiudi",
+  "closePanel": "Chiudi pannello",
+  "language": {
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "it": "Italiano",
+    "es-ES": "Español (España)",
+    "es-419": "Español (Latinoamérica)",
+    "pt-PT": "Português (Portugal)",
+    "pt-BR": "Português (Brasil)"
+  },
+  "loadingSpinner": {
+    "alt": "Logo PlayOverlay"
+  },
+  "reset": "Reimposta"
+}

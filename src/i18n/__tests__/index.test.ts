@@ -22,8 +22,13 @@ describe('i18n init', () => {
     await i18n.changeLanguage('fr');
     expect(i18n.language).toBe('fr');
 
-    // No French catalogue yet (W1 is English-only); fallbackLng keeps the
-    // seeded key readable instead of showing raw key strings.
+    // The French catalogue is bundled (v0.18), so the seeded key now reads
+    // in French rather than falling back to English.
+    expect(i18n.t('settings:language.modal.title')).toBe('Choisir une langue');
+
+    // A locale with no catalogue still falls back to English instead of
+    // showing raw key strings.
+    await i18n.changeLanguage('xx');
     expect(i18n.t('settings:language.modal.title')).toBe('Choose a language');
 
     // Reset for any other test file sharing this module-scope singleton.

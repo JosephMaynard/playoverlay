@@ -1,0 +1,166 @@
+{
+  "actions": {
+    "delete": "Elimina",
+    "save": "Salva"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "Copiato!",
+      "copy": "Copia",
+      "customScreenHint": "Qualsiasi schermata integrata può essere fissata in questo modo aggiungendo <code>?screen=</code> all'URL — utile per inviare a una TV della sede una vista diversa da quella di OBS. Le schermate personalizzate non possono essere fissate; quella vista segue l'operatore.",
+      "enable": "Attiva",
+      "hint": "Aggiungila come Sorgente Browser in OBS alla risoluzione del tuo canvas; lo sfondo è trasparente.",
+      "port": "Porta",
+      "portError": "Inserisci una porta compresa tra 1024 e 65535.",
+      "scoreboardView": "Vista tabellone",
+      "status": "Stato: {{state}}",
+      "statusRunning": "In esecuzione",
+      "statusStopped": "Interrotto",
+      "statusWithError": "Stato: {{state}} — {{error}}",
+      "title": "Sorgente Browser OBS"
+    },
+    "displays": {
+      "moveToScreen": "Sposta sullo schermo {{n}}",
+      "none": "Nessuno schermo esterno rilevato."
+    },
+    "keyColour": "Colore chiave",
+    "keyboardShortcutRow": {
+      "change": "Cambia",
+      "invalidKey": "Questo tasto non può essere usato in una scorciatoia.",
+      "needModifier": "Includi Cmd/Ctrl o Alt nella scorciatoia.",
+      "pressKeys": "Premi i tasti…",
+      "pressKeysFor": "Premi i tasti per {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "Gol della squadra ospite",
+      "conflict": "Già usato da \"{{label}}\".",
+      "globalHint": "Ogni scorciatoia funziona anche a livello di sistema (ad esempio quando OBS è in primo piano) con l'aggiunta di Alt, a meno che la scorciatoia non includa già Alt.",
+      "homeTeamScored": "Gol della squadra di casa",
+      "nextMatchPhase": "Fase di gioco successiva",
+      "title": "Scorciatoie da tastiera"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Formato dell'ora sulla schermata del tabellone per gli spettatori.",
+      "title": "Orologio del tabellone",
+      "twentyFourHour": "24 ore"
+    },
+    "title": "Impostazioni finestra",
+    "windowControls": {
+      "lockWindows": "Blocca finestre",
+      "resetPositions": "Reimposta posizioni",
+      "toggleFullscreen": "Attiva/disattiva schermo intero",
+      "unlockWindows": "Sblocca finestre"
+    }
+  },
+  "customScreens": {
+    "add": "Aggiungi grafica personalizzata",
+    "addModalTitle": "Aggiungi schermata personalizzata",
+    "deleteConfirmAction": "Elimina schermata personalizzata",
+    "deleteConfirmBody": "Vuoi davvero eliminare la schermata personalizzata \"{{title}}\"?",
+    "deleteConfirmTitle": "Eliminare la schermata personalizzata?",
+    "edit": "Modifica",
+    "editModal": {
+      "allScreens": "Tutte le schermate",
+      "overlayScreens": "Mostra l'overlay sulle schermate",
+      "saveChanges": "Salva modifiche",
+      "title": "Modifica grafica personalizzata",
+      "type": "Tipo"
+    },
+    "emptyDescription": "Fai clic sul pulsante \"{{action}}\" per aggiungere grafiche personalizzate",
+    "emptyTitle": "Nessuna grafica personalizzata",
+    "title": "Grafiche personalizzate",
+    "typeLine": "Tipo: {{type}}",
+    "typeOverlay": "Overlay",
+    "typeScreen": "Schermata personalizzata",
+    "uploader": {
+      "defaultTitle": "Schermata personalizzata {{n}}",
+      "deleteImage": "Elimina immagine",
+      "dragDropHint": "Trascina qui un file immagine, oppure fai clic per selezionarne uno",
+      "dropHere": "Rilascia qui il file...",
+      "image": "Immagine",
+      "missingFields": "Fornisci sia un file sia un titolo.",
+      "selectFile": "Fai clic per selezionarne uno",
+      "titleLabel": "Titolo",
+      "uploadFailed": "Caricamento dell'immagine non riuscito. Riprova.",
+      "uploadedImage": "Immagine caricata:"
+    }
+  },
+  "language": {
+    "description": "Lingua usata per i menu e la grafica a schermo.",
+    "modal": {
+      "confirm": "Conferma",
+      "description": "Scegli la lingua che PlayOverlay usa per i menu e la grafica a schermo. Puoi cambiarla in seguito in Impostazioni finestra.",
+      "title": "Scegli una lingua"
+    },
+    "title": "Lingua"
+  },
+  "matchMenu": {
+    "awayTeam": "Squadra ospite",
+    "details": {
+      "extraTime": "Tempi supplementari",
+      "extraTimeHalfLength": "Durata di un tempo supplementare",
+      "football": "Calcio",
+      "generic": "Generico",
+      "halfLength": "Durata di un tempo",
+      "kickOffTime": "Orario del calcio d'inizio",
+      "penalties": "Calci di rigore",
+      "periodCount": "Numero di periodi",
+      "periodLength": "Durata del periodo",
+      "periodNameLabel": "Nome del periodo",
+      "periodNamePlaceholder": "Periodo",
+      "timerMode": "Modalità timer",
+      "title": "Dettagli partita",
+      "venue": "Sede"
+    },
+    "homeTeam": "Squadra di casa",
+    "saved": {
+      "deleteConfirmBody": "Vuoi davvero eliminare le impostazioni partita salvate \"{{title}}\"?",
+      "deleteModalTitle": "Eliminare le impostazioni partita salvate?",
+      "emptyDescription": "Fai clic sul pulsante \"{{action}}\" per salvare le impostazioni partita",
+      "emptyTitle": "Nessuna impostazione partita salvata",
+      "nameLabel": "Nome",
+      "openSaved": "Apri impostazioni partita salvate",
+      "restore": "Ripristina",
+      "restoreConfirmBody": "Vuoi davvero ripristinare le impostazioni partita salvate? Le impostazioni partita attuali verranno sovrascritte se prosegui.",
+      "restoreModalTitle": "Ripristinare le impostazioni partita salvate?",
+      "saveCurrent": "Salva impostazioni partita attuali",
+      "saveModalTitle": "Salvare le impostazioni partita?",
+      "savedAt": "Salvato: {{date}}",
+      "title": "Salva/Ripristina impostazioni partita"
+    },
+    "team": {
+      "abbreviatedLabel": "Nome abbreviato di {{team}}",
+      "backgroundColourLabel": "Colore di sfondo di {{team}}",
+      "logoLabel": "Logo di {{team}}",
+      "logoUploadError": "Caricamento del logo non riuscito. Riprova.",
+      "nameLabel": "Nome di {{team}}",
+      "remove": "Rimuovi",
+      "textColourLabel": "Colore del testo di {{team}}",
+      "upload": "Carica"
+    },
+    "title": "Impostazioni partita"
+  },
+  "system": {
+    "about": "Informazioni",
+    "aboutModal": {
+      "product": "Prodotto",
+      "title": "Informazioni su PlayOverlay",
+      "version": "Versione"
+    },
+    "connectStreamDeck": "Connetti a Stream Deck",
+    "screens": {
+      "custom": "Schermate personalizzate",
+      "endScreen": "Schermata finale",
+      "matchTitle": "Titolo partita",
+      "none": "Nessuno",
+      "penalties": "Calci di rigore",
+      "scoreBug": "Fascia punteggio",
+      "scoreboard": "Tabellone"
+    },
+    "stop": "Interrompi",
+    "streamDeckConnected": "Stream Deck connesso",
+    "teamScored": "Gol di {{team}}",
+    "title": "Impostazioni di sistema"
+  }
+}

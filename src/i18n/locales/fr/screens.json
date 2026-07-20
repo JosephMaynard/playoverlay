@@ -1,0 +1,25 @@
+{
+  "matchTitle": {
+    "kickOff": "Coup d'envoi {{time}}",
+    "startsIn": "Coup d'envoi dans {{countdown}}"
+  },
+  "penalties": "Tirs au but",
+  "phase": {
+    "customPeriod": "{{name}} {{n}}",
+    "extraTimeFirstHalf": "1re mi-temps de la prolongation",
+    "extraTimeSecondHalf": "2e mi-temps de la prolongation",
+    "firstHalf": "1re mi-temps",
+    "period": "Période {{n}}",
+    "secondHalf": "2e mi-temps"
+  },
+  "scoreboard": {
+    "am": "am",
+    "match": "Chrono",
+    "pm": "pm",
+    "time": "Heure"
+  },
+  "timeDisplay": {
+    "additionalTime": "Temps additionnel : <bold>{{minutes}} minutes</bold>",
+    "notRunning": "Arrêté"
+  }
+}

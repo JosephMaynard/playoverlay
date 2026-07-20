@@ -1,0 +1,166 @@
+{
+  "actions": {
+    "delete": "Löschen",
+    "save": "Speichern"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "Kopiert!",
+      "copy": "Kopieren",
+      "customScreenHint": "Jeder integrierte Bildschirm kann auf diese Weise fixiert werden, indem Sie <code>?screen=</code> an die URL anhängen — nützlich, um einem Fernseher vor Ort eine andere Ansicht als OBS zu liefern. Benutzerdefinierte Bildschirme können nicht fixiert werden; diese Ansicht folgt dem Bediener.",
+      "enable": "Aktivieren",
+      "hint": "Fügen Sie sie in OBS als Browserquelle in Ihrer Canvas-Auflösung hinzu; der Hintergrund ist transparent.",
+      "port": "Port",
+      "portError": "Geben Sie einen Port zwischen 1024 und 65535 ein.",
+      "scoreboardView": "Anzeigetafel-Ansicht",
+      "status": "Status: {{state}}",
+      "statusRunning": "Aktiv",
+      "statusStopped": "Gestoppt",
+      "statusWithError": "Status: {{state}} — {{error}}",
+      "title": "OBS-Browserquelle"
+    },
+    "displays": {
+      "moveToScreen": "Auf Bildschirm {{n}} verschieben",
+      "none": "Keine externen Bildschirme erkannt."
+    },
+    "keyColour": "Schlüsselfarbe",
+    "keyboardShortcutRow": {
+      "change": "Ändern",
+      "invalidKey": "Diese Taste kann nicht für einen Shortcut verwendet werden.",
+      "needModifier": "Fügen Sie dem Shortcut Cmd/Strg oder Alt hinzu.",
+      "pressKeys": "Tasten drücken…",
+      "pressKeysFor": "Tasten drücken für {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "Tor der Gastmannschaft",
+      "conflict": "Bereits verwendet von „{{label}}“.",
+      "globalHint": "Jeder Shortcut funktioniert mit hinzugefügtem Alt auch systemweit (z. B. wenn OBS im Fokus ist), sofern der Shortcut nicht bereits Alt enthält.",
+      "homeTeamScored": "Tor der Heimmannschaft",
+      "nextMatchPhase": "Nächste Spielphase",
+      "title": "Tastenkombinationen"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Uhrzeitformat auf der Anzeigetafel für Zuschauer.",
+      "title": "Anzeigetafel-Uhrzeit",
+      "twentyFourHour": "24-Stunden"
+    },
+    "title": "Fenstereinstellungen",
+    "windowControls": {
+      "lockWindows": "Fenster sperren",
+      "resetPositions": "Positionen zurücksetzen",
+      "toggleFullscreen": "Vollbild umschalten",
+      "unlockWindows": "Fenster entsperren"
+    }
+  },
+  "customScreens": {
+    "add": "Eigene Grafik hinzufügen",
+    "addModalTitle": "Benutzerdefinierten Bildschirm hinzufügen",
+    "deleteConfirmAction": "Benutzerdefinierten Bildschirm löschen",
+    "deleteConfirmBody": "Möchten Sie den benutzerdefinierten Bildschirm „{{title}}“ wirklich löschen?",
+    "deleteConfirmTitle": "Benutzerdefinierten Bildschirm löschen?",
+    "edit": "Bearbeiten",
+    "editModal": {
+      "allScreens": "Alle Bildschirme",
+      "overlayScreens": "Overlay auf Bildschirmen anzeigen",
+      "saveChanges": "Änderungen speichern",
+      "title": "Eigene Grafik bearbeiten",
+      "type": "Typ"
+    },
+    "emptyDescription": "Klicken Sie auf die Schaltfläche „{{action}}“, um eigene Grafiken hinzuzufügen",
+    "emptyTitle": "Keine eigenen Grafiken",
+    "title": "Eigene Grafiken",
+    "typeLine": "Typ: {{type}}",
+    "typeOverlay": "Overlay",
+    "typeScreen": "Benutzerdefinierter Bildschirm",
+    "uploader": {
+      "defaultTitle": "Benutzerdefinierter Bildschirm {{n}}",
+      "deleteImage": "Bild löschen",
+      "dragDropHint": "Ziehen Sie eine Bilddatei per Drag & Drop hierher, oder klicken Sie, um eine auszuwählen",
+      "dropHere": "Datei hier ablegen ...",
+      "image": "Bild",
+      "missingFields": "Bitte geben Sie sowohl eine Datei als auch einen Titel an.",
+      "selectFile": "Zum Auswählen klicken",
+      "titleLabel": "Titel",
+      "uploadFailed": "Hochladen des Bilds fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "uploadedImage": "Hochgeladenes Bild:"
+    }
+  },
+  "language": {
+    "description": "Sprache für Menüs und Live-Grafiken.",
+    "modal": {
+      "confirm": "Bestätigen",
+      "description": "Wählen Sie die Sprache, die PlayOverlay für seine Menüs und Live-Grafiken verwendet. Sie können dies später in den Fenstereinstellungen ändern.",
+      "title": "Sprache wählen"
+    },
+    "title": "Sprache"
+  },
+  "matchMenu": {
+    "awayTeam": "Gastmannschaft",
+    "details": {
+      "extraTime": "Verlängerung",
+      "extraTimeHalfLength": "Dauer einer Halbzeit der Verlängerung",
+      "football": "Fußball",
+      "generic": "Allgemein",
+      "halfLength": "Halbzeitdauer",
+      "kickOffTime": "Anstoßzeit",
+      "penalties": "Elfmeterschießen",
+      "periodCount": "Anzahl der Perioden",
+      "periodLength": "Periodendauer",
+      "periodNameLabel": "Name der Periode",
+      "periodNamePlaceholder": "Periode",
+      "timerMode": "Timer-Modus",
+      "title": "Spieldetails",
+      "venue": "Austragungsort"
+    },
+    "homeTeam": "Heimmannschaft",
+    "saved": {
+      "deleteConfirmBody": "Möchten Sie die gespeicherten Spieleinstellungen „{{title}}“ wirklich löschen?",
+      "deleteModalTitle": "Gespeicherte Spieleinstellungen löschen?",
+      "emptyDescription": "Klicken Sie auf die Schaltfläche „{{action}}“, um Spieleinstellungen zu speichern",
+      "emptyTitle": "Keine gespeicherten Spieleinstellungen",
+      "nameLabel": "Name",
+      "openSaved": "Gespeicherte Spieleinstellungen öffnen",
+      "restore": "Wiederherstellen",
+      "restoreConfirmBody": "Möchten Sie die gespeicherten Spieleinstellungen wirklich wiederherstellen? Die aktuellen Spieleinstellungen werden dabei überschrieben.",
+      "restoreModalTitle": "Gespeicherte Spieleinstellungen wiederherstellen?",
+      "saveCurrent": "Aktuelle Spieleinstellungen speichern",
+      "saveModalTitle": "Spieleinstellungen speichern?",
+      "savedAt": "Gespeichert: {{date}}",
+      "title": "Spieleinstellungen speichern/wiederherstellen"
+    },
+    "team": {
+      "abbreviatedLabel": "Abgekürzter Name von {{team}}",
+      "backgroundColourLabel": "Hintergrundfarbe von {{team}}",
+      "logoLabel": "Logo von {{team}}",
+      "logoUploadError": "Hochladen des Logos fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "nameLabel": "Name von {{team}}",
+      "remove": "Entfernen",
+      "textColourLabel": "Textfarbe von {{team}}",
+      "upload": "Hochladen"
+    },
+    "title": "Spieleinstellungen"
+  },
+  "system": {
+    "about": "Über",
+    "aboutModal": {
+      "product": "Produkt",
+      "title": "Über PlayOverlay",
+      "version": "Version"
+    },
+    "connectStreamDeck": "Mit Stream Deck verbinden",
+    "screens": {
+      "custom": "Eigene Bildschirme",
+      "endScreen": "Abschlussbildschirm",
+      "matchTitle": "Spieltitel",
+      "none": "Keine",
+      "penalties": "Elfmeterschießen",
+      "scoreBug": "Score-Bug",
+      "scoreboard": "Anzeigetafel"
+    },
+    "stop": "Stoppen",
+    "streamDeckConnected": "Stream Deck verbunden",
+    "teamScored": "Tor für {{team}}",
+    "title": "Systemeinstellungen"
+  }
+}

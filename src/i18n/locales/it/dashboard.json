@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Overlay",
+    "title": "Controlli di visualizzazione"
+  },
+  "header": {
+    "openMenu": "Apri il menu {{title}}",
+    "teamSettings": "Impostazioni squadra"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Una partita era in corso all'ultima chiusura di PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Il ripristino riporta punteggio e cronometro, con il cronometro in pausa.",
+      "bodyWithTime": "Una partita era in corso all'ultima chiusura di PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). Il ripristino riporta punteggio e cronometro, con il cronometro in pausa.",
+      "title": "Ripristinare la partita precedente?"
+    },
+    "updateAvailable": {
+      "body": "È disponibile una nuova versione di PlayOverlay (v{{version}}).",
+      "button": "Scarica ora",
+      "title": "Aggiornamento disponibile"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Sbagliato",
+    "nextPenalty": "Prossimo rigore {{team}} ({{side}}):",
+    "resetConfirmAction": "Reimposta i calci di rigore",
+    "resetConfirmBody": "Vuoi davvero reimpostare i calci di rigore?",
+    "resetConfirmTitle": "Reimpostare i calci di rigore?",
+    "resetPenalties": "Reimposta calci di rigore",
+    "score": "Segnato",
+    "teamFirst": "{{team}} per primo",
+    "undoPenalty": "Annulla rigore"
+  },
+  "scoreInput": {
+    "editScore": "Modifica punteggio",
+    "editScoreAria": "Modifica il punteggio di {{team}}",
+    "scoreLabel": "Punteggio {{team}}",
+    "scored": "Gol di {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Punteggi"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Regola il tempo",
+    "autoSwitchLabel": "Cambia automaticamente schermo all'avvio e all'arresto",
+    "clear": "Cancella",
+    "setAdditionalTime": "Imposta il recupero",
+    "title": "Tempo"
+  }
+}
