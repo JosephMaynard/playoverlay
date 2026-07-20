@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Sobreposições",
+    "title": "Controles de tela"
+  },
+  "header": {
+    "openMenu": "Abrir menu de {{title}}",
+    "teamSettings": "Configurações da equipe"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Uma partida estava em andamento na última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). A restauração recupera o placar e o cronômetro, com o cronômetro pausado.",
+      "bodyWithTime": "Uma partida estava em andamento na última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). A restauração recupera o placar e o cronômetro, com o cronômetro pausado.",
+      "title": "Restaurar a partida anterior?"
+    },
+    "updateAvailable": {
+      "body": "Uma nova versão do PlayOverlay (v{{version}}) já está disponível.",
+      "button": "Baixar agora",
+      "title": "Atualização disponível"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Falha",
+    "nextPenalty": "Próximo pênalti de {{team}} ({{side}}):",
+    "resetConfirmAction": "Redefinir pênaltis",
+    "resetConfirmBody": "Tem certeza de que deseja redefinir os pênaltis?",
+    "resetConfirmTitle": "Redefinir os pênaltis?",
+    "resetPenalties": "Redefinir pênaltis",
+    "score": "Gol",
+    "teamFirst": "{{team}} primeiro",
+    "undoPenalty": "Desfazer pênalti"
+  },
+  "scoreInput": {
+    "editScore": "Editar placar",
+    "editScoreAria": "Editar placar de {{team}}",
+    "scoreLabel": "Placar de {{team}}",
+    "scored": "Gol de {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Placar"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Ajustar tempo",
+    "autoSwitchLabel": "Mudar automaticamente de tela ao iniciar e parar",
+    "clear": "Limpar",
+    "setAdditionalTime": "Definir tempo adicional",
+    "title": "Tempo"
+  }
+}

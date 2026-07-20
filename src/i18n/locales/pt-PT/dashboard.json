@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Sobreposições",
+    "title": "Controlos de ecrã"
+  },
+  "header": {
+    "openMenu": "Abrir menu de {{title}}",
+    "teamSettings": "Definições da equipa"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Estava um jogo em curso da última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). A restauração repõe o resultado e o cronómetro, com o cronómetro em pausa.",
+      "bodyWithTime": "Estava um jogo em curso da última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). A restauração repõe o resultado e o cronómetro, com o cronómetro em pausa.",
+      "title": "Restaurar o jogo anterior?"
+    },
+    "updateAvailable": {
+      "body": "Já está disponível uma nova versão do PlayOverlay (v{{version}}).",
+      "button": "Transferir agora",
+      "title": "Atualização disponível"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Falha",
+    "nextPenalty": "Próxima grande penalidade de {{team}} ({{side}}):",
+    "resetConfirmAction": "Repor grandes penalidades",
+    "resetConfirmBody": "Tem a certeza de que pretende repor as grandes penalidades?",
+    "resetConfirmTitle": "Repor as grandes penalidades?",
+    "resetPenalties": "Repor grandes penalidades",
+    "score": "Golo",
+    "teamFirst": "{{team}} primeiro",
+    "undoPenalty": "Anular grande penalidade"
+  },
+  "scoreInput": {
+    "editScore": "Editar marcador",
+    "editScoreAria": "Editar marcador de {{team}}",
+    "scoreLabel": "Marcador de {{team}}",
+    "scored": "Golo de {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Marcadores"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Ajustar tempo",
+    "autoSwitchLabel": "Mudar automaticamente de ecrã ao iniciar e parar",
+    "clear": "Limpar",
+    "setAdditionalTime": "Definir tempo adicional",
+    "title": "Tempo"
+  }
+}
