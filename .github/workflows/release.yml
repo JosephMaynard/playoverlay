@@ -54,6 +54,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        # MakerRpm shells out to rpmbuild, which Ubuntu runners don't
+        # guarantee; MakerDeb needs dpkg/fakeroot (present, but cheap to pin)
+        run: sudo apt-get update && sudo apt-get install -y rpm dpkg fakeroot
       - name: Build distributables
         run: npm run make -- --arch=${{ matrix.arch }}
       - name: Upload to release
