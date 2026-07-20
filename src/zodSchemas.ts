@@ -38,7 +38,13 @@ export const matchSetingsSchema = z.object({
   // names included) when the schema rejects the stored settings, so one bad
   // number must degrade to "use the default for this field" instead of
   // wiping the rest of the user's saved settings.
-  halfLength: z.number().positive().finite().max(300).optional().catch(undefined),
+  halfLength: z
+    .number()
+    .positive()
+    .finite()
+    .max(300)
+    .optional()
+    .catch(undefined),
   extraTimeHalfLength: z
     .number()
     .positive()
@@ -73,6 +79,13 @@ export const appSettingsSchema = z.object({
   keyColour: z.string().catch(defaultAppSettings.keyColour),
   autoSwitchScreens: z.boolean().catch(defaultAppSettings.autoSwitchScreens),
   clockFormat: z.enum(['24h', '12h']).optional().catch(undefined),
+  // Unset (undefined) is a meaningful value here — it's what triggers the
+  // first-run language picker — so an invalid stored value degrades to
+  // undefined (re-showing the picker) rather than a default language.
+  language: z
+    .enum(['en', 'fr', 'de', 'it', 'es-ES', 'es-419', 'pt-PT', 'pt-BR'])
+    .optional()
+    .catch(undefined),
   browserSource: z
     .object({
       enabled: z.boolean(),

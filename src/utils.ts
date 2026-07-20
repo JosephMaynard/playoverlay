@@ -3,12 +3,16 @@ import {
   BrowserSourceSettings,
   ClockFormat,
   KeyboardShortcuts,
+  LanguageCode,
   MatchPeriod,
   MatchPhase,
   Penalty,
 } from './types';
 import { MatchSettings } from './zodSchemas';
-import { defaultBrowserSourceSettings, defaultKeyboardShortcuts } from './constants';
+import {
+  defaultBrowserSourceSettings,
+  defaultKeyboardShortcuts,
+} from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -330,6 +334,53 @@ export function secondsUntilKickOff(
   if (diffMs <= 0) return null;
 
   return Math.ceil(diffMs / 1000);
+}
+
+// Maps a BCP-47-ish locale string (as reported by navigator.language) to the
+// nearest of the eight shipped catalogues. Pure and side-effect free so it's
+// trivially unit-testable; the navigator/Intl read happens at the call site
+// (see detectLanguage below), not in here.
+export function nearestSupportedLanguage(locale: string): LanguageCode {
+  const lower = locale.toLowerCase();
+
+  if (lower.startsWith('pt')) {
+    // pt-BR -> pt-BR; pt or pt-PT (or any other pt-XX, e.g. pt-AO) -> pt-PT.
+    return lower === 'pt-br' || lower.startsWith('pt-br') ? 'pt-BR' : 'pt-PT';
+  }
+  if (lower.startsWith('es')) {
+    // es-ES -> es-ES; any other Spanish (bare "es", es-MX, es-AR, es-419,
+    // ...) -> es-419, the neutral pan-regional Latin American catalogue.
+    return lower === 'es-es' ? 'es-ES' : 'es-419';
+  }
+  if (lower.startsWith('fr')) return 'fr';
+  if (lower.startsWith('de')) return 'de';
+  if (lower.startsWith('it')) return 'it';
+
+  return 'en';
+}
+
+// The OS/browser locale mapped to the nearest supported catalogue. Used to
+// pre-select the first-run language picker and as the fallback wherever an
+// AppSettings.language hasn't been chosen yet (see getLanguage below).
+export function detectLanguage(): LanguageCode {
+  if (typeof navigator === 'undefined') return 'en';
+
+  const locale =
+    navigator.language ||
+    (navigator.languages && navigator.languages[0]) ||
+    'en';
+
+  return nearestSupportedLanguage(locale);
+}
+
+// The active display language: the operator's explicit choice if one has
+// been made, otherwise the detected OS/browser locale. Same
+// defaults-layered-over-settings pattern as getKeyboardShortcuts/
+// getBrowserSourceSettings, so a config.json with no `language` field (every
+// config saved before v0.18) behaves exactly like a fresh install rather
+// than throwing or rendering untranslated.
+export function getLanguage(appSettings: AppSettings): LanguageCode {
+  return appSettings.language ?? detectLanguage();
 }
 
 export const debounce = <Args extends unknown[]>(

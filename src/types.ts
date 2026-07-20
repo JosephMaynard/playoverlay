@@ -29,12 +29,21 @@ export interface BrowserSourceSettings {
 
 export type ClockFormat = '24h' | '12h';
 
+// The eight shipped catalogues (see src/i18n). Both Spanish and Portuguese
+// ship two regional variants rather than one, per the locked language spec.
+export type LanguageCode =
+  'en' | 'fr' | 'de' | 'it' | 'es-ES' | 'es-419' | 'pt-PT' | 'pt-BR';
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
   browserSource?: BrowserSourceSettings;
+  // Unset means "not yet chosen" — drives the first-run language picker.
+  // Once set, it rides the same IPC mirror as the rest of AppSettings, so
+  // the operator's choice (not OS locale) drives on-air text everywhere.
+  language?: LanguageCode;
 }
 
 export interface MatchState {

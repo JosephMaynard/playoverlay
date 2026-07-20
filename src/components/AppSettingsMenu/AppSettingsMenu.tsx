@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppSettings, Display, KeyboardShortcuts } from '../../types';
-import { defaultKeyboardShortcuts } from '../../constants';
+import { defaultKeyboardShortcuts, supportedLanguages } from '../../constants';
 import {
   classNames,
   deriveGlobalAccelerator,
   getBrowserSourceSettings,
   getKeyboardShortcuts,
+  getLanguage,
 } from '../../utils';
 import { Switch } from '@headlessui/react';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
+import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import {
   ArrowsPointingOutIcon,
@@ -31,6 +34,7 @@ export default function AppSettingsMenu({
   appSettings,
   updateAppSettings,
 }: Props) {
+  const { t } = useTranslation();
   const [displays, setDisplays] = useState<Display[]>([]);
   const [isLocked, setIsLocked] = useState(false);
   const [recordingAction, setRecordingAction] = useState<
@@ -278,6 +282,19 @@ export default function AppSettingsMenu({
           disabled={isLocked}
         />
       </div>
+      <CollapsiblePanel title={t('appSettings.language.title')}>
+        <p className="mb-3 text-sm text-gray-500">
+          {t('appSettings.language.description')}
+        </p>
+        <ButtonGrid
+          compact
+          buttons={supportedLanguages.map(({ code, label }) => ({
+            label,
+            onClick: () => updateAppSettings({ language: code }),
+            selected: getLanguage(appSettings) === code,
+          }))}
+        />
+      </CollapsiblePanel>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
         <h3 className="mb-2 text-base font-semibold leading-6 text-gray-900">
           Scoreboard Clock
@@ -374,8 +391,8 @@ export default function AppSettingsMenu({
           />
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Each shortcut also works system-wide (e.g. while OBS is focused)
-          with Alt added, unless the shortcut already includes Alt.
+          Each shortcut also works system-wide (e.g. while OBS is focused) with
+          Alt added, unless the shortcut already includes Alt.
         </p>
       </div>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
@@ -436,8 +453,7 @@ export default function AppSettingsMenu({
           )}
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Status:{' '}
-          {browserSourceStatus?.running ? 'Running' : 'Stopped'}
+          Status: {browserSourceStatus?.running ? 'Running' : 'Stopped'}
           {browserSourceStatus?.error ? ` — ${browserSourceStatus.error}` : ''}
         </p>
         <div className="mt-2 flex items-center gap-2">
@@ -479,8 +495,8 @@ export default function AppSettingsMenu({
         </div>
         <p className="mt-2 text-xs text-gray-500">
           Any built-in screen can be pinned this way by adding{' '}
-          <code>?screen=</code> to the URL — useful for feeding a venue TV
-          a different view than OBS. Custom screens can&apos;t be pinned; that
+          <code>?screen=</code> to the URL — useful for feeding a venue TV a
+          different view than OBS. Custom screens can&apos;t be pinned; that
           view follows the operator.
         </p>
       </div>

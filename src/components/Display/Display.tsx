@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppSettings, MatchState, Scores, Time } from '../../types';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
@@ -12,6 +13,7 @@ import {
 import Screens from '../Screens/Screens';
 import { MatchSettings } from 'src/zodSchemas';
 import { createDisplayTransport } from '../../displayTransport';
+import { detectLanguage } from '../../utils';
 
 // Lets a browser-source URL pin a specific screen regardless of what the
 // operator currently has selected, e.g. `?screen=scoreboard` for a venue TV
@@ -30,6 +32,7 @@ function parseScreenOverride(search: string): DisplayScreen | null {
 }
 
 const Display = () => {
+  const { i18n } = useTranslation();
   const [transport] = useState(() => createDisplayTransport());
   // Read once at mount: the pinned screen (if any) never changes for the
   // lifetime of this page load.
@@ -107,6 +110,15 @@ const Display = () => {
       removeMatchStateListener();
     };
   }, [transport]);
+
+  // The operator's language choice (pushed over the same app-settings
+  // channel as keyColour/clockFormat) drives the on-air text here — never
+  // this window's own OS/browser locale. detectLanguage() only fills in
+  // before the operator has confirmed a choice (appSettings.language still
+  // unset), exactly like the control window's own fallback.
+  useEffect(() => {
+    i18n.changeLanguage(appSettings.language ?? detectLanguage());
+  }, [appSettings.language, i18n]);
 
   // OBS browser sources are transparent by default when the page itself
   // paints no opaque background; make that explicit for browser-source mode

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   arraysEqual,
   calculatePenalties,
@@ -7,18 +7,25 @@ import {
   classNames,
   debounce,
   deriveGlobalAccelerator,
+  detectLanguage,
   formatTimeOfDay,
   getKeyboardShortcuts,
+  getLanguage,
   getNextPhaseId,
   getPhaseById,
   getPhaseList,
   insertValue,
   keyboardEventToAccelerator,
+  nearestSupportedLanguage,
   removeValue,
   secondsUntilKickOff,
   timeToString,
 } from '../utils';
-import { defaultAppSettings, defaultKeyboardShortcuts, defaultMatchSettings } from '../constants';
+import {
+  defaultAppSettings,
+  defaultKeyboardShortcuts,
+  defaultMatchSettings,
+} from '../constants';
 import { MatchSettings } from '../zodSchemas';
 
 describe('utils', () => {
@@ -91,7 +98,11 @@ describe('utils', () => {
 
     it('matches the historical defaults (45/15) when lengths are unset', () => {
       expect(
-        getPhaseList({ ...defaultMatchSettings, halfLength: undefined, extraTimeHalfLength: undefined })
+        getPhaseList({
+          ...defaultMatchSettings,
+          halfLength: undefined,
+          extraTimeHalfLength: undefined,
+        })
       ).toEqual([
         { id: 'firstHalf', title: 'First Half', start: 0, end: 45 },
         { id: 'secondHalf', title: 'Second Half', start: 45, end: 90 },
@@ -198,9 +209,7 @@ describe('utils', () => {
     });
 
     it('starts at the first phase when nothing has run yet', () => {
-      expect(getNextPhaseId(phaseList, undefined, undefined)).toBe(
-        'firstHalf'
-      );
+      expect(getNextPhaseId(phaseList, undefined, undefined)).toBe('firstHalf');
     });
 
     it('walks to the phase after previousPhaseId', () => {
@@ -224,8 +233,9 @@ describe('utils', () => {
 
   describe('arraysEqual', () => {
     it('compares arrays independent of order', () => {
-      expect(arraysEqual(['scoreBug', 'endScreen'], ['endScreen', 'scoreBug']))
-        .toBe(true);
+      expect(
+        arraysEqual(['scoreBug', 'endScreen'], ['endScreen', 'scoreBug'])
+      ).toBe(true);
     });
 
     it('returns false for undefined arrays or different values', () => {
@@ -269,7 +279,10 @@ describe('utils', () => {
       expect(
         getKeyboardShortcuts({
           ...defaultAppSettings,
-          keyboardShortcuts: { ...defaultKeyboardShortcuts, homeTeamScored: 'CommandOrControl+Shift+J' },
+          keyboardShortcuts: {
+            ...defaultKeyboardShortcuts,
+            homeTeamScored: 'CommandOrControl+Shift+J',
+          },
         })
       ).toEqual({
         ...defaultKeyboardShortcuts,
@@ -283,7 +296,9 @@ describe('utils', () => {
           ...defaultAppSettings,
           keyboardShortcuts: {
             nextMatchPhase: 'CommandOrControl+Shift+N',
-          } as Partial<typeof defaultKeyboardShortcuts> as typeof defaultKeyboardShortcuts,
+          } as Partial<
+            typeof defaultKeyboardShortcuts
+          > as typeof defaultKeyboardShortcuts,
         })
       ).toEqual({
         ...defaultKeyboardShortcuts,
@@ -553,5 +568,80 @@ describe('secondsUntilKickOff', () => {
     expect(secondsUntilKickOff('12:5', now)).toBeNull();
     expect(secondsUntilKickOff('12:05:00', now)).toBeNull();
     expect(secondsUntilKickOff('12', now)).toBeNull();
+  });
+});
+
+describe('nearestSupportedLanguage', () => {
+  it('maps pt-BR to pt-BR', () => {
+    expect(nearestSupportedLanguage('pt-BR')).toBe('pt-BR');
+    expect(nearestSupportedLanguage('pt-br')).toBe('pt-BR');
+  });
+
+  it('maps bare pt and pt-PT (and any other pt-XX) to pt-PT', () => {
+    expect(nearestSupportedLanguage('pt')).toBe('pt-PT');
+    expect(nearestSupportedLanguage('pt-PT')).toBe('pt-PT');
+    expect(nearestSupportedLanguage('pt-AO')).toBe('pt-PT');
+  });
+
+  it('maps es-ES to es-ES', () => {
+    expect(nearestSupportedLanguage('es-ES')).toBe('es-ES');
+  });
+
+  it('maps other Spanish locales (bare es, es-MX, es-AR, es-419) to es-419', () => {
+    expect(nearestSupportedLanguage('es')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-MX')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-AR')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-419')).toBe('es-419');
+  });
+
+  it('maps any French/German/Italian locale to the base code', () => {
+    expect(nearestSupportedLanguage('fr')).toBe('fr');
+    expect(nearestSupportedLanguage('fr-CA')).toBe('fr');
+    expect(nearestSupportedLanguage('de-AT')).toBe('de');
+    expect(nearestSupportedLanguage('it-CH')).toBe('it');
+  });
+
+  it('falls back to en for anything else', () => {
+    expect(nearestSupportedLanguage('ja')).toBe('en');
+    expect(nearestSupportedLanguage('zh-CN')).toBe('en');
+    expect(nearestSupportedLanguage('')).toBe('en');
+  });
+});
+
+describe('detectLanguage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('reads navigator.language and maps it to the nearest supported code', () => {
+    vi.stubGlobal('navigator', { language: 'fr-FR', languages: ['fr-FR'] });
+    expect(detectLanguage()).toBe('fr');
+  });
+
+  it('falls back to navigator.languages[0] when navigator.language is empty', () => {
+    vi.stubGlobal('navigator', { language: '', languages: ['de-DE'] });
+    expect(detectLanguage()).toBe('de');
+  });
+
+  it('falls back to en when no locale information is available', () => {
+    vi.stubGlobal('navigator', { language: '', languages: [] });
+    expect(detectLanguage()).toBe('en');
+  });
+});
+
+describe('getLanguage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('returns the explicit appSettings.language when set', () => {
+    expect(getLanguage({ ...defaultAppSettings, language: 'de' })).toBe('de');
+  });
+
+  it('falls back to detectLanguage() when appSettings.language is unset', () => {
+    vi.stubGlobal('navigator', { language: 'it-IT', languages: ['it-IT'] });
+    expect(getLanguage({ ...defaultAppSettings, language: undefined })).toBe(
+      'it'
+    );
   });
 });
