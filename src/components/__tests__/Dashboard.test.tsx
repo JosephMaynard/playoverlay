@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultAppSettings } from '../../constants';
+import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import { AppSettings, LiveMatch } from '../../types';
 import { MatchSettings, UpdateStatus } from '../../zodSchemas';
 
@@ -388,6 +388,61 @@ describe('Dashboard match engine', () => {
 
       advance(4 * 250); // 1 second
       expect(stores.time.getState().time.time).toBe('61:08');
+    });
+
+    it('prompts with the snapshot\'s team abbreviations and applies its match settings on restore, ahead of scores/state/time', async () => {
+      const snapshotMatchSettings: MatchSettings = {
+        ...defaultMatchSettings,
+        homeTeamNameAbbreviated: 'TIG',
+        awayTeamNameAbbreviated: 'BEA',
+        halfLength: 40,
+      };
+      const currentMatchSettings: MatchSettings = {
+        ...defaultMatchSettings,
+        homeTeamNameAbbreviated: 'HOM',
+        awayTeamNameAbbreviated: 'AWA',
+      };
+      const liveMatch: LiveMatch = {
+        ...fixture(),
+        matchSettings: snapshotMatchSettings,
+      };
+
+      const { stores } = await renderDashboard({
+        liveMatch,
+        matchSettings: currentMatchSettings,
+      });
+
+      // The prompt uses the snapshot's abbreviations, not the currently
+      // loaded ones.
+      expect(screen.getByText(/TIG 2–1 BEA/)).toBeInTheDocument();
+
+      const restoreButton = screen.getByRole('button', { name: 'Restore' });
+      fireEvent.click(restoreButton);
+
+      // Full replace: the store now holds the snapshot's settings, not a
+      // merge with whatever was loaded before the restore.
+      expect(stores.matchSettings.getState().matchSettings).toEqual(
+        snapshotMatchSettings
+      );
+      expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
+      expect(stores.matchState.getState().matchState).toEqual(
+        liveMatch.matchState
+      );
+      expect(stores.time.getState().time.time).toBe('61:07');
+      expect(stores.time.getState().time.paused).toBe(true);
+    });
+
+    it('falls back to the currently loaded team abbreviations when the snapshot predates matchSettings', async () => {
+      const currentMatchSettings: MatchSettings = {
+        ...defaultMatchSettings,
+        homeTeamNameAbbreviated: 'HOM',
+        awayTeamNameAbbreviated: 'AWA',
+      };
+      const liveMatch = fixture(); // no matchSettings field, as with old snapshots
+
+      await renderDashboard({ liveMatch, matchSettings: currentMatchSettings });
+
+      expect(screen.getByText(/HOM 2–1 AWA/)).toBeInTheDocument();
     });
   });
 

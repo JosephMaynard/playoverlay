@@ -1,4 +1,5 @@
 import { DisplayScreen } from './constants';
+import { MatchSettings } from './zodSchemas';
 
 export type homeOrAway = 'home' | 'away';
 
@@ -61,6 +62,10 @@ export interface LiveMatch {
   time: Time;
   matchState: MatchState;
   savedAt: number;
+  // Team/timer settings as they were when the match was in progress. Older
+  // snapshots predate this field, so it's optional and restore falls back
+  // to whatever match settings are currently loaded.
+  matchSettings?: MatchSettings;
 }
 
 export interface Display {

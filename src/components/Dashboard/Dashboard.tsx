@@ -26,6 +26,7 @@ import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
 import { getPhaseList, getNextPhaseId } from '../../utils';
+import { defaultMatchSettings } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
@@ -225,6 +226,14 @@ export default function Dashboard() {
   };
 
   const restoreMatch = (liveMatch: LiveMatch) => {
+    // Applied first (full replace, so no stray field from whatever's
+    // currently loaded survives) so the clock and phase list below
+    // reinterpret the snapshot's scores/state/time against the settings
+    // that were active when it was taken. Older snapshots predate this
+    // field and simply keep whatever match settings are already loaded.
+    if (liveMatch.matchSettings) {
+      setMatchSettings({ ...defaultMatchSettings, ...liveMatch.matchSettings });
+    }
     setScores(liveMatch.scores);
     setMatchState(liveMatch.matchState);
     clock.restoreClock(liveMatch.time);
@@ -391,10 +400,14 @@ export default function Dashboard() {
           <AppNotification
             title="Restore previous match?"
             text={`A match was in progress when PlayOverlay last closed (${
+              restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
               matchSettings.homeTeamNameAbbreviated
             } ${restorableMatch.scores?.homeTeam ?? 0}–${
               restorableMatch.scores?.awayTeam ?? 0
-            } ${matchSettings.awayTeamNameAbbreviated}${
+            } ${
+              restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+              matchSettings.awayTeamNameAbbreviated
+            }${
               restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
             }). Restoring brings back the score and clock, with the clock paused.`}
             icon={

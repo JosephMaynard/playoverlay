@@ -57,8 +57,6 @@ export const matchSetingsSchema = z.object({
     .optional()
     .catch(undefined),
   periodName: z.optional(z.string()),
-  hideCustomGraphics: z.optional(z.array(z.string())),
-  hideScreens: z.optional(z.array(z.string())),
   saveDate: z.optional(z.string()),
   saveId: z.optional(z.string()),
 });

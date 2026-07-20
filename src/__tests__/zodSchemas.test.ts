@@ -63,8 +63,6 @@ describe('zod schemas', () => {
         periodCount: 4,
         periodLength: 10,
         periodName: 'Quarter',
-        hideCustomGraphics: ['sponsor-board'],
-        hideScreens: ['endScreen'],
         saveDate: '2026-07-06',
         saveId: 'match-1',
         saveTitle: 'Final',
