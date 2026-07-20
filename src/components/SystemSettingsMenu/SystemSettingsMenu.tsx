@@ -48,7 +48,9 @@ export default function SystemSettingsMenu({
 
   const scoringButtons = [
     {
-      text: `${matchSettings.homeTeamNameFull} Scored`,
+      text: t('settings:system.teamScored', {
+        team: matchSettings.homeTeamNameFull,
+      }),
       // Same fallback hex values as defaultMatchSettings; that constant's
       // fields are optional per the MatchSettings type, so referencing it
       // directly wouldn't narrow away `undefined` here.
@@ -57,13 +59,15 @@ export default function SystemSettingsMenu({
       onPress: incrementHomeTeamScore,
     },
     {
-      text: `${matchSettings.awayTeamNameFull} Scored`,
+      text: t('settings:system.teamScored', {
+        team: matchSettings.awayTeamNameFull,
+      }),
       textColor: matchSettings.awayTeamTextColour ?? '#ffffff',
       backgroundColor: matchSettings.awayTeamBackgroundColour ?? '#0000cc',
       onPress: incrementAwayTeamScore,
     },
     {
-      text: 'Stop',
+      text: t('settings:system.stop'),
       textColor: 'white',
       backgroundColor: 'red',
       onPress: () => stopTime(),
@@ -77,13 +81,26 @@ export default function SystemSettingsMenu({
     backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
   }));
 
+  // Local i18n key map (rather than translating the `screens` constant
+  // directly): `screens` is shared with DisplayControlsPanel, which this
+  // file's owner doesn't touch, so the translation lookup stays here.
+  const screenLabelKeys: Record<DisplayScreen, string> = {
+    none: 'settings:system.screens.none',
+    matchTitle: 'settings:system.screens.matchTitle',
+    scoreBug: 'settings:system.screens.scoreBug',
+    penalties: 'settings:system.screens.penalties',
+    custom: 'settings:system.screens.custom',
+    endScreen: 'settings:system.screens.endScreen',
+    scoreboard: 'settings:system.screens.scoreboard',
+  };
+
   const screenButtons = Object.keys(screens)
     .filter((screen) => screen !== 'custom')
     .filter(
       (screen) => matchSettings.hasPenalties !== false || screen !== 'penalties'
     )
     .map((screen) => ({
-      text: screens[screen as DisplayScreen],
+      text: t(screenLabelKeys[screen as DisplayScreen]),
       textColor: 'black',
       backgroundColor: 'white',
       onPress: () =>
@@ -145,7 +162,11 @@ export default function SystemSettingsMenu({
 
   return (
     <>
-      <SideMenu open={open} setOpen={setOpen} title="System Settings">
+      <SideMenu
+        open={open}
+        setOpen={setOpen}
+        title={t('settings:system.title')}
+      >
         <ul role="list" className="-mx-2 space-y-1">
           <li>
             <button
@@ -162,7 +183,7 @@ export default function SystemSettingsMenu({
                 )}
                 aria-hidden="true"
               />
-              About
+              {t('settings:system.about')}
             </button>
           </li>
           <li>
@@ -189,8 +210,8 @@ export default function SystemSettingsMenu({
                 aria-hidden="true"
               />
               {streamDeckConnected
-                ? 'Stream Deck connected'
-                : 'Connect to Stream Deck'}
+                ? t('settings:system.streamDeckConnected')
+                : t('settings:system.connectStreamDeck')}
             </button>
           </li>
         </ul>
@@ -198,14 +219,14 @@ export default function SystemSettingsMenu({
       <Modal
         open={currentModal === 'about'}
         setOpen={() => setCurrentModal(null)}
-        title="About PlayOverlay"
+        title={t('settings:system.aboutModal.title')}
         icon="playoverlay-logo"
       >
         <div className="mt-6 border-t border-gray-100">
           <dl className="divide-y divide-gray-100">
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
               <dt className="text-sm font-medium leading-6 text-gray-900">
-                Product
+                {t('settings:system.aboutModal.product')}
               </dt>
               <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                 PlayOverlay
@@ -213,7 +234,7 @@ export default function SystemSettingsMenu({
             </div>
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
               <dt className="text-sm font-medium leading-6 text-gray-900">
-                Version
+                {t('settings:system.aboutModal.version')}
               </dt>
               <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                 {window?.electronAPI?.getVersion()}

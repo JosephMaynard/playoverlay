@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import SideMenu from '../SideMenu/SideMenu';
 import DragAndDropUploader from './DragAndDropUploader';
@@ -23,6 +24,7 @@ export default function CustomScreensMenu({
   customGraphics,
   fetchScreens,
 }: Props) {
+  const { t } = useTranslation();
   const [showAddCustomScreenModal, setShowAddCustomScreenModal] =
     useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
@@ -70,7 +72,11 @@ export default function CustomScreensMenu({
   };
 
   return (
-    <SideMenu open={open} setOpen={setOpen} title="Custom Graphics">
+    <SideMenu
+      open={open}
+      setOpen={setOpen}
+      title={t('settings:customScreens.title')}
+    >
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto" />
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -79,7 +85,7 @@ export default function CustomScreensMenu({
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={() => setShowAddCustomScreenModal(true)}
           >
-            Add Custom Graphic
+            {t('settings:customScreens.add')}
           </button>
         </div>
       </div>
@@ -87,8 +93,10 @@ export default function CustomScreensMenu({
         <ul role="list" className="divide-y divide-gray-100">
           {customGraphics?.length === 0 && (
             <Empty
-              title="No Custom Graphics"
-              description='Click the "Add Custom Graphic" button to add custom graphics'
+              title={t('settings:customScreens.emptyTitle')}
+              description={t('settings:customScreens.emptyDescription', {
+                action: t('settings:customScreens.add'),
+              })}
             />
           )}
           {customGraphics?.map((customScreen) => (
@@ -108,11 +116,13 @@ export default function CustomScreensMenu({
                   {customScreen.title}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-gray-600">
-                  Type:{' '}
-                  {customScreen.type === 'screen' ||
-                  customScreen.type === undefined
-                    ? 'Custom Screen'
-                    : 'Overlay'}
+                  {t('settings:customScreens.typeLine', {
+                    type:
+                      customScreen.type === 'screen' ||
+                      customScreen.type === undefined
+                        ? t('settings:customScreens.typeScreen')
+                        : t('settings:customScreens.typeOverlay'),
+                  })}
                 </p>
               </div>
               <button
@@ -121,7 +131,7 @@ export default function CustomScreensMenu({
                 onClick={() => setCustomScreenToEdit(customScreen)}
               >
                 <PencilIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                Edit
+                {t('settings:customScreens.edit')}
               </button>
               <button
                 type="button"
@@ -129,7 +139,7 @@ export default function CustomScreensMenu({
                 onClick={() => handleDelete(customScreen)}
               >
                 <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                Delete
+                {t('settings:actions.delete')}
               </button>
             </li>
           ))}
@@ -138,7 +148,7 @@ export default function CustomScreensMenu({
       <WideModal
         open={showAddCustomScreenModal}
         setOpen={setShowAddCustomScreenModal}
-        title="Add Custom Screen"
+        title={t('settings:customScreens.addModalTitle')}
       >
         <DragAndDropUploader
           customScreenCount={customGraphics?.length}
@@ -157,8 +167,8 @@ export default function CustomScreensMenu({
       <Modal
         open={showConfirmDeleteModal}
         setOpen={setShowConfirmDeleteModal}
-        title="Delete custom screen?"
-        actionButtonLabel="Delete custom screen"
+        title={t('settings:customScreens.deleteConfirmTitle')}
+        actionButtonLabel={t('settings:customScreens.deleteConfirmAction')}
         icon="warning"
         action={() => {
           if (customScreenToDelete?.filePath) {
@@ -168,8 +178,9 @@ export default function CustomScreensMenu({
         }}
       >
         <p className="text-sm text-gray-500">
-          Are you sure you want to delete the custom screen "
-          {customScreenToDelete?.title}"?
+          {t('settings:customScreens.deleteConfirmBody', {
+            title: customScreenToDelete?.title,
+          })}
         </p>
       </Modal>
     </SideMenu>

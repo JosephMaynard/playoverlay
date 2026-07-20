@@ -37,12 +37,14 @@ export default function LanguageModal({ language, onConfirm }: Props) {
       setOpen={(nextOpen) => {
         if (!nextOpen) setDismissed(true);
       }}
-      title={t('languageModal.title')}
-      actionButtonLabel={t('languageModal.confirm')}
+      title={t('settings:language.modal.title')}
+      actionButtonLabel={t('settings:language.modal.confirm')}
       actionButtonColor="indigo"
       action={() => onConfirm(selected)}
     >
-      <p className="text-sm text-gray-500">{t('languageModal.description')}</p>
+      <p className="text-sm text-gray-500">
+        {t('settings:language.modal.description')}
+      </p>
       <div className="mt-4 grid grid-cols-2 gap-2">
         {supportedLanguages.map(({ code, label }) => (
           <button

@@ -14,7 +14,7 @@ describe('i18n init', () => {
   });
 
   it('translates a seeded key in English', () => {
-    expect(i18n.t('languageModal.title')).toBe('Choose a language');
+    expect(i18n.t('settings:language.modal.title')).toBe('Choose a language');
     expect(i18n.t('language.fr')).toBe('Français');
   });
 
@@ -24,7 +24,7 @@ describe('i18n init', () => {
 
     // No French catalogue yet (W1 is English-only); fallbackLng keeps the
     // seeded key readable instead of showing raw key strings.
-    expect(i18n.t('languageModal.title')).toBe('Choose a language');
+    expect(i18n.t('settings:language.modal.title')).toBe('Choose a language');
 
     // Reset for any other test file sharing this module-scope singleton.
     await i18n.changeLanguage('en');

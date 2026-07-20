@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from '../ButtonGrid/Button';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 
@@ -13,9 +14,14 @@ const DragAndDropUploader: React.FC<Props> = ({
   keyColour,
   close,
 }: Props) => {
+  const { t } = useTranslation();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [title, setTitle] = useState(`Custom Screen ${customScreenCount + 1}`);
+  const [title, setTitle] = useState(
+    t('settings:customScreens.uploader.defaultTitle', {
+      n: customScreenCount + 1,
+    })
+  );
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -61,7 +67,7 @@ const DragAndDropUploader: React.FC<Props> = ({
 
   const handleSave = async () => {
     if (!file || !title) {
-      setError('Please provide both a file and a title.');
+      setError(t('settings:customScreens.uploader.missingFields'));
       return;
     }
     try {
@@ -73,10 +79,10 @@ const DragAndDropUploader: React.FC<Props> = ({
         setError(null);
         close();
       } else {
-        setError('Failed to upload the image. Please try again.');
+        setError(t('settings:customScreens.uploader.uploadFailed'));
       }
     } catch (err) {
-      setError('Failed to upload the image. Please try again.');
+      setError(t('settings:customScreens.uploader.uploadFailed'));
       console.error(err);
     }
   };
@@ -89,7 +95,7 @@ const DragAndDropUploader: React.FC<Props> = ({
   return (
     <div>
       <h3 className="mb-2 block text-sm font-medium leading-6 text-gray-900">
-        Image
+        {t('settings:customScreens.uploader.image')}
       </h3>
 
       {!imageUrl ? (
@@ -102,18 +108,18 @@ const DragAndDropUploader: React.FC<Props> = ({
             border: isDragging ? '2px dashed #000' : '2px dashed #ccc',
           }}
         >
-          <PhotoIcon className="h-16 w-16  text-gray-400" />
+          <PhotoIcon className="h-16 w-16 text-gray-400" />
           {isDragging ? (
-            <p>Drop the file here...</p>
+            <p>{t('settings:customScreens.uploader.dropHere')}</p>
           ) : (
             <>
-              <p>Drag & Drop an image file here, or click to select one</p>
+              <p>{t('settings:customScreens.uploader.dragDropHint')}</p>
               <button
                 type="button"
                 className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Click to select one
+                {t('settings:customScreens.uploader.selectFile')}
               </button>
               <input
                 type="file"
@@ -127,7 +133,7 @@ const DragAndDropUploader: React.FC<Props> = ({
         </div>
       ) : (
         <div>
-          <h3>Uploaded Image:</h3>
+          <h3>{t('settings:customScreens.uploader.uploadedImage')}</h3>
           <div
             style={{
               backgroundImage: `url(${imageUrl})`,
@@ -135,7 +141,9 @@ const DragAndDropUploader: React.FC<Props> = ({
             }}
             className="aspect-video w-full bg-contain bg-center bg-no-repeat"
           />
-          <button onClick={handleDelete}>Delete Image</button>
+          <button onClick={handleDelete}>
+            {t('settings:customScreens.uploader.deleteImage')}
+          </button>
         </div>
       )}
 
@@ -146,7 +154,7 @@ const DragAndDropUploader: React.FC<Props> = ({
           htmlFor="add-custom-screen-title"
           className="block text-sm font-medium leading-6 text-gray-900"
         >
-          Title
+          {t('settings:customScreens.uploader.titleLabel')}
         </label>
         <div className="mt-2">
           <input
@@ -162,7 +170,7 @@ const DragAndDropUploader: React.FC<Props> = ({
       <Button
         onClick={handleSave}
         disabled={!file || !title}
-        label="Save"
+        label={t('settings:actions.save')}
         className="min-w-32"
       />
     </div>

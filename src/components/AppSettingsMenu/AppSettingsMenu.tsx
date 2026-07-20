@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { AppSettings, Display, KeyboardShortcuts } from '../../types';
 import { defaultKeyboardShortcuts, supportedLanguages } from '../../constants';
 import {
@@ -55,9 +55,9 @@ export default function AppSettingsMenu({
   const browserSource = getBrowserSourceSettings(appSettings);
 
   const shortcutLabels: Record<keyof KeyboardShortcuts, string> = {
-    nextMatchPhase: 'Next match phase',
-    homeTeamScored: 'Home team scored',
-    awayTeamScored: 'Away team scored',
+    nextMatchPhase: t('settings:appMenu.keyboardShortcuts.nextMatchPhase'),
+    homeTeamScored: t('settings:appMenu.keyboardShortcuts.homeTeamScored'),
+    awayTeamScored: t('settings:appMenu.keyboardShortcuts.awayTeamScored'),
   };
 
   const [browserSourcePortDraft, setBrowserSourcePortDraft] = useState(
@@ -176,7 +176,9 @@ export default function AppSettingsMenu({
 
     if (conflictingAction) {
       setShortcutConflictError(
-        `Already used by "${shortcutLabels[conflictingAction]}".`
+        t('settings:appMenu.keyboardShortcuts.conflict', {
+          label: shortcutLabels[conflictingAction],
+        })
       );
       return;
     }
@@ -198,7 +200,9 @@ export default function AppSettingsMenu({
       // applying a default that collides with another shortcut.
       setRecordingAction(action);
       setShortcutConflictError(
-        `Already used by "${shortcutLabels[conflictingAction]}".`
+        t('settings:appMenu.keyboardShortcuts.conflict', {
+          label: shortcutLabels[conflictingAction],
+        })
       );
       return;
     }
@@ -234,7 +238,7 @@ export default function AppSettingsMenu({
       parsedPort < 1024 ||
       parsedPort > 65535
     ) {
-      setBrowserSourcePortError('Enter a port between 1024 and 65535.');
+      setBrowserSourcePortError(t('settings:appMenu.browserSource.portError'));
       return;
     }
     setBrowserSourcePortError(null);
@@ -271,10 +275,10 @@ export default function AppSettingsMenu({
   };
 
   return (
-    <SideMenu open={open} setOpen={setOpen} title="Window Settings">
+    <SideMenu open={open} setOpen={setOpen} title={t('settings:appMenu.title')}>
       <div className="my-4 max-w-64 rounded-md border border-gray-200 bg-white p-4 shadow">
         <ColourPicker
-          label="Key Colour"
+          label={t('settings:appMenu.keyColour')}
           onChange={(keyColour: string) => {
             updateAppSettings({ keyColour });
           }}
@@ -282,9 +286,9 @@ export default function AppSettingsMenu({
           disabled={isLocked}
         />
       </div>
-      <CollapsiblePanel title={t('appSettings.language.title')}>
+      <CollapsiblePanel title={t('settings:language.title')}>
         <p className="mb-3 text-sm text-gray-500">
-          {t('appSettings.language.description')}
+          {t('settings:language.description')}
         </p>
         <ButtonGrid
           compact
@@ -297,21 +301,21 @@ export default function AppSettingsMenu({
       </CollapsiblePanel>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
         <h3 className="mb-2 text-base font-semibold leading-6 text-gray-900">
-          Scoreboard Clock
+          {t('settings:appMenu.scoreboardClock.title')}
         </h3>
         <p className="mb-3 text-sm text-gray-500">
-          Time-of-day format on the spectator scoreboard screen.
+          {t('settings:appMenu.scoreboardClock.description')}
         </p>
         <ButtonGrid
           compact
           buttons={[
             {
-              label: '24-hour',
+              label: t('settings:appMenu.scoreboardClock.twentyFourHour'),
               onClick: () => updateAppSettings({ clockFormat: '24h' }),
               selected: (appSettings.clockFormat ?? '24h') === '24h',
             },
             {
-              label: 'AM/PM',
+              label: t('settings:appMenu.scoreboardClock.amPm'),
               onClick: () => updateAppSettings({ clockFormat: '12h' }),
               selected: appSettings.clockFormat === '12h',
             },
@@ -320,11 +324,11 @@ export default function AppSettingsMenu({
       </div>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
         <h3 className="text-sm font-semibold text-gray-900">
-          Keyboard Shortcuts
+          {t('settings:appMenu.keyboardShortcuts.title')}
         </h3>
         <div className="divide-y divide-gray-100">
           <KeyboardShortcutRow
-            label="Next match phase"
+            label={shortcutLabels.nextMatchPhase}
             accelerator={keyboardShortcuts.nextMatchPhase}
             isRecording={recordingAction === 'nextMatchPhase'}
             onStartRecording={() =>
@@ -346,7 +350,7 @@ export default function AppSettingsMenu({
             }
           />
           <KeyboardShortcutRow
-            label="Home team scored"
+            label={shortcutLabels.homeTeamScored}
             accelerator={keyboardShortcuts.homeTeamScored}
             isRecording={recordingAction === 'homeTeamScored'}
             onStartRecording={() =>
@@ -368,7 +372,7 @@ export default function AppSettingsMenu({
             }
           />
           <KeyboardShortcutRow
-            label="Away team scored"
+            label={shortcutLabels.awayTeamScored}
             accelerator={keyboardShortcuts.awayTeamScored}
             isRecording={recordingAction === 'awayTeamScored'}
             onStartRecording={() =>
@@ -391,13 +395,12 @@ export default function AppSettingsMenu({
           />
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Each shortcut also works system-wide (e.g. while OBS is focused) with
-          Alt added, unless the shortcut already includes Alt.
+          {t('settings:appMenu.keyboardShortcuts.globalHint')}
         </p>
       </div>
       <div className="my-4 max-w-md rounded-md border border-gray-200 bg-white p-4 shadow">
         <h3 className="text-sm font-semibold text-gray-900">
-          OBS Browser Source
+          {t('settings:appMenu.browserSource.title')}
         </h3>
         <Switch.Group as="div" className="mt-2 flex items-center">
           <Switch
@@ -417,14 +420,16 @@ export default function AppSettingsMenu({
             />
           </Switch>
           <Switch.Label as="span" className="ml-3 text-sm">
-            <span className="font-medium text-gray-900">Enable</span>
+            <span className="font-medium text-gray-900">
+              {t('settings:appMenu.browserSource.enable')}
+            </span>
           </Switch.Label>
         </Switch.Group>
         <label
           htmlFor="browserSourcePort"
           className="mt-3 block text-sm font-medium leading-6 text-gray-900"
         >
-          Port
+          {t('settings:appMenu.browserSource.port')}
         </label>
         <div className="mt-1">
           <input
@@ -453,8 +458,18 @@ export default function AppSettingsMenu({
           )}
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Status: {browserSourceStatus?.running ? 'Running' : 'Stopped'}
-          {browserSourceStatus?.error ? ` — ${browserSourceStatus.error}` : ''}
+          {browserSourceStatus?.error
+            ? t('settings:appMenu.browserSource.statusWithError', {
+                state: browserSourceStatus?.running
+                  ? t('settings:appMenu.browserSource.statusRunning')
+                  : t('settings:appMenu.browserSource.statusStopped'),
+                error: browserSourceStatus.error,
+              })
+            : t('settings:appMenu.browserSource.status', {
+                state: browserSourceStatus?.running
+                  ? t('settings:appMenu.browserSource.statusRunning')
+                  : t('settings:appMenu.browserSource.statusStopped'),
+              })}
         </p>
         <div className="mt-2 flex items-center gap-2">
           <code className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">
@@ -465,18 +480,19 @@ export default function AppSettingsMenu({
             onClick={handleCopyBrowserSourceUrl}
             className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
           >
-            {copiedBrowserSourceUrl ? 'Copied!' : 'Copy'}
+            {copiedBrowserSourceUrl
+              ? t('settings:appMenu.browserSource.copied')
+              : t('settings:appMenu.browserSource.copy')}
           </button>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Add as a Browser Source in OBS at your canvas resolution; the
-          background is transparent.
+          {t('settings:appMenu.browserSource.hint')}
         </p>
         <label
           htmlFor="scoreboardBrowserSourceUrl"
           className="mt-3 block text-sm font-medium leading-6 text-gray-900"
         >
-          Scoreboard view
+          {t('settings:appMenu.browserSource.scoreboardView')}
         </label>
         <div className="mt-1 flex items-center gap-2">
           <code
@@ -490,14 +506,16 @@ export default function AppSettingsMenu({
             onClick={handleCopyScoreboardUrl}
             className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
           >
-            {copiedScoreboardUrl ? 'Copied!' : 'Copy'}
+            {copiedScoreboardUrl
+              ? t('settings:appMenu.browserSource.copied')
+              : t('settings:appMenu.browserSource.copy')}
           </button>
         </div>
         <p className="mt-2 text-xs text-gray-500">
-          Any built-in screen can be pinned this way by adding{' '}
-          <code>?screen=</code> to the URL — useful for feeding a venue TV a
-          different view than OBS. Custom screens can&apos;t be pinned; that
-          view follows the operator.
+          <Trans
+            i18nKey="settings:appMenu.browserSource.customScreenHint"
+            components={{ code: <code /> }}
+          />
         </p>
       </div>
       {displays.length > 1 ? (
@@ -506,7 +524,9 @@ export default function AppSettingsMenu({
           className="mt-4"
           buttons={[
             ...displays.map((display, index) => ({
-              label: `Move to Screen ${index + 1}`,
+              label: t('settings:appMenu.displays.moveToScreen', {
+                n: index + 1,
+              }),
               onClick: () => handleMoveWindow(display.id),
               disabled: isLocked,
               icon: (
@@ -519,27 +539,29 @@ export default function AppSettingsMenu({
           ]}
         />
       ) : (
-        <p className="my-12">No external displays detected.</p>
+        <p className="my-12">{t('settings:appMenu.displays.none')}</p>
       )}
       <ButtonGrid
         className="mt-4"
         buttons={[
           {
-            label: 'Toggle Fullscreen',
+            label: t('settings:appMenu.windowControls.toggleFullscreen'),
             onClick: () => window?.electronAPI?.toggleFullscreen(),
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
             disabled: isLocked,
           },
           {
-            label: 'Reset positions',
+            label: t('settings:appMenu.windowControls.resetPositions'),
             onClick: () => window?.electronAPI?.resetWindows(),
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
             disabled: isLocked,
           },
           {
-            label: isLocked ? 'Unlock Windows' : 'Lock Windows',
+            label: isLocked
+              ? t('settings:appMenu.windowControls.unlockWindows')
+              : t('settings:appMenu.windowControls.lockWindows'),
             onClick: isLocked ? handleUnlockWindows : handleLockWindows,
             color: 'text-white',
             backgroundColor: isLocked ? 'bg-red-600' : 'bg-green-600',

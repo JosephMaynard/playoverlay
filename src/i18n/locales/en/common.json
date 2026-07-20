@@ -1,4 +1,6 @@
 {
+  "cancel": "Cancel",
+  "close": "Close",
   "language": {
     "en": "English",
     "fr": "Français",
@@ -9,15 +11,8 @@
     "pt-PT": "Português (Portugal)",
     "pt-BR": "Português (Brasil)"
   },
-  "languageModal": {
-    "title": "Choose a language",
-    "description": "Pick the language PlayOverlay uses for its menus and on-air graphics. You can change this later in Window Settings.",
-    "confirm": "Confirm"
+  "loadingSpinner": {
+    "alt": "PlayOverlay Logo"
   },
-  "appSettings": {
-    "language": {
-      "title": "Language",
-      "description": "Language used for menus and on-air graphics."
-    }
-  }
+  "reset": "Reset"
 }

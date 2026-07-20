@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
+import { useTranslation } from 'react-i18next';
 import { AppSettings } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
@@ -81,9 +82,10 @@ export default function MatchSettingsMenu({
   updateMatchSettings,
   appSettings,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <SideMenu
-      title="Match Settings"
+      title={t('settings:matchMenu.title')}
       open={sidebarOpen}
       setOpen={setSidebarOpen}
     >
@@ -92,7 +94,7 @@ export default function MatchSettingsMenu({
         setMatchSettings={updateMatchSettings}
       />
       <TeamSettings
-        title="Home Team"
+        title={t('settings:matchMenu.homeTeam')}
         teamNameFull={matchSettings.homeTeamNameFull}
         setTeamNameFull={(homeTeamNameFull: string) =>
           updateMatchSettings({ homeTeamNameFull })
@@ -116,7 +118,7 @@ export default function MatchSettingsMenu({
         appSettings={appSettings}
       />
       <TeamSettings
-        title="Away Team"
+        title={t('settings:matchMenu.awayTeam')}
         teamNameFull={matchSettings.awayTeamNameFull}
         setTeamNameFull={(awayTeamNameFull: string) =>
           updateMatchSettings({ awayTeamNameFull })
@@ -139,13 +141,13 @@ export default function MatchSettingsMenu({
         }
         appSettings={appSettings}
       />
-      <CollapsiblePanel title="Match Details">
+      <CollapsiblePanel title={t('settings:matchMenu.details.title')}>
         <div className="col-span-full mb-4">
           <label
             htmlFor="matchVenue"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
-            Venue
+            {t('settings:matchMenu.details.venue')}
           </label>
           <div className="mt-2">
             <input
@@ -165,7 +167,7 @@ export default function MatchSettingsMenu({
             htmlFor="kickOffTime"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
-            Kick-off Time
+            {t('settings:matchMenu.details.kickOffTime')}
           </label>
           <div className="mt-2">
             <input
@@ -184,18 +186,18 @@ export default function MatchSettingsMenu({
         </div>
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium leading-6 text-gray-900">
-            Timer Mode
+            {t('settings:matchMenu.details.timerMode')}
           </label>
           <ButtonGrid
             compact
             buttons={[
               {
-                label: 'Football',
+                label: t('settings:matchMenu.details.football'),
                 selected: matchSettings.timerMode !== 'generic',
                 onClick: () => updateMatchSettings({ timerMode: 'football' }),
               },
               {
-                label: 'Generic',
+                label: t('settings:matchMenu.details.generic'),
                 selected: matchSettings.timerMode === 'generic',
                 onClick: () => updateMatchSettings({ timerMode: 'generic' }),
               },
@@ -209,7 +211,7 @@ export default function MatchSettingsMenu({
                 htmlFor="periodCount"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
-                Number of Periods
+                {t('settings:matchMenu.details.periodCount')}
               </label>
               <div className="mt-2">
                 <DraftNumberInput
@@ -228,7 +230,7 @@ export default function MatchSettingsMenu({
                 htmlFor="periodLength"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
-                Period Length
+                {t('settings:matchMenu.details.periodLength')}
               </label>
               <div className="mt-2">
                 <DraftNumberInput
@@ -247,7 +249,7 @@ export default function MatchSettingsMenu({
                 htmlFor="periodName"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
-                Period Name
+                {t('settings:matchMenu.details.periodNameLabel')}
               </label>
               <div className="mt-2">
                 <input
@@ -256,7 +258,9 @@ export default function MatchSettingsMenu({
                   id="periodName"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   value={matchSettings.periodName || ''}
-                  placeholder="Period"
+                  placeholder={t(
+                    'settings:matchMenu.details.periodNamePlaceholder'
+                  )}
                   onChange={(e) =>
                     updateMatchSettings({
                       periodName: e.target.value || undefined,
@@ -273,7 +277,7 @@ export default function MatchSettingsMenu({
                 htmlFor="halfLength"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
-                Half Length
+                {t('settings:matchMenu.details.halfLength')}
               </label>
               <div className="mt-2">
                 <DraftNumberInput
@@ -297,7 +301,7 @@ export default function MatchSettingsMenu({
                   htmlFor="extraTimeHalfLength"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Extra Time Half Length
+                  {t('settings:matchMenu.details.extraTimeHalfLength')}
                 </label>
                 <div className="mt-2">
                   <DraftNumberInput
@@ -343,7 +347,9 @@ export default function MatchSettingsMenu({
               />
             </Switch>
             <Switch.Label as="span" className="ml-3 text-sm">
-              <span className="font-medium text-gray-900">Extra time</span>
+              <span className="font-medium text-gray-900">
+                {t('settings:matchMenu.details.extraTime')}
+              </span>
             </Switch.Label>
           </Switch.Group>
         )}
@@ -371,7 +377,9 @@ export default function MatchSettingsMenu({
             />
           </Switch>
           <Switch.Label as="span" className="ml-3 text-sm">
-            <span className="font-medium text-gray-900">Penalties</span>
+            <span className="font-medium text-gray-900">
+              {t('settings:matchMenu.details.penalties')}
+            </span>
           </Switch.Label>
         </Switch.Group>
         <button
@@ -390,7 +398,7 @@ export default function MatchSettingsMenu({
             });
           }}
         >
-          Reset
+          {t('reset')}
         </button>
       </CollapsiblePanel>
     </SideMenu>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
@@ -17,6 +18,7 @@ export default function SavedMatchSettings({
   matchSettings,
   setMatchSettings,
 }: Props) {
+  const { t } = useTranslation();
   const [savedMatchSettingsToDelete, setSavedMatchSettingsToDelete] =
     useState<MatchSettings | null>(null);
   const [savedMatchSettingsToRestore, setSavedMatchSettingsToRestore] =
@@ -83,33 +85,35 @@ export default function SavedMatchSettings({
 
   return (
     <>
-      <CollapsiblePanel title="Save / Restore Match Settings">
+      <CollapsiblePanel title={t('settings:matchMenu.saved.title')}>
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={() => setModal('save-current-match-settings')}
           >
-            Save Current Match Settings
+            {t('settings:matchMenu.saved.saveCurrent')}
           </button>
           <button
             type="button"
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={() => setModal('show-saved-match-settings')}
           >
-            Open Saved Match Settings
+            {t('settings:matchMenu.saved.openSaved')}
           </button>
         </div>
       </CollapsiblePanel>
       <WideModal
         open={modal === 'show-saved-match-settings'}
         setOpen={() => setModal(null)}
-        title="Open Saved Match Settings"
+        title={t('settings:matchMenu.saved.openSaved')}
       >
         {savedMatchSettings.length === 0 ? (
           <Empty
-            title="No Saved Match Settings"
-            description='Click the "Save Current Match Settings" button to save match settings'
+            title={t('settings:matchMenu.saved.emptyTitle')}
+            description={t('settings:matchMenu.saved.emptyDescription', {
+              action: t('settings:matchMenu.saved.saveCurrent'),
+            })}
           />
         ) : (
           <ul role="list" className="divide-y divide-gray-100">
@@ -124,8 +128,11 @@ export default function SavedMatchSettings({
                   </p>
                   {savedMatchSetting.saveDate && (
                     <p className="mt-1 text-xs leading-6 text-gray-600">
-                      Saved:{' '}
-                      {new Date(savedMatchSetting.saveDate).toLocaleString()}
+                      {t('settings:matchMenu.saved.savedAt', {
+                        date: new Date(
+                          savedMatchSetting.saveDate
+                        ).toLocaleString(),
+                      })}
                     </p>
                   )}
                 </div>
@@ -141,7 +148,7 @@ export default function SavedMatchSettings({
                     className="-ml-0.5 h-5 w-5"
                     aria-hidden="true"
                   />
-                  Restore
+                  {t('settings:matchMenu.saved.restore')}
                 </button>
                 <button
                   type="button"
@@ -151,7 +158,7 @@ export default function SavedMatchSettings({
                   }
                 >
                   <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                  Delete
+                  {t('settings:actions.delete')}
                 </button>
               </li>
             ))}
@@ -161,8 +168,8 @@ export default function SavedMatchSettings({
       <Modal
         open={!!savedMatchSettingsToDelete}
         setOpen={() => setSavedMatchSettingsToDelete(null)}
-        title="Delete Saved Match Settings?"
-        actionButtonLabel="Delete"
+        title={t('settings:matchMenu.saved.deleteModalTitle')}
+        actionButtonLabel={t('settings:actions.delete')}
         icon="warning"
         action={() => {
           handleDelete();
@@ -170,15 +177,16 @@ export default function SavedMatchSettings({
         }}
       >
         <p className="text-sm text-gray-500">
-          Are you sure you want to delete the saved match settings "
-          {savedMatchSettingsToDelete?.saveTitle}"?
+          {t('settings:matchMenu.saved.deleteConfirmBody', {
+            title: savedMatchSettingsToDelete?.saveTitle,
+          })}
         </p>
       </Modal>
       <Modal
         open={!!savedMatchSettingsToRestore}
         setOpen={() => setSavedMatchSettingsToRestore(null)}
-        title="Restore Saved Match Settings?"
-        actionButtonLabel="Restore"
+        title={t('settings:matchMenu.saved.restoreModalTitle')}
+        actionButtonLabel={t('settings:matchMenu.saved.restore')}
         actionButtonColor="green"
         icon="warning"
         action={() => {
@@ -200,15 +208,14 @@ export default function SavedMatchSettings({
         }}
       >
         <p className="text-sm text-gray-500">
-          Are you sure you want to restore the saved match settings? The current
-          match settings will be overwritten if you proceed.
+          {t('settings:matchMenu.saved.restoreConfirmBody')}
         </p>
       </Modal>
       <Modal
         open={modal === 'save-current-match-settings'}
         setOpen={() => setModal(null)}
-        title="Save Match Settings?"
-        actionButtonLabel="Save"
+        title={t('settings:matchMenu.saved.saveModalTitle')}
+        actionButtonLabel={t('settings:actions.save')}
         actionButtonColor="green"
         icon="playoverlay-logo"
         action={() => {
@@ -221,7 +228,7 @@ export default function SavedMatchSettings({
             htmlFor="saved-match-settings-name"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
-            Name
+            {t('settings:matchMenu.saved.nameLabel')}
           </label>
           <div className="mt-2">
             <input
