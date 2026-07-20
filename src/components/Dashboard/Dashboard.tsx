@@ -426,6 +426,8 @@ export default function Dashboard() {
           updateMatchState={setMatchState}
           matchState={matchState}
           time={time}
+          appSettings={appSettings}
+          updateAppSettings={updateAppSettings}
         />
       </div>
       <div

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { defaultAppSettings } from '../../constants';
@@ -17,20 +17,24 @@ function installElectronAPI() {
     onDisplayChange: vi.fn(() => vi.fn()),
     getLockStatus: vi.fn(),
     onLockStatus: vi.fn(() => vi.fn()),
-    getBrowserSourceStatus: vi
-      .fn()
-      .mockResolvedValue({ running: false, port: 4750 }),
+    moveWindowToScreen: vi.fn(),
+    toggleFullscreen: vi.fn(),
+    resetWindows: vi.fn(),
+    lockWindows: vi.fn(),
+    unlockWindows: vi.fn(),
   } as unknown as Window['electronAPI'];
 
   Object.defineProperty(window, 'electronAPI', {
     configurable: true,
     value: electronAPI,
   });
+
+  return electronAPI;
 }
 
 function renderMenu(appSettings: AppSettings = defaultAppSettings) {
   const updateAppSettings = vi.fn();
-  installElectronAPI();
+  const electronAPI = installElectronAPI();
   render(
     <AppSettingsMenu
       open
@@ -39,55 +43,46 @@ function renderMenu(appSettings: AppSettings = defaultAppSettings) {
       updateAppSettings={updateAppSettings}
     />
   );
-  return { updateAppSettings };
+  return { updateAppSettings, electronAPI };
 }
 
-describe('AppSettingsMenu language selector', () => {
-  it('renders the 8 supported language options inside a collapsible "Language" panel', () => {
-    renderMenu();
-
-    expect(screen.getByText('Language')).toBeInTheDocument();
-    [
-      'English',
-      'Français',
-      'Deutsch',
-      'Italiano',
-      'Español (España)',
-      'Español (Latinoamérica)',
-      'Português (Portugal)',
-      'Português (Brasil)',
-    ].forEach((label) => {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
-    });
-  });
-
-  it('marks the detected/default language selected when appSettings.language is unset', () => {
-    renderMenu({ ...defaultAppSettings, language: undefined });
-
-    // getLanguage() falls back to detectLanguage(); jsdom's default
-    // navigator.language is en-US, so English is selected.
-    expect(screen.getByRole('button', { name: 'English' }).className).toMatch(
-      /bg-green-300/
-    );
-  });
-
-  it('marks the chosen language selected once appSettings.language is set', () => {
-    renderMenu({ ...defaultAppSettings, language: 'de' });
-
-    expect(screen.getByRole('button', { name: 'Deutsch' }).className).toMatch(
-      /bg-green-300/
-    );
-    expect(
-      screen.getByRole('button', { name: 'English' }).className
-    ).not.toMatch(/bg-green-300/);
-  });
-
-  it('calls updateAppSettings with the chosen language code when clicked', async () => {
-    const user = userEvent.setup();
+describe('AppSettingsMenu key colour', () => {
+  it('renders the Key Colour panel and reports colour changes', async () => {
     const { updateAppSettings } = renderMenu();
 
-    await user.click(screen.getByRole('button', { name: 'Français' }));
+    expect(screen.getAllByText('Key Colour').length).toBeGreaterThan(0);
 
-    expect(updateAppSettings).toHaveBeenCalledWith({ language: 'fr' });
+    const input = screen.getByLabelText('Key Colour') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '#ff0000' } });
+
+    expect(updateAppSettings).toHaveBeenCalledWith({ keyColour: '#ff0000' });
+  });
+});
+
+describe('AppSettingsMenu window controls', () => {
+  it('toggles fullscreen, resets positions, and locks/unlocks windows', async () => {
+    const user = userEvent.setup();
+    const { electronAPI } = renderMenu();
+
+    await user.click(screen.getByRole('button', { name: 'Toggle Fullscreen' }));
+    expect(electronAPI.toggleFullscreen).toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Reset positions' }));
+    expect(electronAPI.resetWindows).toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Lock Windows' }));
+    expect(electronAPI.lockWindows).toHaveBeenCalled();
+
+    expect(
+      await screen.findByRole('button', { name: 'Unlock Windows' })
+    ).toBeInTheDocument();
+  });
+
+  it('shows a "no external displays" message when there is only one display', () => {
+    renderMenu();
+
+    expect(
+      screen.getByText('No external displays detected.')
+    ).toBeInTheDocument();
   });
 });
