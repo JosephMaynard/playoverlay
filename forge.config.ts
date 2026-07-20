@@ -10,6 +10,10 @@ const config: ForgeConfig = {
     asar: true,
     icon: 'src/assets/appIcon',
     appBundleId: 'com.playoverlay.app',
+    // The deb/rpm makers expect a lowercase binary matching the package
+    // name; without this the packaged binary is "PlayOverlay" and the Linux
+    // makers fail to find it ("could not find the Electron app binary").
+    executableName: 'playoverlay',
   },
   rebuildConfig: {},
   makers: [
