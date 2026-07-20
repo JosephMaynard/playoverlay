@@ -143,6 +143,30 @@ describe('createRequestListener dev-redirect', () => {
     expect(url.searchParams.get('ws')).toBe('4750');
     expect(url.searchParams.get('screen')).toBe('scoreboard');
   });
+
+  it('does not crash on a path that decodes to CR/LF (no header injection)', () => {
+    const res = createFakeResponse();
+    // %0D%0A decodes to CR/LF; reusing the decoded pathname in the Location
+    // header would make writeHead throw. The listener must never let a
+    // request take down the process.
+    expect(() =>
+      listener(
+        {
+          url: '/x%0D%0ASet-Cookie:%20evil=1',
+        } as http.IncomingMessage,
+        res
+      )
+    ).not.toThrow();
+
+    const location = (
+      res.writeHead as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls[0]?.[1]?.Location as string | undefined;
+    // If it did redirect, the header value must not contain a raw newline.
+    if (location) {
+      expect(location).not.toMatch(/[\r\n]/);
+    }
+    expect(res.end).toHaveBeenCalled();
+  });
 });
 
 describe('browser source server lifecycle', () => {

@@ -86,46 +86,67 @@ export function createRequestListener(
   options: RequestListenerOptions
 ): http.RequestListener {
   return (req, res) => {
-    let requestUrl: URL;
-    let pathname: string;
     try {
-      requestUrl = new URL(req.url ?? '/', 'http://localhost');
-      pathname = decodeURIComponent(requestUrl.pathname);
-    } catch {
-      res.writeHead(400);
+      handleRequest(options, req, res);
+    } catch (error) {
+      // A request must never take down the main process (e.g. a path that
+      // decodes to a CR/LF would make writeHead throw). Fail the response.
+      console.error('Browser source request error:', error);
+      if (!res.headersSent) {
+        res.writeHead(400);
+      }
       res.end('Bad request');
-      return;
     }
-
-    if (pathname.startsWith('/images/')) {
-      const fileName = path.basename(pathname.slice('/images/'.length));
-      serveStaticFile(res, options.imagesPath, fileName);
-      return;
-    }
-
-    if (options.devServerUrl) {
-      // Preserve incoming query params (e.g. a browser-source `?screen=`
-      // pin) across the redirect to the Vite dev server, merging in the
-      // `ws` param it needs to reach this server's WebSocket port.
-      const target = pathname === '/' ? '/display.html' : pathname;
-      const params = new URLSearchParams(requestUrl.search);
-      params.set('ws', String(options.port));
-      res.writeHead(302, {
-        Location: `${options.devServerUrl}${target}?${params.toString()}`,
-      });
-      res.end();
-      return;
-    }
-
-    if (!options.rootDir) {
-      res.writeHead(404);
-      res.end('Not found');
-      return;
-    }
-
-    const target = pathname === '/' ? 'display.html' : pathname;
-    serveStaticFile(res, options.rootDir, target);
   };
+}
+
+function handleRequest(
+  options: RequestListenerOptions,
+  req: http.IncomingMessage,
+  res: http.ServerResponse
+): void {
+  let requestUrl: URL;
+  let pathname: string;
+  try {
+    requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    pathname = decodeURIComponent(requestUrl.pathname);
+  } catch {
+    res.writeHead(400);
+    res.end('Bad request');
+    return;
+  }
+
+  if (pathname.startsWith('/images/')) {
+    const fileName = path.basename(pathname.slice('/images/'.length));
+    serveStaticFile(res, options.imagesPath, fileName);
+    return;
+  }
+
+  if (options.devServerUrl) {
+    // Preserve incoming query params (e.g. a browser-source `?screen=`
+    // pin) across the redirect to the Vite dev server, merging in the
+    // `ws` param it needs to reach this server's WebSocket port. Uses the
+    // still-encoded pathname (not the decoded one) so a path containing
+    // encoded CR/LF can't inject into the Location header.
+    const target =
+      requestUrl.pathname === '/' ? '/display.html' : requestUrl.pathname;
+    const params = new URLSearchParams(requestUrl.search);
+    params.set('ws', String(options.port));
+    res.writeHead(302, {
+      Location: `${options.devServerUrl}${target}?${params.toString()}`,
+    });
+    res.end();
+    return;
+  }
+
+  if (!options.rootDir) {
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+
+  const target = pathname === '/' ? 'display.html' : pathname;
+  serveStaticFile(res, options.rootDir, target);
 }
 
 // Browser pages can't load file:// URLs (team logos, custom-screen/overlay

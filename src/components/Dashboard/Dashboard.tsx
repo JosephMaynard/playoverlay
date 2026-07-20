@@ -9,7 +9,11 @@ import {
   MatchPhase,
   SideMenuType,
 } from '../../types';
-import { MatchSettings, UpdateStatus } from '../../zodSchemas';
+import {
+  MatchSettings,
+  matchSetingsSchema,
+  UpdateStatus,
+} from '../../zodSchemas';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
@@ -243,7 +247,15 @@ export default function Dashboard() {
     // that were active when it was taken. Older snapshots predate this
     // field and simply keep whatever match settings are already loaded.
     if (liveMatch.matchSettings) {
-      setMatchSettings({ ...defaultMatchSettings, ...liveMatch.matchSettings });
+      // Validate the snapshot's settings the same way stored MATCH_SETTINGS
+      // are validated on load: the LIVE_MATCH snapshot is otherwise the only
+      // path that writes match settings without a schema check, so a corrupt
+      // config.json could feed e.g. an out-of-range periodCount straight into
+      // getPhaseList. A failed parse falls back to the current settings.
+      const parsed = matchSetingsSchema.safeParse(liveMatch.matchSettings);
+      if (parsed.success) {
+        setMatchSettings({ ...defaultMatchSettings, ...parsed.data });
+      }
     }
     setScores(liveMatch.scores);
     setMatchState(liveMatch.matchState);

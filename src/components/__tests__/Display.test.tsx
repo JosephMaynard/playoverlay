@@ -200,6 +200,13 @@ describe('Display browser-source ?screen= override', () => {
     expect(container.querySelector('.ScoreboardLayout_active')).toBeNull();
   });
 
+  it('follows matchState when ?screen=custom (custom screens cannot be pinned)', async () => {
+    const container = await renderBrowserSource('?ws=4750&screen=custom');
+
+    expect(container.querySelector('.MatchTitleLayout_active')).not.toBeNull();
+    expect(container.querySelector('.ScoreboardLayout_active')).toBeNull();
+  });
+
   it('follows matchState when ?screen= is absent', async () => {
     const container = await renderBrowserSource('?ws=4750');
 

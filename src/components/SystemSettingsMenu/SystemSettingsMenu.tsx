@@ -99,6 +99,15 @@ export default function SystemSettingsMenu({
     ...chunkArray(screenButtons, NEXT_SET_KEY_INDEX),
   ];
 
+  // The number of sets shrinks when settings change (fewer phases, penalties
+  // toggled off). A page index saved while there were more sets must clamp
+  // to the current range, or the deck redraw would index undefined and
+  // silently disconnect mid-match.
+  const activeButtonSet = Math.min(
+    streamDeckButtons,
+    streamDeckButtonSets.length - 1
+  );
+
   const nextButtonSet = () => {
     setStreamdeckButtons((prevButtons) => {
       const nextButtons =
@@ -115,7 +124,7 @@ export default function SystemSettingsMenu({
   useEffect(() => {
     if (streamDeckConnected) {
       connectToStreamDeck(
-        streamDeckButtonSets[streamDeckButtons],
+        streamDeckButtonSets[activeButtonSet],
         handleNextButtonSet
       ).catch((error: unknown) => {
         console.error('Failed to update Stream Deck:', error);
@@ -159,7 +168,7 @@ export default function SystemSettingsMenu({
                 if (streamDeckConnected) return;
                 try {
                   await connectToStreamDeck(
-                    streamDeckButtonSets[streamDeckButtons],
+                    streamDeckButtonSets[activeButtonSet],
                     handleNextButtonSet
                   );
                   setStreamDeckConnected(true);

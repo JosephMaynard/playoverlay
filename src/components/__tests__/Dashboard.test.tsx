@@ -305,17 +305,23 @@ describe('Dashboard match engine', () => {
         false
       );
 
-      const initialScreen =
-        stores.matchState.getState().matchState.displayScreen;
+      // Move OFF the default screen first: the default is scoreBug, which is
+      // exactly what a broken always-switch-on-start would set, so asserting
+      // against the default would pass even with the guard removed.
+      act(() =>
+        stores.matchState
+          .getState()
+          .setMatchState({ displayScreen: 'matchTitle' })
+      );
 
       act(() => callbacks.nextMatchPhase?.()); // start firstHalf
       expect(stores.matchState.getState().matchState.displayScreen).toBe(
-        initialScreen
+        'matchTitle'
       );
 
       act(() => callbacks.nextMatchPhase?.()); // stop firstHalf
       expect(stores.matchState.getState().matchState.displayScreen).toBe(
-        initialScreen
+        'matchTitle'
       );
     });
 
@@ -391,16 +397,23 @@ describe('Dashboard match engine', () => {
     });
 
     it('prompts with the snapshot\'s team abbreviations and applies its match settings on restore, ahead of scores/state/time', async () => {
+      // The snapshot deliberately OMITS a field (hasExtraTime) that the
+      // currently loaded settings set to a non-default value: a full
+      // replace over defaults must reset it to the default, while a merge
+      // with the current settings would keep the stale `false`. Without
+      // this divergence the test cannot tell replace from merge.
       const snapshotMatchSettings: MatchSettings = {
         ...defaultMatchSettings,
         homeTeamNameAbbreviated: 'TIG',
         awayTeamNameAbbreviated: 'BEA',
         halfLength: 40,
       };
+      delete snapshotMatchSettings.hasExtraTime;
       const currentMatchSettings: MatchSettings = {
         ...defaultMatchSettings,
         homeTeamNameAbbreviated: 'HOM',
         awayTeamNameAbbreviated: 'AWA',
+        hasExtraTime: false,
       };
       const liveMatch: LiveMatch = {
         ...fixture(),
@@ -419,11 +432,17 @@ describe('Dashboard match engine', () => {
       const restoreButton = screen.getByRole('button', { name: 'Restore' });
       fireEvent.click(restoreButton);
 
-      // Full replace: the store now holds the snapshot's settings, not a
-      // merge with whatever was loaded before the restore.
-      expect(stores.matchSettings.getState().matchSettings).toEqual(
-        snapshotMatchSettings
-      );
+      // Full replace: the store now holds the snapshot's settings over
+      // defaults, not a merge with whatever was loaded before the restore —
+      // the field the snapshot omitted reverts to its default instead of
+      // keeping the stale current value.
+      expect(stores.matchSettings.getState().matchSettings).toEqual({
+        ...defaultMatchSettings,
+        ...snapshotMatchSettings,
+      });
+      expect(
+        stores.matchSettings.getState().matchSettings.hasExtraTime
+      ).toBe(defaultMatchSettings.hasExtraTime);
       expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState

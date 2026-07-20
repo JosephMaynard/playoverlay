@@ -79,7 +79,14 @@ export function classNames(...classes: string[]) {
 // periodName.
 export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   if (matchSettings.timerMode === 'generic') {
-    const periodCount = matchSettings.periodCount ?? 4;
+    // Defence in depth: schema validation clamps periodCount on every write
+    // path, but getPhaseList runs during render, so a bad value reaching it
+    // (e.g. an unvalidated restore) must never blow up Array.from.
+    const rawPeriodCount = matchSettings.periodCount ?? 4;
+    const periodCount =
+      Number.isInteger(rawPeriodCount) && rawPeriodCount > 0
+        ? Math.min(rawPeriodCount, 100)
+        : 4;
     const periodLength = matchSettings.periodLength ?? 10;
     const periodName = matchSettings.periodName?.trim() || 'Period';
 

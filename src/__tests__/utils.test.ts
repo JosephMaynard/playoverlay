@@ -145,6 +145,33 @@ describe('utils', () => {
         { id: 'period4', title: 'Period 4', start: 30, end: 40 },
       ]);
     });
+
+    it('clamps an out-of-range periodCount so render can never explode', () => {
+      // An unvalidated restore snapshot could carry a hostile periodCount;
+      // getPhaseList runs during render, so it must cap the array size and
+      // reject non-positive/non-integer values rather than throw.
+      expect(
+        getPhaseList({
+          ...defaultMatchSettings,
+          timerMode: 'generic',
+          periodCount: 1e9,
+        })
+      ).toHaveLength(100);
+      expect(
+        getPhaseList({
+          ...defaultMatchSettings,
+          timerMode: 'generic',
+          periodCount: Number.POSITIVE_INFINITY,
+        })
+      ).toHaveLength(4);
+      expect(
+        getPhaseList({
+          ...defaultMatchSettings,
+          timerMode: 'generic',
+          periodCount: -3,
+        })
+      ).toHaveLength(4);
+    });
   });
 
   describe('getPhaseById', () => {

@@ -21,7 +21,12 @@ import { createDisplayTransport } from '../../displayTransport';
 function parseScreenOverride(search: string): DisplayScreen | null {
   const value = new URLSearchParams(search).get('screen');
   if (!value || value === 'custom') return null;
-  return value in screens ? (value as DisplayScreen) : null;
+  // hasOwnProperty, not `in`: bare `in` matches inherited Object keys
+  // ('toString', 'constructor', …), which would blank the feed instead of
+  // falling back to the operator's selection.
+  return Object.prototype.hasOwnProperty.call(screens, value)
+    ? (value as DisplayScreen)
+    : null;
 }
 
 const Display = () => {
