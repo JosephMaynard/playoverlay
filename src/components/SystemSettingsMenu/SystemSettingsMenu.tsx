@@ -21,7 +21,6 @@ export interface Props {
   stopTime: () => void;
   updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
   matchState: MatchState;
-  autoSwitchScreens: boolean;
   time: Time;
 }
 
@@ -36,7 +35,6 @@ export default function SystemSettingsMenu({
   startTime,
   stopTime,
   updateMatchState,
-  autoSwitchScreens,
   time,
 }: Props) {
   const [currentModal, setCurrentModal] = useState<Modals>(null);
@@ -61,14 +59,7 @@ export default function SystemSettingsMenu({
         text: 'Stop',
         textColor: 'white',
         backgroundColor: 'red',
-        onPress: () => {
-          stopTime();
-          if (autoSwitchScreens) {
-            updateMatchState({
-              displayScreen: 'matchTitle' as DisplayScreen,
-            });
-          }
-        },
+        onPress: () => stopTime(),
       },
     ],
     [
@@ -78,7 +69,7 @@ export default function SystemSettingsMenu({
         .slice(0, 5)
         .map((phase) => ({
           text: phase.title,
-          onPress: () => handleStartTime(phase.id),
+          onPress: () => startTime(phase.id),
           textColor: 'black',
           backgroundColor: time.matchPhase === phase.id ? '#86EFAC' : 'white',
         })),
@@ -102,16 +93,6 @@ export default function SystemSettingsMenu({
         })),
     ],
   ];
-
-  const handleStartTime = (matchPhase: MatchPhase) => {
-    startTime(matchPhase);
-    if (autoSwitchScreens === true) {
-      updateMatchState({
-        displayScreen: 'scoreBug' as DisplayScreen,
-        customScreenImageUrl: undefined,
-      });
-    }
-  };
 
   const nextButtonSet = () => {
     setStreamdeckButtons((prevButtons) => {
@@ -138,13 +119,7 @@ export default function SystemSettingsMenu({
     }
     // time.matchPhase (not the whole ticking time object) so the phase
     // highlight updates without redrawing the deck every second
-  }, [
-    streamDeckButtons,
-    streamDeckConnected,
-    matchSettings,
-    time.matchPhase,
-    autoSwitchScreens,
-  ]);
+  }, [streamDeckButtons, streamDeckConnected, matchSettings, time.matchPhase]);
 
   return (
     <>

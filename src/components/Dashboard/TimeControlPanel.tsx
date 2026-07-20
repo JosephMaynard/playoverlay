@@ -7,7 +7,6 @@ import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
 import { classNames, getPhaseList } from '../..//utils';
-import { DisplayScreen } from '../../constants';
 import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
@@ -22,7 +21,6 @@ export interface Props {
   stopTime: () => void;
   autoSwitchScreens: boolean;
   setAutoSwitchScreens: (autoSwitchScreens: boolean) => void;
-  setDisplayScreen: (displayScreen: DisplayScreen) => void;
 }
 
 export default function TimeControlPanel({
@@ -37,20 +35,16 @@ export default function TimeControlPanel({
   stopTime,
   autoSwitchScreens,
   setAutoSwitchScreens,
-  setDisplayScreen,
 }: Props) {
   const [modal, setModal] = useState<
     'adjustTime' | 'additionalTime' | undefined
   >();
-  const handleStartTime = (matchPhase: MatchPhase) => {
-    startTime(matchPhase);
-    if (autoSwitchScreens === true) {
-      setDisplayScreen('scoreBug');
-    }
-  };
+  // Starting/stopping a phase's auto-switch-screens behaviour is handled by
+  // startTime/stopTime themselves (centralised in useMatchClock); this
+  // panel just triggers them.
   const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
     label: phase.title,
-    onClick: () => handleStartTime(phase.id),
+    onClick: () => startTime(phase.id),
     selected: time.matchPhase === phase.id,
   }));
   return (
@@ -67,12 +61,7 @@ export default function TimeControlPanel({
             ...phaseButtons,
             {
               label: 'Stop',
-              onClick: () => {
-                stopTime();
-                if (autoSwitchScreens === true) {
-                  setDisplayScreen('matchTitle');
-                }
-              },
+              onClick: () => stopTime(),
               backgroundColor: 'bg-red-700',
               color: 'text-white',
             },

@@ -25,13 +25,17 @@ function createProps(
     stopTime: vi.fn(),
     autoSwitchScreens: true,
     setAutoSwitchScreens: vi.fn(),
-    setDisplayScreen: vi.fn(),
     ...overrides,
   };
 }
 
+// Auto-switch-screens behaviour (jumping to scoreBug on start / matchTitle
+// on stop) is centralised in useMatchClock's startTime/stopTime as of
+// v0.17.0 (see Dashboard.test.tsx for the end-to-end contract) rather than
+// being decided here, so this panel is only responsible for calling
+// startTime/stopTime and for reflecting the setting in its own toggle.
 describe('TimeControlPanel', () => {
-  it('starts the selected match phase and switches to the score bug', async () => {
+  it('starts the selected match phase', async () => {
     const user = userEvent.setup();
     const props = createProps();
     render(<TimeControlPanel {...props} />);
@@ -39,10 +43,9 @@ describe('TimeControlPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Second Half' }));
 
     expect(props.startTime).toHaveBeenCalledWith('secondHalf');
-    expect(props.setDisplayScreen).toHaveBeenCalledWith('scoreBug');
   });
 
-  it('stops time and switches back to the match title screen', async () => {
+  it('stops time', async () => {
     const user = userEvent.setup();
     const props = createProps();
     render(<TimeControlPanel {...props} />);
@@ -50,18 +53,13 @@ describe('TimeControlPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Stop' }));
 
     expect(props.stopTime).toHaveBeenCalledTimes(1);
-    expect(props.setDisplayScreen).toHaveBeenCalledWith('matchTitle');
   });
 
-  it('does not switch screens automatically when the setting is disabled', async () => {
-    const user = userEvent.setup();
+  it('reflects the auto switch screens setting in its own toggle', () => {
     const props = createProps({ autoSwitchScreens: false });
     render(<TimeControlPanel {...props} />);
 
-    await user.click(screen.getByRole('button', { name: 'First Half' }));
-
-    expect(props.startTime).toHaveBeenCalledWith('firstHalf');
-    expect(props.setDisplayScreen).not.toHaveBeenCalled();
+    expect(screen.getByRole('switch')).not.toBeChecked();
   });
 
   it('sets additional time through the modal shortcuts', async () => {
