@@ -86,7 +86,7 @@ export default function DisplayControlsPanel({
               onClick: () =>
                 updateMatchState({
                   displayScreen: 'custom',
-                  customScreenImageUrl: customScreen.url,
+                  customScreenImageUrl: customScreen.url ?? undefined,
                 }),
               selected: matchState.customScreenImageUrl === customScreen.url,
             }))}

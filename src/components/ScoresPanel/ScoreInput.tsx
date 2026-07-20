@@ -11,8 +11,8 @@ export interface Props {
   id: string;
   teamNameFull: string;
   teamNameAbbreviated: string;
-  textColour: string;
-  backgroundColour: string;
+  textColour?: string;
+  backgroundColour?: string;
 }
 
 export default function ScoreInput({

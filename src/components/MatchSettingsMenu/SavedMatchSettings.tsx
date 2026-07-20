@@ -57,6 +57,9 @@ export default function SavedMatchSettings({
   };
 
   const handleDelete = async () => {
+    if (!savedMatchSettingsToDelete) {
+      return;
+    }
     const response = await window?.electronAPI?.setSavedMatchSettings([
       ...savedMatchSettings.filter(
         (matchSettings) =>

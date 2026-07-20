@@ -66,7 +66,7 @@ export default function CustomScreensMenu({
     if (customScreenToEdit === null) {
       return;
     }
-    setCustomScreenToEdit((prev) => ({ ...prev, ...change }));
+    setCustomScreenToEdit((prev) => (prev ? { ...prev, ...change } : prev));
   };
 
   return (
@@ -161,7 +161,9 @@ export default function CustomScreensMenu({
         actionButtonLabel="Delete custom screen"
         icon="warning"
         action={() => {
-          window?.electronAPI?.deleteImage(customScreenToDelete.filePath);
+          if (customScreenToDelete?.filePath) {
+            window?.electronAPI?.deleteImage(customScreenToDelete.filePath);
+          }
           setShowConfirmDeleteModal(false);
         }}
       >

@@ -36,7 +36,7 @@ export default function ColourPicker({
           disabled={disabled}
         />
       </div>
-      {keyColour && checkColors(value, keyColour) && (
+      {keyColour && value && checkColors(value, keyColour) && (
         <p className="text-sm font-medium text-red-600 ">
           Warning: This colour may be too close to the key colour, please check
           your output.

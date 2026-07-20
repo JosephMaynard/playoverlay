@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppSettings, MatchState, Scores, Time } from '../../types';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
@@ -43,10 +43,10 @@ const Display = () => {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const checkFullscreenStatus = async () => {
+  const checkFullscreenStatus = useCallback(async () => {
     const status = await transport.getFullscreenStatus();
     setIsFullscreen(status);
-  };
+  }, [transport]);
 
   const handleToggleFullscreen = () => {
     transport.toggleFullscreen();
@@ -60,7 +60,7 @@ const Display = () => {
     return () => {
       window.removeEventListener('resize', checkFullscreenStatus);
     };
-  }, []);
+  }, [checkFullscreenStatus]);
 
   useEffect(() => {
     const handleScoreUpdate = (newScores: Scores) => {

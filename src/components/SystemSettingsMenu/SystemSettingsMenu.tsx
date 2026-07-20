@@ -44,14 +44,17 @@ export default function SystemSettingsMenu({
   const scoringButtons = [
     {
       text: `${matchSettings.homeTeamNameFull} Scored`,
-      textColor: matchSettings.homeTeamTextColour,
-      backgroundColor: matchSettings.homeTeamBackgroundColour,
+      // Same fallback hex values as defaultMatchSettings; that constant's
+      // fields are optional per the MatchSettings type, so referencing it
+      // directly wouldn't narrow away `undefined` here.
+      textColor: matchSettings.homeTeamTextColour ?? '#ffffff',
+      backgroundColor: matchSettings.homeTeamBackgroundColour ?? '#cc0000',
       onPress: incrementHomeTeamScore,
     },
     {
       text: `${matchSettings.awayTeamNameFull} Scored`,
-      textColor: matchSettings.awayTeamTextColour,
-      backgroundColor: matchSettings.awayTeamBackgroundColour,
+      textColor: matchSettings.awayTeamTextColour ?? '#ffffff',
+      backgroundColor: matchSettings.awayTeamBackgroundColour ?? '#0000cc',
       onPress: incrementAwayTeamScore,
     },
     {
@@ -120,7 +123,11 @@ export default function SystemSettingsMenu({
       });
     }
     // time.matchPhase (not the whole ticking time object) so the phase
-    // highlight updates without redrawing the deck every second
+    // highlight updates without redrawing the deck every second.
+    // streamDeckButtonSets/handleNextButtonSet are rebuilt from these same
+    // deps on every render (not memoized), so including them would make this
+    // effect refire on every unrelated re-render and redraw the deck needlessly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamDeckButtons, streamDeckConnected, matchSettings, time.matchPhase]);
 
   return (

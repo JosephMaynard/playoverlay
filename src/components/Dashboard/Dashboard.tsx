@@ -69,7 +69,7 @@ export default function Dashboard() {
   useEffect(() => {
     const checkForUpdates = async () => {
       const currentUpdateStatus = await window.electronAPI.checkForUpdates();
-      setUpdateStatus(currentUpdateStatus.updates);
+      setUpdateStatus(currentUpdateStatus.updates ?? null);
     };
 
     checkForUpdates();
@@ -157,6 +157,17 @@ export default function Dashboard() {
       unsubscribeHomeScored();
       unsubscribeAwayScored();
     };
+    // Mount-only: seeds the main process with the initial scores/matchState/
+    // time (ongoing changes are mirrored to IPC by each store's setter, per
+    // house style), fetches settings once, and registers shortcut/update
+    // listeners for the component's lifetime. The listener callbacks
+    // (nextMatchPhase, incrementHomeTeamScore, etc.) read fresh state via
+    // each zustand store's getState() rather than closing over this scope,
+    // so they never go stale. Re-running this effect on every dependency
+    // change would instead tear down and re-register the listeners on every
+    // render (risking a dropped shortcut mid-swap) and keep re-posting the
+    // stale initial scores/matchState/time over IPC.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchScreens = async () => {
