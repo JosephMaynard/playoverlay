@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
+import { useTranslation } from 'react-i18next';
 
 export interface Props {
   open: boolean;
@@ -10,6 +11,7 @@ export interface Props {
 }
 
 export default function SideMenu({ open, setOpen, title, children }: Props) {
+  const { t } = useTranslation();
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -51,7 +53,9 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
                             onClick={() => setOpen(false)}
                           >
                             <span className="absolute -inset-2.5" />
-                            <span className="sr-only">Close panel</span>
+                            <span className="sr-only">
+                              {t('common:closePanel')}
+                            </span>
                             <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                           </button>
                         </div>
