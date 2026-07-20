@@ -6,6 +6,14 @@
 
 It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device — for example a Blackmagic ATEM Mini — key out the background, and composite it over your camera feed before streaming.
 
+![The score bug rendered on the chroma-key display output](docs/screenshots/score-bug.png)
+
+## Spectator scoreboard
+
+Venues can also point a big screen straight at PlayOverlay: the Scoreboard screen fills the display with both teams in their club colours, the score, the time of day, and the match clock — no chroma key, no stream required.
+
+![The spectator scoreboard screen](docs/screenshots/scoreboard.png)
+
 ## How it works
 
 PlayOverlay runs two windows:
@@ -14,6 +22,8 @@ PlayOverlay runs two windows:
 - **Display window** — a clean, fullscreen output showing the graphics on your chosen key colour. Put this on a second display connected to your mixer (e.g. via HDMI into an ATEM input), then chroma key it over the match feed.
 
 If you're streaming through OBS instead of a hardware mixer, you can skip the second display and chroma key entirely — see [OBS browser source](#obs-browser-source) below.
+
+![The operator dashboard](docs/screenshots/dashboard.png)
 
 ## Features
 
