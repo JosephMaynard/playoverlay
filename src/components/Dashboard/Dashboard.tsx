@@ -60,6 +60,9 @@ export default function Dashboard() {
   const setMatchState = useMatchStateStore((state) => state.setMatchState);
   const appSettings = useAppSettingsStore((state) => state.appSettings);
   const setAppSettings = useAppSettingsStore((state) => state.setAppSettings);
+  const markSettingsLoaded = useAppSettingsStore(
+    (state) => state.markSettingsLoaded
+  );
 
   const time = useTimeStore((state) => state.time);
   const setTime = useTimeStore((state) => state.setTime);
@@ -114,6 +117,11 @@ export default function Dashboard() {
       .catch((error: unknown) => {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
+      })
+      // Whether or not stored settings existed, the load has now completed —
+      // the first-run language picker can decide whether to show.
+      .finally(() => {
+        markSettingsLoaded();
       });
 
     const unsubscribeNextPhase = window.electronAPI.onNextMatchPhase(() => {

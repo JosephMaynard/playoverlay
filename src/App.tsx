@@ -17,6 +17,7 @@ function ControlRoot() {
   const { i18n } = useTranslation();
   const appSettings = useAppSettingsStore((state) => state.appSettings);
   const setAppSettings = useAppSettingsStore((state) => state.setAppSettings);
+  const settingsLoaded = useAppSettingsStore((state) => state.settingsLoaded);
 
   useEffect(() => {
     i18n.changeLanguage(appSettings.language ?? detectLanguage());
@@ -25,10 +26,15 @@ function ControlRoot() {
   return (
     <>
       <Dashboard />
-      <LanguageModal
-        language={appSettings.language}
-        onConfirm={(language) => setAppSettings({ language })}
-      />
+      {/* Held back until settings have loaded, so the picker only appears on
+          a genuine first run — not as a flash while a returning user's saved
+          language arrives async over IPC. */}
+      {settingsLoaded && (
+        <LanguageModal
+          language={appSettings.language}
+          onConfirm={(language) => setAppSettings({ language })}
+        />
+      )}
     </>
   );
 }

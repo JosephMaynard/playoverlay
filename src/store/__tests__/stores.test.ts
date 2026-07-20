@@ -134,6 +134,15 @@ describe('Zustand stores', () => {
     expect(api.updateAppSettings).toHaveBeenCalledWith(expectedSettings);
   });
 
+  it('tracks whether persisted settings have loaded (gates the first-run picker)', () => {
+    installElectronAPI();
+    useAppSettingsStore.setState({ settingsLoaded: false });
+
+    expect(useAppSettingsStore.getState().settingsLoaded).toBe(false);
+    useAppSettingsStore.getState().markSettingsLoaded();
+    expect(useAppSettingsStore.getState().settingsLoaded).toBe(true);
+  });
+
   it('stores custom graphics without notifying Electron directly', () => {
     const customGraphics = [
       {
