@@ -108,9 +108,10 @@ export default async function DownloadPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
             <h3 className="font-semibold text-slate-900 dark:text-white">macOS</h3>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              After unzipping, move <code>PlayOverlay.app</code> to Applications. If macOS reports
-              the app is damaged or from an unidentified developer, clear the quarantine flag once
-              from Terminal:
+              After unzipping, move <code>PlayOverlay.app</code> to Applications, then right-click
+              it and choose <strong>Open</strong>, and confirm once at the prompt. If macOS still
+              reports the app is damaged, remove the quarantine attribute it added to the download
+              and open it again:
             </p>
             <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100 dark:bg-black">
               <code>xattr -cr /Applications/PlayOverlay.app</code>

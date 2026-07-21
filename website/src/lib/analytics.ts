@@ -9,11 +9,19 @@ import posthog from "posthog-js";
 let initialized = false;
 
 function isConfigured(): boolean {
-  return (
+  const keyPresent =
     typeof process.env.NEXT_PUBLIC_POSTHOG_KEY === "string" &&
-    process.env.NEXT_PUBLIC_POSTHOG_KEY.length > 0 &&
-    process.env.NODE_ENV === "production"
-  );
+    process.env.NEXT_PUBLIC_POSTHOG_KEY.length > 0;
+
+  // Only ever a production DEPLOYMENT, never a Vercel preview. Vercel exposes
+  // NEXT_PUBLIC_VERCEL_ENV ('production' | 'preview' | 'development'); a plain
+  // production build with no Vercel env (e.g. self-hosted) still counts.
+  const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
+  const isProductionDeploy =
+    vercelEnv === "production" ||
+    (!vercelEnv && process.env.NODE_ENV === "production");
+
+  return keyPresent && isProductionDeploy;
 }
 
 /** Initializes PostHog once, client-side only, if (and only if) configured. */
@@ -28,6 +36,7 @@ export function initAnalytics(): void {
       persistence: "memory",
       disable_session_recording: true,
       capture_pageview: false, // pageviews are captured manually on route change
+      autocapture: false, // only the explicit pageview and download events, nothing else
     });
     initialized = true;
   } catch {
@@ -51,7 +60,13 @@ export function trackPageview(url: string): void {
 export function trackDownloadClick(platform: string): void {
   if (!isAnalyticsEnabled()) return;
   try {
-    posthog.capture("download_click", { platform });
+    // Clicking a download link navigates away, so send the event immediately
+    // over sendBeacon rather than risk it being dropped on unload.
+    posthog.capture(
+      "download_click",
+      { platform },
+      { send_instantly: true, transport: "sendBeacon" }
+    );
   } catch {
     // no-op
   }

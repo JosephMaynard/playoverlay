@@ -26,17 +26,17 @@ keeps that door open.
 ## Environment variables
 
 Analytics are provided by [PostHog](https://posthog.com), configured to be cookieless (in-memory
-persistence, no session recording) and to skip initialization entirely unless both of these are
-set:
+persistence, no session recording). Initialization requires only the project key:
 
-| Variable                    | Description                                          |
-| ---------------------------- | ----------------------------------------------------- |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | Your PostHog project API key. Leave blank to disable. |
-| `NEXT_PUBLIC_POSTHOG_HOST` | Your PostHog ingestion host, e.g. `https://us.i.posthog.com`. |
+| Variable                   | Required | Description                                                                       |
+| -------------------------- | -------- | --------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | Yes      | Your PostHog project API key (a public token, not a secret). Leave unset to disable analytics. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | No       | Your PostHog ingestion host. Defaults to `https://us.i.posthog.com`; set it to `https://eu.i.posthog.com` for the EU region or your self-hosted URL. |
 
-Copy `.env.example` to `.env.local` and fill these in if you want analytics locally (analytics
-also require `NODE_ENV=production`, so a plain `npm run dev` never sends events even with the key
-set). In Vercel, add both as project environment variables.
+Analytics only run in a production deployment, and never in a Vercel preview, so a plain
+`npm run dev` never sends events even with the key set. In Vercel, add the key (and optionally the
+host) as project environment variables. `NEXT_PUBLIC_VERCEL_ENV` is provided automatically by
+Vercel and is what keeps preview deployments dark.
 
 ## Deploying on Vercel
 
