@@ -96,3 +96,7 @@ out/
 
 # Local dogfooding/testing artifacts (screenshots, notes) should never be committed
 dogfood-output/
+
+# Marketing website (website/), a separate Next.js app with its own deps/build output
+website/node_modules
+website/.next

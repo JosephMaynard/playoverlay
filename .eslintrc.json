@@ -14,6 +14,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": ["react-hooks"],
+  "ignorePatterns": ["website/", "dist/", ".vite/"],
   "settings": {
     "import/core-modules": ["@vitejs/plugin-react", "vitest/config"],
     "import/resolver": {

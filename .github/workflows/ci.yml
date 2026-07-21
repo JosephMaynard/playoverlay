@@ -41,3 +41,35 @@ jobs:
 
       - name: Package build
         run: npm run build:ci
+
+  website:
+    name: Website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install website dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Lint website
+        working-directory: website
+        run: npm run lint
+
+      # next build type-checks the whole app against website/tsconfig.json
+      # (its own next types and @/* alias), so this covers the website's
+      # TypeScript check as well as the production build.
+      - name: Build website
+        working-directory: website
+        run: npm run build
