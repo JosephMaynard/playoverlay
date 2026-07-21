@@ -49,6 +49,8 @@ Grab the latest release from the [Releases page](https://github.com/JosephMaynar
 | Windows | `playoverlay-…Setup.exe` |
 | macOS (Apple Silicon) | `playoverlay-darwin-arm64-….zip` |
 | macOS (Intel) | `playoverlay-darwin-x64-….zip` |
+| Linux (Debian/Ubuntu) | `playoverlay_….deb` |
+| Linux (Fedora/RHEL) | `playoverlay-….rpm` |
 
 ### A note on unsigned builds
 
@@ -115,7 +117,7 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 
 ## Languages
 
-The interface and the on-screen graphics are available in English, French, German, Italian, Spanish (Spain and Latin America), and Portuguese (Portugal and Brazil). PlayOverlay picks a language from your system on first launch; you can change it any time under **System Settings → Language**, and it applies to both the operator dashboard and the on-air graphics. Team names, abbreviations, and venues are always shown exactly as you type them.
+The interface and the on-screen graphics are available in English, French, German, Italian, Spanish (Spain and Latin America), and Portuguese (Portugal and Brazil). On first launch PlayOverlay suggests a language based on your system and asks you to confirm it or pick another; if you dismiss the prompt without choosing, it stays unset and asks again next time. You can change the language whenever you like under **System Settings → Language**, and it applies to both the operator dashboard and the on-air graphics. Text you type yourself is never translated: team names, abbreviations, venues, and the titles of saved match settings and custom screens are always shown exactly as you enter them.
 
 The translations are **machine-generated and have not been reviewed by native speakers**, so some wording, especially the on-air football terms, may read a little off. If you spot a mistake, please [open an issue](https://github.com/JosephMaynard/playoverlay/issues) and it'll get fixed.
 
