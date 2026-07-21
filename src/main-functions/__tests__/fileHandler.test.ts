@@ -5,6 +5,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomScreen } from '../../types';
 import convertFilePathToUrl from '../convertFilePathToUrl';
 
+// A real PNG magic-byte header, so tests exercising saveImageFile's happy
+// path (and its failure modes unrelated to the content sniff) pass the
+// image-content check the same way a genuine upload would.
+const PNG_HEADER = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
+function validPngBuffer(payload: string): Buffer {
+  return Buffer.concat([PNG_HEADER, Buffer.from(payload)]);
+}
+
 const temporaryDirectories: string[] = [];
 
 async function loadFileHandler(initialScreens: CustomScreen[] = []) {
@@ -69,7 +79,7 @@ describe('fileHandler', () => {
     fs.writeFileSync(path.join(imagesPath, 'logo.png'), 'existing');
 
     const result = fileHandler.saveImageFile(
-      Buffer.from('new-logo'),
+      validPngBuffer('new-logo'),
       'logo.png'
     );
     const expectedPath = path.join(imagesPath, 'logo-1.png');
@@ -78,7 +88,7 @@ describe('fileHandler', () => {
       filePath: expectedPath,
       url: convertFilePathToUrl(expectedPath),
     });
-    expect(fs.readFileSync(expectedPath, 'utf8')).toBe('new-logo');
+    expect(fs.readFileSync(expectedPath)).toEqual(validPngBuffer('new-logo'));
     expect(getScreens()).toEqual([]);
     expect(setCustomScreens).not.toHaveBeenCalled();
   });
@@ -89,7 +99,73 @@ describe('fileHandler', () => {
     fs.rmSync(imagesPath, { force: true, recursive: true });
     fs.writeFileSync(imagesPath, 'not a directory');
 
-    expect(fileHandler.saveImageFile(Buffer.from('uploaded'), 'logo.png')).toBeNull();
+    expect(
+      fileHandler.saveImageFile(validPngBuffer('uploaded'), 'logo.png')
+    ).toBeNull();
+  });
+
+  it('saveImageFile rejects a buffer over the maximum upload size', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+    const oversized = Buffer.concat([
+      PNG_HEADER,
+      Buffer.alloc(fileHandler.MAX_UPLOAD_SIZE_BYTES),
+    ]);
+
+    const result = fileHandler.saveImageFile(oversized, 'huge.png');
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
+  });
+
+  it('saveImageFile rejects a disallowed file extension', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const result = fileHandler.saveImageFile(
+      validPngBuffer('not-really-an-executable'),
+      'payload.exe'
+    );
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
+  });
+
+  it('saveImageFile rejects a file whose content does not match its claimed extension', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const result = fileHandler.saveImageFile(
+      Buffer.from('definitely not a png'),
+      'fake.png'
+    );
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
+  });
+
+  it('saveImageFile accepts a well-formed SVG', async () => {
+    const { fileHandler } = await loadFileHandler();
+    const svg = Buffer.from(
+      '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    );
+
+    const result = fileHandler.saveImageFile(svg, 'graphic.svg');
+
+    expect(result).not.toBeNull();
+  });
+
+  it('saveImageFile rejects a file named .svg whose content is not actually SVG', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const result = fileHandler.saveImageFile(
+      Buffer.from('<html>not an svg</html>'),
+      'fake.svg'
+    );
+
+    expect(result).toBeNull();
+    expect(fs.readdirSync(imagesPath)).toEqual([]);
   });
 
   it('saveImageFile rejects a file name that would escape the images directory', async () => {
@@ -123,7 +199,7 @@ describe('fileHandler', () => {
     fs.writeFileSync(path.join(imagesPath, 'graphic.png'), 'existing');
 
     const result = await fileHandler.handleFileUpload(
-      Buffer.from('uploaded'),
+      validPngBuffer('uploaded'),
       'graphic.png',
       'Uploaded Graphic'
     );
@@ -132,7 +208,7 @@ describe('fileHandler', () => {
     // handleFileUpload returns saveImageFile's already-encoded `url`, not a
     // hand-rolled `file://` string.
     expect(result).toBe(convertFilePathToUrl(uploadedPath));
-    expect(fs.readFileSync(uploadedPath, 'utf8')).toBe('uploaded');
+    expect(fs.readFileSync(uploadedPath)).toEqual(validPngBuffer('uploaded'));
     expect(getScreens()).toEqual([
       existingScreen,
       {
@@ -200,7 +276,7 @@ describe('fileHandler', () => {
 
     await expect(
       fileHandler.handleFileUpload(
-        Buffer.from('uploaded'),
+        validPngBuffer('uploaded'),
         'graphic.png',
         'Broken Upload'
       )
@@ -265,5 +341,96 @@ describe('fileHandler', () => {
     expect(fs.existsSync(outsideFilePath)).toBe(true);
     expect(fs.lstatSync(linkPath).isSymbolicLink()).toBe(true);
     expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  describe('hasAllowedImageExtension', () => {
+    it('accepts every extension the browser-source server can serve as an image', async () => {
+      const { fileHandler } = await loadFileHandler();
+
+      [
+        'photo.png',
+        'photo.JPG',
+        'photo.jpeg',
+        'photo.webp',
+        'photo.svg',
+      ].forEach((fileName) => {
+        expect(fileHandler.hasAllowedImageExtension(fileName)).toBe(true);
+      });
+    });
+
+    it('rejects extensions outside the image allowlist', async () => {
+      const { fileHandler } = await loadFileHandler();
+
+      ['payload.exe', 'archive.zip', 'noextension', 'script.js'].forEach(
+        (fileName) => {
+          expect(fileHandler.hasAllowedImageExtension(fileName)).toBe(false);
+        }
+      );
+    });
+  });
+
+  describe('isValidImageBuffer', () => {
+    it('confirms a PNG buffer against a .png name', async () => {
+      const { fileHandler } = await loadFileHandler();
+
+      expect(
+        fileHandler.isValidImageBuffer(validPngBuffer('data'), 'photo.png')
+      ).toBe(true);
+    });
+
+    it('confirms a JPEG buffer against a .jpg/.jpeg name', async () => {
+      const { fileHandler } = await loadFileHandler();
+      const jpeg = Buffer.concat([
+        Buffer.from([0xff, 0xd8, 0xff]),
+        Buffer.from('rest'),
+      ]);
+
+      expect(fileHandler.isValidImageBuffer(jpeg, 'photo.jpg')).toBe(true);
+      expect(fileHandler.isValidImageBuffer(jpeg, 'photo.jpeg')).toBe(true);
+    });
+
+    it('confirms a WebP (RIFF/WEBP) buffer against a .webp name', async () => {
+      const { fileHandler } = await loadFileHandler();
+      const webp = Buffer.concat([
+        Buffer.from('RIFF', 'ascii'),
+        Buffer.from([0, 0, 0, 0]), // 4-byte RIFF chunk size, unchecked here
+        Buffer.from('WEBP', 'ascii'),
+      ]);
+
+      expect(fileHandler.isValidImageBuffer(webp, 'photo.webp')).toBe(true);
+    });
+
+    it('confirms a well-formed SVG against a .svg name', async () => {
+      const { fileHandler } = await loadFileHandler();
+      const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>');
+
+      expect(fileHandler.isValidImageBuffer(svg, 'graphic.svg')).toBe(true);
+    });
+
+    it('rejects a buffer whose content does not match the claimed extension', async () => {
+      const { fileHandler } = await loadFileHandler();
+      const notAnImage = Buffer.from('just some text');
+
+      expect(fileHandler.isValidImageBuffer(notAnImage, 'photo.png')).toBe(
+        false
+      );
+      expect(fileHandler.isValidImageBuffer(notAnImage, 'photo.jpg')).toBe(
+        false
+      );
+      expect(fileHandler.isValidImageBuffer(notAnImage, 'photo.webp')).toBe(
+        false
+      );
+      expect(fileHandler.isValidImageBuffer(notAnImage, 'photo.svg')).toBe(
+        false
+      );
+    });
+
+    it('rejects an unsupported extension outright', async () => {
+      const { fileHandler } = await loadFileHandler();
+
+      expect(
+        fileHandler.isValidImageBuffer(validPngBuffer('data'), 'photo.gif')
+      ).toBe(false);
+    });
   });
 });

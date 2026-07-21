@@ -27,7 +27,14 @@ import {
   defaultMatchState,
   defaultScores,
 } from './constants';
-import { MatchSettings } from './zodSchemas';
+import {
+  customScreenListSchema,
+  MatchSettings,
+  matchSettingsListSchema,
+  matchStateSchema,
+  scoresSchema,
+  timeSchema,
+} from './zodSchemas';
 import {
   deriveGlobalAccelerator,
   getBrowserSourceSettings,
@@ -535,17 +542,31 @@ const createWindows = () => {
 // Setup IPC handlers
 function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
-    cachedScores = scores;
-    displayWindow?.webContents.send('score-updated', scores);
-    broadcastToBrowserSourcesRewritten('score-updated', scores);
+    // Individually bad fields (e.g. a negative score) degrade to their
+    // default rather than being cached/broadcast as-is; a wholly malformed
+    // payload (not even an object) is rejected outright so it never reaches
+    // the display or gets persisted.
+    const parsed = scoresSchema.safeParse(scores);
+    if (!parsed.success) {
+      console.error('Rejected invalid score update:', parsed.error.message);
+      return;
+    }
+    cachedScores = parsed.data;
+    displayWindow?.webContents.send('score-updated', cachedScores);
+    broadcastToBrowserSourcesRewritten('score-updated', cachedScores);
     broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
-    cachedTime = time;
-    displayWindow?.webContents.send('time-updated', time);
-    broadcastToBrowserSourcesRewritten('time-updated', time);
+    const parsed = timeSchema.safeParse(time);
+    if (!parsed.success) {
+      console.error('Rejected invalid time update:', parsed.error.message);
+      return;
+    }
+    cachedTime = parsed.data;
+    displayWindow?.webContents.send('time-updated', cachedTime);
+    broadcastToBrowserSourcesRewritten('time-updated', cachedTime);
     broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
@@ -611,9 +632,17 @@ function setupIPCHandlers() {
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
-    cachedMatchState = matchState;
-    displayWindow?.webContents.send('match-state-updated', matchState);
-    broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
+    const parsed = matchStateSchema.safeParse(matchState);
+    if (!parsed.success) {
+      console.error(
+        'Rejected invalid match state update:',
+        parsed.error.message
+      );
+      return;
+    }
+    cachedMatchState = parsed.data;
+    displayWindow?.webContents.send('match-state-updated', cachedMatchState);
+    broadcastToBrowserSourcesRewritten('match-state-updated', cachedMatchState);
     broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
@@ -746,8 +775,27 @@ function setupIPCHandlers() {
   ipcMain.handle(
     'set-custom-screens',
     (event, customScreens: CustomScreen[]) => {
+      // A payload that isn't even an array is rejected outright rather than
+      // coerced, an empty array would otherwise silently wipe out every
+      // saved custom screen. Once it IS an array, an individually malformed
+      // entry is dropped rather than failing the whole write.
+      if (!Array.isArray(customScreens)) {
+        console.error(
+          'Rejected set-custom-screens: expected an array, got',
+          typeof customScreens
+        );
+        return { success: false, error: 'Invalid custom screens payload' };
+      }
+      const validScreens = customScreenListSchema.parse(customScreens);
+      const droppedCount = customScreens.length - validScreens.length;
+      if (droppedCount > 0) {
+        console.error(
+          'Dropped malformed custom screen entries on write:',
+          droppedCount
+        );
+      }
       try {
-        setCustomScreens(customScreens);
+        setCustomScreens(validScreens);
         return { success: true };
       } catch (error) {
         console.error('Error setting custom screens:', error);
@@ -763,8 +811,29 @@ function setupIPCHandlers() {
   ipcMain.handle(
     'set-saved-match-settings',
     (event, savedMatchSettings: MatchSettings[]) => {
+      // Same reject-if-not-an-array, drop-only-the-bad-entries approach as
+      // set-custom-screens: a non-array payload would otherwise silently
+      // wipe out every saved match.
+      if (!Array.isArray(savedMatchSettings)) {
+        console.error(
+          'Rejected set-saved-match-settings: expected an array, got',
+          typeof savedMatchSettings
+        );
+        return {
+          success: false,
+          error: 'Invalid saved match settings payload',
+        };
+      }
+      const validSettings = matchSettingsListSchema.parse(savedMatchSettings);
+      const droppedCount = savedMatchSettings.length - validSettings.length;
+      if (droppedCount > 0) {
+        console.error(
+          'Dropped malformed saved match settings entries on write:',
+          droppedCount
+        );
+      }
       try {
-        setSavedMatchSettings(savedMatchSettings);
+        setSavedMatchSettings(validSettings);
         return { success: true };
       } catch (error) {
         console.error('Error setting saved match settings:', error);

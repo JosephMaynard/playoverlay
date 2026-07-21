@@ -1,6 +1,14 @@
 import { z } from 'zod';
-import { defaultAppSettings } from './constants';
-import { supportedLanguageCodes } from './types';
+import {
+  defaultAppSettings,
+  defaultBrowserSourceSettings,
+  defaultMatchState,
+  defaultRemoteControlSettings,
+  defaultScores,
+  screens,
+  DisplayScreen,
+} from './constants';
+import { CustomScreen, Penalty, supportedLanguageCodes } from './types';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -87,14 +95,28 @@ export const appSettingsSchema = z.object({
   browserSource: z
     .object({
       enabled: z.boolean(),
-      port: z.number(),
+      // Bounded to the valid TCP port range and degraded to the shipped
+      // default port (rather than left out of range or non-integer) so a
+      // corrupt/out-of-range value can never be handed to http.listen,
+      // which would simply fail to bind.
+      port: z
+        .number()
+        .int()
+        .min(1)
+        .max(65535)
+        .catch(defaultBrowserSourceSettings.port),
     })
     .optional()
     .catch(undefined),
   remoteControl: z
     .object({
       enabled: z.boolean(),
-      port: z.number(),
+      port: z
+        .number()
+        .int()
+        .min(1)
+        .max(65535)
+        .catch(defaultRemoteControlSettings.port),
     })
     .optional()
     .catch(undefined),
@@ -106,4 +128,139 @@ export const appSettingsSchema = z.object({
     })
     .optional()
     .catch(undefined),
+});
+
+// The remaining schemas below cover the IPC/storage trust boundaries that
+// previously had no runtime validation at all (scores, clock, match state,
+// custom screens, saved match settings, the live-match snapshot). Same
+// graceful-degradation style throughout: an individual bad field falls back
+// to a safe default instead of failing the whole parse, and a bad entry in a
+// list is dropped rather than discarding the rest of the list.
+
+export const homeOrAwaySchema = z.enum(['home', 'away']);
+
+// Mirrors constants.ts's `screens` object, the single source of truth for
+// DisplayScreen, so this can never drift from the set of screens the app
+// actually knows how to render.
+const displayScreenValues = Object.keys(screens) as [
+  DisplayScreen,
+  ...DisplayScreen[],
+];
+export const displayScreenSchema = z.enum(displayScreenValues);
+
+export const penaltySchema = z.object({
+  team: homeOrAwaySchema.catch('home'),
+  result: z.enum(['scored', 'missed']).catch('missed'),
+});
+
+// A wholly non-array `penalties` value degrades to no penalties recorded;
+// an individual malformed entry is dropped rather than resetting every
+// other penalty already recorded in the match.
+export const penaltyListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<Penalty[]>((acc, entry) => {
+      const parsed = penaltySchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
+export const scoresSchema = z.object({
+  homeTeam: z
+    .number()
+    .int()
+    .nonnegative()
+    .finite()
+    .catch(defaultScores.homeTeam),
+  awayTeam: z
+    .number()
+    .int()
+    .nonnegative()
+    .finite()
+    .catch(defaultScores.awayTeam),
+  penalties: penaltyListSchema,
+});
+
+export const timeSchema = z.object({
+  time: z.string().optional().catch(undefined),
+  remainingTime: z.string().optional().catch(undefined),
+  additionalTime: z.number().finite().optional().catch(undefined),
+  paused: z.boolean().optional().catch(undefined),
+  showAdditionalTime: z.boolean().optional().catch(undefined),
+  // Phase ids are no longer a fixed football-only set (see MatchPhase in
+  // types.ts), so any string is accepted here; getPhaseById already treats
+  // an id that matches no known phase as "not found" rather than throwing.
+  matchPhase: z.string().optional().catch(undefined),
+});
+
+// title/filePath/url are required by the CustomScreen type: an entry
+// missing one of them entirely is corrupt beyond a single-field repair, so
+// it's left to fail here and gets dropped by customScreenListSchema below
+// rather than kept with a made-up title or path. type/overlayLinks are
+// genuinely optional fields, so those degrade to undefined individually.
+export const customScreenSchema = z.object({
+  title: z.string(),
+  filePath: z.string().nullable(),
+  url: z.string().nullable(),
+  type: z.enum(['screen', 'overlay']).optional().catch(undefined),
+  overlayLinks: z.array(displayScreenSchema).optional().catch(undefined),
+});
+
+// Parses a CustomScreen[] entry by entry so one corrupt graphic (e.g. from
+// a hand-edited config.json) never discards every other saved graphic.
+// Never throws: a wholly non-array value degrades to an empty list.
+export const customScreenListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<CustomScreen[]>((acc, entry) => {
+      const parsed = customScreenSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
+export const matchStateSchema = z.object({
+  matchPhase: z.string().optional().catch(undefined),
+  previousMatchPhase: z.string().optional().catch(undefined),
+  displayScreen: displayScreenSchema.catch(defaultMatchState.displayScreen),
+  penaltiesFirstTeam: homeOrAwaySchema.catch(
+    defaultMatchState.penaltiesFirstTeam
+  ),
+  customScreenImageUrl: z.string().optional().catch(undefined),
+  overlays: customScreenListSchema,
+});
+
+// Parses a MatchSettings[] entry by entry, the array counterpart of
+// matchSetingsSchema: one saved match with e.g. a missing team name is
+// dropped rather than discarding every other saved match in the list.
+export const matchSettingsListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<MatchSettings[]>((acc, entry) => {
+      const parsed = matchSetingsSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
+// Snapshot of the in-progress match persisted for crash recovery. scores/
+// time/matchState are required fields of LiveMatch, so unlike the optional
+// nested objects above (browserSource, keyboardShortcuts, ...) a totally
+// corrupt nested value degrades to that whole field's own safe default
+// (defaultScores/{}/defaultMatchState) rather than becoming optional.
+export const liveMatchSchema = z.object({
+  scores: scoresSchema.catch(defaultScores),
+  time: timeSchema.catch({}),
+  matchState: matchStateSchema.catch(defaultMatchState),
+  savedAt: z
+    .number()
+    .finite()
+    .catch(() => Date.now()),
+  // Older snapshots predate this field; restore already falls back to
+  // whatever match settings are currently loaded when it's absent.
+  matchSettings: matchSetingsSchema.optional().catch(undefined),
 });
