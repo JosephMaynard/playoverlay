@@ -174,6 +174,26 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
 // recovery at most ~2s stale while halving+ the disk churn over a match.
 let persistLiveMatchTimer: ReturnType<typeof setTimeout> | null = null;
 
+// A restorable snapshot from a previous session must survive on disk until the
+// operator resolves it. On launch the dashboard seeds the main process with
+// its default (blank) scores/time/state, which would otherwise overwrite the
+// snapshot within one throttle window and lose the match to a second crash.
+// So while `liveMatchAtLaunch` is still pending, blank state is not written;
+// the first genuinely meaningful update (a goal, a running phase, a restore)
+// unlocks persistence, and an explicit dismiss resolves it too.
+let liveMatchResolved = true;
+
+function isMeaningfulLiveState(): boolean {
+  return (
+    cachedScores.homeTeam > 0 ||
+    cachedScores.awayTeam > 0 ||
+    cachedScores.penalties.length > 0 ||
+    cachedTime.matchPhase !== undefined ||
+    cachedMatchState.matchPhase !== undefined ||
+    cachedMatchState.previousMatchPhase !== undefined
+  );
+}
+
 function writeLiveMatch() {
   try {
     setLiveMatch({
@@ -189,6 +209,13 @@ function writeLiveMatch() {
 }
 
 function persistLiveMatch() {
+  // Protect an unresolved launch snapshot from being overwritten by blank
+  // startup state. Any meaningful state means the operator is underway, so
+  // resolve and persist normally from here on.
+  if (!liveMatchResolved) {
+    if (!isMeaningfulLiveState()) return;
+    liveMatchResolved = true;
+  }
   if (persistLiveMatchTimer) return;
   persistLiveMatchTimer = setTimeout(() => {
     persistLiveMatchTimer = null;
@@ -408,6 +435,14 @@ function setupIPCHandlers() {
 
   ipcMain.handle('get-live-match', () => {
     return liveMatchAtLaunch;
+  });
+
+  // The operator dismissed the restore prompt without restoring: stop
+  // protecting the old snapshot so the current (blank) state can replace it,
+  // and it isn't re-offered on the next launch.
+  ipcMain.on('resolve-live-match', () => {
+    liveMatchResolved = true;
+    persistLiveMatch();
   });
 
   ipcMain.handle('get-browser-source-status', () => {
@@ -729,6 +764,11 @@ app.on('ready', async () => {
     liveMatchAtLaunch = getLiveMatch();
   } catch {
     // Ignore invalid or missing persisted live match.
+  }
+  // If a restorable snapshot exists, hold off overwriting it with the blank
+  // state the dashboard seeds on mount until the operator resolves it.
+  if (liveMatchAtLaunch) {
+    liveMatchResolved = false;
   }
   // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
   // settings. Startup errors (e.g. a busy port) are caught inside and never

@@ -69,6 +69,7 @@ declare global {
         error?: string;
       }>;
       getLiveMatch: () => Promise<LiveMatch | undefined>;
+      resolveLiveMatch: () => void;
       openUrlInBrowser: (url: string) => void;
       onNextMatchPhase: (callback: () => void) => () => void;
       onHomeTeamScored: (callback: () => void) => () => void;

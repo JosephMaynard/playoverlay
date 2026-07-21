@@ -474,6 +474,13 @@ export default function Dashboard() {
             }
             buttonOnClick={() => restoreMatch(restorableMatch)}
             buttonText={t('settings:matchMenu.saved.restore')}
+            onClose={() => {
+              // Dismissed without restoring: let the main process replace the
+              // protected snapshot with the current state so it isn't offered
+              // again next launch.
+              window?.electronAPI?.resolveLiveMatch();
+              setRestorableMatch(null);
+            }}
           />
         )}
         {updateStatus?.newVersionAvailable && (

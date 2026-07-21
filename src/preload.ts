@@ -136,6 +136,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getLiveMatch: (): Promise<LiveMatch | undefined> =>
     ipcRenderer.invoke('get-live-match'),
+  resolveLiveMatch: () => ipcRenderer.send('resolve-live-match'),
   openUrlInBrowser: (url: string) =>
     ipcRenderer.send('open-url-in-browser', url),
 
