@@ -31,8 +31,10 @@
     "undoPenalty": "Annulla rigore"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Diminuisci il punteggio di {{team}}",
     "editScore": "Modifica punteggio",
     "editScoreAria": "Modifica il punteggio di {{team}}",
+    "increaseScoreAria": "Aumenta il punteggio di {{team}}",
     "scoreLabel": "Punteggio {{team}}",
     "scored": "Gol di {{title}}"
   },
@@ -40,12 +42,15 @@
     "title": "Punteggi"
   },
   "timeControl": {
+    "additionalTimeLabel": "Recupero",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Regola il tempo",
     "autoSwitchLabel": "Cambia automaticamente schermo all'avvio e all'arresto",
     "clear": "Cancella",
+    "pause": "Pausa",
+    "resume": "Riprendi",
     "setAdditionalTime": "Imposta il recupero",
     "title": "Tempo"
   }

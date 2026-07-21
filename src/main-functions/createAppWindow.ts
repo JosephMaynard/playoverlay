@@ -20,7 +20,6 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: !isDev,
-      experimentalFeatures: true,
     },
   };
 
@@ -34,6 +33,19 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
   };
 
   const window = new BrowserWindow({ ...commonOptions, ...specificOptions });
+
+  // The app never navigates away from its own bundled/dev-server page, so
+  // deny any in-page navigation attempt outright. This only affects
+  // user/page-initiated navigation (e.g. window.location changes or link
+  // clicks); the initial window.loadURL/loadFile call below does not emit
+  // this event, so the dev-server URL still loads normally.
+  window.webContents.on('will-navigate', (event) => {
+    event.preventDefault();
+  });
+
+  // No window ever needs to open a popup; external links already go through
+  // shell.openExternal via the 'open-url-in-browser' IPC channel.
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   window.on('resized', () => {
     try {

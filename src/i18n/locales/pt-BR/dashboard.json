@@ -31,8 +31,10 @@
     "undoPenalty": "Desfazer pênalti"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Diminuir o placar de {{team}}",
     "editScore": "Editar placar",
     "editScoreAria": "Editar placar de {{team}}",
+    "increaseScoreAria": "Aumentar o placar de {{team}}",
     "scoreLabel": "Placar de {{team}}",
     "scored": "Gol de {{title}}"
   },
@@ -40,12 +42,15 @@
     "title": "Placar"
   },
   "timeControl": {
+    "additionalTimeLabel": "Tempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tempo",
     "autoSwitchLabel": "Mudar automaticamente de tela ao iniciar e parar",
     "clear": "Limpar",
+    "pause": "Pausar",
+    "resume": "Retomar",
     "setAdditionalTime": "Definir tempo adicional",
     "title": "Tempo"
   }

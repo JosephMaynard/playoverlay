@@ -13,3 +13,25 @@
 body {
   overscroll-behavior: none;
 }
+
+/* Respect the OS-level "reduce motion" preference. This is a global,
+   robust baseline rather than per-component opt-outs: it covers Headless
+   UI's Transition components (SideMenu, Modal, WideModal, AppNotification)
+   and every Tailwind transition-* utility in one place, so a new animated
+   component is covered automatically without remembering to wire it up.
+   Durations collapse to near-zero (not exactly 0, some browsers treat a
+   literal 0 as "no transition was requested" and skip firing the
+   transitionend event Headless UI listens for to unmount), which only
+   affects timing, not the opacity/transform end states or the
+   show/hide logic built on top of them, so functional visibility is
+   unaffected. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

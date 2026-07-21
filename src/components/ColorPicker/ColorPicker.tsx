@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { checkColors } from '../../utils';
 
 export interface Props {
@@ -16,6 +17,7 @@ export default function ColourPicker({
   keyColour,
   disabled,
 }: Props) {
+  const { t } = useTranslation();
   const [id] = useState(`${label}-${Math.random().toString()}`);
   return (
     <div className="col-span-full">
@@ -37,9 +39,8 @@ export default function ColourPicker({
         />
       </div>
       {keyColour && value && checkColors(value, keyColour) && (
-        <p className="text-sm font-medium text-red-600 ">
-          Warning: This colour may be too close to the key colour, please check
-          your output.
+        <p className="text-sm font-medium text-red-600">
+          {t('settings:colourPicker.keyColourWarning')}
         </p>
       )}
     </div>

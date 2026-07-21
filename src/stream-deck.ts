@@ -100,6 +100,15 @@ async function createCanvasWithSVGFromFile(
 
 let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>> = [];
 
+// Bumped on every connectToStreamDeck call. A redraw paints keys one at a
+// time with awaits in between, and the caller re-runs the redraw whenever the
+// phase, match settings, or button set changes (potentially before a previous
+// redraw has finished writing to the device). Each redraw captures its own
+// generation and bails the moment a newer redraw supersedes it, so two paints
+// can never interleave their writes on the single HID device and leave the
+// panel in a mix of the old and new button set.
+let renderGeneration = 0;
+
 // Key reserved for the "next button set" logo button. Since usable buttons
 // occupy indices 0..NEXT_SET_KEY_INDEX-1, this also doubles as the number of
 // buttons per set, shared with SystemSettingsMenu's deck-page chunking so
@@ -115,9 +124,15 @@ export async function connectToStreamDeck(
   }[],
   nextScreen: () => void
 ) {
+  const generation = ++renderGeneration;
+
   if (!connectedStreamDecks[0]) {
     connectedStreamDecks = await requestStreamDecks();
   }
+
+  // A newer redraw took over while we were requesting the device. Bail before
+  // clearing or repainting so we do not wipe the panel it has already drawn.
+  if (generation !== renderGeneration) return;
 
   const streamDeck = connectedStreamDecks[0];
 
@@ -161,21 +176,30 @@ export async function connectToStreamDeck(
     console.error(error);
   });
 
-  buttons.slice(0, Math.min(NEXT_SET_KEY_INDEX, keyCount)).forEach(
-    async (button, index) => {
-      await streamDeck.fillKeyCanvas(
-        index,
-        createCanvasWithText(
-          button.text,
-          button.textColor,
-          button.backgroundColor
-        )
-      );
-    }
-  );
+  // Paint the button keys sequentially and await each write. A bare
+  // forEach(async ...) would fire every fillKeyCanvas concurrently and let
+  // connectToStreamDeck resolve before any of them landed, so the caller (and
+  // a following redraw) could not tell when the panel was actually ready.
+  const paintCount = Math.min(NEXT_SET_KEY_INDEX, keyCount);
+  for (let index = 0; index < paintCount; index++) {
+    const button = buttons[index];
+    if (!button) continue;
+    await streamDeck.fillKeyCanvas(
+      index,
+      createCanvasWithText(
+        button.text,
+        button.textColor,
+        button.backgroundColor
+      )
+    );
+    // A newer redraw superseded this one mid-paint: stop writing keys so the
+    // two do not leave a half-old, half-new panel.
+    if (generation !== renderGeneration) return;
+  }
 
   if (keyCount > NEXT_SET_KEY_INDEX) {
     const canvas = await createCanvasWithSVGFromFile(logo);
+    if (generation !== renderGeneration) return;
     await streamDeck.fillKeyCanvas(NEXT_SET_KEY_INDEX, canvas);
   }
 }

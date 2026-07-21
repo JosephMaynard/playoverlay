@@ -39,6 +39,22 @@
       "nextMatchPhase": "Phase de match suivante",
       "title": "Raccourcis clavier"
     },
+    "remoteControl": {
+      "connected": "Téléphones connectés : {{count}}",
+      "copied": "Copié !",
+      "copy": "Copier",
+      "enable": "Activer",
+      "hint": "Les deux appareils doivent être sur le même wifi. Ouvrez l'URL ou scannez le QR code sur votre téléphone, puis saisissez le code PIN.",
+      "pinLabel": "PIN : {{pin}}",
+      "port": "Port",
+      "portError": "Saisissez un port compris entre 1024 et 65535.",
+      "qrAlt": "QR code de l'URL de la télécommande mobile",
+      "status": "Statut : {{state}}",
+      "statusRunning": "En cours d'exécution",
+      "statusStopped": "Arrêté",
+      "statusWithError": "Statut : {{state}}, {{error}}",
+      "title": "Télécommande mobile"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Format de l'heure sur l'écran du tableau des scores pour les spectateurs.",
@@ -53,6 +69,9 @@
       "unlockWindows": "Déverrouiller les fenêtres",
       "title": "Fenêtres"
     }
+  },
+  "colourPicker": {
+    "keyColourWarning": "Avertissement : cette couleur pourrait être trop proche de la couleur clé, veuillez vérifier votre rendu."
   },
   "customScreens": {
     "add": "Ajouter un graphique personnalisé",

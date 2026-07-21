@@ -39,6 +39,22 @@
       "nextMatchPhase": "Siguiente fase del partido",
       "title": "Atajos de teclado"
     },
+    "remoteControl": {
+      "connected": "Móviles conectados: {{count}}",
+      "copied": "¡Copiado!",
+      "copy": "Copiar",
+      "enable": "Activar",
+      "hint": "Ambos dispositivos deben estar en la misma wifi. Abre la URL o escanea el código QR en tu móvil e introduce el PIN.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Puerto",
+      "portError": "Introduce un puerto entre 1024 y 65535.",
+      "qrAlt": "Código QR de la URL del mando desde el móvil",
+      "status": "Estado: {{state}}",
+      "statusRunning": "En ejecución",
+      "statusStopped": "Detenido",
+      "statusWithError": "Estado: {{state}}, {{error}}",
+      "title": "Mando desde el móvil"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Formato de la hora del día en la pantalla del marcador para espectadores.",
@@ -53,6 +69,9 @@
       "unlockWindows": "Desbloquear ventanas",
       "title": "Ventanas"
     }
+  },
+  "colourPicker": {
+    "keyColourWarning": "Advertencia: este color podría ser demasiado parecido al color clave, comprueba tu salida."
   },
   "customScreens": {
     "add": "Añadir gráfico personalizado",

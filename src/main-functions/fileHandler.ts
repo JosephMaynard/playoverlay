@@ -27,6 +27,82 @@ function getUniqueFileName(directory: string, fileName: string): string {
   return uniqueFileName;
 }
 
+// Team logos and custom-screen/overlay graphics are typically well under a
+// megabyte; 10 MB comfortably covers a large source photo or a dense SVG
+// while still bounding how much an IPC-supplied buffer can make the main
+// process write to disk in a single call.
+export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+// Mirrors the image extensions browserSourceServer.ts's CONTENT_TYPES map
+// knows how to serve (its non-image entries, .html/.js/.css/.woff2/.json,
+// are never valid upload targets).
+const ALLOWED_IMAGE_EXTENSIONS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.svg',
+]);
+
+// Pure and testable: takes only the claimed file name, no filesystem access.
+export function hasAllowedImageExtension(fileName: string): boolean {
+  return ALLOWED_IMAGE_EXTENSIONS.has(path.extname(fileName).toLowerCase());
+}
+
+// Minimal magic-byte signatures for the raster formats accepted above. This
+// doesn't attempt full format validation, just enough to catch a mislabeled
+// or non-image file (e.g. a renamed executable) before it ever reaches disk.
+const PNG_SIGNATURE = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
+const JPEG_SIGNATURE = Buffer.from([0xff, 0xd8, 0xff]);
+const RIFF_HEADER = Buffer.from('RIFF', 'ascii');
+const WEBP_HEADER = Buffer.from('WEBP', 'ascii');
+
+function looksLikePng(buffer: Buffer): boolean {
+  return buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE);
+}
+
+function looksLikeJpeg(buffer: Buffer): boolean {
+  return buffer.subarray(0, JPEG_SIGNATURE.length).equals(JPEG_SIGNATURE);
+}
+
+function looksLikeWebp(buffer: Buffer): boolean {
+  // WebP is a RIFF container: 'RIFF' + 4-byte size + 'WEBP'.
+  return (
+    buffer.subarray(0, 4).equals(RIFF_HEADER) &&
+    buffer.subarray(8, 12).equals(WEBP_HEADER)
+  );
+}
+
+// SVG is XML text, not a binary format with a magic number: it's treated as
+// an image only if it decodes as UTF-8 and its content contains an `<svg`
+// root tag, never executed or otherwise parsed.
+function looksLikeSvg(buffer: Buffer): boolean {
+  // buffer.toString('utf8') never throws (invalid sequences become the
+  // replacement character), so no guarding is needed around the decode.
+  return /<svg[\s>]/i.test(buffer.toString('utf8'));
+}
+
+// Confirms the buffer's actual content matches the claimed image extension,
+// so a mislabeled or non-image file is refused even when its file name ends
+// in an allowed extension. Pure and testable: no filesystem access.
+export function isValidImageBuffer(buffer: Buffer, fileName: string): boolean {
+  switch (path.extname(fileName).toLowerCase()) {
+    case '.png':
+      return looksLikePng(buffer);
+    case '.jpg':
+    case '.jpeg':
+      return looksLikeJpeg(buffer);
+    case '.webp':
+      return looksLikeWebp(buffer);
+    case '.svg':
+      return looksLikeSvg(buffer);
+    default:
+      return false;
+  }
+}
+
 export function saveImageFile(
   buffer: Buffer,
   fileName: string
@@ -36,6 +112,31 @@ export function saveImageFile(
   const safeFileName = path.basename(fileName);
   if (!safeFileName || safeFileName !== fileName) {
     console.error('Rejected unsafe file name:', fileName);
+    return null;
+  }
+
+  if (!hasAllowedImageExtension(fileName)) {
+    console.error(
+      'Rejected upload with a disallowed file extension:',
+      fileName
+    );
+    return null;
+  }
+
+  if (buffer.length > MAX_UPLOAD_SIZE_BYTES) {
+    console.error(
+      'Rejected upload exceeding the maximum upload size:',
+      fileName,
+      buffer.length
+    );
+    return null;
+  }
+
+  if (!isValidImageBuffer(buffer, fileName)) {
+    console.error(
+      'Rejected upload whose content does not match its file extension:',
+      fileName
+    );
     return null;
   }
 

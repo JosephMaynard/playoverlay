@@ -39,6 +39,22 @@
       "nextMatchPhase": "Nächste Spielphase",
       "title": "Tastenkombinationen"
     },
+    "remoteControl": {
+      "connected": "Verbundene Handys: {{count}}",
+      "copied": "Kopiert!",
+      "copy": "Kopieren",
+      "enable": "Aktivieren",
+      "hint": "Beide Geräte müssen im selben WLAN sein. Öffnen Sie die URL oder scannen Sie den QR-Code auf Ihrem Handy und geben Sie dann die PIN ein.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Port",
+      "portError": "Geben Sie einen Port zwischen 1024 und 65535 ein.",
+      "qrAlt": "QR-Code für die URL der Handy-Fernbedienung",
+      "status": "Status: {{state}}",
+      "statusRunning": "Aktiv",
+      "statusStopped": "Gestoppt",
+      "statusWithError": "Status: {{state}}, {{error}}",
+      "title": "Handy-Fernbedienung"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Uhrzeitformat auf der Anzeigetafel für Zuschauer.",
@@ -53,6 +69,9 @@
       "unlockWindows": "Fenster entsperren",
       "title": "Fenster"
     }
+  },
+  "colourPicker": {
+    "keyColourWarning": "Warnung: Diese Farbe könnte der Schlüsselfarbe zu ähnlich sein, bitte überprüfen Sie Ihre Ausgabe."
   },
   "customScreens": {
     "add": "Eigene Grafik hinzufügen",

@@ -6,6 +6,7 @@ import {
   Time,
   MatchState,
   Display,
+  RemoteControlStatus,
 } from '../types';
 import { MatchSettings, UpdateStatus } from '../zodSchemas';
 
@@ -69,10 +70,19 @@ declare global {
         error?: string;
       }>;
       getLiveMatch: () => Promise<LiveMatch | undefined>;
+      resolveLiveMatch: () => void;
       openUrlInBrowser: (url: string) => void;
       onNextMatchPhase: (callback: () => void) => () => void;
       onHomeTeamScored: (callback: () => void) => () => void;
       onAwayTeamScored: (callback: () => void) => () => void;
+      onHomeTeamUnscored: (callback: () => void) => () => void;
+      onAwayTeamUnscored: (callback: () => void) => () => void;
+      onToggleClock: (callback: () => void) => () => void;
+      onSetDisplayScreen: (callback: (screen: string) => void) => () => void;
+      getRemoteControlStatus: () => Promise<RemoteControlStatus>;
+      onRemoteControlStatus: (
+        callback: (status: RemoteControlStatus) => void
+      ) => () => void;
       enableKeyboardShortcuts: () => void;
       disableKeyboardShortcuts: () => void;
       displayReady: () => void;

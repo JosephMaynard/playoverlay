@@ -31,8 +31,10 @@
     "undoPenalty": "Undo Penalty"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Decrease {{team}} score",
     "editScore": "Edit Score",
     "editScoreAria": "Edit {{team}} score",
+    "increaseScoreAria": "Increase {{team}} score",
     "scoreLabel": "{{team}} score",
     "scored": "{{title}} Scored"
   },
@@ -40,12 +42,15 @@
     "title": "Scores"
   },
   "timeControl": {
+    "additionalTimeLabel": "Additional time",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Adjust Time",
     "autoSwitchLabel": "Auto switch screens on start and stop",
     "clear": "Clear",
+    "pause": "Pause",
+    "resume": "Resume",
     "setAdditionalTime": "Set Additional Time",
     "title": "Time"
   }

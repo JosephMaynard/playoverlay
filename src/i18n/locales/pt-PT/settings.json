@@ -39,6 +39,22 @@
       "nextMatchPhase": "Próxima fase do jogo",
       "title": "Atalhos de teclado"
     },
+    "remoteControl": {
+      "connected": "Telemóveis ligados: {{count}}",
+      "copied": "Copiado!",
+      "copy": "Copiar",
+      "enable": "Ativar",
+      "hint": "Ambos os dispositivos têm de estar na mesma wifi. Abra o URL ou leia o código QR no telemóvel e introduza o PIN.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Porta",
+      "portError": "Introduza uma porta entre 1024 e 65535.",
+      "qrAlt": "Código QR do URL do comando pelo telemóvel",
+      "status": "Estado: {{state}}",
+      "statusRunning": "Em execução",
+      "statusStopped": "Parado",
+      "statusWithError": "Estado: {{state}}, {{error}}",
+      "title": "Comando pelo telemóvel"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Formato da hora do dia no ecrã do marcador para os espectadores.",
@@ -53,6 +69,9 @@
       "unlockWindows": "Desbloquear janelas",
       "title": "Janelas"
     }
+  },
+  "colourPicker": {
+    "keyColourWarning": "Aviso: esta cor pode estar demasiado parecida com a cor-chave, verifique a sua saída."
   },
   "customScreens": {
     "add": "Adicionar gráfico personalizado",

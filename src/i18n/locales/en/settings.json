@@ -39,6 +39,22 @@
       "nextMatchPhase": "Next match phase",
       "title": "Keyboard Shortcuts"
     },
+    "remoteControl": {
+      "connected": "Connected phones: {{count}}",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "enable": "Enable",
+      "hint": "Both devices must be on the same wifi. Open the URL or scan the QR code on your phone, then enter the PIN.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Port",
+      "portError": "Enter a port between 1024 and 65535.",
+      "qrAlt": "QR code for the phone remote URL",
+      "status": "Status: {{state}}",
+      "statusRunning": "Running",
+      "statusStopped": "Stopped",
+      "statusWithError": "Status: {{state}}, {{error}}",
+      "title": "Phone Remote"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Time-of-day format on the spectator scoreboard screen.",
@@ -53,6 +69,9 @@
       "unlockWindows": "Unlock Windows",
       "title": "Windows"
     }
+  },
+  "colourPicker": {
+    "keyColourWarning": "Warning: This colour may be too close to the key colour, please check your output."
   },
   "customScreens": {
     "add": "Add Custom Graphic",

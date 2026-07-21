@@ -55,6 +55,21 @@ if (!i18n.isInitialized) {
       useSuspense: false,
     },
   });
+
+  // Keep the root <html lang> in sync with the active language, on both
+  // windows (App.tsx and Display.tsx each drive i18n.changeLanguage from
+  // their own appSettings.language). This is what tells assistive tech
+  // (and the browser's own spell-check/hyphenation) which language the page
+  // is in, so it's set once for the language i18next starts on, then kept
+  // current as the operator changes it. i18n.language is always one of the
+  // eight shipped catalogue codes (see LanguageCode in src/types.ts), so no
+  // extra mapping is needed here.
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = i18n.language;
+    i18n.on('languageChanged', (lng) => {
+      document.documentElement.lang = lng;
+    });
+  }
 }
 
 export default i18n;

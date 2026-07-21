@@ -4,6 +4,7 @@ import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
+import { execSync } from 'node:child_process';
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -14,6 +15,34 @@ const config: ForgeConfig = {
     // name; without this the packaged binary is "PlayOverlay" and the Linux
     // makers fail to find it ("could not find the Electron app binary").
     executableName: 'playoverlay',
+    // Ship the project licence, the trademark terms, and the bundled
+    // third-party dependency notices alongside the app so an installed copy
+    // carries its own licensing, not just the source repository.
+    extraResource: ['LICENSE', 'TRADEMARKS.md', 'THIRD_PARTY_NOTICES.md'],
+  },
+  hooks: {
+    // Regenerate THIRD_PARTY_NOTICES.md from the current production
+    // dependency tree right before packaging, so the bundled notices can
+    // never drift from what actually ships. In CI (where releases are built)
+    // a generation failure fails the build rather than silently shipping a
+    // stale committed copy; locally it falls back to the committed copy so a
+    // developer packaging a one-off build is not blocked.
+    generateAssets: async () => {
+      try {
+        execSync(
+          'npx --no-install generate-license-file --input package.json --output ./THIRD_PARTY_NOTICES.md --overwrite',
+          { stdio: 'inherit' }
+        );
+      } catch (error) {
+        if (process.env.CI) {
+          throw error;
+        }
+        console.warn(
+          'Could not regenerate THIRD_PARTY_NOTICES.md, using the committed copy:',
+          error
+        );
+      }
+    },
   },
   rebuildConfig: {},
   makers: [

@@ -96,6 +96,9 @@ export default function ScoreInput({
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <button
               type="button"
+              aria-label={t('dashboard:scoreInput.decreaseScoreAria', {
+                team: teamNameFull,
+              })}
               className="relative -mr-px inline-flex items-center gap-x-1.5 rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
               onClick={() => {
                 if (score > 0) {
@@ -125,6 +128,9 @@ export default function ScoreInput({
           </div>
           <button
             type="button"
+            aria-label={t('dashboard:scoreInput.increaseScoreAria', {
+              team: teamNameFull,
+            })}
             className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             onClick={() => setScore(score + 1)}
           >

@@ -93,3 +93,6 @@ out/
 
 # Yarn (project uses npm)
 .yarn/
+
+# Local dogfooding/testing artifacts (screenshots, notes) should never be committed
+dogfood-output/

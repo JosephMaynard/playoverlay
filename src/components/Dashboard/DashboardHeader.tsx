@@ -46,7 +46,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
     <>
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
         <div className="flex items-center gap-x-4">
-          <img className="h-7 w-auto" src={logo} alt="PlayOverlay logo" />
+          <img className="h-7 w-auto" src={logo} alt={t('common:logoAlt')} />
           <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
             PlayOverlay
           </div>
@@ -76,7 +76,7 @@ export default function DashboardHeader({ setSideMenu }: Props) {
       </div>
       <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
         <div className="flex h-16 shrink-0 items-center justify-center">
-          <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+          <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
         </div>
         <nav className="mt-8 flex grow flex-col">
           <ul

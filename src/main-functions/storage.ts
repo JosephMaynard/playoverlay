@@ -6,9 +6,16 @@ import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import {
   appSettingsSchema,
+  customScreenListSchema,
+  liveMatchSchema,
   matchSetingsSchema,
+  matchSettingsListSchema,
   MatchSettings,
 } from '../zodSchemas';
+import {
+  reconcileCustomScreens,
+  reconcileMatchStateScreen,
+} from './customScreenReconciliation';
 
 // Builds made before the source-available release encrypted config.json with a
 // build-time key. When LEGACY_STORE_KEY is provided at build time, an
@@ -53,7 +60,10 @@ function createStorage(): Store {
         fs.renameSync(configPath, `${configPath}.bak`);
       }
     } catch (renameError) {
-      console.error('Failed to move aside unreadable config.json:', renameError);
+      console.error(
+        'Failed to move aside unreadable config.json:',
+        renameError
+      );
     }
     // If the rename succeeded config.json is gone and this is a clean start;
     // if it failed, clearInvalidConfig lets the store reset rather than
@@ -156,26 +166,37 @@ export function getMatchSettings() {
   return getVerifiedMatchSettings();
 }
 
-export function getCustomScreens() {
-  const customScreens = storage.get(CUSTOM_SCREENS);
-  if (customScreens) {
-    return customScreens;
-  } else {
-    return [];
+// Validated through customScreenListSchema (a corrupt individual entry is
+// dropped, never enough to fail the whole list), then reconciled against the
+// real filesystem: an entry whose backing image file no longer exists (the
+// user deleted it, or config.json moved to a machine that never had the
+// images folder) is dropped too, and the cleaned-up list is written back so
+// the warning isn't repeated on every subsequent read.
+export function getCustomScreens(): CustomScreen[] {
+  const parsed = customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
+  const { kept, dropped } = reconcileCustomScreens(parsed, fs.existsSync);
+
+  if (dropped.length > 0) {
+    console.error(
+      'Dropping custom screens with missing backing files:',
+      dropped.map((screen) => screen.filePath)
+    );
+    storage.set(CUSTOM_SCREENS, kept);
   }
+
+  return kept;
 }
 
 export function setCustomScreens(customScreens: CustomScreen[]) {
   storage.set(CUSTOM_SCREENS, customScreens);
 }
 
-export function getSavedMatchSettings() {
-  const savedMatchSettings = storage.get(SAVED_MATCH_SETTINGS);
-  if (savedMatchSettings) {
-    return savedMatchSettings;
-  } else {
-    return [];
-  }
+// Validated entry by entry through matchSettingsListSchema, mirroring
+// getMatchSettings' per-field degradation: one corrupt saved match (e.g.
+// missing a required team name) is dropped rather than losing every other
+// saved match in the list.
+export function getSavedMatchSettings(): MatchSettings[] {
+  return matchSettingsListSchema.parse(storage.get(SAVED_MATCH_SETTINGS));
 }
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
@@ -186,6 +207,36 @@ export function setLiveMatch(liveMatch: LiveMatch) {
   storage.set(LIVE_MATCH, liveMatch);
 }
 
-export function getLiveMatch() {
-  return storage.get(LIVE_MATCH) as LiveMatch | undefined;
+// Validated through liveMatchSchema (an individually corrupt nested object
+// degrades to that field's own safe default; a wholly unparseable value
+// behaves like no snapshot at all, the same "corrupt = absent" fallback
+// getAppSettings uses). Then reconciled against the current custom-screens
+// list: a restored matchState still pointing at a since-deleted custom
+// screen (by displayScreen/customScreenImageUrl, or a since-deleted overlay)
+// falls back to the scoreBug default instead of rendering a broken image.
+export function getLiveMatch(): LiveMatch | undefined {
+  const raw = storage.get(LIVE_MATCH);
+  if (!raw) return undefined;
+
+  const verified = liveMatchSchema.safeParse(raw);
+  if (!verified.success) return undefined;
+
+  const liveMatch = verified.data;
+  const survivingCustomScreens = getCustomScreens();
+  const { kept: survivingOverlays, dropped: droppedOverlays } =
+    reconcileCustomScreens(liveMatch.matchState.overlays, fs.existsSync);
+
+  if (droppedOverlays.length > 0) {
+    console.error(
+      'Dropping overlays with missing backing files from the restored match:',
+      droppedOverlays.map((screen) => screen.filePath)
+    );
+  }
+
+  const reconciledMatchState = reconcileMatchStateScreen(
+    { ...liveMatch.matchState, overlays: survivingOverlays },
+    survivingCustomScreens
+  );
+
+  return { ...liveMatch, matchState: reconciledMatchState };
 }

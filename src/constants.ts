@@ -4,6 +4,7 @@ import {
   BrowserSourceSettings,
   KeyboardShortcuts,
   LanguageCode,
+  RemoteControlSettings,
   Scores,
 } from './types';
 import { MatchSettings } from './zodSchemas';
@@ -17,6 +18,15 @@ export const defaultBrowserSourceSettings: BrowserSourceSettings = {
   port: 4750,
 };
 
+// Off by default, same merge-in pattern as defaultBrowserSourceSettings (see
+// getRemoteControlSettings in utils.ts). The default port is deliberately
+// distinct from the browser source's 4750 so both features can run at once
+// without colliding.
+export const defaultRemoteControlSettings: RemoteControlSettings = {
+  enabled: false,
+  port: 3006,
+};
+
 // `language` is deliberately omitted (left unset): that's what tells the
 // control window to show the first-run language picker. An existing
 // config.json saved before v0.18 has no `language` key either, so it
@@ -27,6 +37,7 @@ export const defaultAppSettings: AppSettings = {
   autoSwitchScreens: true,
   clockFormat: '24h',
   browserSource: { ...defaultBrowserSourceSettings },
+  remoteControl: { ...defaultRemoteControlSettings },
 };
 
 // The eight shipped catalogues, in the order/grouping shown in the language

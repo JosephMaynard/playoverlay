@@ -9,12 +9,15 @@ import {
   globalShortcut,
 } from 'electron';
 import path from 'path';
+import crypto from 'crypto';
+import os from 'os';
 import {
   AppSettings,
   BrowserSourceSettings,
   CustomScreen,
   LiveMatch,
   MatchState,
+  RemoteControlSettings,
   Scores,
   Time,
 } from './types';
@@ -24,11 +27,19 @@ import {
   defaultMatchState,
   defaultScores,
 } from './constants';
-import { MatchSettings } from './zodSchemas';
+import {
+  customScreenListSchema,
+  MatchSettings,
+  matchSettingsListSchema,
+  matchStateSchema,
+  scoresSchema,
+  timeSchema,
+} from './zodSchemas';
 import {
   deriveGlobalAccelerator,
   getBrowserSourceSettings,
   getKeyboardShortcuts,
+  getRemoteControlSettings,
 } from './utils';
 import {
   DISPLAY_WINDOW,
@@ -63,6 +74,17 @@ import {
   startBrowserSourceServer,
   stopBrowserSourceServer,
 } from './main-functions/browserSourceServer';
+import {
+  RemoteCommand,
+  RemoteControlSnapshot,
+  broadcastRemoteControlState,
+  getLanIPv4,
+  getRemoteControlConnectedCount,
+  getRemoteControlServerPort,
+  isRemoteControlServerRunning,
+  startRemoteControlServer,
+  stopRemoteControlServer,
+} from './main-functions/remoteControlServer';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -105,6 +127,15 @@ let liveMatchAtLaunch: LiveMatch | undefined;
 // (re)start or once the feature is disabled.
 let browserSourceError: string | undefined;
 
+// Same as browserSourceError, for the phone-remote server.
+let remoteControlError: string | undefined;
+
+// The pairing PIN for the currently running remote-control server. Regenerated
+// on every (re)start (each enable) with a CSPRNG so a leaked PIN from a
+// previous session is useless, and never persisted. Empty when the server is
+// off.
+let remoteControlPin = '';
+
 function getImagesDirUrlPrefix(): string {
   return `${convertFilePathToUrl(imagesPath)}/`;
 }
@@ -123,9 +154,18 @@ function broadcastToBrowserSourcesRewritten(channel: string, payload: unknown) {
 // state/scores/time. Keep this in sync with that handler below.
 function getBrowserSourceSnapshot() {
   return [
-    { channel: 'match-settings-updated', payload: toBrowserSourcePayload(cachedMatchSettings) },
-    { channel: 'app-settings-updated', payload: toBrowserSourcePayload(cachedAppSettings) },
-    { channel: 'match-state-updated', payload: toBrowserSourcePayload(cachedMatchState) },
+    {
+      channel: 'match-settings-updated',
+      payload: toBrowserSourcePayload(cachedMatchSettings),
+    },
+    {
+      channel: 'app-settings-updated',
+      payload: toBrowserSourcePayload(cachedAppSettings),
+    },
+    {
+      channel: 'match-state-updated',
+      payload: toBrowserSourcePayload(cachedMatchState),
+    },
     { channel: 'score-updated', payload: toBrowserSourcePayload(cachedScores) },
     { channel: 'time-updated', payload: toBrowserSourcePayload(cachedTime) },
   ];
@@ -168,11 +208,170 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
   return browserSourceTransition;
 }
 
+// The compact snapshot pushed to every paired phone: score, clock, on-air
+// screen, and team labels, and nothing else (see RemoteControlSnapshot). Sent
+// on every state change and to each phone as it pairs, so two phones stay in
+// sync with each other and with the operator.
+function getRemoteControlSnapshot(): RemoteControlSnapshot {
+  return {
+    scores: {
+      homeTeam: cachedScores.homeTeam,
+      awayTeam: cachedScores.awayTeam,
+    },
+    time: {
+      time: cachedTime.time,
+      paused: cachedTime.paused,
+      matchPhase: cachedTime.matchPhase,
+    },
+    matchState: {
+      displayScreen: cachedMatchState.displayScreen,
+      matchPhase: cachedMatchState.matchPhase,
+    },
+    matchSettings: {
+      homeTeamNameAbbreviated: cachedMatchSettings.homeTeamNameAbbreviated,
+      awayTeamNameAbbreviated: cachedMatchSettings.awayTeamNameAbbreviated,
+      homeTeamNameFull: cachedMatchSettings.homeTeamNameFull,
+      awayTeamNameFull: cachedMatchSettings.awayTeamNameFull,
+    },
+  };
+}
+
+// Pushes the current snapshot to all paired phones. A no-op when the server
+// isn't running, so it's safe to call unconditionally from the state handlers.
+function broadcastRemoteControlSnapshot() {
+  if (!isRemoteControlServerRunning()) return;
+  broadcastRemoteControlState(getRemoteControlSnapshot());
+}
+
+// Routes a validated remote command to the control window using the same
+// reverse-IPC channel pattern as the keyboard/Stream Deck shortcuts: the
+// Dashboard receives the channel and applies it to its zustand store, so a
+// phone tap and an operator click take exactly the same code path. Commands
+// are intents only; the Dashboard computes the resulting state.
+function routeRemoteCommand(command: RemoteCommand) {
+  switch (command.type) {
+    case 'homeGoal':
+      mainWindow?.webContents.send('home-team-scored');
+      break;
+    case 'awayGoal':
+      mainWindow?.webContents.send('away-team-scored');
+      break;
+    case 'homeGoalRemove':
+      mainWindow?.webContents.send('home-team-unscored');
+      break;
+    case 'awayGoalRemove':
+      mainWindow?.webContents.send('away-team-unscored');
+      break;
+    case 'nextPhase':
+      mainWindow?.webContents.send('next-match-phase');
+      break;
+    case 'toggleClock':
+      mainWindow?.webContents.send('toggle-clock');
+      break;
+    case 'setScreen':
+      mainWindow?.webContents.send('set-display-screen', command.screen);
+      break;
+  }
+}
+
+// Applies a (possibly changed) phone-remote configuration: always stops any
+// running server first, then restarts it if enabled, mirroring
+// applyBrowserSourceSettings. A fresh 6-digit PIN is minted on each start with
+// crypto.randomInt (uniform, unbiased) so every enable requires re-pairing.
+async function applyRemoteControlSettings(settings: RemoteControlSettings) {
+  await stopRemoteControlServer();
+  remoteControlError = undefined;
+  remoteControlPin = '';
+
+  if (!settings.enabled) {
+    notifyRemoteControlStatus();
+    return;
+  }
+
+  remoteControlPin = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+
+  const result = await startRemoteControlServer({
+    port: settings.port,
+    pin: remoteControlPin,
+    getSnapshot: getRemoteControlSnapshot,
+    onCommand: routeRemoteCommand,
+    onConnectionChange: () => notifyRemoteControlStatus(),
+  });
+
+  if (result.ok === false) {
+    remoteControlError = result.error;
+    remoteControlPin = '';
+    console.error('Failed to start remote control server:', result.error);
+  }
+
+  notifyRemoteControlStatus();
+}
+
+// Serializes applyRemoteControlSettings calls so rapid settings changes can't
+// interleave their stop/start work, identical to queueBrowserSourceSettings.
+let remoteControlTransition = Promise.resolve();
+
+function queueRemoteControlSettings(settings: RemoteControlSettings) {
+  remoteControlTransition = remoteControlTransition
+    .then(() => applyRemoteControlSettings(settings))
+    .catch((error) => {
+      console.error('Error applying remote control settings:', error);
+    });
+  return remoteControlTransition;
+}
+
+// Builds the status object the settings UI reads, including the LAN URL a phone
+// should open. Falls back to 127.0.0.1 only when no external IPv4 is found (no
+// network), in which case a phone can't reach it anyway.
+function getRemoteControlStatus() {
+  const settings = getRemoteControlSettings(cachedAppSettings);
+  const port = getRemoteControlServerPort() ?? settings.port;
+  const lanIp = getLanIPv4(os.networkInterfaces());
+  return {
+    running: isRemoteControlServerRunning(),
+    port,
+    pin: remoteControlPin,
+    url: `http://${lanIp ?? '127.0.0.1'}:${port}/`,
+    connectedCount: getRemoteControlConnectedCount(),
+    error: remoteControlError,
+  };
+}
+
+// Pushes a fresh status to the control window so the settings UI can update
+// the running state, PIN, and connected-phone count live (e.g. when a phone
+// pairs or drops) without polling.
+function notifyRemoteControlStatus() {
+  mainWindow?.webContents.send(
+    'remote-control-status',
+    getRemoteControlStatus()
+  );
+}
+
 // Live-match writes are throttled: time updates arrive every second while
 // the clock runs, and each electron-store set() synchronously rewrites the
 // whole config file on the main thread. Deferring the write keeps crash
 // recovery at most ~2s stale while halving+ the disk churn over a match.
 let persistLiveMatchTimer: ReturnType<typeof setTimeout> | null = null;
+
+// A restorable snapshot from a previous session must survive on disk until the
+// operator resolves it. On launch the dashboard seeds the main process with
+// its default (blank) scores/time/state, which would otherwise overwrite the
+// snapshot within one throttle window and lose the match to a second crash.
+// So while `liveMatchAtLaunch` is still pending, blank state is not written;
+// the first genuinely meaningful update (a goal, a running phase, a restore)
+// unlocks persistence, and an explicit dismiss resolves it too.
+let liveMatchResolved = true;
+
+function isMeaningfulLiveState(): boolean {
+  return (
+    cachedScores.homeTeam > 0 ||
+    cachedScores.awayTeam > 0 ||
+    cachedScores.penalties.length > 0 ||
+    cachedTime.matchPhase !== undefined ||
+    cachedMatchState.matchPhase !== undefined ||
+    cachedMatchState.previousMatchPhase !== undefined
+  );
+}
 
 function writeLiveMatch() {
   try {
@@ -189,6 +388,13 @@ function writeLiveMatch() {
 }
 
 function persistLiveMatch() {
+  // Protect an unresolved launch snapshot from being overwritten by blank
+  // startup state. Any meaningful state means the operator is underway, so
+  // resolve and persist normally from here on.
+  if (!liveMatchResolved) {
+    if (!isMeaningfulLiveState()) return;
+    liveMatchResolved = true;
+  }
   if (persistLiveMatchTimer) return;
   persistLiveMatchTimer = setTimeout(() => {
     persistLiveMatchTimer = null;
@@ -336,16 +542,32 @@ const createWindows = () => {
 // Setup IPC handlers
 function setupIPCHandlers() {
   ipcMain.on('update-score', (_, scores: Scores) => {
-    cachedScores = scores;
-    displayWindow?.webContents.send('score-updated', scores);
-    broadcastToBrowserSourcesRewritten('score-updated', scores);
+    // Individually bad fields (e.g. a negative score) degrade to their
+    // default rather than being cached/broadcast as-is; a wholly malformed
+    // payload (not even an object) is rejected outright so it never reaches
+    // the display or gets persisted.
+    const parsed = scoresSchema.safeParse(scores);
+    if (!parsed.success) {
+      console.error('Rejected invalid score update:', parsed.error.message);
+      return;
+    }
+    cachedScores = parsed.data;
+    displayWindow?.webContents.send('score-updated', cachedScores);
+    broadcastToBrowserSourcesRewritten('score-updated', cachedScores);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
   ipcMain.on('update-time', (_, time: Time) => {
-    cachedTime = time;
-    displayWindow?.webContents.send('time-updated', time);
-    broadcastToBrowserSourcesRewritten('time-updated', time);
+    const parsed = timeSchema.safeParse(time);
+    if (!parsed.success) {
+      console.error('Rejected invalid time update:', parsed.error.message);
+      return;
+    }
+    cachedTime = parsed.data;
+    displayWindow?.webContents.send('time-updated', cachedTime);
+    broadcastToBrowserSourcesRewritten('time-updated', cachedTime);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
@@ -354,11 +576,13 @@ function setupIPCHandlers() {
     cachedMatchSettings = teamSettings;
     displayWindow?.webContents.send('match-settings-updated', teamSettings);
     broadcastToBrowserSourcesRewritten('match-settings-updated', teamSettings);
+    broadcastRemoteControlSnapshot();
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
     const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
     const previousBrowserSource = getBrowserSourceSettings(cachedAppSettings);
+    const previousRemoteControl = getRemoteControlSettings(cachedAppSettings);
 
     setAppSettings(appSettings);
     cachedAppSettings = appSettings;
@@ -397,17 +621,42 @@ function setupIPCHandlers() {
     ) {
       void queueBrowserSourceSettings(nextBrowserSource);
     }
+
+    const nextRemoteControl = getRemoteControlSettings(cachedAppSettings);
+    if (
+      previousRemoteControl.enabled !== nextRemoteControl.enabled ||
+      previousRemoteControl.port !== nextRemoteControl.port
+    ) {
+      void queueRemoteControlSettings(nextRemoteControl);
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
-    cachedMatchState = matchState;
-    displayWindow?.webContents.send('match-state-updated', matchState);
-    broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
+    const parsed = matchStateSchema.safeParse(matchState);
+    if (!parsed.success) {
+      console.error(
+        'Rejected invalid match state update:',
+        parsed.error.message
+      );
+      return;
+    }
+    cachedMatchState = parsed.data;
+    displayWindow?.webContents.send('match-state-updated', cachedMatchState);
+    broadcastToBrowserSourcesRewritten('match-state-updated', cachedMatchState);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
   ipcMain.handle('get-live-match', () => {
     return liveMatchAtLaunch;
+  });
+
+  // The operator dismissed the restore prompt without restoring: stop
+  // protecting the old snapshot so the current (blank) state can replace it,
+  // and it isn't re-offered on the next launch.
+  ipcMain.on('resolve-live-match', () => {
+    liveMatchResolved = true;
+    persistLiveMatch();
   });
 
   ipcMain.handle('get-browser-source-status', () => {
@@ -417,6 +666,10 @@ function setupIPCHandlers() {
       port: getBrowserSourceServerPort() ?? settings.port,
       error: browserSourceError,
     };
+  });
+
+  ipcMain.handle('get-remote-control-status', () => {
+    return getRemoteControlStatus();
   });
 
   // Display window signals it's ready to receive initial state
@@ -511,12 +764,9 @@ function setupIPCHandlers() {
     return handleFileDeletion(filePath);
   });
 
-  ipcMain.handle(
-    'upload-logo',
-    async (_, buffer: Buffer, fileName: string) => {
-      return saveImageFile(buffer, fileName);
-    }
-  );
+  ipcMain.handle('upload-logo', async (_, buffer: Buffer, fileName: string) => {
+    return saveImageFile(buffer, fileName);
+  });
 
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();
@@ -525,8 +775,27 @@ function setupIPCHandlers() {
   ipcMain.handle(
     'set-custom-screens',
     (event, customScreens: CustomScreen[]) => {
+      // A payload that isn't even an array is rejected outright rather than
+      // coerced, an empty array would otherwise silently wipe out every
+      // saved custom screen. Once it IS an array, an individually malformed
+      // entry is dropped rather than failing the whole write.
+      if (!Array.isArray(customScreens)) {
+        console.error(
+          'Rejected set-custom-screens: expected an array, got',
+          typeof customScreens
+        );
+        return { success: false, error: 'Invalid custom screens payload' };
+      }
+      const validScreens = customScreenListSchema.parse(customScreens);
+      const droppedCount = customScreens.length - validScreens.length;
+      if (droppedCount > 0) {
+        console.error(
+          'Dropped malformed custom screen entries on write:',
+          droppedCount
+        );
+      }
       try {
-        setCustomScreens(customScreens);
+        setCustomScreens(validScreens);
         return { success: true };
       } catch (error) {
         console.error('Error setting custom screens:', error);
@@ -542,8 +811,29 @@ function setupIPCHandlers() {
   ipcMain.handle(
     'set-saved-match-settings',
     (event, savedMatchSettings: MatchSettings[]) => {
+      // Same reject-if-not-an-array, drop-only-the-bad-entries approach as
+      // set-custom-screens: a non-array payload would otherwise silently
+      // wipe out every saved match.
+      if (!Array.isArray(savedMatchSettings)) {
+        console.error(
+          'Rejected set-saved-match-settings: expected an array, got',
+          typeof savedMatchSettings
+        );
+        return {
+          success: false,
+          error: 'Invalid saved match settings payload',
+        };
+      }
+      const validSettings = matchSettingsListSchema.parse(savedMatchSettings);
+      const droppedCount = savedMatchSettings.length - validSettings.length;
+      if (droppedCount > 0) {
+        console.error(
+          'Dropped malformed saved match settings entries on write:',
+          droppedCount
+        );
+      }
       try {
-        setSavedMatchSettings(savedMatchSettings);
+        setSavedMatchSettings(validSettings);
         return { success: true };
       } catch (error) {
         console.error('Error setting saved match settings:', error);
@@ -622,7 +912,10 @@ function setupDisplayListeners() {
 let registeredFocusAccelerators: string[] = [];
 let registeredGlobalAccelerators: string[] = [];
 
-function getShortcutBindings(): Array<{ accelerator: string; channel: string }> {
+function getShortcutBindings(): Array<{
+  accelerator: string;
+  channel: string;
+}> {
   const shortcuts = getKeyboardShortcuts(cachedAppSettings);
   return [
     { accelerator: shortcuts.nextMatchPhase, channel: 'next-match-phase' },
@@ -730,10 +1023,20 @@ app.on('ready', async () => {
   } catch {
     // Ignore invalid or missing persisted live match.
   }
+  // If a restorable snapshot exists, hold off overwriting it with the blank
+  // state the dashboard seeds on mount until the operator resolves it.
+  if (liveMatchAtLaunch) {
+    liveMatchResolved = false;
+  }
   // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
   // settings. Startup errors (e.g. a busy port) are caught inside and never
   // reach here.
   void queueBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
+  // Off by default too; only binds a 0.0.0.0 (LAN-reachable) server if
+  // explicitly enabled. Independent of the browser source above: enabling one
+  // never touches the other, and this one's binding does not affect the
+  // browser source's 127.0.0.1-only listener.
+  void queueRemoteControlSettings(getRemoteControlSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
   ensureWindowsAreVisible();
@@ -861,4 +1164,5 @@ app.on('will-quit', () => {
   flushLiveMatch();
   globalShortcut.unregisterAll();
   void stopBrowserSourceServer();
+  void stopRemoteControlServer();
 });

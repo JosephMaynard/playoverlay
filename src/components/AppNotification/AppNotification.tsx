@@ -9,6 +9,9 @@ export interface Props {
   icon: React.ReactNode;
   buttonText?: string;
   buttonOnClick?: () => void;
+  // Called when the notification is dismissed via its close (X) button, as
+  // distinct from taking its action. Not called when the action button fires.
+  onClose?: () => void;
 }
 
 export default function AppNotification({
@@ -17,6 +20,7 @@ export default function AppNotification({
   icon,
   buttonText,
   buttonOnClick,
+  onClose,
 }: Props) {
   const { t } = useTranslation();
   const [show, setShow] = useState(true);
@@ -62,6 +66,7 @@ export default function AppNotification({
                 className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 onClick={() => {
                   setShow(false);
+                  onClose?.();
                 }}
               >
                 <span className="sr-only">{t('common:close')}</span>

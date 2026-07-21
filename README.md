@@ -36,6 +36,7 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 - **Screens**: match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
 - **Custom key colour** for whatever your mixer keys best
 - **OBS browser source output**: an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
+- **Phone remote (LAN)**: an optional PIN-gated server that lets a phone on the same wifi control goals, the clock, match phases, and the on-air screen from the touchline
 - **Keyboard shortcuts** and **Elgato Stream Deck** support for goals, phase changes, and screen switching
 - **Saved match settings**: store team line-ups/colours and reload them per fixture
 - Multi-monitor aware: move the display window between screens, lock windows always-on-top, keep the machine awake while live
@@ -44,13 +45,13 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 Grab the latest release from the [Releases page](https://github.com/JosephMaynard/playoverlay/releases):
 
-| Platform | File |
-| --- | --- |
-| Windows | `playoverlay-…Setup.exe` |
+| Platform              | File                             |
+| --------------------- | -------------------------------- |
+| Windows               | `playoverlay-…Setup.exe`         |
 | macOS (Apple Silicon) | `playoverlay-darwin-arm64-….zip` |
-| macOS (Intel) | `playoverlay-darwin-x64-….zip` |
-| Linux (Debian/Ubuntu) | `playoverlay_….deb` |
-| Linux (Fedora/RHEL) | `playoverlay-….rpm` |
+| macOS (Intel)         | `playoverlay-darwin-x64-….zip`   |
+| Linux (Debian/Ubuntu) | `playoverlay_….deb`              |
+| Linux (Fedora/RHEL)   | `playoverlay-….rpm`              |
 
 ### A note on unsigned builds
 
@@ -76,11 +77,11 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 
 While PlayOverlay is focused, by default:
 
-| Shortcut | Action |
-| --- | --- |
+| Shortcut               | Action           |
+| ---------------------- | ---------------- |
 | `Cmd/Ctrl+Shift+Space` | Next match phase |
-| `Cmd/Ctrl+Shift+H` | Home team scored |
-| `Cmd/Ctrl+Shift+A` | Away team scored |
+| `Cmd/Ctrl+Shift+H`     | Home team scored |
+| `Cmd/Ctrl+Shift+A`     | Away team scored |
 
 The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`, unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
 
@@ -104,16 +105,35 @@ The server only listens on `127.0.0.1` (never reachable from the network) and st
 
 Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server.
 
-| `?screen=` value | Shows                    |
-| ---------------- | ------------------------- |
-| _(none)_          | Follows the operator (default) |
-| `matchTitle`      | Match title screen        |
-| `scoreBug`        | Score bug                 |
-| `penalties`       | Penalties screen           |
-| `endScreen`       | End screen                 |
-| `scoreboard`       | Spectator scoreboard       |
+| `?screen=` value | Shows                          |
+| ---------------- | ------------------------------ |
+| _(none)_         | Follows the operator (default) |
+| `matchTitle`     | Match title screen             |
+| `scoreBug`       | Score bug                      |
+| `penalties`      | Penalties screen               |
+| `endScreen`      | End screen                     |
+| `scoreboard`     | Spectator scoreboard           |
 
 **Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
+
+## Phone remote (LAN)
+
+Off by default. When you want to run the match from the touchline instead of the laptop, PlayOverlay can serve a small control page to a phone on the same local network (usually the same wifi):
+
+1. Open **System Settings → Phone Remote** and switch it on (default port `3006`).
+2. On the phone (connected to the **same local network** as the laptop, usually the same wifi), either scan the QR code shown there or open the URL (`http://<laptop-ip>:<port>/`) in a browser.
+3. Enter the 6-digit **PIN** shown in Settings. Once paired, the phone shows the live score, clock, and on-air screen.
+
+From the phone you can:
+
+- Add or remove a goal for either team
+- Start or stop the match clock
+- Advance to the next match phase
+- Switch which graphic is on air (score bug, match title, scoreboard, penalties, end screen, or blank)
+
+The phone mirrors the live match state, so it stays in sync with the operator and with any other paired phone. Everything it does goes through exactly the same controls as the dashboard, so a phone tap and an on-screen click behave identically.
+
+**Security**: the remote server binds to the local network only and is **never reachable from the internet**. Pairing is gated by a 6-digit PIN that is regenerated every time you enable the feature, and repeated wrong guesses are rate-limited to defeat brute forcing. It's intended for a trusted venue network, not a hostile public one; leave it off when you don't need it, and treat the PIN like any other password. A new PIN is issued whenever you toggle it back on or restart the app, so paired phones will need to re-enter it.
 
 ## Languages
 

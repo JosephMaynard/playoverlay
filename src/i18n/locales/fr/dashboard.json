@@ -31,8 +31,10 @@
     "undoPenalty": "Annuler le tir au but"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Diminuer le score de {{team}}",
     "editScore": "Modifier le score",
     "editScoreAria": "Modifier le score de {{team}}",
+    "increaseScoreAria": "Augmenter le score de {{team}}",
     "scoreLabel": "Score de {{team}}",
     "scored": "But de {{title}}"
   },
@@ -40,12 +42,15 @@
     "title": "Scores"
   },
   "timeControl": {
+    "additionalTimeLabel": "Temps additionnel",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajuster le temps",
     "autoSwitchLabel": "Changer automatiquement d'écran au démarrage et à l'arrêt",
     "clear": "Effacer",
+    "pause": "Pause",
+    "resume": "Reprendre",
     "setAdditionalTime": "Définir le temps additionnel",
     "title": "Temps"
   }

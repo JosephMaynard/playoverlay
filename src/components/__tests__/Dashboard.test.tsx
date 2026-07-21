@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import { AppSettings, LiveMatch } from '../../types';
@@ -14,6 +14,10 @@ type Callbacks = {
   nextMatchPhase?: () => void;
   homeTeamScored?: () => void;
   awayTeamScored?: () => void;
+  homeTeamUnscored?: () => void;
+  awayTeamUnscored?: () => void;
+  toggleClock?: () => void;
+  setDisplayScreen?: (screen: string) => void;
   customScreensUpdated?: (screens: unknown[]) => void;
   screenInfo?: (displays: unknown[]) => void;
   displayChange?: (displays: unknown[]) => void;
@@ -100,6 +104,30 @@ function installElectronAPI(options: InstallOptions = {}) {
       callbacks.awayTeamScored = callback;
       return vi.fn();
     }),
+    onHomeTeamUnscored: vi.fn((callback: () => void) => {
+      callbacks.homeTeamUnscored = callback;
+      return vi.fn();
+    }),
+    onAwayTeamUnscored: vi.fn((callback: () => void) => {
+      callbacks.awayTeamUnscored = callback;
+      return vi.fn();
+    }),
+    onToggleClock: vi.fn((callback: () => void) => {
+      callbacks.toggleClock = callback;
+      return vi.fn();
+    }),
+    onSetDisplayScreen: vi.fn((callback: (screen: string) => void) => {
+      callbacks.setDisplayScreen = callback;
+      return vi.fn();
+    }),
+    getRemoteControlStatus: vi.fn().mockResolvedValue({
+      running: false,
+      port: 3006,
+      pin: '',
+      url: 'http://127.0.0.1:3006/',
+      connectedCount: 0,
+    }),
+    onRemoteControlStatus: vi.fn(() => vi.fn()),
     enableKeyboardShortcuts: vi.fn(),
     disableKeyboardShortcuts: vi.fn(),
     displayReady: vi.fn(),
@@ -163,24 +191,18 @@ function advance(ms: number) {
   });
 }
 
-// The pencil button that opens the "Adjust Time" modal has no accessible
-// name (icon-only), so it's located structurally: it's the sole button
-// rendered inside TimeDisplay's absolute-positioned corner while a clock
-// value is present.
+// The pencil button that opens the "Adjust Time" modal is icon-only, but
+// carries an aria-label (reusing the same "Adjust Time" copy as the modal's
+// own title), so it can be found by accessible name rather than structurally.
 function getOpenAdjustTimeButton(): HTMLElement {
-  const button = document.querySelector('button.absolute.right-4.top-4');
-  if (!button) throw new Error('Adjust Time button not found');
-  return button as HTMLElement;
+  return screen.getByRole('button', { name: 'Adjust Time' });
 }
 
-// The pause/resume icon button (also unlabeled) lives inside the Adjust
-// Time modal as the 5th of 9 buttons in a fixed, stable order:
-// -10m -1m -10s -1s [pause|resume] +1s +10s +1m +10m
+// The pause/resume icon button is also icon-only, but carries an aria-label
+// of whichever action it currently performs ("Pause" while running, "Resume"
+// while paused), so it too can be found by accessible name.
 function getPauseOrResumeButton(): HTMLElement {
-  const minus10m = screen.getByRole('button', { name: '-10m' });
-  const group = minus10m.parentElement;
-  if (!group) throw new Error('Adjust Time button group not found');
-  return within(group).getAllByRole('button')[4];
+  return screen.getByRole('button', { name: /^(Pause|Resume)$/ });
 }
 
 describe('Dashboard match engine', () => {
@@ -420,7 +442,7 @@ describe('Dashboard match engine', () => {
       );
     });
 
-    it('prompts with the snapshot\'s team abbreviations and applies its match settings on restore, ahead of scores/state/time', async () => {
+    it("prompts with the snapshot's team abbreviations and applies its match settings on restore, ahead of scores/state/time", async () => {
       // The snapshot deliberately OMITS a field (hasExtraTime) that the
       // currently loaded settings set to a non-default value: a full
       // replace over defaults must reset it to the default, while a merge
@@ -464,9 +486,9 @@ describe('Dashboard match engine', () => {
         ...defaultMatchSettings,
         ...snapshotMatchSettings,
       });
-      expect(
-        stores.matchSettings.getState().matchSettings.hasExtraTime
-      ).toBe(defaultMatchSettings.hasExtraTime);
+      expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
+        defaultMatchSettings.hasExtraTime
+      );
       expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
