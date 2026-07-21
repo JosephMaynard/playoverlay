@@ -34,6 +34,11 @@ describe('useMatchClock resyncToTime', () => {
   });
 
   it('resumes ticking from the restored time when the phase is active and unpaused', () => {
+    // Mirror what restoreSnapshot does in production: setTime with the restored
+    // snapshot, then resyncToTime with the same snapshot.
+    useTimeStore.setState({
+      time: { time: '10:30', matchPhase: 'firstHalf', paused: false },
+    });
     const { result } = renderHook(() => useMatchClock());
 
     act(() => {
@@ -45,9 +50,6 @@ describe('useMatchClock resyncToTime', () => {
     });
 
     expect(result.current.paused).toBe(false);
-    // No tick has fired yet: the store still holds whatever restoreClock/undo
-    // already put there (untouched by resyncToTime itself).
-    expect(useTimeStore.getState().time.time).toBeUndefined();
 
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -55,11 +57,16 @@ describe('useMatchClock resyncToTime', () => {
 
     // A tick landed one second later. If baseSecondsRef/secondsRef had not
     // been re-seeded to the restored 10:30 (630s), this would instead read
-    // as counting up from 0 (00:01).
+    // as counting up from 0 (00:01). Ticking only advances the clock, so the
+    // restored phase is left intact.
     expect(useTimeStore.getState().time.time).toBe(timeToString(631));
+    expect(useTimeStore.getState().time.matchPhase).toBe('firstHalf');
   });
 
-  it('stays stopped when the restored phase is paused', () => {
+  it('stays stopped and preserves the phase when the restored phase is paused', () => {
+    useTimeStore.setState({
+      time: { time: '05:00', matchPhase: 'firstHalf', paused: true },
+    });
     const { result } = renderHook(() => useMatchClock());
 
     act(() => {
@@ -76,8 +83,53 @@ describe('useMatchClock resyncToTime', () => {
       vi.advanceTimersByTime(5000);
     });
 
-    // Ticking never started, so the time store is never written to.
-    expect(useTimeStore.getState().time.time).toBeUndefined();
+    // Ticking never started, so the clock is not advanced past the restored
+    // value and the phase is preserved.
+    expect(useTimeStore.getState().time.time).toBe('05:00');
+    expect(useTimeStore.getState().time.matchPhase).toBe('firstHalf');
+  });
+
+  it('clears a running interval when resynced to a paused snapshot', () => {
+    useTimeStore.setState({
+      time: { time: '10:30', matchPhase: 'firstHalf', paused: false },
+    });
+    const { result } = renderHook(() => useMatchClock());
+
+    // Start from an active, unpaused resync so the interval is running.
+    act(() => {
+      result.current.resyncToTime({
+        time: '10:30',
+        matchPhase: 'firstHalf',
+        paused: false,
+      });
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(useTimeStore.getState().time.time).toBe(timeToString(631));
+
+    // Resync to a paused snapshot: the previously running interval must stop.
+    useTimeStore.setState({
+      time: { time: '20:00', matchPhase: 'firstHalf', paused: true },
+    });
+    act(() => {
+      result.current.resyncToTime({
+        time: '20:00',
+        matchPhase: 'firstHalf',
+        paused: true,
+      });
+    });
+
+    expect(result.current.paused).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    // No further ticks fired: the clock stays at the paused value, proving the
+    // old interval was cleared rather than left running.
+    expect(useTimeStore.getState().time.time).toBe('20:00');
+    expect(useTimeStore.getState().time.matchPhase).toBe('firstHalf');
   });
 
   it('stays stopped when no phase is running, regardless of the paused flag', () => {
