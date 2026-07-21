@@ -201,6 +201,13 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
         : nextStack;
     // A fresh action invalidates any pending redo.
     set({ undoStack: bounded, redoStack: [] });
+
+    // Mirror every recorded operator action to the main process's durable
+    // log / diagnostics ring buffer (see main-functions/logger.ts). This is
+    // a pure observability side-channel alongside the snapshot above: it
+    // changes nothing about what gets captured or how undo/redo restore
+    // state. Absent in any test that doesn't stub window.electronAPI.
+    window?.electronAPI?.logMatchEvent?.(label, source ?? 'laptop');
   },
 
   undo: () => {

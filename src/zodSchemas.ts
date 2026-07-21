@@ -130,6 +130,18 @@ export const appSettingsSchema = z.object({
     .catch(undefined),
 });
 
+// The operator-action event a renderer sends alongside every captureUndo
+// (see store/undo.ts and main.ts's 'log-match-event' handler). `source`
+// degrades to undefined (main.ts then defaults it to 'laptop') rather than
+// rejecting the whole event, an unrecognised source is far less useful to
+// lose than the event itself.
+export const matchEventSourceSchema = z.enum(['laptop', 'streamDeck', 'phone']);
+
+export const matchEventLogSchema = z.object({
+  action: z.string(),
+  source: matchEventSourceSchema.optional().catch(undefined),
+});
+
 // The remaining schemas below cover the IPC/storage trust boundaries that
 // previously had no runtime validation at all (scores, clock, match state,
 // custom screens, saved match settings, the live-match snapshot). Same

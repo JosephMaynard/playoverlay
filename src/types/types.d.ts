@@ -9,6 +9,7 @@ import {
   RemoteControlStatus,
 } from '../types';
 import { MatchSettings, UpdateStatus } from '../zodSchemas';
+import { ExportDiagnosticsResult } from '../main-functions/diagnostics';
 
 declare global {
   interface Window {
@@ -86,6 +87,8 @@ declare global {
       enableKeyboardShortcuts: () => void;
       disableKeyboardShortcuts: () => void;
       displayReady: () => void;
+      logMatchEvent: (action: string, source?: string) => void;
+      exportDiagnostics: () => Promise<ExportDiagnosticsResult>;
     };
   }
 }

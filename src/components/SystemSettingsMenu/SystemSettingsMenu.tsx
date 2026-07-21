@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import {
+  DocumentArrowDownIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { Trans, useTranslation } from 'react-i18next';
 import SideMenu from '../SideMenu/SideMenu';
 import {
@@ -88,6 +91,9 @@ export default function SystemSettingsMenu({
     useState<RemoteControlStatus | null>(null);
   const [remoteControlQr, setRemoteControlQr] = useState<string | null>(null);
   const [copiedRemoteControlUrl, setCopiedRemoteControlUrl] = useState(false);
+  const [diagnosticsMessage, setDiagnosticsMessage] = useState<string | null>(
+    null
+  );
 
   const keyboardShortcuts = getKeyboardShortcuts(appSettings);
   const browserSource = getBrowserSourceSettings(appSettings);
@@ -348,6 +354,34 @@ export default function SystemSettingsMenu({
       })
       .catch((error) => {
         console.error('Failed to copy remote control URL:', error);
+      });
+  };
+
+  // Assembles and saves the support bundle via the main process, then
+  // surfaces where it landed (or that the save dialog was cancelled) as a
+  // transient status line, matching the copy-URL buttons' brief confirmation
+  // pattern above/below, just held a little longer since a saved path is
+  // worth actually reading.
+  const handleExportDiagnostics = () => {
+    if (!window?.electronAPI) return;
+    window.electronAPI
+      .exportDiagnostics()
+      .then((result) => {
+        if (result.cancelled) {
+          setDiagnosticsMessage(t('settings:appMenu.diagnostics.cancelled'));
+        } else if ('path' in result) {
+          setDiagnosticsMessage(
+            t('settings:appMenu.diagnostics.savedTo', { path: result.path })
+          );
+        } else {
+          setDiagnosticsMessage(t('settings:appMenu.diagnostics.error'));
+        }
+        setTimeout(() => setDiagnosticsMessage(null), 6000);
+      })
+      .catch((error) => {
+        console.error('Failed to export diagnostics:', error);
+        setDiagnosticsMessage(t('settings:appMenu.diagnostics.error'));
+        setTimeout(() => setDiagnosticsMessage(null), 6000);
       });
   };
 
@@ -830,6 +864,22 @@ export default function SystemSettingsMenu({
           <p className="mt-2 text-xs text-gray-500">
             {t('settings:appMenu.remoteControl.hint')}
           </p>
+        </CollapsiblePanel>
+        <CollapsiblePanel title={t('settings:appMenu.diagnostics.title')}>
+          <p className="mb-3 text-sm text-gray-500">
+            {t('settings:appMenu.diagnostics.hint')}
+          </p>
+          <button
+            type="button"
+            onClick={handleExportDiagnostics}
+            className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
+            {t('settings:appMenu.diagnostics.export')}
+          </button>
+          {diagnosticsMessage && (
+            <p className="mt-2 text-xs text-gray-500">{diagnosticsMessage}</p>
+          )}
         </CollapsiblePanel>
         <ul role="list" className="-mx-2 space-y-1 px-4">
           <li>

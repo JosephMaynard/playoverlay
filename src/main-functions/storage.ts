@@ -4,6 +4,7 @@ import { app } from 'electron';
 import Store from 'electron-store';
 import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
+import { logError } from './logger';
 import {
   appSettingsSchema,
   customScreenListSchema,
@@ -44,15 +45,21 @@ function createStorage(): Store {
         }
       }
     } catch (error) {
-      console.error('Legacy config migration failed:', error);
+      // Called from module scope (see the bottom of this file), before
+      // main.ts's initLogger() has run, so this lands in logError's
+      // memory-only fallback logger (console output still happens; see
+      // logger.ts's LoggerOptions.logDir comment) rather than the durable
+      // file. A narrow, pre-existing gap: this path only fires for a build
+      // with a legacy encryption key whose config also fails migration.
+      logError(`Legacy config migration failed: ${String(error)}`);
     }
   }
   try {
     return new Store();
   } catch (error) {
-    console.error(
-      'config.json is unreadable; moving it aside and starting fresh:',
-      error
+    // Same early-startup caveat as above: this runs before initLogger().
+    logError(
+      `config.json is unreadable; moving it aside and starting fresh: ${String(error)}`
     );
     try {
       const configPath = path.join(app.getPath('userData'), 'config.json');
@@ -60,9 +67,8 @@ function createStorage(): Store {
         fs.renameSync(configPath, `${configPath}.bak`);
       }
     } catch (renameError) {
-      console.error(
-        'Failed to move aside unreadable config.json:',
-        renameError
+      logError(
+        `Failed to move aside unreadable config.json: ${String(renameError)}`
       );
     }
     // If the rename succeeded config.json is gone and this is a clean start;
@@ -177,9 +183,10 @@ export function getCustomScreens(): CustomScreen[] {
   const { kept, dropped } = reconcileCustomScreens(parsed, fs.existsSync);
 
   if (dropped.length > 0) {
-    console.error(
-      'Dropping custom screens with missing backing files:',
-      dropped.map((screen) => screen.filePath)
+    logError(
+      `Dropping custom screens with missing backing files: ${dropped
+        .map((screen) => screen.filePath)
+        .join(', ')}`
     );
     storage.set(CUSTOM_SCREENS, kept);
   }
@@ -227,9 +234,10 @@ export function getLiveMatch(): LiveMatch | undefined {
     reconcileCustomScreens(liveMatch.matchState.overlays, fs.existsSync);
 
   if (droppedOverlays.length > 0) {
-    console.error(
-      'Dropping overlays with missing backing files from the restored match:',
-      droppedOverlays.map((screen) => screen.filePath)
+    logError(
+      `Dropping overlays with missing backing files from the restored match: ${droppedOverlays
+        .map((screen) => screen.filePath)
+        .join(', ')}`
     );
   }
 

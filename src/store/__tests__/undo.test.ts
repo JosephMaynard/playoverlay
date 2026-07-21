@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { defaultMatchState } from '../../constants';
 import { MatchState, Scores, Time } from '../../types';
@@ -360,6 +360,58 @@ describe('undo store', () => {
     resync.mockClear();
     useUndoStore.getState().undo();
     expect(resync).not.toHaveBeenCalled();
+  });
+});
+
+describe('captureUndo match-event emission', () => {
+  // captureUndo mirrors every recorded action to window.electronAPI.
+  // logMatchEvent (see main-functions/logger.ts), a pure observability
+  // side-channel that must never change what gets captured or how undo/redo
+  // restore state, that's covered by the "undo store" tests above with no
+  // electronAPI installed at all. These tests only assert the mirror itself.
+  function installElectronAPI() {
+    const electronAPI = {
+      logMatchEvent: vi.fn(),
+    } as unknown as Window['electronAPI'];
+
+    Object.defineProperty(window, 'electronAPI', {
+      configurable: true,
+      value: electronAPI,
+    });
+
+    return electronAPI;
+  }
+
+  beforeEach(() => {
+    useUndoStore.setState({ undoStack: [], redoStack: [], clockResync: null });
+  });
+
+  afterEach(() => {
+    delete (window as Partial<Window>).electronAPI;
+  });
+
+  it('emits the label with source defaulted to laptop when none is given', () => {
+    const electronAPI = installElectronAPI();
+
+    useUndoStore.getState().captureUndo('undo:actions.homeGoal', ['scores']);
+
+    expect(electronAPI.logMatchEvent).toHaveBeenCalledWith(
+      'undo:actions.homeGoal',
+      'laptop'
+    );
+  });
+
+  it('emits the explicit source when one is passed', () => {
+    const electronAPI = installElectronAPI();
+
+    useUndoStore
+      .getState()
+      .captureUndo('undo:actions.switchScreen', ['matchState'], 'phone');
+
+    expect(electronAPI.logMatchEvent).toHaveBeenCalledWith(
+      'undo:actions.switchScreen',
+      'phone'
+    );
   });
 });
 

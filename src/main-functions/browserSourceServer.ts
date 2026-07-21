@@ -2,6 +2,7 @@ import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import { WebSocket, WebSocketServer } from 'ws';
+import { logError } from './logger';
 
 // A single snapshot message sent to a browser source when it first connects,
 // mirroring the shape broadcast on every subsequent update.
@@ -27,8 +28,7 @@ export interface StartBrowserSourceServerOptions {
 const HEARTBEAT_INTERVAL_MS = 15000;
 
 export type StartBrowserSourceServerResult =
-  | { ok: true }
-  | { ok: false; error: string };
+  { ok: true } | { ok: false; error: string };
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -45,7 +45,10 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 function contentTypeFor(filePath: string): string {
-  return CONTENT_TYPES[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream';
+  return (
+    CONTENT_TYPES[path.extname(filePath).toLowerCase()] ??
+    'application/octet-stream'
+  );
 }
 
 // Serves `relativePath` from `baseDir`, refusing to serve anything that
@@ -58,7 +61,10 @@ function serveStaticFile(
   const normalizedBase = path.normalize(baseDir);
   const target = path.normalize(path.join(normalizedBase, relativePath));
 
-  if (target !== normalizedBase && !target.startsWith(normalizedBase + path.sep)) {
+  if (
+    target !== normalizedBase &&
+    !target.startsWith(normalizedBase + path.sep)
+  ) {
     res.writeHead(404);
     res.end('Not found');
     return;
@@ -91,7 +97,7 @@ export function createRequestListener(
     } catch (error) {
       // A request must never take down the main process (e.g. a path that
       // decodes to a CR/LF would make writeHead throw). Fail the response.
-      console.error('Browser source request error:', error);
+      logError(`Browser source request error: ${String(error)}`);
       if (!res.headersSent) {
         res.writeHead(400);
       }
@@ -154,10 +160,7 @@ function handleRequest(
 // file:// prefix rewritten to the server's own /images/ route. The prefix is
 // a parameter (rather than computed from Electron's app.getPath here) so
 // this stays pure and unit-testable without Electron.
-export function rewriteFileUrls<T>(
-  payload: T,
-  imagesDirUrlPrefix: string
-): T {
+export function rewriteFileUrls<T>(payload: T, imagesDirUrlPrefix: string): T {
   const serialized = JSON.stringify(payload);
   if (serialized === undefined) return payload;
   return JSON.parse(serialized.split(imagesDirUrlPrefix).join('/images/'));
@@ -240,12 +243,12 @@ export function startBrowserSourceServer(
             socket.send(JSON.stringify({ channel, payload }));
           });
         } catch (error) {
-          console.error('Error sending browser-source snapshot:', error);
+          logError(`Error sending browser-source snapshot: ${String(error)}`);
         }
       });
       // Runtime errors after a successful bind must not crash the app either.
       httpServer.on('error', (error) => {
-        console.error('Browser source server error:', error);
+        logError(`Browser source server error: ${String(error)}`);
       });
       heartbeatInterval = setInterval(() => {
         broadcastToBrowserSources('heartbeat', null);
