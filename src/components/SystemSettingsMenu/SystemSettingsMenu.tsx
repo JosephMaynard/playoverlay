@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { Trans, useTranslation } from 'react-i18next';
 import SideMenu from '../SideMenu/SideMenu';
@@ -11,6 +12,7 @@ import {
   getLanguage,
   getPhaseList,
   getPhaseTitle,
+  getRemoteControlSettings,
 } from '../../utils';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
@@ -20,6 +22,7 @@ import {
   KeyboardShortcuts,
   MatchPhase,
   MatchState,
+  RemoteControlStatus,
   Time,
 } from '../../types';
 import {
@@ -81,9 +84,14 @@ export default function SystemSettingsMenu({
   } | null>(null);
   const [copiedBrowserSourceUrl, setCopiedBrowserSourceUrl] = useState(false);
   const [copiedScoreboardUrl, setCopiedScoreboardUrl] = useState(false);
+  const [remoteControlStatus, setRemoteControlStatus] =
+    useState<RemoteControlStatus | null>(null);
+  const [remoteControlQr, setRemoteControlQr] = useState<string | null>(null);
+  const [copiedRemoteControlUrl, setCopiedRemoteControlUrl] = useState(false);
 
   const keyboardShortcuts = getKeyboardShortcuts(appSettings);
   const browserSource = getBrowserSourceSettings(appSettings);
+  const remoteControl = getRemoteControlSettings(appSettings);
 
   const shortcutLabels: Record<keyof KeyboardShortcuts, string> = {
     nextMatchPhase: t('settings:appMenu.keyboardShortcuts.nextMatchPhase'),
@@ -95,6 +103,13 @@ export default function SystemSettingsMenu({
     String(browserSource.port)
   );
   const [browserSourcePortError, setBrowserSourcePortError] = useState<
+    string | null
+  >(null);
+
+  const [remoteControlPortDraft, setRemoteControlPortDraft] = useState(
+    String(remoteControl.port)
+  );
+  const [remoteControlPortError, setRemoteControlPortError] = useState<
     string | null
   >(null);
 
@@ -120,6 +135,58 @@ export default function SystemSettingsMenu({
   useEffect(() => {
     refreshBrowserSourceStatus();
   }, []);
+
+  // Keep the remote-control port draft in sync when settings change from
+  // outside this input.
+  useEffect(() => {
+    setRemoteControlPortDraft(String(remoteControl.port));
+    setRemoteControlPortError(null);
+  }, [remoteControl.port]);
+
+  const refreshRemoteControlStatus = () => {
+    if (!window?.electronAPI) return;
+    window.electronAPI
+      .getRemoteControlStatus()
+      .then((status) => {
+        setRemoteControlStatus(status);
+      })
+      .catch(() => {
+        // Ignore; the status line just won't update this time.
+      });
+  };
+
+  // Poll once on mount, then keep the status (running state, PIN, and
+  // connected-phone count) live via the pushed remote-control-status events
+  // the main process emits when a phone pairs or drops.
+  useEffect(() => {
+    refreshRemoteControlStatus();
+    const unsubscribe = window?.electronAPI?.onRemoteControlStatus(
+      setRemoteControlStatus
+    );
+    return () => unsubscribe?.();
+  }, []);
+
+  // Regenerate the QR code whenever the running URL changes. Only when running
+  // (a stale URL for a stopped server would just point nowhere). The data URL
+  // is generated in the renderer so it needs no packaged asset.
+  useEffect(() => {
+    if (!remoteControlStatus?.running || !remoteControlStatus.url) {
+      setRemoteControlQr(null);
+      return;
+    }
+    let cancelled = false;
+    QRCode.toDataURL(remoteControlStatus.url, { margin: 1, width: 220 })
+      .then((dataUrl) => {
+        if (!cancelled) setRemoteControlQr(dataUrl);
+      })
+      .catch((error) => {
+        console.error('Failed to generate remote control QR code:', error);
+        if (!cancelled) setRemoteControlQr(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [remoteControlStatus?.running, remoteControlStatus?.url]);
 
   const handleStartRecordingShortcut = (action: keyof KeyboardShortcuts) => {
     setShortcutConflictError(null);
@@ -239,6 +306,49 @@ export default function SystemSettingsMenu({
     if (parsedPort !== browserSource.port) {
       handleBrowserSourcePortChange(parsedPort);
     }
+  };
+
+  const handleToggleRemoteControl = (enabled: boolean) => {
+    updateAppSettings({ remoteControl: { ...remoteControl, enabled } });
+    // The server (re)starts asynchronously in the main process; give it a
+    // moment before checking whether it actually came up.
+    setTimeout(refreshRemoteControlStatus, 400);
+  };
+
+  const handleRemoteControlPortChange = (port: number) => {
+    updateAppSettings({ remoteControl: { ...remoteControl, port } });
+    setTimeout(refreshRemoteControlStatus, 400);
+  };
+
+  // Only persist (and restart the server) once a valid port has been entered,
+  // matching the browser source port field.
+  const commitRemoteControlPort = () => {
+    const parsedPort = Number(remoteControlPortDraft);
+    if (
+      !Number.isInteger(parsedPort) ||
+      parsedPort < 1024 ||
+      parsedPort > 65535
+    ) {
+      setRemoteControlPortError(t('settings:appMenu.remoteControl.portError'));
+      return;
+    }
+    setRemoteControlPortError(null);
+    if (parsedPort !== remoteControl.port) {
+      handleRemoteControlPortChange(parsedPort);
+    }
+  };
+
+  const handleCopyRemoteControlUrl = () => {
+    if (!remoteControlStatus?.url) return;
+    navigator.clipboard
+      .writeText(remoteControlStatus.url)
+      .then(() => {
+        setCopiedRemoteControlUrl(true);
+        setTimeout(() => setCopiedRemoteControlUrl(false), 1500);
+      })
+      .catch((error) => {
+        console.error('Failed to copy remote control URL:', error);
+      });
   };
 
   const browserSourceUrl = `http://127.0.0.1:${browserSource.port}/`;
@@ -610,6 +720,115 @@ export default function SystemSettingsMenu({
               i18nKey="settings:appMenu.browserSource.customScreenHint"
               components={{ code: <code /> }}
             />
+          </p>
+        </CollapsiblePanel>
+        <CollapsiblePanel title={t('settings:appMenu.remoteControl.title')}>
+          <Switch.Group as="div" className="mt-2 flex items-center">
+            <Switch
+              checked={remoteControl.enabled}
+              onChange={handleToggleRemoteControl}
+              className={classNames(
+                remoteControl.enabled ? 'bg-indigo-600' : 'bg-gray-200',
+                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={classNames(
+                  remoteControl.enabled ? 'translate-x-5' : 'translate-x-0',
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                )}
+              />
+            </Switch>
+            <Switch.Label as="span" className="ml-3 text-sm">
+              <span className="font-medium text-gray-900">
+                {t('settings:appMenu.remoteControl.enable')}
+              </span>
+            </Switch.Label>
+          </Switch.Group>
+          <label
+            htmlFor="remoteControlPort"
+            className="mt-3 block text-sm font-medium leading-6 text-gray-900"
+          >
+            {t('settings:appMenu.remoteControl.port')}
+          </label>
+          <div className="mt-1">
+            <input
+              type="number"
+              name="remoteControlPort"
+              id="remoteControlPort"
+              min={1024}
+              max={65535}
+              className="block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              value={remoteControlPortDraft}
+              onChange={(event) => {
+                setRemoteControlPortDraft(event.target.value);
+              }}
+              onBlur={commitRemoteControlPort}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  commitRemoteControlPort();
+                }
+              }}
+            />
+            {remoteControlPortError && (
+              <p className="mt-1 text-xs text-red-600">
+                {remoteControlPortError}
+              </p>
+            )}
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            {remoteControlStatus?.error
+              ? t('settings:appMenu.remoteControl.statusWithError', {
+                  state: remoteControlStatus?.running
+                    ? t('settings:appMenu.remoteControl.statusRunning')
+                    : t('settings:appMenu.remoteControl.statusStopped'),
+                  error: remoteControlStatus.error,
+                })
+              : t('settings:appMenu.remoteControl.status', {
+                  state: remoteControlStatus?.running
+                    ? t('settings:appMenu.remoteControl.statusRunning')
+                    : t('settings:appMenu.remoteControl.statusStopped'),
+                })}
+          </p>
+          {remoteControlStatus?.running && (
+            <>
+              <div className="mt-2 flex items-center gap-2">
+                <code className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">
+                  {remoteControlStatus.url}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyRemoteControlUrl}
+                  className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+                >
+                  {copiedRemoteControlUrl
+                    ? t('settings:appMenu.remoteControl.copied')
+                    : t('settings:appMenu.remoteControl.copy')}
+                </button>
+              </div>
+              <p className="mt-2 text-sm font-medium text-gray-900">
+                {t('settings:appMenu.remoteControl.pinLabel', {
+                  pin: remoteControlStatus.pin,
+                })}
+              </p>
+              {remoteControlQr && (
+                <img
+                  src={remoteControlQr}
+                  alt={t('settings:appMenu.remoteControl.qrAlt')}
+                  className="mt-2 h-40 w-40 rounded bg-white p-1"
+                />
+              )}
+              <p className="mt-2 text-xs text-gray-500">
+                {t('settings:appMenu.remoteControl.connected', {
+                  count: remoteControlStatus.connectedCount,
+                })}
+              </p>
+            </>
+          )}
+          <p className="mt-2 text-xs text-gray-500">
+            {t('settings:appMenu.remoteControl.hint')}
           </p>
         </CollapsiblePanel>
         <ul role="list" className="-mx-2 space-y-1 px-4">

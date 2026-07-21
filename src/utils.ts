@@ -7,11 +7,13 @@ import {
   MatchPeriod,
   MatchPhase,
   Penalty,
+  RemoteControlSettings,
 } from './types';
 import { MatchSettings } from './zodSchemas';
 import {
   defaultBrowserSourceSettings,
   defaultKeyboardShortcuts,
+  defaultRemoteControlSettings,
 } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
@@ -320,6 +322,20 @@ export function getBrowserSourceSettings(
   return {
     ...defaultBrowserSourceSettings,
     ...appSettings.browserSource,
+  };
+}
+
+// The active phone-remote settings: user configuration layered over the
+// defaults (off, port 3006), so a config.json with no `remoteControl` field
+// (or one missing `port`/`enabled`) behaves exactly like today, no server.
+// Shared by main.ts (server lifecycle) and the renderer (settings UI), the
+// same defaults-over-settings pattern as getBrowserSourceSettings.
+export function getRemoteControlSettings(
+  appSettings: AppSettings
+): RemoteControlSettings {
+  return {
+    ...defaultRemoteControlSettings,
+    ...appSettings.remoteControl,
   };
 }
 

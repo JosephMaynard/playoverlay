@@ -39,6 +39,22 @@
       "nextMatchPhase": "Fase di gioco successiva",
       "title": "Scorciatoie da tastiera"
     },
+    "remoteControl": {
+      "connected": "Telefoni connessi: {{count}}",
+      "copied": "Copiato!",
+      "copy": "Copia",
+      "enable": "Attiva",
+      "hint": "Entrambi i dispositivi devono essere sulla stessa wifi. Apri l'URL o scansiona il codice QR sul telefono, poi inserisci il PIN.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Porta",
+      "portError": "Inserisci una porta compresa tra 1024 e 65535.",
+      "qrAlt": "Codice QR per l'URL del telecomando da telefono",
+      "status": "Stato: {{state}}",
+      "statusRunning": "In esecuzione",
+      "statusStopped": "Interrotto",
+      "statusWithError": "Stato: {{state}}, {{error}}",
+      "title": "Telecomando da telefono"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Formato dell'ora sulla schermata del tabellone per gli spettatori.",

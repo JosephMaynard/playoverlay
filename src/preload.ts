@@ -14,51 +14,46 @@ import {
   MatchState,
   CustomScreen,
   LiveMatch,
+  RemoteControlStatus,
 } from './types';
 import { MatchSettings } from './zodSchemas';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
   onScoreUpdated: (callback: (scores: Scores) => void) => {
-    const listener = (_: IpcRendererEvent, scores: Scores) =>
-      callback(scores);
+    const listener = (_: IpcRendererEvent, scores: Scores) => callback(scores);
     ipcRenderer.on('score-updated', listener);
     return () => ipcRenderer.removeListener('score-updated', listener);
   },
   updateTime: (time: Time) => ipcRenderer.send('update-time', time),
   onTimeUpdated: (callback: (time: Time) => void) => {
-    const listener = (_: IpcRendererEvent, time: Time) =>
-      callback(time);
+    const listener = (_: IpcRendererEvent, time: Time) => callback(time);
     ipcRenderer.on('time-updated', listener);
     return () => ipcRenderer.removeListener('time-updated', listener);
   },
   updateMatchSettings: (matchSettings: MatchSettings) =>
     ipcRenderer.send('update-match-settings', matchSettings),
-  onMatchSettingsUpdated: (callback: (matchSettings: MatchSettings) => void) => {
-    const listener = (
-      _: IpcRendererEvent,
-      matchSettings: MatchSettings
-    ) => callback(matchSettings);
+  onMatchSettingsUpdated: (
+    callback: (matchSettings: MatchSettings) => void
+  ) => {
+    const listener = (_: IpcRendererEvent, matchSettings: MatchSettings) =>
+      callback(matchSettings);
     ipcRenderer.on('match-settings-updated', listener);
     return () => ipcRenderer.removeListener('match-settings-updated', listener);
   },
   updateAppSettings: (appSettings: AppSettings) =>
     ipcRenderer.send('update-app-settings', appSettings),
   onAppSettingsUpdated: (callback: (appSettings: AppSettings) => void) => {
-    const listener = (
-      _: IpcRendererEvent,
-      appSettings: AppSettings
-    ) => callback(appSettings);
+    const listener = (_: IpcRendererEvent, appSettings: AppSettings) =>
+      callback(appSettings);
     ipcRenderer.on('app-settings-updated', listener);
     return () => ipcRenderer.removeListener('app-settings-updated', listener);
   },
   updateMatchState: (matchSettings: MatchState) =>
     ipcRenderer.send('update-match-state', matchSettings),
   onMatchStateUpdated: (callback: (matchSettings: MatchState) => void) => {
-    const listener = (
-      _: IpcRendererEvent,
-      matchSettings: MatchState
-    ) => callback(matchSettings);
+    const listener = (_: IpcRendererEvent, matchSettings: MatchState) =>
+      callback(matchSettings);
     ipcRenderer.on('match-state-updated', listener);
     return () => ipcRenderer.removeListener('match-state-updated', listener);
   },
@@ -154,6 +149,34 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const listener = () => callback();
     ipcRenderer.on('away-team-scored', listener);
     return () => ipcRenderer.removeListener('away-team-scored', listener);
+  },
+  onHomeTeamUnscored: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('home-team-unscored', listener);
+    return () => ipcRenderer.removeListener('home-team-unscored', listener);
+  },
+  onAwayTeamUnscored: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('away-team-unscored', listener);
+    return () => ipcRenderer.removeListener('away-team-unscored', listener);
+  },
+  onToggleClock: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('toggle-clock', listener);
+    return () => ipcRenderer.removeListener('toggle-clock', listener);
+  },
+  onSetDisplayScreen: (callback: (screen: string) => void) => {
+    const listener = (_: IpcRendererEvent, screen: string) => callback(screen);
+    ipcRenderer.on('set-display-screen', listener);
+    return () => ipcRenderer.removeListener('set-display-screen', listener);
+  },
+
+  getRemoteControlStatus: () => ipcRenderer.invoke('get-remote-control-status'),
+  onRemoteControlStatus: (callback: (status: RemoteControlStatus) => void) => {
+    const listener = (_: IpcRendererEvent, status: RemoteControlStatus) =>
+      callback(status);
+    ipcRenderer.on('remote-control-status', listener);
+    return () => ipcRenderer.removeListener('remote-control-status', listener);
   },
 
   enableKeyboardShortcuts: () => ipcRenderer.send('enable-keyboard-shortcuts'),

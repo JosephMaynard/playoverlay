@@ -39,6 +39,22 @@
       "nextMatchPhase": "Próxima fase da partida",
       "title": "Atalhos de teclado"
     },
+    "remoteControl": {
+      "connected": "Celulares conectados: {{count}}",
+      "copied": "Copiado!",
+      "copy": "Copiar",
+      "enable": "Ativar",
+      "hint": "Os dois dispositivos precisam estar no mesmo wifi. Abra a URL ou escaneie o código QR no celular e digite o PIN.",
+      "pinLabel": "PIN: {{pin}}",
+      "port": "Porta",
+      "portError": "Digite uma porta entre 1024 e 65535.",
+      "qrAlt": "Código QR da URL do controle pelo celular",
+      "status": "Status: {{state}}",
+      "statusRunning": "Em execução",
+      "statusStopped": "Parado",
+      "statusWithError": "Status: {{state}}, {{error}}",
+      "title": "Controle pelo celular"
+    },
     "scoreboardClock": {
       "amPm": "AM/PM",
       "description": "Formato da hora do dia na tela do placar para os espectadores.",

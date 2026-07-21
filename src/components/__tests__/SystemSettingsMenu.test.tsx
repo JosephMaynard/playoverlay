@@ -28,6 +28,14 @@ function installElectronAPI() {
     getBrowserSourceStatus: vi
       .fn()
       .mockResolvedValue({ running: false, port: 4750 }),
+    getRemoteControlStatus: vi.fn().mockResolvedValue({
+      running: false,
+      port: 3006,
+      pin: '',
+      url: 'http://127.0.0.1:3006/',
+      connectedCount: 0,
+    }),
+    onRemoteControlStatus: vi.fn(() => vi.fn()),
   } as unknown as Window['electronAPI'];
 
   Object.defineProperty(window, 'electronAPI', {
@@ -235,7 +243,9 @@ describe('SystemSettingsMenu OBS browser source', () => {
     const updateAppSettings = vi.fn();
     renderMenu({ updateAppSettings });
 
-    expect(await screen.findByText(/Status: Stopped/)).toBeInTheDocument();
+    // Both the browser source and the phone remote render a "Status: Stopped"
+    // line while off; the browser source toggle is the first switch.
+    expect((await screen.findAllByText(/Status: Stopped/)).length).toBe(2);
 
     const [toggle] = screen.getAllByRole('switch');
     await user.click(toggle);

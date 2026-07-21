@@ -83,11 +83,15 @@ export const appSettingsSchema = z.object({
   // Unset (undefined) is a meaningful value here, it's what triggers the
   // first-run language picker, so an invalid stored value degrades to
   // undefined (re-showing the picker) rather than a default language.
-  language: z
-    .enum(supportedLanguageCodes)
+  language: z.enum(supportedLanguageCodes).optional().catch(undefined),
+  browserSource: z
+    .object({
+      enabled: z.boolean(),
+      port: z.number(),
+    })
     .optional()
     .catch(undefined),
-  browserSource: z
+  remoteControl: z
     .object({
       enabled: z.boolean(),
       port: z.number(),

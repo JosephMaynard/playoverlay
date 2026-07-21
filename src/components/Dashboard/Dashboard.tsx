@@ -31,7 +31,11 @@ import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
 import { getPhaseList, getNextPhaseId } from '../../utils';
-import { defaultMatchSettings, defaultMatchState } from '../../constants';
+import {
+  DisplayScreen,
+  defaultMatchSettings,
+  defaultMatchState,
+} from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
@@ -136,6 +140,33 @@ export default function Dashboard() {
       incrementAwayTeamScore();
     });
 
+    // Phone-remote commands. These share the same store setters as the
+    // operator's own controls, so a phone tap and an on-screen click produce
+    // identical behaviour. Like the shortcut handlers above, each reads fresh
+    // state from the relevant store's getState() rather than closing over this
+    // render's scope.
+    const unsubscribeHomeUnscored = window.electronAPI.onHomeTeamUnscored(
+      () => {
+        decrementHomeTeamScore();
+      }
+    );
+
+    const unsubscribeAwayUnscored = window.electronAPI.onAwayTeamUnscored(
+      () => {
+        decrementAwayTeamScore();
+      }
+    );
+
+    const unsubscribeToggleClock = window.electronAPI.onToggleClock(() => {
+      toggleClock();
+    });
+
+    const unsubscribeSetScreen = window.electronAPI.onSetDisplayScreen(
+      (screen) => {
+        setDisplayScreen(screen as DisplayScreen);
+      }
+    );
+
     // Offer to restore a match that was in progress when the app last closed
     window?.electronAPI
       ?.getLiveMatch()
@@ -170,6 +201,10 @@ export default function Dashboard() {
       unsubscribeNextPhase();
       unsubscribeHomeScored();
       unsubscribeAwayScored();
+      unsubscribeHomeUnscored();
+      unsubscribeAwayUnscored();
+      unsubscribeToggleClock();
+      unsubscribeSetScreen();
     };
     // Mount-only: seeds the main process with the initial scores/matchState/
     // time (ongoing changes are mirrored to IPC by each store's setter, per
@@ -310,6 +345,48 @@ export default function Dashboard() {
       awayTeam: prevScores.awayTeam + 1,
     };
     setScores(updatedScores);
+  };
+
+  // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
+  // drive the score negative.
+  const decrementHomeTeamScore = () => {
+    const prevScores = useScoresStore.getState().scores;
+    setScores({
+      ...prevScores,
+      homeTeam: Math.max(0, prevScores.homeTeam - 1),
+    });
+  };
+
+  const decrementAwayTeamScore = () => {
+    const prevScores = useScoresStore.getState().scores;
+    setScores({
+      ...prevScores,
+      awayTeam: Math.max(0, prevScores.awayTeam - 1),
+    });
+  };
+
+  // Phone-remote clock toggle. The clock is "running" when a phase is active
+  // and not paused (see the Time type), so this pauses a running clock and
+  // resumes a paused one via the exact same hooks the operator's pause/resume
+  // controls use. With no phase active there's nothing to toggle (the
+  // operator's own pause/resume are likewise disabled then), so it's a no-op.
+  // Reads paused fresh from the store rather than the clock hook's `paused`
+  // state, which would be stale inside this mount-time listener; the hook's
+  // pause/resume callbacks themselves are stable across renders.
+  const toggleClock = () => {
+    const { matchPhase, paused } = useTimeStore.getState().time;
+    if (matchPhase === undefined) return;
+    if (paused) {
+      clock.resume();
+    } else {
+      clock.pause();
+    }
+  };
+
+  // Phone-remote on-air screen switch. Same setter (and the same clearing of
+  // any pinned custom-screen image) as the operator's screen buttons.
+  const setDisplayScreen = (displayScreen: DisplayScreen) => {
+    setMatchState({ displayScreen, customScreenImageUrl: undefined });
   };
 
   const nextMatchPhase = () => {
@@ -470,7 +547,11 @@ export default function Dashboard() {
                   })
             }
             icon={
-              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
+              <img
+                className="h-8 w-auto"
+                src={logo}
+                alt={t('common:logoAlt')}
+              />
             }
             buttonOnClick={() => restoreMatch(restorableMatch)}
             buttonText={t('settings:matchMenu.saved.restore')}
@@ -490,7 +571,11 @@ export default function Dashboard() {
               version: updateStatus?.latestVersion,
             })}
             icon={
-              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
+              <img
+                className="h-8 w-auto"
+                src={logo}
+                alt={t('common:logoAlt')}
+              />
             }
             buttonOnClick={() => {
               window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);

@@ -14,6 +14,10 @@ type Callbacks = {
   nextMatchPhase?: () => void;
   homeTeamScored?: () => void;
   awayTeamScored?: () => void;
+  homeTeamUnscored?: () => void;
+  awayTeamUnscored?: () => void;
+  toggleClock?: () => void;
+  setDisplayScreen?: (screen: string) => void;
   customScreensUpdated?: (screens: unknown[]) => void;
   screenInfo?: (displays: unknown[]) => void;
   displayChange?: (displays: unknown[]) => void;
@@ -100,6 +104,30 @@ function installElectronAPI(options: InstallOptions = {}) {
       callbacks.awayTeamScored = callback;
       return vi.fn();
     }),
+    onHomeTeamUnscored: vi.fn((callback: () => void) => {
+      callbacks.homeTeamUnscored = callback;
+      return vi.fn();
+    }),
+    onAwayTeamUnscored: vi.fn((callback: () => void) => {
+      callbacks.awayTeamUnscored = callback;
+      return vi.fn();
+    }),
+    onToggleClock: vi.fn((callback: () => void) => {
+      callbacks.toggleClock = callback;
+      return vi.fn();
+    }),
+    onSetDisplayScreen: vi.fn((callback: (screen: string) => void) => {
+      callbacks.setDisplayScreen = callback;
+      return vi.fn();
+    }),
+    getRemoteControlStatus: vi.fn().mockResolvedValue({
+      running: false,
+      port: 3006,
+      pin: '',
+      url: 'http://127.0.0.1:3006/',
+      connectedCount: 0,
+    }),
+    onRemoteControlStatus: vi.fn(() => vi.fn()),
     enableKeyboardShortcuts: vi.fn(),
     disableKeyboardShortcuts: vi.fn(),
     displayReady: vi.fn(),
@@ -420,7 +448,7 @@ describe('Dashboard match engine', () => {
       );
     });
 
-    it('prompts with the snapshot\'s team abbreviations and applies its match settings on restore, ahead of scores/state/time', async () => {
+    it("prompts with the snapshot's team abbreviations and applies its match settings on restore, ahead of scores/state/time", async () => {
       // The snapshot deliberately OMITS a field (hasExtraTime) that the
       // currently loaded settings set to a non-default value: a full
       // replace over defaults must reset it to the default, while a merge
@@ -464,9 +492,9 @@ describe('Dashboard match engine', () => {
         ...defaultMatchSettings,
         ...snapshotMatchSettings,
       });
-      expect(
-        stores.matchSettings.getState().matchSettings.hasExtraTime
-      ).toBe(defaultMatchSettings.hasExtraTime);
+      expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
+        defaultMatchSettings.hasExtraTime
+      );
       expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState

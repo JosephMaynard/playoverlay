@@ -9,12 +9,15 @@ import {
   globalShortcut,
 } from 'electron';
 import path from 'path';
+import crypto from 'crypto';
+import os from 'os';
 import {
   AppSettings,
   BrowserSourceSettings,
   CustomScreen,
   LiveMatch,
   MatchState,
+  RemoteControlSettings,
   Scores,
   Time,
 } from './types';
@@ -29,6 +32,7 @@ import {
   deriveGlobalAccelerator,
   getBrowserSourceSettings,
   getKeyboardShortcuts,
+  getRemoteControlSettings,
 } from './utils';
 import {
   DISPLAY_WINDOW,
@@ -63,6 +67,17 @@ import {
   startBrowserSourceServer,
   stopBrowserSourceServer,
 } from './main-functions/browserSourceServer';
+import {
+  RemoteCommand,
+  RemoteControlSnapshot,
+  broadcastRemoteControlState,
+  getLanIPv4,
+  getRemoteControlConnectedCount,
+  getRemoteControlServerPort,
+  isRemoteControlServerRunning,
+  startRemoteControlServer,
+  stopRemoteControlServer,
+} from './main-functions/remoteControlServer';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -105,6 +120,15 @@ let liveMatchAtLaunch: LiveMatch | undefined;
 // (re)start or once the feature is disabled.
 let browserSourceError: string | undefined;
 
+// Same as browserSourceError, for the phone-remote server.
+let remoteControlError: string | undefined;
+
+// The pairing PIN for the currently running remote-control server. Regenerated
+// on every (re)start (each enable) with a CSPRNG so a leaked PIN from a
+// previous session is useless, and never persisted. Empty when the server is
+// off.
+let remoteControlPin = '';
+
 function getImagesDirUrlPrefix(): string {
   return `${convertFilePathToUrl(imagesPath)}/`;
 }
@@ -123,9 +147,18 @@ function broadcastToBrowserSourcesRewritten(channel: string, payload: unknown) {
 // state/scores/time. Keep this in sync with that handler below.
 function getBrowserSourceSnapshot() {
   return [
-    { channel: 'match-settings-updated', payload: toBrowserSourcePayload(cachedMatchSettings) },
-    { channel: 'app-settings-updated', payload: toBrowserSourcePayload(cachedAppSettings) },
-    { channel: 'match-state-updated', payload: toBrowserSourcePayload(cachedMatchState) },
+    {
+      channel: 'match-settings-updated',
+      payload: toBrowserSourcePayload(cachedMatchSettings),
+    },
+    {
+      channel: 'app-settings-updated',
+      payload: toBrowserSourcePayload(cachedAppSettings),
+    },
+    {
+      channel: 'match-state-updated',
+      payload: toBrowserSourcePayload(cachedMatchState),
+    },
     { channel: 'score-updated', payload: toBrowserSourcePayload(cachedScores) },
     { channel: 'time-updated', payload: toBrowserSourcePayload(cachedTime) },
   ];
@@ -166,6 +199,145 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
       console.error('Error applying browser source settings:', error);
     });
   return browserSourceTransition;
+}
+
+// The compact snapshot pushed to every paired phone: score, clock, on-air
+// screen, and team labels, and nothing else (see RemoteControlSnapshot). Sent
+// on every state change and to each phone as it pairs, so two phones stay in
+// sync with each other and with the operator.
+function getRemoteControlSnapshot(): RemoteControlSnapshot {
+  return {
+    scores: {
+      homeTeam: cachedScores.homeTeam,
+      awayTeam: cachedScores.awayTeam,
+    },
+    time: {
+      time: cachedTime.time,
+      paused: cachedTime.paused,
+      matchPhase: cachedTime.matchPhase,
+    },
+    matchState: {
+      displayScreen: cachedMatchState.displayScreen,
+      matchPhase: cachedMatchState.matchPhase,
+    },
+    matchSettings: {
+      homeTeamNameAbbreviated: cachedMatchSettings.homeTeamNameAbbreviated,
+      awayTeamNameAbbreviated: cachedMatchSettings.awayTeamNameAbbreviated,
+      homeTeamNameFull: cachedMatchSettings.homeTeamNameFull,
+      awayTeamNameFull: cachedMatchSettings.awayTeamNameFull,
+    },
+  };
+}
+
+// Pushes the current snapshot to all paired phones. A no-op when the server
+// isn't running, so it's safe to call unconditionally from the state handlers.
+function broadcastRemoteControlSnapshot() {
+  if (!isRemoteControlServerRunning()) return;
+  broadcastRemoteControlState(getRemoteControlSnapshot());
+}
+
+// Routes a validated remote command to the control window using the same
+// reverse-IPC channel pattern as the keyboard/Stream Deck shortcuts: the
+// Dashboard receives the channel and applies it to its zustand store, so a
+// phone tap and an operator click take exactly the same code path. Commands
+// are intents only; the Dashboard computes the resulting state.
+function routeRemoteCommand(command: RemoteCommand) {
+  switch (command.type) {
+    case 'homeGoal':
+      mainWindow?.webContents.send('home-team-scored');
+      break;
+    case 'awayGoal':
+      mainWindow?.webContents.send('away-team-scored');
+      break;
+    case 'homeGoalRemove':
+      mainWindow?.webContents.send('home-team-unscored');
+      break;
+    case 'awayGoalRemove':
+      mainWindow?.webContents.send('away-team-unscored');
+      break;
+    case 'nextPhase':
+      mainWindow?.webContents.send('next-match-phase');
+      break;
+    case 'toggleClock':
+      mainWindow?.webContents.send('toggle-clock');
+      break;
+    case 'setScreen':
+      mainWindow?.webContents.send('set-display-screen', command.screen);
+      break;
+  }
+}
+
+// Applies a (possibly changed) phone-remote configuration: always stops any
+// running server first, then restarts it if enabled, mirroring
+// applyBrowserSourceSettings. A fresh 6-digit PIN is minted on each start with
+// crypto.randomInt (uniform, unbiased) so every enable requires re-pairing.
+async function applyRemoteControlSettings(settings: RemoteControlSettings) {
+  await stopRemoteControlServer();
+  remoteControlError = undefined;
+  remoteControlPin = '';
+
+  if (!settings.enabled) {
+    notifyRemoteControlStatus();
+    return;
+  }
+
+  remoteControlPin = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+
+  const result = await startRemoteControlServer({
+    port: settings.port,
+    pin: remoteControlPin,
+    getSnapshot: getRemoteControlSnapshot,
+    onCommand: routeRemoteCommand,
+    onConnectionChange: () => notifyRemoteControlStatus(),
+  });
+
+  if (result.ok === false) {
+    remoteControlError = result.error;
+    remoteControlPin = '';
+    console.error('Failed to start remote control server:', result.error);
+  }
+
+  notifyRemoteControlStatus();
+}
+
+// Serializes applyRemoteControlSettings calls so rapid settings changes can't
+// interleave their stop/start work, identical to queueBrowserSourceSettings.
+let remoteControlTransition = Promise.resolve();
+
+function queueRemoteControlSettings(settings: RemoteControlSettings) {
+  remoteControlTransition = remoteControlTransition
+    .then(() => applyRemoteControlSettings(settings))
+    .catch((error) => {
+      console.error('Error applying remote control settings:', error);
+    });
+  return remoteControlTransition;
+}
+
+// Builds the status object the settings UI reads, including the LAN URL a phone
+// should open. Falls back to 127.0.0.1 only when no external IPv4 is found (no
+// network), in which case a phone can't reach it anyway.
+function getRemoteControlStatus() {
+  const settings = getRemoteControlSettings(cachedAppSettings);
+  const port = getRemoteControlServerPort() ?? settings.port;
+  const lanIp = getLanIPv4(os.networkInterfaces());
+  return {
+    running: isRemoteControlServerRunning(),
+    port,
+    pin: remoteControlPin,
+    url: `http://${lanIp ?? '127.0.0.1'}:${port}/`,
+    connectedCount: getRemoteControlConnectedCount(),
+    error: remoteControlError,
+  };
+}
+
+// Pushes a fresh status to the control window so the settings UI can update
+// the running state, PIN, and connected-phone count live (e.g. when a phone
+// pairs or drops) without polling.
+function notifyRemoteControlStatus() {
+  mainWindow?.webContents.send(
+    'remote-control-status',
+    getRemoteControlStatus()
+  );
 }
 
 // Live-match writes are throttled: time updates arrive every second while
@@ -366,6 +538,7 @@ function setupIPCHandlers() {
     cachedScores = scores;
     displayWindow?.webContents.send('score-updated', scores);
     broadcastToBrowserSourcesRewritten('score-updated', scores);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
@@ -373,6 +546,7 @@ function setupIPCHandlers() {
     cachedTime = time;
     displayWindow?.webContents.send('time-updated', time);
     broadcastToBrowserSourcesRewritten('time-updated', time);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
@@ -381,11 +555,13 @@ function setupIPCHandlers() {
     cachedMatchSettings = teamSettings;
     displayWindow?.webContents.send('match-settings-updated', teamSettings);
     broadcastToBrowserSourcesRewritten('match-settings-updated', teamSettings);
+    broadcastRemoteControlSnapshot();
   });
 
   ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
     const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
     const previousBrowserSource = getBrowserSourceSettings(cachedAppSettings);
+    const previousRemoteControl = getRemoteControlSettings(cachedAppSettings);
 
     setAppSettings(appSettings);
     cachedAppSettings = appSettings;
@@ -424,12 +600,21 @@ function setupIPCHandlers() {
     ) {
       void queueBrowserSourceSettings(nextBrowserSource);
     }
+
+    const nextRemoteControl = getRemoteControlSettings(cachedAppSettings);
+    if (
+      previousRemoteControl.enabled !== nextRemoteControl.enabled ||
+      previousRemoteControl.port !== nextRemoteControl.port
+    ) {
+      void queueRemoteControlSettings(nextRemoteControl);
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
     cachedMatchState = matchState;
     displayWindow?.webContents.send('match-state-updated', matchState);
     broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
+    broadcastRemoteControlSnapshot();
     persistLiveMatch();
   });
 
@@ -452,6 +637,10 @@ function setupIPCHandlers() {
       port: getBrowserSourceServerPort() ?? settings.port,
       error: browserSourceError,
     };
+  });
+
+  ipcMain.handle('get-remote-control-status', () => {
+    return getRemoteControlStatus();
   });
 
   // Display window signals it's ready to receive initial state
@@ -546,12 +735,9 @@ function setupIPCHandlers() {
     return handleFileDeletion(filePath);
   });
 
-  ipcMain.handle(
-    'upload-logo',
-    async (_, buffer: Buffer, fileName: string) => {
-      return saveImageFile(buffer, fileName);
-    }
-  );
+  ipcMain.handle('upload-logo', async (_, buffer: Buffer, fileName: string) => {
+    return saveImageFile(buffer, fileName);
+  });
 
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();
@@ -657,7 +843,10 @@ function setupDisplayListeners() {
 let registeredFocusAccelerators: string[] = [];
 let registeredGlobalAccelerators: string[] = [];
 
-function getShortcutBindings(): Array<{ accelerator: string; channel: string }> {
+function getShortcutBindings(): Array<{
+  accelerator: string;
+  channel: string;
+}> {
   const shortcuts = getKeyboardShortcuts(cachedAppSettings);
   return [
     { accelerator: shortcuts.nextMatchPhase, channel: 'next-match-phase' },
@@ -774,6 +963,11 @@ app.on('ready', async () => {
   // settings. Startup errors (e.g. a busy port) are caught inside and never
   // reach here.
   void queueBrowserSourceSettings(getBrowserSourceSettings(cachedAppSettings));
+  // Off by default too; only binds a 0.0.0.0 (LAN-reachable) server if
+  // explicitly enabled. Independent of the browser source above: enabling one
+  // never touches the other, and this one's binding does not affect the
+  // browser source's 127.0.0.1-only listener.
+  void queueRemoteControlSettings(getRemoteControlSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
   ensureWindowsAreVisible();
@@ -901,4 +1095,5 @@ app.on('will-quit', () => {
   flushLiveMatch();
   globalShortcut.unregisterAll();
   void stopBrowserSourceServer();
+  void stopRemoteControlServer();
 });

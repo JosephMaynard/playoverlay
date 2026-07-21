@@ -27,6 +27,29 @@ export interface BrowserSourceSettings {
   port: number;
 }
 
+// LAN phone remote: an optional local HTTP+WebSocket server that lets a phone
+// on the same network control the live match (goals, clock, phase, on-air
+// screen). Unlike the browser source it binds to all interfaces so a phone
+// can reach it, and it is PIN-gated. Off by default.
+export interface RemoteControlSettings {
+  enabled: boolean;
+  port: number;
+}
+
+// Live status of the phone-remote server, reported to the settings UI both on
+// request (get-remote-control-status) and pushed on change
+// (remote-control-status), e.g. when a phone pairs or drops.
+export interface RemoteControlStatus {
+  running: boolean;
+  port: number;
+  // The current 6-digit pairing PIN, or '' when the server is off.
+  pin: string;
+  // The LAN URL a phone should open, e.g. http://192.168.1.20:3006/.
+  url: string;
+  connectedCount: number;
+  error?: string;
+}
+
 export type ClockFormat = '24h' | '12h';
 
 // The eight shipped catalogues (see src/i18n). Both Spanish and Portuguese
@@ -52,6 +75,7 @@ export interface AppSettings {
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
   browserSource?: BrowserSourceSettings;
+  remoteControl?: RemoteControlSettings;
   // Unset means "not yet chosen", drives the first-run language picker.
   // Once set, it rides the same IPC mirror as the rest of AppSettings, so
   // the operator's choice (not OS locale) drives on-air text everywhere.
