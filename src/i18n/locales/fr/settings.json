@@ -54,6 +54,9 @@
       "title": "Fenêtres"
     }
   },
+  "colourPicker": {
+    "keyColourWarning": "Avertissement : cette couleur pourrait être trop proche de la couleur clé, veuillez vérifier votre rendu."
+  },
   "customScreens": {
     "add": "Ajouter un graphique personnalisé",
     "addModalTitle": "Ajouter un écran personnalisé",

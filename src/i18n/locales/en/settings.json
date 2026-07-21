@@ -54,6 +54,9 @@
       "title": "Windows"
     }
   },
+  "colourPicker": {
+    "keyColourWarning": "Warning: This colour may be too close to the key colour, please check your output."
+  },
   "customScreens": {
     "add": "Add Custom Graphic",
     "addModalTitle": "Add Custom Screen",

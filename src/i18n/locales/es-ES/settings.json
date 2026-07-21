@@ -54,6 +54,9 @@
       "title": "Ventanas"
     }
   },
+  "colourPicker": {
+    "keyColourWarning": "Advertencia: este color podría ser demasiado parecido al color clave, comprueba tu salida."
+  },
   "customScreens": {
     "add": "Añadir gráfico personalizado",
     "addModalTitle": "Añadir pantalla personalizada",

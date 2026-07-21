@@ -54,6 +54,9 @@
       "title": "Janelas"
     }
   },
+  "colourPicker": {
+    "keyColourWarning": "Aviso: esta cor pode estar muito parecida com a cor-chave, verifique sua saída."
+  },
   "customScreens": {
     "add": "Adicionar gráfico personalizado",
     "addModalTitle": "Adicionar tela personalizada",

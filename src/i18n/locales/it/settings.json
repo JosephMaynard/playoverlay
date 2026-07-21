@@ -54,6 +54,9 @@
       "title": "Finestre"
     }
   },
+  "colourPicker": {
+    "keyColourWarning": "Attenzione: questo colore potrebbe essere troppo simile al colore chiave, controlla l'output finale."
+  },
   "customScreens": {
     "add": "Aggiungi grafica personalizzata",
     "addModalTitle": "Aggiungi schermata personalizzata",
