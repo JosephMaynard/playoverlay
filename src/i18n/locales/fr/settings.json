@@ -19,6 +19,14 @@
       "statusWithError": "Statut : {{state}}, {{error}}",
       "title": "Source navigateur OBS"
     },
+    "diagnostics": {
+      "cancelled": "Export annulé.",
+      "error": "Échec de l'export des diagnostics. Veuillez réessayer.",
+      "export": "Exporter les diagnostics",
+      "hint": "Crée un fichier texte avec les informations de l'application et les journaux récents pour aider à diagnostiquer un problème. Sans danger à partager, ne contient aucun mot de passe.",
+      "savedTo": "Enregistré dans {{path}}",
+      "title": "Diagnostics"
+    },
     "displays": {
       "moveToScreen": "Déplacer vers l'écran {{n}}",
       "none": "Aucun écran externe détecté."

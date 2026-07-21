@@ -4,6 +4,7 @@ import fs from 'fs';
 import { getCustomScreens, setCustomScreens } from './storage';
 import { CustomScreen } from '../types';
 import convertFilePathToUrl from './convertFilePathToUrl';
+import { logFailedOperation, sanitizeLogPath } from './logger';
 
 const userDataPath = app.getPath('userData');
 export const imagesPath = path.join(userDataPath, 'images');
@@ -111,31 +112,29 @@ export function saveImageFile(
   // components so it can't escape the images dir (e.g. via '../../etc').
   const safeFileName = path.basename(fileName);
   if (!safeFileName || safeFileName !== fileName) {
-    console.error('Rejected unsafe file name:', fileName);
+    logFailedOperation(
+      `Rejected unsafe file name: ${sanitizeLogPath(fileName)}`
+    );
     return null;
   }
 
   if (!hasAllowedImageExtension(fileName)) {
-    console.error(
-      'Rejected upload with a disallowed file extension:',
-      fileName
+    logFailedOperation(
+      `Rejected upload with a disallowed file extension: ${sanitizeLogPath(fileName)}`
     );
     return null;
   }
 
   if (buffer.length > MAX_UPLOAD_SIZE_BYTES) {
-    console.error(
-      'Rejected upload exceeding the maximum upload size:',
-      fileName,
-      buffer.length
+    logFailedOperation(
+      `Rejected upload exceeding the maximum upload size: ${sanitizeLogPath(fileName)} (${buffer.length} bytes)`
     );
     return null;
   }
 
   if (!isValidImageBuffer(buffer, fileName)) {
-    console.error(
-      'Rejected upload whose content does not match its file extension:',
-      fileName
+    logFailedOperation(
+      `Rejected upload whose content does not match its file extension: ${sanitizeLogPath(fileName)}`
     );
     return null;
   }
@@ -147,7 +146,7 @@ export function saveImageFile(
     fs.writeFileSync(destination, buffer);
     return { filePath: destination, url: convertFilePathToUrl(destination) };
   } catch (error) {
-    console.error('Error saving file:', error);
+    logFailedOperation(`Error saving file: ${String(error)}`);
     return null;
   }
 }
@@ -177,7 +176,7 @@ export async function handleFileUpload(
     });
     return saved.url;
   } catch (error) {
-    console.error('Error saving file:', error);
+    logFailedOperation(`Error saving file: ${String(error)}`);
     return null;
   }
 }
@@ -194,7 +193,9 @@ export function handleFileDeletion(filePath: string): boolean {
     realTarget = fs.realpathSync(path.resolve(filePath));
     realBase = fs.realpathSync(imagesPath);
   } catch (error) {
-    console.error('Error resolving path for deletion:', filePath, error);
+    logFailedOperation(
+      `Error resolving path for deletion: ${sanitizeLogPath(filePath)} (${String(error)})`
+    );
     return false;
   }
   const relative = path.relative(realBase, realTarget);
@@ -203,7 +204,9 @@ export function handleFileDeletion(filePath: string): boolean {
     relative.startsWith('..') ||
     path.isAbsolute(relative)
   ) {
-    console.error('Rejected deletion outside the images directory:', filePath);
+    logFailedOperation(
+      `Rejected deletion outside the images directory: ${sanitizeLogPath(filePath)}`
+    );
     return false;
   }
 
@@ -219,7 +222,7 @@ export function handleFileDeletion(filePath: string): boolean {
     });
     return true;
   } catch (error) {
-    console.error('Error deleting file:', error);
+    logFailedOperation(`Error deleting file: ${String(error)}`);
     return false;
   }
 }

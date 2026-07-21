@@ -19,6 +19,14 @@
       "statusWithError": "Stato: {{state}}, {{error}}",
       "title": "Sorgente Browser OBS"
     },
+    "diagnostics": {
+      "cancelled": "Esportazione annullata.",
+      "error": "Esportazione della diagnostica non riuscita. Riprova.",
+      "export": "Esporta diagnostica",
+      "hint": "Crea un file di testo con le informazioni sull'app e i registri recenti per aiutare a diagnosticare un problema. Sicuro da condividere, non contiene password.",
+      "savedTo": "Salvato in {{path}}",
+      "title": "Diagnostica"
+    },
     "displays": {
       "moveToScreen": "Sposta sullo schermo {{n}}",
       "none": "Nessuno schermo esterno rilevato."

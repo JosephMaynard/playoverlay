@@ -3,6 +3,7 @@ import dns from 'dns/promises';
 import compareSemver from './compareSemver';
 import { app } from 'electron';
 import { githubReleaseSchema } from '../zodSchemas';
+import { logError } from './logger';
 
 // Update checks use the public GitHub Releases API; release tags are
 // expected to be semver, optionally prefixed with a "v" (e.g. v0.14.0).
@@ -52,7 +53,7 @@ export async function checkForUpdates() {
       newVersionAvailable,
     };
   } catch (error) {
-    console.error('Error checking for updates:', error);
+    logError(`Error checking for updates: ${String(error)}`);
     throw error;
   }
 }

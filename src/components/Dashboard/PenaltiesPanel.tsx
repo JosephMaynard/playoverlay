@@ -9,10 +9,20 @@ import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   penalties: Penalty[];
-  setPenalties: (penalties: Penalty[]) => void;
+  // setPenalties records a global undo entry (labelled by the second arg)
+  // before applying the change, so penalty edits share the app-wide stack.
+  setPenalties: (penalties: Penalty[], label: string) => void;
   penaltiesFirstTeam: homeOrAway;
   setPenaltiesFirstTeam: (team: homeOrAway) => void;
   matchSettings: MatchSettings;
+  // The panel's undo button delegates to the global undo (the shared stack,
+  // not a penalty-only one) so there is a single source of truth: it and
+  // Ctrl/Cmd+Z can never disagree about state. Its label is deliberately
+  // generic ("Undo Last Action") rather than penalty-specific, since it can
+  // undo any last action, not only a penalty. canUndo drives its disabled
+  // state.
+  onUndo: () => void;
+  canUndo: boolean;
 }
 
 export default function PenaltiesPanel({
@@ -21,6 +31,8 @@ export default function PenaltiesPanel({
   penaltiesFirstTeam,
   setPenaltiesFirstTeam,
   matchSettings,
+  onUndo,
+  canUndo,
 }: Props) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
@@ -84,13 +96,16 @@ export default function PenaltiesPanel({
           {
             label: t('dashboard:penaltiesPanel.score'),
             onClick: () => {
-              setPenalties([
-                ...penalties,
-                {
-                  team: nextPenalyTeam,
-                  result: 'scored',
-                },
-              ]);
+              setPenalties(
+                [
+                  ...penalties,
+                  {
+                    team: nextPenalyTeam,
+                    result: 'scored',
+                  },
+                ],
+                'undo:actions.penaltyScored'
+              );
             },
             color: 'text-white',
             backgroundColor: 'bg-green-600',
@@ -98,13 +113,16 @@ export default function PenaltiesPanel({
           {
             label: t('dashboard:penaltiesPanel.miss'),
             onClick: () => {
-              setPenalties([
-                ...penalties,
-                {
-                  team: nextPenalyTeam,
-                  result: 'missed',
-                },
-              ]);
+              setPenalties(
+                [
+                  ...penalties,
+                  {
+                    team: nextPenalyTeam,
+                    result: 'missed',
+                  },
+                ],
+                'undo:actions.penaltyMissed'
+              );
             },
             backgroundColor: 'bg-red-700',
             color: 'text-white',
@@ -115,12 +133,13 @@ export default function PenaltiesPanel({
         compact
         buttons={[
           {
-            label: t('dashboard:penaltiesPanel.undoPenalty'),
-            onClick: () => {
-              if (penalties.length > 0) {
-                setPenalties(penalties.slice(0, -1));
-              }
-            },
+            label: t('dashboard:penaltiesPanel.undoLastAction'),
+            // Delegates to the global undo rather than doing its own local
+            // slice: the last penalty add is on the shared undo stack, so this
+            // and Ctrl/Cmd+Z reverse the exact same thing. Disabled (not just
+            // guarded) when there is nothing to undo.
+            onClick: onUndo,
+            disabled: !canUndo,
             color: 'text-white',
             backgroundColor: 'bg-indigo-600',
           },
@@ -139,7 +158,7 @@ export default function PenaltiesPanel({
         actionButtonLabel={t('dashboard:penaltiesPanel.resetConfirmAction')}
         icon="warning"
         action={() => {
-          setPenalties([]);
+          setPenalties([], 'undo:actions.penaltiesReset');
           setModalOpen(false);
         }}
       >

@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Prüfung vor der Übertragung",
+    "runAgain": "Erneut prüfen",
+    "running": "Wird geprüft…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Aktiviert, läuft aber nicht: {{error}}",
+      "off": "Nicht aktiviert. Aktivieren Sie dies in den Systemeinstellungen, falls OBS es benötigt.",
+      "running": "Läuft auf Port {{port}}.",
+      "title": "OBS-Browserquelle"
+    },
+    "crashRecovery": {
+      "found": "Es ist ein unbeendetes Spiel aus einer vorherigen Sitzung gespeichert. Stellen Sie es über die Benachrichtigung im Dashboard wieder her, oder verwerfen Sie es, bevor Sie ein neues starten.",
+      "none": "Kein unbeendetes Spiel aus einer vorherigen Sitzung.",
+      "title": "Vorheriges Spiel"
+    },
+    "diskSpace": {
+      "low": "Wenig freier Speicherplatz ({{freeMb}} MB). PlayOverlay könnte Schwierigkeiten haben, Ihr Spiel zu speichern.",
+      "ok": "Ausreichend freier Speicherplatz.",
+      "title": "Speicherplatz",
+      "unknown": "Der freie Speicherplatz konnte auf diesem System nicht geprüft werden."
+    },
+    "displayWindowReady": {
+      "notReady": "Das Ausgabefenster wurde noch nicht geladen. Warten Sie einen Moment, oder setzen Sie die Fenster in den Fenstereinstellungen zurück.",
+      "ready": "Das Ausgabefenster ist geöffnet und bereit.",
+      "title": "Ausgabefenster"
+    },
+    "displays": {
+      "sameScreen": "Das Ausgabefenster und das Steuerungsfenster befinden sich auf demselben Bildschirm. Verschieben Sie das Ausgabefenster vor dem Anstoß auf den zweiten Bildschirm.",
+      "separated": "Das Ausgabefenster befindet sich auf einem eigenen Bildschirm, getrennt vom Steuerungsfenster.",
+      "singleScreen": "Nur ein Bildschirm erkannt. Sie können die Anzeige weiterhin als Browserquelle an OBS senden.",
+      "title": "Zweiter Bildschirm"
+    },
+    "missingAssets": {
+      "awayLogo": "Logo des Gastteams",
+      "homeLogo": "Logo des Heimteams",
+      "missing": "Fehlend: {{count}} ({{titles}}). Prüfen Sie Team-Einstellungen und Eigene Grafiken.",
+      "ok": "Alle Logos und Grafiken sind vorhanden.",
+      "title": "Team-Logos und Grafiken"
+    },
+    "remoteControl": {
+      "failed": "Aktiviert, läuft aber nicht: {{error}}",
+      "off": "Nicht aktiviert. Aktivieren Sie dies in den Systemeinstellungen, falls ein Telefon verwendet werden soll.",
+      "running": "Läuft auf Port {{port}}.",
+      "title": "Telefon-Fernbedienung"
+    },
+    "shortcuts": {
+      "failed": "Nicht registriert: {{count}} ({{accelerators}}), vermutlich bereits von einer anderen App belegt.",
+      "ok": "Alle Tastenkombinationen sind registriert.",
+      "title": "Tastenkombinationen"
+    }
+  },
+  "modal": {
+    "intro": "Eine kurze Prüfung vor dem Anstoß. Sie schaut nur nach, sie ändert nie etwas.",
+    "loadError": "Die Prüfung konnte nicht durchgeführt werden. Bitte versuchen Sie es erneut.",
+    "summary": {
+      "allClear": "Alles klar, Sie sind bereit für die Übertragung.",
+      "problems": "Zu behebende Probleme vor der Übertragung: {{count}}.",
+      "warnings": "Punkte zur Prüfung vor dem Anstoß: {{count}}."
+    },
+    "title": "Prüfung vor der Übertragung"
+  }
+}

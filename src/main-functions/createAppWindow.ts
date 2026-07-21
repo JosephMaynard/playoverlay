@@ -8,6 +8,7 @@ import {
   WindowName,
 } from './storage';
 import { isDev } from '../main';
+import { logError } from './logger';
 
 export default function createAppWindow(windowName: WindowName): BrowserWindow {
   const commonOptions = {
@@ -51,7 +52,7 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
     try {
       setWindowSize(windowName, window.getSize());
     } catch (error) {
-      console.error(`Error when resizing ${windowName}:`, error);
+      logError(`Error when resizing ${windowName}: ${String(error)}`);
     }
   });
 
@@ -59,7 +60,7 @@ export default function createAppWindow(windowName: WindowName): BrowserWindow {
     try {
       setWindowPosition(windowName, window.getPosition());
     } catch (error) {
-      console.error(`Error when moving ${windowName}:`, error);
+      logError(`Error when moving ${windowName}: ${String(error)}`);
     }
   });
 

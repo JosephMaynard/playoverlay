@@ -130,6 +130,28 @@ export const appSettingsSchema = z.object({
     .catch(undefined),
 });
 
+// The operator-action event a renderer sends alongside every captureUndo
+// (see store/undo.ts and main.ts's 'log-match-event' handler). An OMITTED
+// source stays undefined (main.ts then defaults it to 'laptop'), but a
+// PRESENT-but-unrecognised source degrades to the explicit 'unknown' value
+// rather than undefined: silently recording it as 'laptop' would misattribute
+// the event, and 'unknown' is far less useful to lose than the event itself.
+export const matchEventSourceSchema = z.enum([
+  'laptop',
+  'streamDeck',
+  'phone',
+  'unknown',
+]);
+
+export const matchEventLogSchema = z.object({
+  action: z.string(),
+  // matchEventSourceSchema.optional() lets an omitted source pass straight
+  // through as undefined without ever reaching .catch(); .catch() only fires
+  // when a source is present but fails the enum check, which is exactly the
+  // "unrecognised" case this should map to 'unknown'.
+  source: matchEventSourceSchema.optional().catch('unknown'),
+});
+
 // The remaining schemas below cover the IPC/storage trust boundaries that
 // previously had no runtime validation at all (scores, clock, match state,
 // custom screens, saved match settings, the live-match snapshot). Same

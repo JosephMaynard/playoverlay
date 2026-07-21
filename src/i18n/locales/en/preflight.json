@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Go live check",
+    "runAgain": "Run again",
+    "running": "Checking…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Enabled but not running: {{error}}",
+      "off": "Not enabled. Turn this on in System Settings if OBS needs it.",
+      "running": "Running on port {{port}}.",
+      "title": "OBS browser source"
+    },
+    "crashRecovery": {
+      "found": "There's an unfinished match saved from a previous session. Restore it from the notification on the dashboard, or dismiss it, before starting a new one.",
+      "none": "No unfinished match from a previous session.",
+      "title": "Previous match"
+    },
+    "diskSpace": {
+      "low": "Free disk space is low ({{freeMb}} MB). PlayOverlay may struggle to save your match.",
+      "ok": "Plenty of free disk space.",
+      "title": "Disk space",
+      "unknown": "Free disk space couldn't be checked on this system."
+    },
+    "displayWindowReady": {
+      "notReady": "The output window hasn't loaded yet. Give it a moment, or use Window Settings to reset the windows.",
+      "ready": "The output window is open and ready.",
+      "title": "Output window"
+    },
+    "displays": {
+      "sameScreen": "The output window and the control window are on the same screen. Move the output window to the second screen before kickoff.",
+      "separated": "The output window is on its own screen, away from the control window.",
+      "singleScreen": "Only one screen detected. You can still send the scoreboard to OBS as a browser source.",
+      "title": "Second display"
+    },
+    "missingAssets": {
+      "awayLogo": "away team logo",
+      "homeLogo": "home team logo",
+      "missing": "Missing: {{count}} ({{titles}}). Check Team Settings and Custom Screens.",
+      "ok": "All team logos and graphics are present.",
+      "title": "Team logos and graphics"
+    },
+    "remoteControl": {
+      "failed": "Enabled but not running: {{error}}",
+      "off": "Not enabled. Turn this on in System Settings if a phone will be used.",
+      "running": "Running on port {{port}}.",
+      "title": "Phone remote"
+    },
+    "shortcuts": {
+      "failed": "Not registered: {{count}} ({{accelerators}}), probably already used by another app.",
+      "ok": "All keyboard shortcuts are registered.",
+      "title": "Keyboard shortcuts"
+    }
+  },
+  "modal": {
+    "intro": "A quick check before kickoff. This only looks, it never changes anything.",
+    "loadError": "Couldn't run the check. Try again.",
+    "summary": {
+      "allClear": "All clear, you're ready to go live.",
+      "problems": "Problems to fix before you go live: {{count}}.",
+      "warnings": "Things to check before kickoff: {{count}}."
+    },
+    "title": "Go live check"
+  }
+}

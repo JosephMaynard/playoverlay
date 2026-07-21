@@ -28,7 +28,7 @@
     "resetPenalties": "Repor grandes penalidades",
     "score": "Golo",
     "teamFirst": "{{team}} primeiro",
-    "undoPenalty": "Anular grande penalidade"
+    "undoLastAction": "Anular última ação"
   },
   "scoreInput": {
     "decreaseScoreAria": "Reduzir o marcador de {{team}}",

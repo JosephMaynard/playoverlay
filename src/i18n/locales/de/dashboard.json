@@ -28,7 +28,7 @@
     "resetPenalties": "Elfmeterschießen zurücksetzen",
     "score": "Getroffen",
     "teamFirst": "{{team}} zuerst",
-    "undoPenalty": "Elfmeter rückgängig machen"
+    "undoLastAction": "Letzte Aktion rückgängig machen"
   },
   "scoreInput": {
     "decreaseScoreAria": "Spielstand von {{team}} verringern",

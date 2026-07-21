@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import os from 'os';
 import { WebSocket, WebSocketServer } from 'ws';
 import { REMOTE_CONTROL_PAGE } from './remoteControlPage';
+import { logError } from './logger';
 
 // The compact live-match snapshot pushed to every paired phone: enough for the
 // mobile page to render the score, clock, on-air screen, and team labels, and
@@ -210,7 +211,7 @@ function safeSend(socket: WebSocket, message: unknown): void {
   try {
     socket.send(JSON.stringify(message));
   } catch (error) {
-    console.error('Remote control send error:', error);
+    logError(`Remote control send error: ${String(error)}`);
   }
 }
 
@@ -218,7 +219,9 @@ function notifyConnectionChange(): void {
   try {
     currentOnConnectionChange?.(getRemoteControlConnectedCount());
   } catch (error) {
-    console.error('Remote control connection-change handler error:', error);
+    logError(
+      `Remote control connection-change handler error: ${String(error)}`
+    );
   }
 }
 
@@ -227,7 +230,7 @@ function sendSnapshot(socket: WebSocket): void {
   try {
     safeSend(socket, { type: 'state', payload: currentGetSnapshot() });
   } catch (error) {
-    console.error('Error sending remote control snapshot:', error);
+    logError(`Error sending remote control snapshot: ${String(error)}`);
   }
 }
 
@@ -307,7 +310,7 @@ function handleMessage(
   try {
     currentOnCommand?.(command);
   } catch (error) {
-    console.error('Remote control command handler error:', error);
+    logError(`Remote control command handler error: ${String(error)}`);
   }
 }
 
@@ -331,7 +334,7 @@ export function startRemoteControlServer(
         handleHttpRequest(req, res);
       } catch (error) {
         // A request must never take down the main process.
-        console.error('Remote control request error:', error);
+        logError(`Remote control request error: ${String(error)}`);
         if (!res.headersSent) {
           res.writeHead(400);
         }
@@ -371,13 +374,13 @@ export function startRemoteControlServer(
           if (wasPaired) notifyConnectionChange();
         });
         socket.on('error', (error) => {
-          console.error('Remote control socket error:', error);
+          logError(`Remote control socket error: ${String(error)}`);
         });
       });
 
       // Runtime errors after a successful bind must not crash the app either.
       httpServer.on('error', (error) => {
-        console.error('Remote control server error:', error);
+        logError(`Remote control server error: ${String(error)}`);
       });
 
       heartbeatInterval = setInterval(() => {

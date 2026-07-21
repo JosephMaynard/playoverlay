@@ -5,6 +5,7 @@ import {
   customScreenSchema,
   githubReleaseSchema,
   liveMatchSchema,
+  matchEventLogSchema,
   matchSetingsSchema,
   matchSettingsListSchema,
   matchStateSchema,
@@ -440,6 +441,43 @@ describe('liveMatchSchema', () => {
     if (result.success) {
       expect(result.data.scores).toEqual(defaultScores);
       expect(result.data.time).toEqual({ time: '10:00' });
+    }
+  });
+});
+
+describe('matchEventLogSchema', () => {
+  it('keeps an omitted source as undefined', () => {
+    const result = matchEventLogSchema.safeParse({
+      action: 'undo:actions.homeGoal',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.source).toBeUndefined();
+    }
+  });
+
+  it('keeps a recognised source unchanged', () => {
+    const result = matchEventLogSchema.safeParse({
+      action: 'undo:actions.homeGoal',
+      source: 'streamDeck',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.source).toBe('streamDeck');
+    }
+  });
+
+  it('maps a present-but-unrecognised source to "unknown" instead of undefined', () => {
+    const result = matchEventLogSchema.safeParse({
+      action: 'undo:actions.homeGoal',
+      source: 'tablet',
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.source).toBe('unknown');
     }
   });
 });

@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Comprobación antes de emitir",
+    "runAgain": "Repetir comprobación",
+    "running": "Comprobando…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Activado pero no en funcionamiento: {{error}}",
+      "off": "No activado. Actívalo en Configuración del sistema si OBS lo necesita.",
+      "running": "En funcionamiento en el puerto {{port}}.",
+      "title": "Fuente de navegador de OBS"
+    },
+    "crashRecovery": {
+      "found": "Hay un partido sin terminar guardado de una sesión anterior. Restáuralo desde el aviso del panel, o descártalo, antes de empezar uno nuevo.",
+      "none": "No hay ningún partido sin terminar de una sesión anterior.",
+      "title": "Partido anterior"
+    },
+    "diskSpace": {
+      "low": "Queda poco espacio libre en disco ({{freeMb}} MB). PlayOverlay podría tener problemas para guardar tu partido.",
+      "ok": "Espacio libre en disco suficiente.",
+      "title": "Espacio en disco",
+      "unknown": "No se pudo comprobar el espacio libre en disco en este sistema."
+    },
+    "displayWindowReady": {
+      "notReady": "La ventana de salida todavía no ha cargado. Espera un momento, o restablece las ventanas desde Configuración de la ventana.",
+      "ready": "La ventana de salida está abierta y lista.",
+      "title": "Ventana de salida"
+    },
+    "displays": {
+      "sameScreen": "La ventana de salida y la ventana de control están en la misma pantalla. Mueve la ventana de salida a la segunda pantalla antes del inicio.",
+      "separated": "La ventana de salida está en su propia pantalla, separada de la ventana de control.",
+      "singleScreen": "Solo se ha detectado una pantalla. Aun así puedes enviar el marcador a OBS como fuente de navegador.",
+      "title": "Segunda pantalla"
+    },
+    "missingAssets": {
+      "awayLogo": "escudo del equipo visitante",
+      "homeLogo": "escudo del equipo local",
+      "missing": "Faltan: {{count}} ({{titles}}). Revisa Configuración del equipo y Gráficos personalizados.",
+      "ok": "Todos los escudos y gráficos están presentes.",
+      "title": "Escudos y gráficos del equipo"
+    },
+    "remoteControl": {
+      "failed": "Activado pero no en funcionamiento: {{error}}",
+      "off": "No activado. Actívalo en Configuración del sistema si vas a usar un teléfono.",
+      "running": "En funcionamiento en el puerto {{port}}.",
+      "title": "Mando desde el teléfono"
+    },
+    "shortcuts": {
+      "failed": "Sin registrar: {{count}} ({{accelerators}}), probablemente ya usado por otra aplicación.",
+      "ok": "Todos los atajos de teclado están registrados.",
+      "title": "Atajos de teclado"
+    }
+  },
+  "modal": {
+    "intro": "Una comprobación rápida antes del inicio. Solo observa, nunca cambia nada.",
+    "loadError": "No se pudo ejecutar la comprobación. Inténtalo de nuevo.",
+    "summary": {
+      "allClear": "Todo en orden, estás listo para emitir.",
+      "problems": "Problemas por resolver antes de emitir: {{count}}.",
+      "warnings": "Cosas por revisar antes del inicio: {{count}}."
+    },
+    "title": "Comprobación antes de emitir"
+  }
+}

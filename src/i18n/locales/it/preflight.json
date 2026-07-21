@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Controllo prima della diretta",
+    "runAgain": "Ripeti controllo",
+    "running": "Controllo in corso…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Attivo ma non in esecuzione: {{error}}",
+      "off": "Non attivo. Attivalo in Impostazioni di sistema se OBS ne ha bisogno.",
+      "running": "In esecuzione sulla porta {{port}}.",
+      "title": "Sorgente browser OBS"
+    },
+    "crashRecovery": {
+      "found": "C'è una partita non conclusa salvata da una sessione precedente. Ripristinala dalla notifica sulla dashboard, oppure ignorala, prima di iniziarne una nuova.",
+      "none": "Nessuna partita non conclusa da una sessione precedente.",
+      "title": "Partita precedente"
+    },
+    "diskSpace": {
+      "low": "Spazio libero su disco scarso ({{freeMb}} MB). PlayOverlay potrebbe avere difficoltà a salvare la partita.",
+      "ok": "Spazio libero su disco sufficiente.",
+      "title": "Spazio su disco",
+      "unknown": "Non è stato possibile controllare lo spazio libero su disco su questo sistema."
+    },
+    "displayWindowReady": {
+      "notReady": "La finestra di uscita non è ancora stata caricata. Attendi un momento, oppure reimposta le finestre da Impostazioni finestra.",
+      "ready": "La finestra di uscita è aperta e pronta.",
+      "title": "Finestra di uscita"
+    },
+    "displays": {
+      "sameScreen": "La finestra di uscita e la finestra di controllo sono sullo stesso schermo. Sposta la finestra di uscita sul secondo schermo prima del calcio d'inizio.",
+      "separated": "La finestra di uscita è sul proprio schermo, separata dalla finestra di controllo.",
+      "singleScreen": "Rilevato un solo schermo. Puoi comunque inviare il tabellone a OBS come sorgente browser.",
+      "title": "Secondo schermo"
+    },
+    "missingAssets": {
+      "awayLogo": "logo della squadra ospite",
+      "homeLogo": "logo della squadra di casa",
+      "missing": "Mancanti: {{count}} ({{titles}}). Controlla Impostazioni squadra e Grafiche personalizzate.",
+      "ok": "Tutti i loghi e le grafiche sono presenti.",
+      "title": "Loghi e grafiche delle squadre"
+    },
+    "remoteControl": {
+      "failed": "Attivo ma non in esecuzione: {{error}}",
+      "off": "Non attivo. Attivalo in Impostazioni di sistema se verrà usato un telefono.",
+      "running": "In esecuzione sulla porta {{port}}.",
+      "title": "Telecomando da telefono"
+    },
+    "shortcuts": {
+      "failed": "Non registrate: {{count}} ({{accelerators}}), probabilmente già usate da un'altra app.",
+      "ok": "Tutte le scorciatoie da tastiera sono registrate.",
+      "title": "Scorciatoie da tastiera"
+    }
+  },
+  "modal": {
+    "intro": "Un controllo rapido prima del calcio d'inizio. Osserva soltanto, non cambia mai nulla.",
+    "loadError": "Non è stato possibile eseguire il controllo. Riprova.",
+    "summary": {
+      "allClear": "Tutto a posto, sei pronto per andare in diretta.",
+      "problems": "Problemi da risolvere prima di andare in diretta: {{count}}.",
+      "warnings": "Cose da controllare prima del calcio d'inizio: {{count}}."
+    },
+    "title": "Controllo prima della diretta"
+  }
+}

@@ -20,7 +20,11 @@ const screenLabelKeys: Record<DisplayScreen, string> = {
 };
 
 export interface Props {
+  // Overlay toggles go through updateMatchState (not individually undoable).
   updateMatchState: (settingsUpdated: Partial<MatchState>) => void;
+  // On-air screen switches go through switchScreen, which records an undo
+  // entry before applying the change.
+  switchScreen: (settingsUpdated: Partial<MatchState>) => void;
   matchState: MatchState;
   customGraphics: CustomScreen[];
   matchSettings: MatchSettings;
@@ -57,6 +61,7 @@ export function removeCustomScreen(
 
 export default function DisplayControlsPanel({
   updateMatchState,
+  switchScreen,
   matchState,
   customGraphics,
   matchSettings,
@@ -81,7 +86,7 @@ export default function DisplayControlsPanel({
             .map((screen) => ({
               label: t(screenLabelKeys[screen as DisplayScreen]),
               onClick: () =>
-                updateMatchState({
+                switchScreen({
                   displayScreen: screen as DisplayScreen,
                   customScreenImageUrl: undefined,
                 }),
@@ -100,7 +105,7 @@ export default function DisplayControlsPanel({
             buttons={customScreens?.map((customScreen) => ({
               label: customScreen.title,
               onClick: () =>
-                updateMatchState({
+                switchScreen({
                   displayScreen: 'custom',
                   customScreenImageUrl: customScreen.url ?? undefined,
                 }),

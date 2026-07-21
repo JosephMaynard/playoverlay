@@ -8,6 +8,12 @@ import SoccerBallIcon from '../Icons/SoccerBallIcon';
 export interface Props {
   title: string;
   score: number;
+  // Adding a goal (the big "scored" button) and editing the score (the pencil
+  // modal) are separate actions: onScored records a goal, setScore is a manual
+  // correction. Keeping them apart means the goal button reads fresh store
+  // state via its handler (rather than the possibly stale score prop) and gets
+  // the "home/away goal" undo label, while the modal stays a "score edit".
+  onScored: () => void;
   setScore: (score: number) => void;
   id: string;
   teamNameFull: string;
@@ -20,6 +26,7 @@ export default function ScoreInput({
   title,
   id,
   score,
+  onScored,
   setScore,
   teamNameFull,
   teamNameAbbreviated,
@@ -69,7 +76,7 @@ export default function ScoreInput({
           <button
             type="button"
             className="flex w-full items-center overflow-hidden rounded-md bg-white pr-4 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            onClick={() => setScore(score + 1)}
+            onClick={onScored}
           >
             <span
               style={{ backgroundColor: backgroundColour, color: textColour }}
