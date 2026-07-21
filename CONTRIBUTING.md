@@ -35,3 +35,7 @@ npm test
 - Keep PRs focused on one change.
 - Describe what you tested and how (which checks you ran, and if applicable, that you exercised the change in a running app).
 - Link any related issue.
+
+## Licensing of contributions
+
+PlayOverlay is licensed under the [MIT License](LICENSE). By submitting a pull request, you agree that your contribution is licensed under the same MIT terms. Contributions do not grant any rights to the PlayOverlay name, logo, or branding, which are owned by Magic Zebra Ltd (see [TRADEMARKS.md](TRADEMARKS.md)).
