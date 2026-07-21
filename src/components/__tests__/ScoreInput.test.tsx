@@ -11,17 +11,24 @@ const baseProps = {
   teamNameAbbreviated: 'TIG',
   textColour: '#ffffff',
   backgroundColour: '#000000',
+  onScored: vi.fn(),
 };
 
 describe('ScoreInput', () => {
-  it('increments the score when the scored button is pressed', async () => {
+  it('records a goal (not a manual edit) when the scored button is pressed', async () => {
+    const onScored = vi.fn();
     const setScore = vi.fn();
     const user = userEvent.setup();
-    render(<ScoreInput {...baseProps} setScore={setScore} />);
+    render(
+      <ScoreInput {...baseProps} onScored={onScored} setScore={setScore} />
+    );
 
     await user.click(screen.getByRole('button', { name: /Home Team Scored/ }));
 
-    expect(setScore).toHaveBeenCalledWith(2);
+    // The big scored button is a goal, routed through the goal handler, not a
+    // score edit, so it must not go through setScore.
+    expect(onScored).toHaveBeenCalledTimes(1);
+    expect(setScore).not.toHaveBeenCalled();
   });
 
   it('opens the edit modal and sends numeric score changes', async () => {

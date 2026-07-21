@@ -610,6 +610,8 @@ export default function Dashboard() {
               matchSettings={matchSettings}
               scores={scores}
               time={time}
+              incrementHomeTeamScore={incrementHomeTeamScore}
+              incrementAwayTeamScore={incrementAwayTeamScore}
               updateScore={(updatedScores: Scores) => {
                 // Capture before mutating, then edit (scores-only, so undoing a
                 // manual correction never touches the clock). Editing the score
