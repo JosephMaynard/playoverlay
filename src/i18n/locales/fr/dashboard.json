@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Incrustations",
+    "title": "Commandes d'affichage"
+  },
+  "header": {
+    "openMenu": "Ouvrir le menu {{title}}",
+    "teamSettings": "Paramètres de l'équipe"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Un match était en cours lors de la dernière fermeture de PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). La restauration rétablit le score et le chronomètre, ce dernier étant en pause.",
+      "bodyWithTime": "Un match était en cours lors de la dernière fermeture de PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). La restauration rétablit le score et le chronomètre, ce dernier étant en pause.",
+      "title": "Restaurer le match précédent ?"
+    },
+    "updateAvailable": {
+      "body": "Une nouvelle version de PlayOverlay (v{{version}}) est disponible.",
+      "button": "Télécharger maintenant",
+      "title": "Mise à jour disponible"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Manqué",
+    "nextPenalty": "Prochain tir au but {{team}} ({{side}}) :",
+    "resetConfirmAction": "Réinitialiser les tirs au but",
+    "resetConfirmBody": "Voulez-vous vraiment réinitialiser les tirs au but ?",
+    "resetConfirmTitle": "Réinitialiser les tirs au but ?",
+    "resetPenalties": "Réinitialiser les tirs au but",
+    "score": "Marqué",
+    "teamFirst": "{{team}} en premier",
+    "undoPenalty": "Annuler le tir au but"
+  },
+  "scoreInput": {
+    "editScore": "Modifier le score",
+    "editScoreAria": "Modifier le score de {{team}}",
+    "scoreLabel": "Score de {{team}}",
+    "scored": "But de {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Scores"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Ajuster le temps",
+    "autoSwitchLabel": "Changer automatiquement d'écran au démarrage et à l'arrêt",
+    "clear": "Effacer",
+    "setAdditionalTime": "Définir le temps additionnel",
+    "title": "Temps"
+  }
+}

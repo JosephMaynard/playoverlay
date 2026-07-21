@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
+import { useTranslation } from 'react-i18next';
 
 export interface Props {
   title: string;
@@ -17,6 +18,7 @@ export default function AppNotification({
   buttonText,
   buttonOnClick,
 }: Props) {
+  const { t } = useTranslation();
   const [show, setShow] = useState(true);
 
   // The fixed stacking container lives in the caller (Dashboard) so that
@@ -62,7 +64,7 @@ export default function AppNotification({
                   setShow(false);
                 }}
               >
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{t('common:close')}</span>
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>

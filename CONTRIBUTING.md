@@ -15,7 +15,7 @@ npm start
 
 ## Before opening a PR
 
-Run all three checks locally — CI runs the same commands and will fail the build otherwise:
+Run all three checks locally, CI runs the same commands and will fail the build otherwise:
 
 ```bash
 npm run ts-check
@@ -28,7 +28,7 @@ npm test
 - **Behavior-preserving defaults.** This app is used to run live sports streams, often mid-match. Any change to stored config (`config.json`) must be additive: new fields are optional, and existing saved matches load and behave exactly as before. Never change what an existing config produces.
 - **Tests for logic.** New pure logic (clock math, phase transitions, parsing/formatting helpers, etc.) needs focused tests. Don't weaken or delete existing tests to make a change pass.
 - **Don't crash mid-match.** Prefer graceful fallbacks over throwing. A broken control window or display window during a live stream is the worst possible failure mode for this app.
-- **Match the existing style.** Look at neighbouring components before adding new patterns — state flows through zustand and IPC in a consistent way, and UI is built from the existing shared components (`SideMenu`, `CollapsiblePanel`, `ButtonGrid`, etc.) with Tailwind.
+- **Match the existing style.** Look at neighbouring components before adding new patterns, state flows through zustand and IPC in a consistent way, and UI is built from the existing shared components (`SideMenu`, `CollapsiblePanel`, `ButtonGrid`, etc.) with Tailwind.
 
 ## PR guidance
 

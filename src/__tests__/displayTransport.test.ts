@@ -172,7 +172,7 @@ describe('displayTransport', () => {
     expect(MockWebSocket.instances).toHaveLength(1);
 
     MockWebSocket.instances[0].close();
-    expect(MockWebSocket.instances).toHaveLength(1); // not yet — reconnect is delayed
+    expect(MockWebSocket.instances).toHaveLength(1); // not yet, reconnect is delayed
 
     vi.advanceTimersByTime(2000);
     expect(MockWebSocket.instances).toHaveLength(2);

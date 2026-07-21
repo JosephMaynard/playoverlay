@@ -16,7 +16,7 @@ import {
 // JSON so existing users keep their settings. Builds without the key (the
 // default) skip this; electron-store THROWS on an unreadable config (it does
 // not reset to defaults), so an unparseable config.json is moved aside to
-// config.json.bak — preserving the user's data for a keyed rescue — and the
+// config.json.bak, preserving the user's data for a keyed rescue, and the
 // app starts with a fresh store instead of crash-looping before app.ready.
 function createStorage(): Store {
   if (__LEGACY_STORE_KEY__) {

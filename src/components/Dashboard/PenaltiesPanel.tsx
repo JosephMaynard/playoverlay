@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Penalty, homeOrAway } from '../../types';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
@@ -21,6 +22,7 @@ export default function PenaltiesPanel({
   setPenaltiesFirstTeam,
   matchSettings,
 }: Props) {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const nextPenalyTeam: homeOrAway =
     penalties.length === 0
@@ -30,7 +32,7 @@ export default function PenaltiesPanel({
         : 'home';
 
   return (
-    <CollapsiblePanel title="Penalties">
+    <CollapsiblePanel title={t('settings:system.screens.penalties')}>
       <div className="mb-4 [--base-size:1.25rem]">
         <PenaltiesBoard
           className="border border-gray-600"
@@ -44,13 +46,17 @@ export default function PenaltiesPanel({
         className="mb-4"
         buttons={[
           {
-            label: 'Home Team First',
+            label: t('dashboard:penaltiesPanel.teamFirst', {
+              team: t('settings:matchMenu.homeTeam'),
+            }),
             onClick: () => setPenaltiesFirstTeam('home'),
             selected: penaltiesFirstTeam === 'home',
             disabled: penalties.length > 0,
           },
           {
-            label: 'Away Team First',
+            label: t('dashboard:penaltiesPanel.teamFirst', {
+              team: t('settings:matchMenu.awayTeam'),
+            }),
             onClick: () => setPenaltiesFirstTeam('away'),
             selected: penaltiesFirstTeam === 'away',
             disabled: penalties.length > 0,
@@ -58,11 +64,17 @@ export default function PenaltiesPanel({
         ]}
       />
       <h3 className="my-4 text-base font-semibold leading-6 text-gray-900">
-        Next Penalty{' '}
-        {nextPenalyTeam === 'home'
-          ? matchSettings.homeTeamNameFull
-          : matchSettings.awayTeamNameFull}{' '}
-        ({nextPenalyTeam === 'home' ? 'Home' : 'Away'} Team):
+        {t('dashboard:penaltiesPanel.nextPenalty', {
+          team:
+            nextPenalyTeam === 'home'
+              ? matchSettings.homeTeamNameFull
+              : matchSettings.awayTeamNameFull,
+          side: t(
+            nextPenalyTeam === 'home'
+              ? 'settings:matchMenu.homeTeam'
+              : 'settings:matchMenu.awayTeam'
+          ),
+        })}
       </h3>
 
       <ButtonGrid
@@ -70,7 +82,7 @@ export default function PenaltiesPanel({
         className="mb-4"
         buttons={[
           {
-            label: 'Score',
+            label: t('dashboard:penaltiesPanel.score'),
             onClick: () => {
               setPenalties([
                 ...penalties,
@@ -84,7 +96,7 @@ export default function PenaltiesPanel({
             backgroundColor: 'bg-green-600',
           },
           {
-            label: 'Miss',
+            label: t('dashboard:penaltiesPanel.miss'),
             onClick: () => {
               setPenalties([
                 ...penalties,
@@ -103,7 +115,7 @@ export default function PenaltiesPanel({
         compact
         buttons={[
           {
-            label: 'Undo Penalty',
+            label: t('dashboard:penaltiesPanel.undoPenalty'),
             onClick: () => {
               if (penalties.length > 0) {
                 setPenalties(penalties.slice(0, -1));
@@ -113,7 +125,7 @@ export default function PenaltiesPanel({
             backgroundColor: 'bg-indigo-600',
           },
           {
-            label: 'Reset Penalties',
+            label: t('dashboard:penaltiesPanel.resetPenalties'),
             onClick: () => setModalOpen(true),
             backgroundColor: 'bg-red-700',
             color: 'text-white',
@@ -123,8 +135,8 @@ export default function PenaltiesPanel({
       <Modal
         open={modalOpen}
         setOpen={setModalOpen}
-        title="Reset the penalties?"
-        actionButtonLabel="Reset penalties"
+        title={t('dashboard:penaltiesPanel.resetConfirmTitle')}
+        actionButtonLabel={t('dashboard:penaltiesPanel.resetConfirmAction')}
         icon="warning"
         action={() => {
           setPenalties([]);
@@ -132,7 +144,7 @@ export default function PenaltiesPanel({
         }}
       >
         <p className="text-sm text-gray-500">
-          Are you sure you want to reset the penalties?
+          {t('dashboard:penaltiesPanel.resetConfirmBody')}
         </p>
       </Modal>
     </CollapsiblePanel>

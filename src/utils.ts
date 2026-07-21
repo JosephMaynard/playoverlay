@@ -3,12 +3,16 @@ import {
   BrowserSourceSettings,
   ClockFormat,
   KeyboardShortcuts,
+  LanguageCode,
   MatchPeriod,
   MatchPhase,
   Penalty,
 } from './types';
 import { MatchSettings } from './zodSchemas';
-import { defaultBrowserSourceSettings, defaultKeyboardShortcuts } from './constants';
+import {
+  defaultBrowserSourceSettings,
+  defaultKeyboardShortcuts,
+} from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -76,7 +80,8 @@ export function classNames(...classes: string[]) {
 // Football mode reproduces the historical firstHalf/secondHalf/extraTime*
 // phases exactly (dropping the extra-time phases when hasExtraTime is
 // explicitly false); generic mode builds N evenly-sized periods named from
-// periodName.
+// periodName. Titles are returned as an i18next key (+ params) rather than a
+// baked English string, see getPhaseTitle below for rendering it.
 export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   if (matchSettings.timerMode === 'generic') {
     // Defence in depth: schema validation clamps periodCount on every write
@@ -88,13 +93,21 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
         ? Math.min(rawPeriodCount, 100)
         : 4;
     const periodLength = matchSettings.periodLength ?? 10;
-    const periodName = matchSettings.periodName?.trim() || 'Period';
+    // A custom periodName is user-entered text (e.g. "Quarter", "Innings"),
+    // never translated; only the "Period" fallback used when it's unset is a
+    // fixed English UI string, so it gets its own translation key.
+    const customPeriodName = matchSettings.periodName?.trim();
 
     return Array.from({ length: periodCount }, (_, index) => {
       const number = index + 1;
       return {
         id: `period${number}`,
-        title: `${periodName} ${number}`,
+        titleKey: customPeriodName
+          ? 'screens:phase.customPeriod'
+          : 'screens:phase.period',
+        titleParams: customPeriodName
+          ? { name: customPeriodName, n: number }
+          : { n: number },
         start: index * periodLength,
         end: number * periodLength,
       };
@@ -105,10 +118,15 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   const extraTimeHalfLength = matchSettings.extraTimeHalfLength ?? 15;
 
   const phases: MatchPeriod[] = [
-    { id: 'firstHalf', title: 'First Half', start: 0, end: halfLength },
+    {
+      id: 'firstHalf',
+      titleKey: 'screens:phase.firstHalf',
+      start: 0,
+      end: halfLength,
+    },
     {
       id: 'secondHalf',
-      title: 'Second Half',
+      titleKey: 'screens:phase.secondHalf',
       start: halfLength,
       end: halfLength * 2,
     },
@@ -118,13 +136,13 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
     phases.push(
       {
         id: 'extraTimeFirstHalf',
-        title: 'Extra Time First Half',
+        titleKey: 'screens:phase.extraTimeFirstHalf',
         start: halfLength * 2,
         end: halfLength * 2 + extraTimeHalfLength,
       },
       {
         id: 'extraTimeSecondHalf',
-        title: 'Extra Time Second Half',
+        titleKey: 'screens:phase.extraTimeSecondHalf',
         start: halfLength * 2 + extraTimeHalfLength,
         end: (halfLength + extraTimeHalfLength) * 2,
       }
@@ -132,6 +150,19 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
   }
 
   return phases;
+}
+
+// Renders a MatchPeriod's title via the caller's i18next `t` function. Pure
+// aside from the translation lookup: every call site that displays a phase's
+// name (TimeControlPanel, SystemSettingsMenu's Stream Deck buttons,
+// TimeDisplay) goes through this so it's always derived the same way.
+// Dashboard.tsx only ever reads a phase's id/start/end, never its title, so
+// it has no call site here.
+export function getPhaseTitle(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  phase: MatchPeriod
+): string {
+  return t(phase.titleKey, phase.titleParams);
 }
 
 export function getPhaseById(
@@ -143,7 +174,7 @@ export function getPhaseById(
 }
 
 // Pure walk over the phase list: mirrors the Dashboard's historical
-// "next match phase" semantics — pressing next while a phase is running
+// "next match phase" semantics, pressing next while a phase is running
 // stops the clock instead of advancing it; otherwise it starts the first
 // phase, or the one after previousPhaseId (undefined once the list ends).
 export function getNextPhaseId(
@@ -281,7 +312,7 @@ export function keyboardEventToAccelerator({
 
 // The active browser-source settings: user configuration layered over the
 // defaults (off, port 4750), so a config.json with no `browserSource` field
-// (or one missing `port`/`enabled`) behaves exactly like today — no server.
+// (or one missing `port`/`enabled`) behaves exactly like today, no server.
 // Shared by main.ts (server lifecycle) and the renderer (settings UI).
 export function getBrowserSourceSettings(
   appSettings: AppSettings
@@ -310,7 +341,7 @@ export function chunkArray<T>(items: T[], size: number): T[][] {
 // Seconds remaining until a "HH:MM" kick-off time, interpreted as today in
 // the local timezone. Returns null when the string isn't a valid 24-hour
 // HH:MM time or the moment has already arrived/passed today (no next-day
-// rollover — a kick-off time is only ever "today"). Uses Math.ceil so a
+// rollover, a kick-off time is only ever "today"). Uses Math.ceil so a
 // consumer ticking once a second never displays 0 while time remains.
 export function secondsUntilKickOff(
   kickOffTime: string,
@@ -330,6 +361,54 @@ export function secondsUntilKickOff(
   if (diffMs <= 0) return null;
 
   return Math.ceil(diffMs / 1000);
+}
+
+// Maps a BCP-47-ish locale string (as reported by navigator.language) to the
+// nearest of the eight shipped catalogues. Pure and side-effect free so it's
+// trivially unit-testable; the navigator/Intl read happens at the call site
+// (see detectLanguage below), not in here.
+export function nearestSupportedLanguage(locale: string): LanguageCode {
+  const lower = locale.toLowerCase();
+
+  if (lower.startsWith('pt')) {
+    // pt-BR -> pt-BR; pt or pt-PT (or any other pt-XX, e.g. pt-AO) -> pt-PT.
+    return lower === 'pt-br' || lower.startsWith('pt-br') ? 'pt-BR' : 'pt-PT';
+  }
+  if (lower.startsWith('es')) {
+    // es-ES (incl. extension locales like es-ES-u-nu-latn) -> es-ES; any
+    // other Spanish (bare "es", es-MX, es-AR, es-419, ...) -> es-419, the
+    // neutral pan-regional Latin American catalogue.
+    return lower === 'es-es' || lower.startsWith('es-es-') ? 'es-ES' : 'es-419';
+  }
+  if (lower.startsWith('fr')) return 'fr';
+  if (lower.startsWith('de')) return 'de';
+  if (lower.startsWith('it')) return 'it';
+
+  return 'en';
+}
+
+// The OS/browser locale mapped to the nearest supported catalogue. Used to
+// pre-select the first-run language picker and as the fallback wherever an
+// AppSettings.language hasn't been chosen yet (see getLanguage below).
+export function detectLanguage(): LanguageCode {
+  if (typeof navigator === 'undefined') return 'en';
+
+  const locale =
+    navigator.language ||
+    (navigator.languages && navigator.languages[0]) ||
+    'en';
+
+  return nearestSupportedLanguage(locale);
+}
+
+// The active display language: the operator's explicit choice if one has
+// been made, otherwise the detected OS/browser locale. Same
+// defaults-layered-over-settings pattern as getKeyboardShortcuts/
+// getBrowserSourceSettings, so a config.json with no `language` field (every
+// config saved before v0.18) behaves exactly like a fresh install rather
+// than throwing or rendering untranslated.
+export function getLanguage(appSettings: AppSettings): LanguageCode {
+  return appSettings.language ?? detectLanguage();
 }
 
 export const debounce = <Args extends unknown[]>(

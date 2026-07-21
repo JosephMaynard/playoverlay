@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Scores } from 'src/types';
 import './EndScreenLayout.css';
 import { calculatePenalties } from '../../../utils';
@@ -11,6 +12,7 @@ export interface Props {
 }
 
 export default function EndScreenLayout({ scores, settings, active }: Props) {
+  const { t } = useTranslation();
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
     calculatePenalties(scores.penalties);
   // The hidden animation starts from the fully-shown position, so it must
@@ -49,7 +51,7 @@ export default function EndScreenLayout({ scores, settings, active }: Props) {
         {scores.penalties.length > 0 && (
           <div className="EndScreenLayout_penalties">
             <div className="EndScreenLayout_penalties_title bg-black text-center text-white">
-              Penalties
+              {t('screens:penalties')}
             </div>
             <div>{`( ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored} )`}</div>
           </div>

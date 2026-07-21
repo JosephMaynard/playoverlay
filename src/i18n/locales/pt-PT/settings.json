@@ -1,0 +1,167 @@
+{
+  "actions": {
+    "delete": "Eliminar",
+    "save": "Guardar"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "Copiado!",
+      "copy": "Copiar",
+      "customScreenHint": "Qualquer ecrã incorporado pode ser fixado desta forma ao adicionar <code>?screen=</code> ao URL, útil para mostrar numa TV do recinto uma vista diferente da do OBS. Os ecrãs personalizados não podem ser fixados; essa vista segue o operador.",
+      "enable": "Ativar",
+      "hint": "Adicione como fonte de vídeo do navegador no OBS, na resolução do seu ecrã; o fundo é transparente.",
+      "port": "Porta",
+      "portError": "Introduza uma porta entre 1024 e 65535.",
+      "scoreboardView": "Vista do marcador",
+      "status": "Estado: {{state}}",
+      "statusRunning": "Em execução",
+      "statusStopped": "Parado",
+      "statusWithError": "Estado: {{state}}, {{error}}",
+      "title": "Fonte de vídeo do navegador OBS"
+    },
+    "displays": {
+      "moveToScreen": "Mover para o ecrã {{n}}",
+      "none": "Não foram detetados ecrãs externos."
+    },
+    "keyColour": "Cor-chave",
+    "keyboardShortcutRow": {
+      "change": "Alterar",
+      "invalidKey": "Essa tecla não pode ser utilizada num atalho.",
+      "needModifier": "Inclua Cmd/Ctrl ou Alt no atalho.",
+      "pressKeys": "Prima as teclas…",
+      "pressKeysFor": "Prima as teclas para {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "Golo da equipa visitante",
+      "conflict": "Já utilizado por «{{label}}».",
+      "globalHint": "Cada atalho também funciona a nível do sistema (por exemplo, quando o OBS está em primeiro plano) com o Alt adicionado, exceto se o atalho já incluir o Alt.",
+      "homeTeamScored": "Golo da equipa da casa",
+      "nextMatchPhase": "Próxima fase do jogo",
+      "title": "Atalhos de teclado"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Formato da hora do dia no ecrã do marcador para os espectadores.",
+      "title": "Relógio do marcador",
+      "twentyFourHour": "24 horas"
+    },
+    "title": "Definições de janela",
+    "windowControls": {
+      "lockWindows": "Bloquear janelas",
+      "resetPositions": "Repor posições",
+      "toggleFullscreen": "Alternar ecrã inteiro",
+      "unlockWindows": "Desbloquear janelas",
+      "title": "Janelas"
+    }
+  },
+  "customScreens": {
+    "add": "Adicionar gráfico personalizado",
+    "addModalTitle": "Adicionar ecrã personalizado",
+    "deleteConfirmAction": "Eliminar ecrã personalizado",
+    "deleteConfirmBody": "Tem a certeza de que pretende eliminar o ecrã personalizado «{{title}}»?",
+    "deleteConfirmTitle": "Eliminar o ecrã personalizado?",
+    "edit": "Editar",
+    "editModal": {
+      "allScreens": "Todos os ecrãs",
+      "overlayScreens": "Mostrar sobreposição nos ecrãs",
+      "saveChanges": "Guardar alterações",
+      "title": "Editar gráfico personalizado",
+      "type": "Tipo"
+    },
+    "emptyDescription": "Clique no botão «{{action}}» para adicionar gráficos personalizados",
+    "emptyTitle": "Sem gráficos personalizados",
+    "title": "Gráficos personalizados",
+    "typeLine": "Tipo: {{type}}",
+    "typeOverlay": "Sobreposição",
+    "typeScreen": "Ecrã personalizado",
+    "uploader": {
+      "defaultTitle": "Ecrã personalizado {{n}}",
+      "deleteImage": "Eliminar imagem",
+      "dragDropHint": "Arraste e largue um ficheiro de imagem para aqui, ou clique para selecionar um",
+      "dropHere": "Largue o ficheiro aqui…",
+      "image": "Imagem",
+      "missingFields": "Indique um ficheiro e um título.",
+      "selectFile": "Clique para selecionar um",
+      "titleLabel": "Título",
+      "uploadFailed": "Não foi possível carregar a imagem. Tente novamente.",
+      "uploadedImage": "Imagem carregada:"
+    }
+  },
+  "language": {
+    "description": "Idioma utilizado nos menus e nos gráficos no ecrã.",
+    "modal": {
+      "confirm": "Confirmar",
+      "description": "Escolha o idioma que o PlayOverlay utiliza nos seus menus e gráficos no ecrã. Pode alterá-lo mais tarde em Definições do sistema.",
+      "title": "Escolha um idioma"
+    },
+    "title": "Idioma"
+  },
+  "matchMenu": {
+    "awayTeam": "Equipa visitante",
+    "details": {
+      "extraTime": "Prolongamento",
+      "extraTimeHalfLength": "Duração da parte do prolongamento",
+      "football": "Futebol",
+      "generic": "Genérico",
+      "halfLength": "Duração da parte",
+      "kickOffTime": "Hora do pontapé de saída",
+      "penalties": "Grandes penalidades",
+      "periodCount": "Número de períodos",
+      "periodLength": "Duração do período",
+      "periodNameLabel": "Nome do período",
+      "periodNamePlaceholder": "Período",
+      "timerMode": "Modo do cronómetro",
+      "title": "Detalhes do jogo",
+      "venue": "Local"
+    },
+    "homeTeam": "Equipa da casa",
+    "saved": {
+      "deleteConfirmBody": "Tem a certeza de que pretende eliminar as definições de jogo guardadas «{{title}}»?",
+      "deleteModalTitle": "Eliminar definições de jogo guardadas?",
+      "emptyDescription": "Clique no botão «{{action}}» para guardar as definições de jogo",
+      "emptyTitle": "Sem definições de jogo guardadas",
+      "nameLabel": "Nome",
+      "openSaved": "Abrir definições de jogo guardadas",
+      "restore": "Restaurar",
+      "restoreConfirmBody": "Tem a certeza de que pretende restaurar as definições de jogo guardadas? As definições de jogo atuais serão substituídas se continuar.",
+      "restoreModalTitle": "Restaurar definições de jogo guardadas?",
+      "saveCurrent": "Guardar definições de jogo atuais",
+      "saveModalTitle": "Guardar definições de jogo?",
+      "savedAt": "Guardado: {{date}}",
+      "title": "Guardar/restaurar definições de jogo"
+    },
+    "team": {
+      "abbreviatedLabel": "Nome abreviado de {{team}}",
+      "backgroundColourLabel": "Cor de fundo de {{team}}",
+      "logoLabel": "Logótipo de {{team}}",
+      "logoUploadError": "Não foi possível carregar o logótipo. Tente novamente.",
+      "nameLabel": "Nome de {{team}}",
+      "remove": "Remover",
+      "textColourLabel": "Cor do texto de {{team}}",
+      "upload": "Carregar"
+    },
+    "title": "Definições do jogo"
+  },
+  "system": {
+    "about": "Acerca de",
+    "aboutModal": {
+      "product": "Produto",
+      "title": "Acerca do PlayOverlay",
+      "version": "Versão"
+    },
+    "connectStreamDeck": "Ligar ao Stream Deck",
+    "screens": {
+      "custom": "Ecrãs personalizados",
+      "endScreen": "Ecrã final",
+      "matchTitle": "Título do jogo",
+      "none": "Nenhum",
+      "penalties": "Grandes penalidades",
+      "scoreBug": "Marcador compacto",
+      "scoreboard": "Marcador"
+    },
+    "stop": "Parar",
+    "streamDeckConnected": "Stream Deck ligado",
+    "teamScored": "Golo de {{team}}",
+    "title": "Definições do sistema"
+  }
+}

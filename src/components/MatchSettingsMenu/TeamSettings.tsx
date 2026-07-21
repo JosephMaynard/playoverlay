@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppSettings } from 'src/types';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -35,14 +36,15 @@ export default function TeamSettings({
   appSettings,
   disabled,
 }: Props) {
+  const { t } = useTranslation();
   // This component is rendered once per team, so DOM ids must be unique
-  // per panel — otherwise labels focus the other team's input.
+  // per panel, otherwise labels focus the other team's input.
   const idPrefix = title.toLowerCase().replace(/\s+/g, '-');
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   // Bumped on every new upload and on Remove, so a slow upload that resolves
-  // after a newer action has already started can never overwrite it — even
+  // after a newer action has already started can never overwrite it, even
   // if the disabled styling below is somehow bypassed.
   const logoUploadGenerationRef = useRef(0);
 
@@ -63,12 +65,12 @@ export default function TeamSettings({
       if (result) {
         setTeamLogo(result.url);
       } else {
-        setLogoUploadError('Failed to upload logo. Please try again.');
+        setLogoUploadError(t('settings:matchMenu.team.logoUploadError'));
       }
     } catch (error) {
       if (logoUploadGenerationRef.current !== generation) return;
       console.error('Error uploading logo:', error);
-      setLogoUploadError('Failed to upload logo. Please try again.');
+      setLogoUploadError(t('settings:matchMenu.team.logoUploadError'));
     } finally {
       setLogoUploading(false);
     }
@@ -87,7 +89,7 @@ export default function TeamSettings({
           htmlFor={`${idPrefix}-teamNameFull`}
           className="block text-sm font-medium leading-6 text-gray-900"
         >
-          {title} Name
+          {t('settings:matchMenu.team.nameLabel', { team: title })}
         </label>
         <div className="mt-2">
           <input
@@ -118,7 +120,7 @@ export default function TeamSettings({
           htmlFor={`${idPrefix}-teamNameAbbreviated`}
           className="block text-sm font-medium leading-6 text-gray-900"
         >
-          {title} Name Abbreviated
+          {t('settings:matchMenu.team.abbreviatedLabel', { team: title })}
         </label>
         <div className="mt-2">
           <input
@@ -140,7 +142,7 @@ export default function TeamSettings({
       </div>
       <div className="col-span-full mb-4">
         <label className="block text-sm font-medium leading-6 text-gray-900">
-          {title} Logo
+          {t('settings:matchMenu.team.logoLabel', { team: title })}
         </label>
         <div className="mt-2 flex items-center gap-3">
           {teamLogo && (
@@ -155,7 +157,7 @@ export default function TeamSettings({
             onClick={() => logoInputRef.current?.click()}
             disabled={disabled || logoUploading}
           >
-            Upload
+            {t('settings:matchMenu.team.upload')}
           </button>
           <input
             type="file"
@@ -171,7 +173,7 @@ export default function TeamSettings({
               onClick={handleRemoveLogo}
               disabled={disabled || logoUploading}
             >
-              Remove
+              {t('settings:matchMenu.team.remove')}
             </button>
           )}
         </div>
@@ -180,14 +182,16 @@ export default function TeamSettings({
         )}
       </div>
       <ColourPicker
-        label={`${title} Text Colour`}
+        label={t('settings:matchMenu.team.textColourLabel', { team: title })}
         onChange={setTextColour}
         value={textColour}
         keyColour={appSettings.keyColour}
         disabled={disabled}
       />
       <ColourPicker
-        label={`${title} Background Colour`}
+        label={t('settings:matchMenu.team.backgroundColourLabel', {
+          team: title,
+        })}
         onChange={setBackgroundColour}
         value={backgroundColour}
         keyColour={appSettings.keyColour}

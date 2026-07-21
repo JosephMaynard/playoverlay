@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   arraysEqual,
   calculatePenalties,
@@ -7,19 +7,28 @@ import {
   classNames,
   debounce,
   deriveGlobalAccelerator,
+  detectLanguage,
   formatTimeOfDay,
   getKeyboardShortcuts,
+  getLanguage,
   getNextPhaseId,
   getPhaseById,
   getPhaseList,
+  getPhaseTitle,
   insertValue,
   keyboardEventToAccelerator,
+  nearestSupportedLanguage,
   removeValue,
   secondsUntilKickOff,
   timeToString,
 } from '../utils';
-import { defaultAppSettings, defaultKeyboardShortcuts, defaultMatchSettings } from '../constants';
+import {
+  defaultAppSettings,
+  defaultKeyboardShortcuts,
+  defaultMatchSettings,
+} from '../constants';
 import { MatchSettings } from '../zodSchemas';
+import i18n from '../i18n';
 
 describe('utils', () => {
   describe('timeToString', () => {
@@ -72,17 +81,27 @@ describe('utils', () => {
 
     it('derives the same football phases the old getMatchPhases produced (default timerMode)', () => {
       expect(getPhaseList(footballSettings)).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
-        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 40,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 40,
+          end: 80,
+        },
         {
           id: 'extraTimeFirstHalf',
-          title: 'Extra Time First Half',
+          titleKey: 'screens:phase.extraTimeFirstHalf',
           start: 80,
           end: 90,
         },
         {
           id: 'extraTimeSecondHalf',
-          title: 'Extra Time Second Half',
+          titleKey: 'screens:phase.extraTimeSecondHalf',
           start: 90,
           end: 100,
         },
@@ -91,19 +110,33 @@ describe('utils', () => {
 
     it('matches the historical defaults (45/15) when lengths are unset', () => {
       expect(
-        getPhaseList({ ...defaultMatchSettings, halfLength: undefined, extraTimeHalfLength: undefined })
+        getPhaseList({
+          ...defaultMatchSettings,
+          halfLength: undefined,
+          extraTimeHalfLength: undefined,
+        })
       ).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 45 },
-        { id: 'secondHalf', title: 'Second Half', start: 45, end: 90 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 45,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 45,
+          end: 90,
+        },
         {
           id: 'extraTimeFirstHalf',
-          title: 'Extra Time First Half',
+          titleKey: 'screens:phase.extraTimeFirstHalf',
           start: 90,
           end: 105,
         },
         {
           id: 'extraTimeSecondHalf',
-          title: 'Extra Time Second Half',
+          titleKey: 'screens:phase.extraTimeSecondHalf',
           start: 105,
           end: 120,
         },
@@ -114,12 +147,22 @@ describe('utils', () => {
       expect(
         getPhaseList({ ...footballSettings, hasExtraTime: false })
       ).toEqual([
-        { id: 'firstHalf', title: 'First Half', start: 0, end: 40 },
-        { id: 'secondHalf', title: 'Second Half', start: 40, end: 80 },
+        {
+          id: 'firstHalf',
+          titleKey: 'screens:phase.firstHalf',
+          start: 0,
+          end: 40,
+        },
+        {
+          id: 'secondHalf',
+          titleKey: 'screens:phase.secondHalf',
+          start: 40,
+          end: 80,
+        },
       ]);
     });
 
-    it('builds evenly-sized named periods in generic mode', () => {
+    it('builds evenly-sized named periods in generic mode, carrying the custom period name as a titleParam (never translated)', () => {
       expect(
         getPhaseList({
           ...defaultMatchSettings,
@@ -129,20 +172,62 @@ describe('utils', () => {
           periodName: 'Quarter',
         })
       ).toEqual([
-        { id: 'period1', title: 'Quarter 1', start: 0, end: 20 },
-        { id: 'period2', title: 'Quarter 2', start: 20, end: 40 },
-        { id: 'period3', title: 'Quarter 3', start: 40, end: 60 },
+        {
+          id: 'period1',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 1 },
+          start: 0,
+          end: 20,
+        },
+        {
+          id: 'period2',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 2 },
+          start: 20,
+          end: 40,
+        },
+        {
+          id: 'period3',
+          titleKey: 'screens:phase.customPeriod',
+          titleParams: { name: 'Quarter', n: 3 },
+          start: 40,
+          end: 60,
+        },
       ]);
     });
 
-    it('falls back to 4x10 minute periods named "Period" when unset', () => {
+    it('falls back to 4x10 minute periods using the translatable "Period" key when unset', () => {
       expect(
         getPhaseList({ ...defaultMatchSettings, timerMode: 'generic' })
       ).toEqual([
-        { id: 'period1', title: 'Period 1', start: 0, end: 10 },
-        { id: 'period2', title: 'Period 2', start: 10, end: 20 },
-        { id: 'period3', title: 'Period 3', start: 20, end: 30 },
-        { id: 'period4', title: 'Period 4', start: 30, end: 40 },
+        {
+          id: 'period1',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 1 },
+          start: 0,
+          end: 10,
+        },
+        {
+          id: 'period2',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 2 },
+          start: 10,
+          end: 20,
+        },
+        {
+          id: 'period3',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 3 },
+          start: 20,
+          end: 30,
+        },
+        {
+          id: 'period4',
+          titleKey: 'screens:phase.period',
+          titleParams: { n: 4 },
+          start: 30,
+          end: 40,
+        },
       ]);
     });
 
@@ -178,7 +263,7 @@ describe('utils', () => {
     it('looks up a phase by id', () => {
       expect(getPhaseById(defaultMatchSettings, 'secondHalf')).toEqual({
         id: 'secondHalf',
-        title: 'Second Half',
+        titleKey: 'screens:phase.secondHalf',
         start: 45,
         end: 90,
       });
@@ -190,6 +275,32 @@ describe('utils', () => {
     });
   });
 
+  describe('getPhaseTitle', () => {
+    it('renders a football phase title via the real English catalogue', () => {
+      const phase = getPhaseById(defaultMatchSettings, 'secondHalf')!;
+      expect(getPhaseTitle(i18n.t, phase)).toBe('Second Half');
+    });
+
+    it('renders a generic period title, interpolating the period number', () => {
+      const [period1, , period3] = getPhaseList({
+        ...defaultMatchSettings,
+        timerMode: 'generic',
+      });
+      expect(getPhaseTitle(i18n.t, period1)).toBe('Period 1');
+      expect(getPhaseTitle(i18n.t, period3)).toBe('Period 3');
+    });
+
+    it('renders a custom period name as-is (untranslated), with the period number appended', () => {
+      const [period1, period2] = getPhaseList({
+        ...defaultMatchSettings,
+        timerMode: 'generic',
+        periodName: 'Quarter',
+      });
+      expect(getPhaseTitle(i18n.t, period1)).toBe('Quarter 1');
+      expect(getPhaseTitle(i18n.t, period2)).toBe('Quarter 2');
+    });
+  });
+
   describe('getNextPhaseId', () => {
     const phaseList = getPhaseList(defaultMatchSettings);
 
@@ -198,9 +309,7 @@ describe('utils', () => {
     });
 
     it('starts at the first phase when nothing has run yet', () => {
-      expect(getNextPhaseId(phaseList, undefined, undefined)).toBe(
-        'firstHalf'
-      );
+      expect(getNextPhaseId(phaseList, undefined, undefined)).toBe('firstHalf');
     });
 
     it('walks to the phase after previousPhaseId', () => {
@@ -224,8 +333,9 @@ describe('utils', () => {
 
   describe('arraysEqual', () => {
     it('compares arrays independent of order', () => {
-      expect(arraysEqual(['scoreBug', 'endScreen'], ['endScreen', 'scoreBug']))
-        .toBe(true);
+      expect(
+        arraysEqual(['scoreBug', 'endScreen'], ['endScreen', 'scoreBug'])
+      ).toBe(true);
     });
 
     it('returns false for undefined arrays or different values', () => {
@@ -269,7 +379,10 @@ describe('utils', () => {
       expect(
         getKeyboardShortcuts({
           ...defaultAppSettings,
-          keyboardShortcuts: { ...defaultKeyboardShortcuts, homeTeamScored: 'CommandOrControl+Shift+J' },
+          keyboardShortcuts: {
+            ...defaultKeyboardShortcuts,
+            homeTeamScored: 'CommandOrControl+Shift+J',
+          },
         })
       ).toEqual({
         ...defaultKeyboardShortcuts,
@@ -283,7 +396,9 @@ describe('utils', () => {
           ...defaultAppSettings,
           keyboardShortcuts: {
             nextMatchPhase: 'CommandOrControl+Shift+N',
-          } as Partial<typeof defaultKeyboardShortcuts> as typeof defaultKeyboardShortcuts,
+          } as Partial<
+            typeof defaultKeyboardShortcuts
+          > as typeof defaultKeyboardShortcuts,
         })
       ).toEqual({
         ...defaultKeyboardShortcuts,
@@ -553,5 +668,81 @@ describe('secondsUntilKickOff', () => {
     expect(secondsUntilKickOff('12:5', now)).toBeNull();
     expect(secondsUntilKickOff('12:05:00', now)).toBeNull();
     expect(secondsUntilKickOff('12', now)).toBeNull();
+  });
+});
+
+describe('nearestSupportedLanguage', () => {
+  it('maps pt-BR to pt-BR', () => {
+    expect(nearestSupportedLanguage('pt-BR')).toBe('pt-BR');
+    expect(nearestSupportedLanguage('pt-br')).toBe('pt-BR');
+  });
+
+  it('maps bare pt and pt-PT (and any other pt-XX) to pt-PT', () => {
+    expect(nearestSupportedLanguage('pt')).toBe('pt-PT');
+    expect(nearestSupportedLanguage('pt-PT')).toBe('pt-PT');
+    expect(nearestSupportedLanguage('pt-AO')).toBe('pt-PT');
+  });
+
+  it('maps es-ES to es-ES, including BCP-47 extension locales', () => {
+    expect(nearestSupportedLanguage('es-ES')).toBe('es-ES');
+    expect(nearestSupportedLanguage('es-ES-u-nu-latn')).toBe('es-ES');
+  });
+
+  it('maps other Spanish locales (bare es, es-MX, es-AR, es-419) to es-419', () => {
+    expect(nearestSupportedLanguage('es')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-MX')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-AR')).toBe('es-419');
+    expect(nearestSupportedLanguage('es-419')).toBe('es-419');
+  });
+
+  it('maps any French/German/Italian locale to the base code', () => {
+    expect(nearestSupportedLanguage('fr')).toBe('fr');
+    expect(nearestSupportedLanguage('fr-CA')).toBe('fr');
+    expect(nearestSupportedLanguage('de-AT')).toBe('de');
+    expect(nearestSupportedLanguage('it-CH')).toBe('it');
+  });
+
+  it('falls back to en for anything else', () => {
+    expect(nearestSupportedLanguage('ja')).toBe('en');
+    expect(nearestSupportedLanguage('zh-CN')).toBe('en');
+    expect(nearestSupportedLanguage('')).toBe('en');
+  });
+});
+
+describe('detectLanguage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('reads navigator.language and maps it to the nearest supported code', () => {
+    vi.stubGlobal('navigator', { language: 'fr-FR', languages: ['fr-FR'] });
+    expect(detectLanguage()).toBe('fr');
+  });
+
+  it('falls back to navigator.languages[0] when navigator.language is empty', () => {
+    vi.stubGlobal('navigator', { language: '', languages: ['de-DE'] });
+    expect(detectLanguage()).toBe('de');
+  });
+
+  it('falls back to en when no locale information is available', () => {
+    vi.stubGlobal('navigator', { language: '', languages: [] });
+    expect(detectLanguage()).toBe('en');
+  });
+});
+
+describe('getLanguage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('returns the explicit appSettings.language when set', () => {
+    expect(getLanguage({ ...defaultAppSettings, language: 'de' })).toBe('de');
+  });
+
+  it('falls back to detectLanguage() when appSettings.language is unset', () => {
+    vi.stubGlobal('navigator', { language: 'it-IT', languages: ['it-IT'] });
+    expect(getLanguage({ ...defaultAppSettings, language: undefined })).toBe(
+      'it'
+    );
   });
 });

@@ -1,6 +1,7 @@
 import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from '../Modal/Modal';
 import SoccerBallIcon from '../Icons/SoccerBallIcon';
 
@@ -25,6 +26,7 @@ export default function ScoreInput({
   textColour,
   backgroundColour,
 }: Props) {
+  const { t } = useTranslation();
   const [editScoreModalOpen, setEditScoreModalOpen] = useState(false);
   return (
     <>
@@ -54,7 +56,9 @@ export default function ScoreInput({
           </div>
           <button
             type="button"
-            aria-label={`Edit ${teamNameFull} score`}
+            aria-label={t('dashboard:scoreInput.editScoreAria', {
+              team: teamNameFull,
+            })}
             className="absolute right-3 top-3 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={() => setEditScoreModalOpen(true)}
           >
@@ -73,17 +77,21 @@ export default function ScoreInput({
             >
               <SoccerBallIcon className="h-9 w-9" />
             </span>
-            <span className="mx-auto">{title} Scored</span>
+            <span className="mx-auto">
+              {t('dashboard:scoreInput.scored', { title })}
+            </span>
           </button>
         </div>
       </div>
       <Modal
         open={editScoreModalOpen}
         setOpen={setEditScoreModalOpen}
-        title="Edit Score"
+        title={t('dashboard:scoreInput.editScore')}
         icon="edit"
       >
-        <label htmlFor={id}>{teamNameFull} score</label>
+        <label htmlFor={id}>
+          {t('dashboard:scoreInput.scoreLabel', { team: teamNameFull })}
+        </label>
         <div className="mb-4 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <button

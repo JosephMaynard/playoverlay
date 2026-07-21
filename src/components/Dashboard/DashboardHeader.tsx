@@ -4,6 +4,7 @@ import {
   PhotoIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
 
 import logo from '../../assets/playoverlay-logo.svg';
 import { SideMenuType } from '../../types';
@@ -12,30 +13,35 @@ export interface Props {
   setSideMenu: (sideMenu: SideMenuType) => void;
 }
 
+// Titles are i18n keys rather than literal strings: three of the four reuse
+// the exact same text as the settings menu each button opens (settings.json
+// customScreens/appMenu/system titles), so they're resolved through t() at
+// render time rather than duplicated here.
 const menuButtons = [
   {
-    title: 'Team Settings',
+    titleKey: 'dashboard:header.teamSettings',
     icon: UserGroupIcon,
     menu: 'team-settings',
   },
   {
-    title: 'Custom Graphics',
+    titleKey: 'settings:customScreens.title',
     icon: PhotoIcon,
     menu: 'custom-screens',
   },
   {
-    title: 'Window Settings',
+    titleKey: 'settings:appMenu.title',
     icon: ComputerDesktopIcon,
     menu: 'app-settings',
   },
   {
-    title: 'System Settings',
+    titleKey: 'settings:system.title',
     icon: Cog6ToothIcon,
     menu: 'system-settings',
   },
 ];
 
 export default function DashboardHeader({ setSideMenu }: Props) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="sticky top-0 z-40 flex items-center justify-between bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
@@ -52,13 +58,17 @@ export default function DashboardHeader({ setSideMenu }: Props) {
                 type="button"
                 className="ml-auto p-2.5"
                 onClick={() => setSideMenu(menuButton.menu as SideMenuType)}
-                title={menuButton.title}
+                title={t(menuButton.titleKey)}
               >
                 <menuButton.icon
                   className="h-6 w-6 text-gray-400 hover:text-indigo-500"
                   aria-hidden="true"
                 />
-                <span className="sr-only">Open {menuButton.title} Menu</span>
+                <span className="sr-only">
+                  {t('dashboard:header.openMenu', {
+                    title: t(menuButton.titleKey),
+                  })}
+                </span>
               </button>
             </li>
           ))}
@@ -81,10 +91,8 @@ export default function DashboardHeader({ setSideMenu }: Props) {
                 <button
                   type="button"
                   className="-m-2.5 p-2.5"
-                  onClick={() =>
-                    setSideMenu(menuButton.menu as SideMenuType)
-                  }
-                  title={menuButton.title}
+                  onClick={() => setSideMenu(menuButton.menu as SideMenuType)}
+                  title={t(menuButton.titleKey)}
                 >
                   <menuButton.icon
                     className="h-8 w-8 text-gray-400 hover:text-indigo-500"

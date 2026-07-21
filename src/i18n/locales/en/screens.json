@@ -1,0 +1,25 @@
+{
+  "matchTitle": {
+    "kickOff": "Kick-off {{time}}",
+    "startsIn": "Starts in {{countdown}}"
+  },
+  "penalties": "Penalties",
+  "phase": {
+    "customPeriod": "{{name}} {{n}}",
+    "extraTimeFirstHalf": "Extra Time First Half",
+    "extraTimeSecondHalf": "Extra Time Second Half",
+    "firstHalf": "First Half",
+    "period": "Period {{n}}",
+    "secondHalf": "Second Half"
+  },
+  "scoreboard": {
+    "am": "am",
+    "match": "Match",
+    "pm": "pm",
+    "time": "Time"
+  },
+  "timeDisplay": {
+    "additionalTime": "Additional time: <bold>{{minutes}} minutes</bold>",
+    "notRunning": "Not running"
+  }
+}

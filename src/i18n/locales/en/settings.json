@@ -1,0 +1,167 @@
+{
+  "actions": {
+    "delete": "Delete",
+    "save": "Save"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "Copied!",
+      "copy": "Copy",
+      "customScreenHint": "Any built-in screen can be pinned this way by adding <code>?screen=</code> to the URL, useful for feeding a venue TV a different view than OBS. Custom screens can't be pinned; that view follows the operator.",
+      "enable": "Enable",
+      "hint": "Add as a Browser Source in OBS at your canvas resolution; the background is transparent.",
+      "port": "Port",
+      "portError": "Enter a port between 1024 and 65535.",
+      "scoreboardView": "Scoreboard view",
+      "status": "Status: {{state}}",
+      "statusRunning": "Running",
+      "statusStopped": "Stopped",
+      "statusWithError": "Status: {{state}}, {{error}}",
+      "title": "OBS Browser Source"
+    },
+    "displays": {
+      "moveToScreen": "Move to Screen {{n}}",
+      "none": "No external displays detected."
+    },
+    "keyColour": "Key Colour",
+    "keyboardShortcutRow": {
+      "change": "Change",
+      "invalidKey": "That key can't be used in a shortcut.",
+      "needModifier": "Include Cmd/Ctrl or Alt in the shortcut.",
+      "pressKeys": "Press keys…",
+      "pressKeysFor": "Press keys for {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "Away team scored",
+      "conflict": "Already used by \"{{label}}\".",
+      "globalHint": "Each shortcut also works system-wide (e.g. while OBS is focused) with Alt added, unless the shortcut already includes Alt.",
+      "homeTeamScored": "Home team scored",
+      "nextMatchPhase": "Next match phase",
+      "title": "Keyboard Shortcuts"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Time-of-day format on the spectator scoreboard screen.",
+      "title": "Scoreboard Clock",
+      "twentyFourHour": "24-hour"
+    },
+    "title": "Window Settings",
+    "windowControls": {
+      "lockWindows": "Lock Windows",
+      "resetPositions": "Reset positions",
+      "toggleFullscreen": "Toggle Fullscreen",
+      "unlockWindows": "Unlock Windows",
+      "title": "Windows"
+    }
+  },
+  "customScreens": {
+    "add": "Add Custom Graphic",
+    "addModalTitle": "Add Custom Screen",
+    "deleteConfirmAction": "Delete custom screen",
+    "deleteConfirmBody": "Are you sure you want to delete the custom screen \"{{title}}\"?",
+    "deleteConfirmTitle": "Delete custom screen?",
+    "edit": "Edit",
+    "editModal": {
+      "allScreens": "All Screens",
+      "overlayScreens": "Show overlay on screens",
+      "saveChanges": "Save changes",
+      "title": "Edit Custom Graphic",
+      "type": "Type"
+    },
+    "emptyDescription": "Click the \"{{action}}\" button to add custom graphics",
+    "emptyTitle": "No Custom Graphics",
+    "title": "Custom Graphics",
+    "typeLine": "Type: {{type}}",
+    "typeOverlay": "Overlay",
+    "typeScreen": "Custom Screen",
+    "uploader": {
+      "defaultTitle": "Custom Screen {{n}}",
+      "deleteImage": "Delete Image",
+      "dragDropHint": "Drag & Drop an image file here, or click to select one",
+      "dropHere": "Drop the file here...",
+      "image": "Image",
+      "missingFields": "Please provide both a file and a title.",
+      "selectFile": "Click to select one",
+      "titleLabel": "Title",
+      "uploadFailed": "Failed to upload the image. Please try again.",
+      "uploadedImage": "Uploaded Image:"
+    }
+  },
+  "language": {
+    "description": "Language used for menus and on-air graphics.",
+    "modal": {
+      "confirm": "Confirm",
+      "description": "Pick the language PlayOverlay uses for its menus and on-air graphics. You can change this later in System Settings.",
+      "title": "Choose a language"
+    },
+    "title": "Language"
+  },
+  "matchMenu": {
+    "awayTeam": "Away Team",
+    "details": {
+      "extraTime": "Extra time",
+      "extraTimeHalfLength": "Extra Time Half Length",
+      "football": "Football",
+      "generic": "Generic",
+      "halfLength": "Half Length",
+      "kickOffTime": "Kick-off Time",
+      "penalties": "Penalties",
+      "periodCount": "Number of Periods",
+      "periodLength": "Period Length",
+      "periodNameLabel": "Period Name",
+      "periodNamePlaceholder": "Period",
+      "timerMode": "Timer Mode",
+      "title": "Match Details",
+      "venue": "Venue"
+    },
+    "homeTeam": "Home Team",
+    "saved": {
+      "deleteConfirmBody": "Are you sure you want to delete the saved match settings \"{{title}}\"?",
+      "deleteModalTitle": "Delete Saved Match Settings?",
+      "emptyDescription": "Click the \"{{action}}\" button to save match settings",
+      "emptyTitle": "No Saved Match Settings",
+      "nameLabel": "Name",
+      "openSaved": "Open Saved Match Settings",
+      "restore": "Restore",
+      "restoreConfirmBody": "Are you sure you want to restore the saved match settings? The current match settings will be overwritten if you proceed.",
+      "restoreModalTitle": "Restore Saved Match Settings?",
+      "saveCurrent": "Save Current Match Settings",
+      "saveModalTitle": "Save Match Settings?",
+      "savedAt": "Saved: {{date}}",
+      "title": "Save / Restore Match Settings"
+    },
+    "team": {
+      "abbreviatedLabel": "{{team}} Name Abbreviated",
+      "backgroundColourLabel": "{{team}} Background Colour",
+      "logoLabel": "{{team}} Logo",
+      "logoUploadError": "Failed to upload logo. Please try again.",
+      "nameLabel": "{{team}} Name",
+      "remove": "Remove",
+      "textColourLabel": "{{team}} Text Colour",
+      "upload": "Upload"
+    },
+    "title": "Match Settings"
+  },
+  "system": {
+    "about": "About",
+    "aboutModal": {
+      "product": "Product",
+      "title": "About PlayOverlay",
+      "version": "Version"
+    },
+    "connectStreamDeck": "Connect to Stream Deck",
+    "screens": {
+      "custom": "Custom Screens",
+      "endScreen": "End Screen",
+      "matchTitle": "Match Title",
+      "none": "None",
+      "penalties": "Penalties",
+      "scoreBug": "Score Bug",
+      "scoreboard": "Scoreboard"
+    },
+    "stop": "Stop",
+    "streamDeckConnected": "Stream Deck connected",
+    "teamScored": "{{team}} Scored",
+    "title": "System Settings"
+  }
+}

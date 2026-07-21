@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Scores,
@@ -40,6 +41,7 @@ import { useCustomGraphicsStore } from '../../store/customGraphics';
 import logo from '../../assets/playoverlay-logo.svg';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [sideMenu, setSideMenu] = useState<SideMenuType>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null);
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
@@ -58,6 +60,9 @@ export default function Dashboard() {
   const setMatchState = useMatchStateStore((state) => state.setMatchState);
   const appSettings = useAppSettingsStore((state) => state.appSettings);
   const setAppSettings = useAppSettingsStore((state) => state.setAppSettings);
+  const markSettingsLoaded = useAppSettingsStore(
+    (state) => state.markSettingsLoaded
+  );
 
   const time = useTimeStore((state) => state.time);
   const setTime = useTimeStore((state) => state.setTime);
@@ -112,6 +117,11 @@ export default function Dashboard() {
       .catch((error: unknown) => {
         window?.electronAPI?.updateAppSettings(appSettings);
         console.error('Failed to load app settings:', error);
+      })
+      // Whether or not stored settings existed, the load has now completed -
+      // the first-run language picker can decide whether to show.
+      .finally(() => {
+        markSettingsLoaded();
       });
 
     const unsubscribeNextPhase = window.electronAPI.onNextMatchPhase(() => {
@@ -202,8 +212,8 @@ export default function Dashboard() {
     window?.electronAPI?.updateAppSettings(updatedSettings);
   };
 
-  // Settings changes that remove the running phase — timer mode switch,
-  // extra time off, fewer periods — stop the clock instead of leaving it
+  // Settings changes that remove the running phase, timer mode switch,
+  // extra time off, fewer periods, stop the clock instead of leaving it
   // orphaned on a phase id that no longer exists.
   const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
     const mergedSettings = {
@@ -260,7 +270,7 @@ export default function Dashboard() {
     setScores(liveMatch.scores);
     // Restore fully replaces the match state. The store setter merges and
     // both defaultMatchState and the snapshot may omit optional keys, so the
-    // optional fields are cleared explicitly first — otherwise one left over
+    // optional fields are cleared explicitly first, otherwise one left over
     // from the current session (e.g. a customScreenImageUrl, or a stale
     // matchPhase) would survive into the restored match.
     setMatchState({
@@ -319,7 +329,7 @@ export default function Dashboard() {
       // No next phase, and a phase is currently running (full time reached):
       // stop the clock and record how far the match got. Guarded on
       // matchPhase so a stray shortcut press after the match has already
-      // finished (matchPhase already undefined) is a no-op — otherwise it
+      // finished (matchPhase already undefined) is a no-op, otherwise it
       // would overwrite previousMatchPhase and let the match restart from
       // the first phase.
       clock.stopTime();
@@ -424,6 +434,8 @@ export default function Dashboard() {
           updateMatchState={setMatchState}
           matchState={matchState}
           time={time}
+          appSettings={appSettings}
+          updateAppSettings={updateAppSettings}
         />
       </div>
       <div
@@ -432,36 +444,51 @@ export default function Dashboard() {
       >
         {restorableMatch && (
           <AppNotification
-            title="Restore previous match?"
-            text={`A match was in progress when PlayOverlay last closed (${
-              restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
-              matchSettings.homeTeamNameAbbreviated
-            } ${restorableMatch.scores?.homeTeam ?? 0}–${
-              restorableMatch.scores?.awayTeam ?? 0
-            } ${
-              restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
-              matchSettings.awayTeamNameAbbreviated
-            }${
-              restorableMatch.time?.time ? `, ${restorableMatch.time.time}` : ''
-            }). Restoring brings back the score and clock, with the clock paused.`}
+            title={t('dashboard:notifications.restoreMatch.title')}
+            text={
+              restorableMatch.time?.time
+                ? t('dashboard:notifications.restoreMatch.bodyWithTime', {
+                    homeTeam:
+                      restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
+                      matchSettings.homeTeamNameAbbreviated,
+                    homeScore: restorableMatch.scores?.homeTeam ?? 0,
+                    awayScore: restorableMatch.scores?.awayTeam ?? 0,
+                    awayTeam:
+                      restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+                      matchSettings.awayTeamNameAbbreviated,
+                    time: restorableMatch.time.time,
+                  })
+                : t('dashboard:notifications.restoreMatch.body', {
+                    homeTeam:
+                      restorableMatch.matchSettings?.homeTeamNameAbbreviated ??
+                      matchSettings.homeTeamNameAbbreviated,
+                    homeScore: restorableMatch.scores?.homeTeam ?? 0,
+                    awayScore: restorableMatch.scores?.awayTeam ?? 0,
+                    awayTeam:
+                      restorableMatch.matchSettings?.awayTeamNameAbbreviated ??
+                      matchSettings.awayTeamNameAbbreviated,
+                  })
+            }
             icon={
-              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
             }
             buttonOnClick={() => restoreMatch(restorableMatch)}
-            buttonText="Restore"
+            buttonText={t('settings:matchMenu.saved.restore')}
           />
         )}
         {updateStatus?.newVersionAvailable && (
           <AppNotification
-            title="Update available"
-            text={`A new version of PlayOverlay (v${updateStatus?.latestVersion}) is now available.`}
+            title={t('dashboard:notifications.updateAvailable.title')}
+            text={t('dashboard:notifications.updateAvailable.body', {
+              version: updateStatus?.latestVersion,
+            })}
             icon={
-              <img className="h-8 w-auto" src={logo} alt="PlayOverlay logo" />
+              <img className="h-8 w-auto" src={logo} alt={t('common:logoAlt')} />
             }
             buttonOnClick={() => {
               window?.electronAPI?.openUrlInBrowser(updateStatus?.downloadUrl);
             }}
-            buttonText="Download now"
+            buttonText={t('dashboard:notifications.updateAvailable.button')}
           />
         )}
       </div>

@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Overlays",
+    "title": "Display Controls"
+  },
+  "header": {
+    "openMenu": "Open {{title}} Menu",
+    "teamSettings": "Team Settings"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "A match was in progress when PlayOverlay last closed ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Restoring brings back the score and clock, with the clock paused.",
+      "bodyWithTime": "A match was in progress when PlayOverlay last closed ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). Restoring brings back the score and clock, with the clock paused.",
+      "title": "Restore previous match?"
+    },
+    "updateAvailable": {
+      "body": "A new version of PlayOverlay (v{{version}}) is now available.",
+      "button": "Download now",
+      "title": "Update available"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Miss",
+    "nextPenalty": "Next Penalty {{team}} ({{side}}):",
+    "resetConfirmAction": "Reset penalties",
+    "resetConfirmBody": "Are you sure you want to reset the penalties?",
+    "resetConfirmTitle": "Reset the penalties?",
+    "resetPenalties": "Reset Penalties",
+    "score": "Score",
+    "teamFirst": "{{team}} First",
+    "undoPenalty": "Undo Penalty"
+  },
+  "scoreInput": {
+    "editScore": "Edit Score",
+    "editScoreAria": "Edit {{team}} score",
+    "scoreLabel": "{{team}} score",
+    "scored": "{{title}} Scored"
+  },
+  "scoresPanel": {
+    "title": "Scores"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Adjust Time",
+    "autoSwitchLabel": "Auto switch screens on start and stop",
+    "clear": "Clear",
+    "setAdditionalTime": "Set Additional Time",
+    "title": "Time"
+  }
+}

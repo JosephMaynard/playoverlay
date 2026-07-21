@@ -29,12 +29,33 @@ export interface BrowserSourceSettings {
 
 export type ClockFormat = '24h' | '12h';
 
+// The eight shipped catalogues (see src/i18n). Both Spanish and Portuguese
+// ship two regional variants rather than one, per the locked language spec.
+// Single source of truth: the zod schema, the picker options, and the type
+// all derive from this tuple so they can never drift apart.
+export const supportedLanguageCodes = [
+  'en',
+  'fr',
+  'de',
+  'it',
+  'es-ES',
+  'es-419',
+  'pt-PT',
+  'pt-BR',
+] as const;
+
+export type LanguageCode = (typeof supportedLanguageCodes)[number];
+
 export interface AppSettings {
   keyColour: string;
   autoSwitchScreens: boolean;
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
   browserSource?: BrowserSourceSettings;
+  // Unset means "not yet chosen", drives the first-run language picker.
+  // Once set, it rides the same IPC mirror as the rest of AppSettings, so
+  // the operator's choice (not OS locale) drives on-air text everywhere.
+  language?: LanguageCode;
 }
 
 export interface MatchState {
@@ -86,9 +107,17 @@ export interface CustomScreen {
   overlayLinks?: DisplayScreen[];
 }
 
+// `titleKey` is an i18next key (namespaced, e.g. "screens:phase.firstHalf")
+// rather than a baked English string, so the rendering component can
+// translate it via getPhaseTitle(t, phase). `titleParams` carries whatever
+// the key needs to interpolate: the period number for generic phases, plus
+// the user's custom period name (raw, never itself translated) when one was
+// set in Match Settings. `id`/`start`/`end` are unchanged, matchState and
+// persistence depend on `id` staying stable.
 export interface MatchPeriod {
   id: string;
-  title: string;
+  titleKey: string;
+  titleParams?: { n?: number; name?: string };
   start: number;
   end: number;
 }

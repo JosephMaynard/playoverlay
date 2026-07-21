@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Scores, Time, ClockFormat } from 'src/types';
 import { MatchSettings } from 'src/zodSchemas';
 import { formatTimeOfDay } from '../../../utils';
@@ -22,6 +23,7 @@ export default function ScoreboardLayout({
   active,
   clockFormat,
 }: Props) {
+  const { t } = useTranslation();
   const [now, setNow] = useState(() => new Date());
   // The board is opaque and full screen, so the fade-out animation must not
   // play on first mount (it would flash black over the active screen); only
@@ -90,18 +92,24 @@ export default function ScoreboardLayout({
       </div>
       <div className="ScoreboardLayout_times flex flex-col text-white">
         <div className="ScoreboardLayout_timeCell flex flex-col items-center justify-center">
-          <div className="ScoreboardLayout_timeLabel uppercase">Time</div>
+          <div className="ScoreboardLayout_timeLabel uppercase">
+            {t('screens:scoreboard.time')}
+          </div>
           <div className="ScoreboardLayout_timeValue font-bold tabular-nums">
             {formatTimeOfDay(now, clockFormat).replace(/(am|pm)$/, '')}
             {clockFormat === '12h' && (
               <span className="ScoreboardLayout_meridiem">
-                {now.getHours() >= 12 ? 'pm' : 'am'}
+                {now.getHours() >= 12
+                  ? t('screens:scoreboard.pm')
+                  : t('screens:scoreboard.am')}
               </span>
             )}
           </div>
         </div>
         <div className="ScoreboardLayout_timeCell flex flex-col items-center justify-center">
-          <div className="ScoreboardLayout_timeLabel uppercase">Match</div>
+          <div className="ScoreboardLayout_timeLabel uppercase">
+            {t('screens:scoreboard.match')}
+          </div>
           <div className="ScoreboardLayout_timeValue font-bold tabular-nums">
             {time.time || '0:00'}
             {time.additionalTime && (

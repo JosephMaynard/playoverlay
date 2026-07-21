@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Scores } from 'src/types';
 import './MatchTitleLayout.css';
 import { calculatePenalties, secondsUntilKickOff } from '../../../utils';
@@ -24,6 +25,7 @@ function formatCountdown(totalSeconds: number): string {
 }
 
 export default function MatchTitleLayout({ scores, settings, active }: Props) {
+  const { t } = useTranslation();
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
     calculatePenalties(scores.penalties);
   // The hidden animation starts from the fully-shown position, so it must
@@ -72,12 +74,16 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
             <div
               className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
             >
-              Kick-off {settings.kickOffTime}
+              {t('screens:matchTitle.kickOff', {
+                time: settings.kickOffTime,
+              })}
             </div>
           )}
           {active && secondsToKickOff !== null && secondsToKickOff > 0 && (
             <div className="MatchTitleLayout_venue_inner MatchTitleLayout_venue_inner_active z-0 max-w-full truncate bg-black text-center text-white">
-              Starts in {formatCountdown(secondsToKickOff)}
+              {t('screens:matchTitle.startsIn', {
+                countdown: formatCountdown(secondsToKickOff),
+              })}
             </div>
           )}
         </div>
@@ -100,7 +106,7 @@ export default function MatchTitleLayout({ scores, settings, active }: Props) {
         {scores.penalties.length > 0 && (
           <div className="MatchTitleLayout_penalties">
             <div className="MatchTitleLayout_penalties_title bg-black text-center text-white">
-              Penalties
+              {t('screens:penalties')}
             </div>
             <div>{`( ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored} )`}</div>
           </div>

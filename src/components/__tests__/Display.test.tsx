@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defaultMatchSettings, defaultMatchState } from '../../constants';
 import { AppSettings, MatchState, Scores, Time } from '../../types';
 import Display from '../Display/Display';
+import i18n from '../../i18n';
 
 // Minimal WebSocket stub for browser-source mode (no window.electronAPI),
 // matching the pattern in src/__tests__/displayTransport.test.ts.
@@ -137,6 +138,50 @@ describe('Display', () => {
     expect(electronAPI.getFullscreenStatus).toHaveBeenCalledTimes(2);
   });
 
+  it("drives i18n from the pushed app-settings payload's language, not this window's OS locale", async () => {
+    // Stub a locale that maps to a *different* supported code than the one
+    // pushed over app-settings-updated below, so a pass here can only mean
+    // the payload (not navigator.language) drove i18n.
+    vi.stubGlobal('navigator', { language: 'de-DE', languages: ['de-DE'] });
+    const { callbacks } = installDisplayAPI();
+    render(<Display />);
+
+    await waitFor(() => expect(callbacks.appSettings).toBeDefined());
+
+    act(() => {
+      callbacks.appSettings?.({
+        keyColour: '#123456',
+        autoSwitchScreens: false,
+        language: 'fr',
+      });
+    });
+
+    await waitFor(() => expect(i18n.language).toBe('fr'));
+
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to the detected locale only until the operator has chosen a language', async () => {
+    vi.stubGlobal('navigator', { language: 'it-IT', languages: ['it-IT'] });
+    const { callbacks } = installDisplayAPI();
+    render(<Display />);
+
+    await waitFor(() => expect(callbacks.appSettings).toBeDefined());
+
+    act(() => {
+      callbacks.appSettings?.({
+        keyColour: '#123456',
+        autoSwitchScreens: false,
+        // No `language`: the operator hasn't confirmed the first-run picker
+        // yet, so this window has nothing else to go on but the OS locale.
+      });
+    });
+
+    await waitFor(() => expect(i18n.language).toBe('it'));
+
+    vi.unstubAllGlobals();
+  });
+
   it('removes every IPC listener when unmounted', () => {
     const listeners = installDisplayAPI();
     const { unmount } = render(<Display />);
@@ -187,9 +232,7 @@ describe('Display browser-source ?screen= override', () => {
   it('pins the screen named by ?screen= regardless of the current matchState', async () => {
     const container = await renderBrowserSource('?ws=4750&screen=scoreboard');
 
-    expect(
-      container.querySelector('.ScoreboardLayout_active')
-    ).not.toBeNull();
+    expect(container.querySelector('.ScoreboardLayout_active')).not.toBeNull();
     expect(container.querySelector('.MatchTitleLayout_active')).toBeNull();
   });
 

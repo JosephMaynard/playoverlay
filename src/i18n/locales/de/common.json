@@ -1,0 +1,20 @@
+{
+  "cancel": "Abbrechen",
+  "close": "Schließen",
+  "closePanel": "Panel schließen",
+  "language": {
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "it": "Italiano",
+    "es-ES": "Español (España)",
+    "es-419": "Español (Latinoamérica)",
+    "pt-PT": "Português (Portugal)",
+    "pt-BR": "Português (Brasil)"
+  },
+  "loadingSpinner": {
+    "alt": "PlayOverlay-Logo"
+  },
+  "logoAlt": "PlayOverlay-Logo",
+  "reset": "Zurücksetzen"
+}

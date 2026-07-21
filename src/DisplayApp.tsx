@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import './i18n';
 import Display from './components/Display/Display';
 
 const rootElement = document.getElementById('root');

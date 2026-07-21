@@ -1,7 +1,21 @@
+import { useTranslation } from 'react-i18next';
 import { DisplayScreen, screens } from '../../constants';
 import { CustomScreen } from '../../types';
 import { insertValue, removeValue } from '../../utils';
 import Modal from '../Modal/Modal';
+
+// Same local i18n key map as SystemSettingsMenu's Stream Deck screen buttons
+// (duplicated rather than shared: `screens` is also used by
+// DisplayControlsPanel outside this area's ownership).
+const screenLabelKeys: Record<DisplayScreen, string> = {
+  none: 'settings:system.screens.none',
+  matchTitle: 'settings:system.screens.matchTitle',
+  scoreBug: 'settings:system.screens.scoreBug',
+  penalties: 'settings:system.screens.penalties',
+  custom: 'settings:system.screens.custom',
+  endScreen: 'settings:system.screens.endScreen',
+  scoreboard: 'settings:system.screens.scoreboard',
+};
 
 export interface Props {
   customScreenToEdit: CustomScreen | null;
@@ -18,12 +32,13 @@ export default function EditCustomScreen({
   handleOnChange,
   keyColour,
 }: Props) {
+  const { t } = useTranslation();
   if (customScreenToEdit === null) return null;
 
   // "All Screens" is checked when the overlay covers every currently-known
   // screen. Overlays saved before a new screen key was added (e.g.
   // `scoreboard`) may also contain only old ids, and strict list equality
-  // would never match them once the known-screens list grows — so tolerate
+  // would never match them once the known-screens list grows, so tolerate
   // extra unknown ids and only require the current screens to be present.
   const overlayLinks = customScreenToEdit.overlayLinks || [];
   const allScreensChecked = (Object.keys(screens) as DisplayScreen[]).every(
@@ -34,12 +49,12 @@ export default function EditCustomScreen({
     <Modal
       open={customScreenToEdit !== null}
       setOpen={() => setCustomScreenToEdit(null)}
-      actionButtonLabel="Save changes"
+      actionButtonLabel={t('settings:customScreens.editModal.saveChanges')}
       actionButtonColor="green"
       action={() => {
         handleSaveChanges();
       }}
-      title="Edit Custom Graphic"
+      title={t('settings:customScreens.editModal.title')}
       icon="edit"
     >
       <div
@@ -54,7 +69,7 @@ export default function EditCustomScreen({
           htmlFor="edit-custom-screen-title"
           className="block text-sm font-medium leading-6 text-gray-900"
         >
-          Title
+          {t('settings:customScreens.uploader.titleLabel')}
         </label>
         <div className="mt-2">
           <input
@@ -68,7 +83,7 @@ export default function EditCustomScreen({
       </div>
       <fieldset className="mt-6">
         <legend className="text-sm font-semibold leading-6 text-gray-900">
-          Type
+          {t('settings:customScreens.editModal.type')}
         </legend>
         <div className="mt-2 space-y-2">
           <div className="flex items-center">
@@ -93,7 +108,7 @@ export default function EditCustomScreen({
               htmlFor="custom-graphic-type-screen"
               className="ml-3 block text-sm font-medium leading-6 text-gray-900"
             >
-              Custom Screen
+              {t('settings:customScreens.typeScreen')}
             </label>
           </div>
           <div className="flex items-center">
@@ -114,7 +129,7 @@ export default function EditCustomScreen({
               htmlFor="custom-graphic-type-overlay"
               className="ml-3 block text-sm font-medium leading-6 text-gray-900"
             >
-              Overlay
+              {t('settings:customScreens.typeOverlay')}
             </label>
           </div>
         </div>
@@ -122,7 +137,7 @@ export default function EditCustomScreen({
       {customScreenToEdit?.type === 'overlay' && (
         <fieldset className="mt-6">
           <legend className="text-sm font-semibold leading-6 text-gray-900">
-            Show overlay on screens
+            {t('settings:customScreens.editModal.overlayScreens')}
           </legend>
           <div className="mt-2 space-y-2">
             <div className="relative flex items-start">
@@ -144,7 +159,7 @@ export default function EditCustomScreen({
               </div>
               <div className="ml-3 text-sm leading-6">
                 <label htmlFor="all" className="font-medium text-gray-900">
-                  All Screens
+                  {t('settings:customScreens.editModal.allScreens')}
                 </label>
               </div>
             </div>
@@ -176,7 +191,7 @@ export default function EditCustomScreen({
                 </div>
                 <div className="ml-3 text-sm leading-6">
                   <label htmlFor={screen} className="font-medium text-gray-900">
-                    {screens[screen as DisplayScreen]}
+                    {t(screenLabelKeys[screen as DisplayScreen])}
                   </label>
                 </div>
               </div>

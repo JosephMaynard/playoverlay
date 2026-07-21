@@ -2,15 +2,15 @@
 
 [![CI](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml/badge.svg)](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml)
 
-**PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams — built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
+**PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams, built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
 
-It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device — for example a Blackmagic ATEM Mini — key out the background, and composite it over your camera feed before streaming.
+It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
 
 ![The score bug rendered on the chroma-key display output](docs/screenshots/score-bug.png)
 
 ## Spectator scoreboard
 
-Venues can also point a big screen straight at PlayOverlay: the Scoreboard screen fills the display with both teams in their club colours, the score, the time of day, and the match clock — no chroma key, no stream required.
+Venues can also point a big screen straight at PlayOverlay: the Scoreboard screen fills the display with both teams in their club colours, the score, the time of day, and the match clock, no chroma key, no stream required.
 
 ![The spectator scoreboard screen](docs/screenshots/scoreboard.png)
 
@@ -18,10 +18,10 @@ Venues can also point a big screen straight at PlayOverlay: the Scoreboard scree
 
 PlayOverlay runs two windows:
 
-- **Control window** — the dashboard where the operator updates scores, runs the match clock, tracks penalties, and switches screens.
-- **Display window** — a clean, fullscreen output showing the graphics on your chosen key colour. Put this on a second display connected to your mixer (e.g. via HDMI into an ATEM input), then chroma key it over the match feed.
+- **Control window**: the dashboard where the operator updates scores, runs the match clock, tracks penalties, and switches screens.
+- **Display window**: a clean, fullscreen output showing the graphics on your chosen key colour. Put this on a second display connected to your mixer (e.g. via HDMI into an ATEM input), then chroma key it over the match feed.
 
-If you're streaming through OBS instead of a hardware mixer, you can skip the second display and chroma key entirely — see [OBS browser source](#obs-browser-source) below.
+If you're streaming through OBS instead of a hardware mixer, you can skip the second display and chroma key entirely, see [OBS browser source](#obs-browser-source) below.
 
 ![The operator dashboard](docs/screenshots/dashboard.png)
 
@@ -29,15 +29,15 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 - **Score bug** with team abbreviations, optional team logos, live scores, match clock, and stoppage time
 - **Match clock** driven by the system clock (no drift over a half), with pause/resume and quick time adjustments
-- **Crash recovery** — the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off
-- **Match phases** — first/second half with configurable half lengths, and extra time that can be toggled off per match
-- **Generic timer mode** — for sports that aren't halves-based, switch the timer to a configurable number of named periods (e.g. 4 × 12-minute quarters)
-- **Penalty shootout tracker** — alternates teams automatically, records scored/missed, supports undo, and can be toggled off for matches that don't need it
-- **Screens** — match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
+- **Crash recovery**: the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off
+- **Match phases**: first/second half with configurable half lengths, and extra time that can be toggled off per match
+- **Generic timer mode**: for sports that aren't halves-based, switch the timer to a configurable number of named periods (e.g. 4 × 12-minute quarters)
+- **Penalty shootout tracker**: alternates teams automatically, records scored/missed, supports undo, and can be toggled off for matches that don't need it
+- **Screens**: match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
 - **Custom key colour** for whatever your mixer keys best
-- **OBS browser source output** — an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
+- **OBS browser source output**: an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
 - **Keyboard shortcuts** and **Elgato Stream Deck** support for goals, phase changes, and screen switching
-- **Saved match settings** — store team line-ups/colours and reload them per fixture
+- **Saved match settings**: store team line-ups/colours and reload them per fixture
 - Multi-monitor aware: move the display window between screens, lock windows always-on-top, keep the machine awake while live
 
 ## Download
@@ -54,14 +54,14 @@ Grab the latest release from the [Releases page](https://github.com/JosephMaynar
 
 The binaries are **not code-signed or notarized** (signing certificates cost money and this is a free project), so your OS will warn you on first launch:
 
-- **Windows**: SmartScreen may show "Windows protected your PC" — click **More info**, then **Run anyway**.
+- **Windows**: SmartScreen may show "Windows protected your PC", click **More info**, then **Run anyway**.
 - **macOS**: after unzipping, move `PlayOverlay.app` to Applications. If macOS reports the app is damaged or from an unidentified developer, clear the quarantine flag once from Terminal:
 
   ```bash
   xattr -cr /Applications/PlayOverlay.app
   ```
 
-If you'd rather not trust an unsigned binary, build it yourself from source — see [Building from source](#building-from-source) below.
+If you'd rather not trust an unsigned binary, build it yourself from source, see [Building from source](#building-from-source) below.
 
 ## Using it
 
@@ -80,13 +80,13 @@ While PlayOverlay is focused, by default:
 | `Cmd/Ctrl+Shift+H` | Home team scored |
 | `Cmd/Ctrl+Shift+A` | Away team scored |
 
-The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H` — unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
+The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`, unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
 
 These are rebindable: open **Window Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). **Reset** restores that action's default.
 
 ### Stream Deck
 
-Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck**. The deck shows rotating button sets for scoring, match phases, and screen switching; the logo key cycles between sets. (Uses WebHID — close any other software that's holding the deck, including the official Stream Deck app.)
+Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck**. The deck shows rotating button sets for scoring, match phases, and screen switching; the logo key cycles between sets. (Uses WebHID, close any other software that's holding the deck, including the official Stream Deck app.)
 
 ### OBS browser source
 
@@ -94,13 +94,13 @@ Off by default. If you'd rather not manage a second display and chroma key, Play
 
 1. Open **Window Settings → OBS Browser Source** and switch it on (default port `4750`).
 2. In OBS, add a **Browser Source** pointed at the URL shown there (`http://127.0.0.1:<port>/`), sized to your canvas resolution.
-3. That's it — no chroma key needed, since the page background is transparent.
+3. That's it, no chroma key needed, since the page background is transparent.
 
 The server only listens on `127.0.0.1` (never reachable from the network) and stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
 
 #### Pinned views
 
-Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else — e.g. the spectator scoreboard — from the same running app, both fed by the same local server.
+Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server.
 
 | `?screen=` value | Shows                    |
 | ---------------- | ------------------------- |
@@ -112,6 +112,12 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 | `scoreboard`       | Spectator scoreboard       |
 
 **Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
+
+## Languages
+
+The interface and the on-screen graphics are available in English, French, German, Italian, Spanish (Spain and Latin America), and Portuguese (Portugal and Brazil). PlayOverlay picks a language from your system on first launch; you can change it any time under **System Settings → Language**, and it applies to both the operator dashboard and the on-air graphics. Team names, abbreviations, and venues are always shown exactly as you type them.
+
+The translations are **machine-generated and have not been reviewed by native speakers**, so some wording, especially the on-air football terms, may read a little off. If you spot a mistake, please [open an issue](https://github.com/JosephMaynard/playoverlay/issues) and it'll get fixed.
 
 ## Updates
 

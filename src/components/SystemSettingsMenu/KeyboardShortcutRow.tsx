@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { keyboardEventToAccelerator } from '../../utils';
 
 export interface Props {
@@ -10,7 +11,7 @@ export interface Props {
   onChange: (accelerator: string) => void;
   onReset: () => void;
   isDefault: boolean;
-  // Error surfaced by the parent (e.g. "already assigned elsewhere") — takes
+  // Error surfaced by the parent (e.g. "already assigned elsewhere"), takes
   // priority over the row's own key-capture validation error.
   externalError?: string | null;
 }
@@ -32,6 +33,7 @@ export default function KeyboardShortcutRow({
   isDefault,
   externalError,
 }: Props) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<HTMLDivElement>(null);
 
@@ -71,8 +73,8 @@ export default function KeyboardShortcutRow({
     if (!nextAccelerator) {
       setError(
         !event.metaKey && !event.ctrlKey && !event.altKey
-          ? 'Include Cmd/Ctrl or Alt in the shortcut.'
-          : "That key can't be used in a shortcut."
+          ? t('settings:appMenu.keyboardShortcutRow.needModifier')
+          : t('settings:appMenu.keyboardShortcutRow.invalidKey')
       );
       return;
     }
@@ -89,12 +91,16 @@ export default function KeyboardShortcutRow({
             ref={recorderRef}
             tabIndex={0}
             role="textbox"
-            aria-label={`Press keys for ${label}`}
+            aria-label={t('settings:appMenu.keyboardShortcutRow.pressKeysFor', {
+              label,
+            })}
             onKeyDown={handleKeyDown}
             onBlur={onCancelRecording}
             className="rounded-md bg-indigo-50 px-2 py-1 text-sm text-indigo-700 ring-1 ring-inset ring-indigo-300 focus:outline-none"
           >
-            {externalError || error || 'Press keys…'}
+            {externalError ||
+              error ||
+              t('settings:appMenu.keyboardShortcutRow.pressKeys')}
           </div>
         ) : (
           <>
@@ -106,7 +112,7 @@ export default function KeyboardShortcutRow({
               className="rounded-md bg-white px-2 py-1 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
               onClick={onStartRecording}
             >
-              Change
+              {t('settings:appMenu.keyboardShortcutRow.change')}
             </button>
             <button
               type="button"
@@ -114,7 +120,7 @@ export default function KeyboardShortcutRow({
               className="rounded-md bg-white px-2 py-1 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:text-gray-300"
               onClick={onReset}
             >
-              Reset
+              {t('reset')}
             </button>
           </>
         )}

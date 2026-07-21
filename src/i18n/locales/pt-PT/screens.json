@@ -1,0 +1,25 @@
+{
+  "matchTitle": {
+    "kickOff": "Pontapé de saída {{time}}",
+    "startsIn": "Começa em {{countdown}}"
+  },
+  "penalties": "Grandes penalidades",
+  "phase": {
+    "customPeriod": "{{name}} {{n}}",
+    "extraTimeFirstHalf": "1.ª parte do prolongamento",
+    "extraTimeSecondHalf": "2.ª parte do prolongamento",
+    "firstHalf": "1.ª parte",
+    "period": "Período {{n}}",
+    "secondHalf": "2.ª parte"
+  },
+  "scoreboard": {
+    "am": "am",
+    "match": "Crono",
+    "pm": "pm",
+    "time": "Hora"
+  },
+  "timeDisplay": {
+    "additionalTime": "Tempo adicional: <bold>{{minutes}} minutos</bold>",
+    "notRunning": "Parado"
+  }
+}

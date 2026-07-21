@@ -1,0 +1,167 @@
+{
+  "actions": {
+    "delete": "Supprimer",
+    "save": "Enregistrer"
+  },
+  "appMenu": {
+    "browserSource": {
+      "copied": "Copié !",
+      "copy": "Copier",
+      "customScreenHint": "Tout écran intégré peut être épinglé de cette façon en ajoutant <code>?screen=</code> à l'URL, utile pour envoyer à une TV de salle une vue différente de celle d'OBS. Les écrans personnalisés ne peuvent pas être épinglés ; cette vue suit l'opérateur.",
+      "enable": "Activer",
+      "hint": "Ajoutez-la comme source navigateur dans OBS à la résolution de votre canevas ; l'arrière-plan est transparent.",
+      "port": "Port",
+      "portError": "Saisissez un port compris entre 1024 et 65535.",
+      "scoreboardView": "Vue du tableau des scores",
+      "status": "Statut : {{state}}",
+      "statusRunning": "En cours d'exécution",
+      "statusStopped": "Arrêté",
+      "statusWithError": "Statut : {{state}}, {{error}}",
+      "title": "Source navigateur OBS"
+    },
+    "displays": {
+      "moveToScreen": "Déplacer vers l'écran {{n}}",
+      "none": "Aucun écran externe détecté."
+    },
+    "keyColour": "Couleur clé",
+    "keyboardShortcutRow": {
+      "change": "Modifier",
+      "invalidKey": "Cette touche ne peut pas être utilisée dans un raccourci.",
+      "needModifier": "Incluez Cmd/Ctrl ou Alt dans le raccourci.",
+      "pressKeys": "Appuyez sur des touches…",
+      "pressKeysFor": "Appuyez sur les touches pour {{label}}"
+    },
+    "keyboardShortcuts": {
+      "awayTeamScored": "But de l'équipe visiteuse",
+      "conflict": "Déjà utilisé par « {{label}} ».",
+      "globalHint": "Chaque raccourci fonctionne aussi au niveau du système (par exemple lorsque OBS a le focus) avec Alt ajouté, sauf si le raccourci inclut déjà Alt.",
+      "homeTeamScored": "But de l'équipe à domicile",
+      "nextMatchPhase": "Phase de match suivante",
+      "title": "Raccourcis clavier"
+    },
+    "scoreboardClock": {
+      "amPm": "AM/PM",
+      "description": "Format de l'heure sur l'écran du tableau des scores pour les spectateurs.",
+      "title": "Horloge du tableau des scores",
+      "twentyFourHour": "24 heures"
+    },
+    "title": "Paramètres de fenêtre",
+    "windowControls": {
+      "lockWindows": "Verrouiller les fenêtres",
+      "resetPositions": "Réinitialiser les positions",
+      "toggleFullscreen": "Basculer le plein écran",
+      "unlockWindows": "Déverrouiller les fenêtres",
+      "title": "Fenêtres"
+    }
+  },
+  "customScreens": {
+    "add": "Ajouter un graphique personnalisé",
+    "addModalTitle": "Ajouter un écran personnalisé",
+    "deleteConfirmAction": "Supprimer l'écran personnalisé",
+    "deleteConfirmBody": "Voulez-vous vraiment supprimer l'écran personnalisé « {{title}} » ?",
+    "deleteConfirmTitle": "Supprimer l'écran personnalisé ?",
+    "edit": "Modifier",
+    "editModal": {
+      "allScreens": "Tous les écrans",
+      "overlayScreens": "Afficher l'incrustation sur les écrans",
+      "saveChanges": "Enregistrer les modifications",
+      "title": "Modifier le graphique personnalisé",
+      "type": "Type"
+    },
+    "emptyDescription": "Cliquez sur le bouton « {{action}} » pour ajouter des graphiques personnalisés",
+    "emptyTitle": "Aucun graphique personnalisé",
+    "title": "Graphiques personnalisés",
+    "typeLine": "Type : {{type}}",
+    "typeOverlay": "Incrustation",
+    "typeScreen": "Écran personnalisé",
+    "uploader": {
+      "defaultTitle": "Écran personnalisé {{n}}",
+      "deleteImage": "Supprimer l'image",
+      "dragDropHint": "Glissez-déposez un fichier image ici, ou cliquez pour en sélectionner un",
+      "dropHere": "Déposez le fichier ici...",
+      "image": "Image",
+      "missingFields": "Veuillez fournir à la fois un fichier et un titre.",
+      "selectFile": "Cliquez pour en sélectionner un",
+      "titleLabel": "Titre",
+      "uploadFailed": "Échec de l'envoi de l'image. Veuillez réessayer.",
+      "uploadedImage": "Image envoyée :"
+    }
+  },
+  "language": {
+    "description": "Langue utilisée pour les menus et les graphiques à l'écran.",
+    "modal": {
+      "confirm": "Confirmer",
+      "description": "Choisissez la langue que PlayOverlay utilise pour ses menus et ses graphiques à l'écran. Vous pourrez la modifier plus tard dans Paramètres système.",
+      "title": "Choisir une langue"
+    },
+    "title": "Langue"
+  },
+  "matchMenu": {
+    "awayTeam": "Équipe visiteuse",
+    "details": {
+      "extraTime": "Prolongation",
+      "extraTimeHalfLength": "Durée d'une mi-temps de prolongation",
+      "football": "Football",
+      "generic": "Générique",
+      "halfLength": "Durée d'une mi-temps",
+      "kickOffTime": "Heure du coup d'envoi",
+      "penalties": "Tirs au but",
+      "periodCount": "Nombre de périodes",
+      "periodLength": "Durée d'une période",
+      "periodNameLabel": "Nom de la période",
+      "periodNamePlaceholder": "Période",
+      "timerMode": "Mode du chronomètre",
+      "title": "Détails du match",
+      "venue": "Lieu"
+    },
+    "homeTeam": "Équipe à domicile",
+    "saved": {
+      "deleteConfirmBody": "Voulez-vous vraiment supprimer les paramètres de match enregistrés « {{title}} » ?",
+      "deleteModalTitle": "Supprimer les paramètres de match enregistrés ?",
+      "emptyDescription": "Cliquez sur le bouton « {{action}} » pour enregistrer des paramètres de match",
+      "emptyTitle": "Aucun paramètre de match enregistré",
+      "nameLabel": "Nom",
+      "openSaved": "Ouvrir les paramètres de match enregistrés",
+      "restore": "Restaurer",
+      "restoreConfirmBody": "Voulez-vous vraiment restaurer les paramètres de match enregistrés ? Les paramètres de match actuels seront écrasés si vous continuez.",
+      "restoreModalTitle": "Restaurer les paramètres de match enregistrés ?",
+      "saveCurrent": "Enregistrer les paramètres de match actuels",
+      "saveModalTitle": "Enregistrer les paramètres de match ?",
+      "savedAt": "Enregistré : {{date}}",
+      "title": "Enregistrer / Restaurer les paramètres de match"
+    },
+    "team": {
+      "abbreviatedLabel": "Nom abrégé de {{team}}",
+      "backgroundColourLabel": "Couleur de fond de {{team}}",
+      "logoLabel": "Logo de {{team}}",
+      "logoUploadError": "Échec de l'envoi du logo. Veuillez réessayer.",
+      "nameLabel": "Nom de {{team}}",
+      "remove": "Retirer",
+      "textColourLabel": "Couleur du texte de {{team}}",
+      "upload": "Envoyer"
+    },
+    "title": "Paramètres de match"
+  },
+  "system": {
+    "about": "À propos",
+    "aboutModal": {
+      "product": "Produit",
+      "title": "À propos de PlayOverlay",
+      "version": "Version"
+    },
+    "connectStreamDeck": "Connecter le Stream Deck",
+    "screens": {
+      "custom": "Écrans personnalisés",
+      "endScreen": "Écran de fin",
+      "matchTitle": "Titre du match",
+      "none": "Aucun",
+      "penalties": "Tirs au but",
+      "scoreBug": "Bandeau de score",
+      "scoreboard": "Tableau des scores"
+    },
+    "stop": "Arrêter",
+    "streamDeckConnected": "Stream Deck connecté",
+    "teamScored": "But de {{team}}",
+    "title": "Paramètres système"
+  }
+}

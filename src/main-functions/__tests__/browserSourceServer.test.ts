@@ -347,7 +347,7 @@ describe('browser source server lifecycle', () => {
     const os = await import('os');
     const path = await import('path');
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'playoverlay-images-'));
-    // A file that exists just outside the served images directory — a
+    // A file that exists just outside the served images directory, a
     // traversal attempt must never be able to reach it.
     const secretPath = path.join(path.dirname(dir), `secret-${path.basename(dir)}.txt`);
     fs.writeFileSync(secretPath, 'top secret');

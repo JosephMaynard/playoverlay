@@ -1,0 +1,52 @@
+{
+  "displayControls": {
+    "overlays": "Overlays",
+    "title": "Anzeigesteuerung"
+  },
+  "header": {
+    "openMenu": "{{title}}-Menü öffnen",
+    "teamSettings": "Team-Einstellungen"
+  },
+  "notifications": {
+    "restoreMatch": {
+      "body": "Als PlayOverlay zuletzt geschlossen wurde, lief noch ein Spiel ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Die Wiederherstellung stellt Spielstand und Uhr wieder her, wobei die Uhr angehalten ist.",
+      "bodyWithTime": "Als PlayOverlay zuletzt geschlossen wurde, lief noch ein Spiel ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}, {{time}}). Die Wiederherstellung stellt Spielstand und Uhr wieder her, wobei die Uhr angehalten ist.",
+      "title": "Vorheriges Spiel wiederherstellen?"
+    },
+    "updateAvailable": {
+      "body": "Eine neue Version von PlayOverlay (v{{version}}) ist jetzt verfügbar.",
+      "button": "Jetzt herunterladen",
+      "title": "Update verfügbar"
+    }
+  },
+  "penaltiesPanel": {
+    "miss": "Verschossen",
+    "nextPenalty": "Nächster Elfmeter {{team}} ({{side}}):",
+    "resetConfirmAction": "Elfmeterschießen zurücksetzen",
+    "resetConfirmBody": "Möchten Sie das Elfmeterschießen wirklich zurücksetzen?",
+    "resetConfirmTitle": "Elfmeterschießen zurücksetzen?",
+    "resetPenalties": "Elfmeterschießen zurücksetzen",
+    "score": "Getroffen",
+    "teamFirst": "{{team}} zuerst",
+    "undoPenalty": "Elfmeter rückgängig machen"
+  },
+  "scoreInput": {
+    "editScore": "Spielstand bearbeiten",
+    "editScoreAria": "Spielstand von {{team}} bearbeiten",
+    "scoreLabel": "Spielstand {{team}}",
+    "scored": "Tor für {{title}}"
+  },
+  "scoresPanel": {
+    "title": "Spielstände"
+  },
+  "timeControl": {
+    "additionalTimeMinutes": "{{n}}min",
+    "adjustMinutes": "{{sign}}{{n}}m",
+    "adjustSeconds": "{{sign}}{{n}}s",
+    "adjustTimeModalTitle": "Zeit anpassen",
+    "autoSwitchLabel": "Bildschirme beim Start und Stopp automatisch wechseln",
+    "clear": "Löschen",
+    "setAdditionalTime": "Nachspielzeit festlegen",
+    "title": "Zeit"
+  }
+}
