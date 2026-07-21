@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RocketLaunchIcon } from '@heroicons/react/24/outline';
 
 import {
   Scores,
@@ -28,6 +29,7 @@ import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
+import PreflightModal from '../Preflight/PreflightModal';
 import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
@@ -57,6 +59,7 @@ export default function Dashboard() {
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
     null
   );
+  const [preflightOpen, setPreflightOpen] = useState(false);
 
   const clock = useMatchClock();
 
@@ -568,6 +571,16 @@ export default function Dashboard() {
               />
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">
+              <div className="mx-4 mb-4 lg:mx-auto">
+                <button
+                  type="button"
+                  onClick={() => setPreflightOpen(true)}
+                  className="flex w-full items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-green-500"
+                >
+                  <RocketLaunchIcon className="h-5 w-5" aria-hidden="true" />
+                  {t('preflight:action.openButton')}
+                </button>
+              </div>
               <DisplayControlsPanel
                 updateMatchState={setMatchState}
                 switchScreen={switchDisplayScreen}
@@ -655,6 +668,7 @@ export default function Dashboard() {
           appSettings={appSettings}
           updateAppSettings={updateAppSettings}
         />
+        <PreflightModal open={preflightOpen} setOpen={setPreflightOpen} />
       </div>
       <div
         aria-live="assertive"

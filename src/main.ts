@@ -13,6 +13,7 @@ import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import {
   AppSettings,
   BrowserSourceSettings,
@@ -52,6 +53,7 @@ import {
   WindowName,
   getAppSettings,
   getCustomScreens,
+  getCustomScreensReconciliation,
   getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
@@ -104,6 +106,12 @@ import {
   sanitizeRemoteControlStatus,
   suggestedDiagnosticsFileName,
 } from './main-functions/diagnostics';
+import {
+  DEFAULT_DISK_WARNING_THRESHOLD_BYTES,
+  evaluatePreflightChecks,
+  findMissingTeamLogos,
+  PreflightResult,
+} from './main-functions/preflight';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -165,6 +173,22 @@ let remoteControlError: string | undefined;
 // previous session is useless, and never persisted. Empty when the server is
 // off.
 let remoteControlPin = '';
+
+// True once the current display window has completed the display-ready
+// handshake below (requested and received its initial state), so the
+// preflight check can distinguish "window exists but is still a blank/
+// loading page" from "actually showing something". Reset whenever the
+// window is (re)created, since a fresh window hasn't asked for state yet.
+let displayWindowReady = false;
+
+// The accelerators that failed to register the last time
+// registerKeyboardShortcuts/registerGlobalKeyboardShortcuts ran (most likely
+// because another app already claimed them, see the try/catch in each
+// function). Surfaced to the preflight check, which otherwise has no way to
+// know a configured shortcut silently isn't working; previously this only
+// ever reached logError.
+let lastFailedFocusAccelerators: string[] = [];
+let lastFailedGlobalAccelerators: string[] = [];
 
 function getImagesDirUrlPrefix(): string {
   return `${convertFilePathToUrl(imagesPath)}/`;
@@ -465,6 +489,8 @@ if (!gotTheLock && !isDev) {
 const createDisplayWindow = () => {
   const window = createAppWindow(DISPLAY_WINDOW);
   displayWindow = window;
+  // A freshly (re)created window hasn't requested its initial state yet.
+  displayWindowReady = false;
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     window.loadURL(`${DISPLAY_WINDOW_VITE_DEV_SERVER_URL}/display.html`);
@@ -484,6 +510,7 @@ const createDisplayWindow = () => {
   window.on('closed', () => {
     if (displayWindow === window) {
       displayWindow = null;
+      displayWindowReady = false;
     }
     // In production a closed display window would silently swallow every
     // update with no way to get output back, recreate it unless the app
@@ -706,6 +733,7 @@ function setupIPCHandlers() {
   // Display window signals it's ready to receive initial state
   ipcMain.on('display-ready', () => {
     if (!displayWindow) return;
+    displayWindowReady = true;
     // Send settings first, then state/scores/time
     displayWindow.webContents.send(
       'match-settings-updated',
@@ -994,6 +1022,105 @@ function setupIPCHandlers() {
       }
     }
   );
+
+  // The "Go live check": gathers every raw signal the operator would
+  // otherwise have to remember to check by hand (which screen the output is
+  // on, whether the optional servers actually started, whether a logo file
+  // went missing, disk space) and hands them to the pure evaluator. This
+  // handler and everything it calls is read-only: it never moves a window,
+  // starts/stops a server, or touches match state, it only looks and
+  // reports. Re-run by the UI every time the modal opens.
+  ipcMain.handle('run-preflight', async (): Promise<PreflightResult> => {
+    const displays = screen.getAllDisplays();
+    const controlWindowScreenId =
+      mainWindow && !mainWindow.isDestroyed()
+        ? screen.getDisplayMatching(mainWindow.getBounds()).id
+        : null;
+    const displayWindowScreenId =
+      displayWindow && !displayWindow.isDestroyed()
+        ? screen.getDisplayMatching(displayWindow.getBounds()).id
+        : null;
+
+    const browserSourceSettings = getBrowserSourceSettings(cachedAppSettings);
+    const remoteControlSettings = getRemoteControlSettings(cachedAppSettings);
+
+    // Custom screens/overlays already reconcile against disk on every read
+    // (see storage.ts); team logos have no equivalent check anywhere else in
+    // the app, so this is the first place that ever verifies they still
+    // exist. Logo paths are stored as file:// URLs (see fileHandler.ts's
+    // saveImageFile), fileURLToPath is wrapped in a try/catch since a
+    // corrupt/foreign URL should be treated as "nothing to check" rather
+    // than crashing the whole preflight run.
+    const { dropped: droppedCustomScreens } = getCustomScreensReconciliation();
+    const toLogoPath = (url?: string): string | null => {
+      if (!url) return null;
+      try {
+        return fileURLToPath(url);
+      } catch {
+        return null;
+      }
+    };
+    const { homeMissing, awayMissing } = findMissingTeamLogos(
+      {
+        home: toLogoPath(cachedMatchSettings.homeTeamLogo),
+        away: toLogoPath(cachedMatchSettings.awayTeamLogo),
+      },
+      fs.existsSync
+    );
+
+    let freeDiskBytes: number | null = null;
+    try {
+      const stats = await fs.promises.statfs(app.getPath('userData'));
+      freeDiskBytes = stats.bavail * stats.bsize;
+    } catch (error) {
+      // statfs can be unsupported on some platform/Node combinations, or the
+      // path can be briefly unreadable; either way this check degrades to
+      // "unknown" (see evaluateDiskSpace) rather than failing the whole
+      // preflight run.
+      logError(
+        `Could not determine free disk space for preflight: ${String(error)}`
+      );
+      freeDiskBytes = null;
+    }
+
+    return evaluatePreflightChecks({
+      displays: {
+        screenCount: displays.length,
+        controlWindowScreenId,
+        displayWindowScreenId,
+      },
+      displayWindowExists:
+        displayWindow !== null && !displayWindow.isDestroyed(),
+      displayWindowReady,
+      browserSource: {
+        enabled: browserSourceSettings.enabled,
+        running: isBrowserSourceServerRunning(),
+        port: getBrowserSourceServerPort() ?? browserSourceSettings.port,
+        error: browserSourceError,
+      },
+      remoteControl: {
+        enabled: remoteControlSettings.enabled,
+        running: isRemoteControlServerRunning(),
+        port: getRemoteControlServerPort() ?? remoteControlSettings.port,
+        error: remoteControlError,
+      },
+      missingAssets: {
+        homeTeamLogoMissing: homeMissing,
+        awayTeamLogoMissing: awayMissing,
+        missingScreenTitles: droppedCustomScreens.map((screen) => screen.title),
+      },
+      failedShortcuts: Array.from(
+        new Set([
+          ...lastFailedFocusAccelerators,
+          ...lastFailedGlobalAccelerators,
+        ])
+      ),
+      freeDiskBytes,
+      diskWarningThresholdBytes: DEFAULT_DISK_WARNING_THRESHOLD_BYTES,
+      hasUnresolvedLiveMatch:
+        liveMatchAtLaunch !== undefined && !liveMatchResolved,
+    });
+  });
 }
 
 // Setup display listeners
@@ -1054,6 +1181,7 @@ const registerKeyboardShortcuts = () => {
     }
   });
 
+  lastFailedFocusAccelerators = failed;
   if (failed.length > 0) {
     logError(`Failed to register keyboard shortcut(s): ${failed.join(', ')}`);
   }
@@ -1095,6 +1223,7 @@ const registerGlobalKeyboardShortcuts = () => {
     }
   });
 
+  lastFailedGlobalAccelerators = failed;
   if (failed.length > 0) {
     logError(
       `Failed to register global keyboard shortcut(s): ${failed.join(', ')}`

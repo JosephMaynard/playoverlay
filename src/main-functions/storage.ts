@@ -16,6 +16,7 @@ import {
 import {
   reconcileCustomScreens,
   reconcileMatchStateScreen,
+  ReconcileCustomScreensResult,
 } from './customScreenReconciliation';
 
 // Builds made before the source-available release encrypted config.json with a
@@ -177,8 +178,11 @@ export function getMatchSettings() {
 // real filesystem: an entry whose backing image file no longer exists (the
 // user deleted it, or config.json moved to a machine that never had the
 // images folder) is dropped too, and the cleaned-up list is written back so
-// the warning isn't repeated on every subsequent read.
-export function getCustomScreens(): CustomScreen[] {
+// the warning isn't repeated on every subsequent read. Returns both halves
+// (not just the surviving list) so a caller that cares WHICH ones just
+// vanished, e.g. the preflight check, can report on them without
+// re-implementing this same read+reconcile+persist sequence.
+export function getCustomScreensReconciliation(): ReconcileCustomScreensResult {
   const parsed = customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
   const { kept, dropped } = reconcileCustomScreens(parsed, fs.existsSync);
 
@@ -191,7 +195,11 @@ export function getCustomScreens(): CustomScreen[] {
     storage.set(CUSTOM_SCREENS, kept);
   }
 
-  return kept;
+  return { kept, dropped };
+}
+
+export function getCustomScreens(): CustomScreen[] {
+  return getCustomScreensReconciliation().kept;
 }
 
 export function setCustomScreens(customScreens: CustomScreen[]) {

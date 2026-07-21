@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { MatchSettings, UpdateStatus } from '../zodSchemas';
 import { ExportDiagnosticsResult } from '../main-functions/diagnostics';
+import { PreflightResult } from '../main-functions/preflight';
 
 declare global {
   interface Window {
@@ -89,6 +90,7 @@ declare global {
       displayReady: () => void;
       logMatchEvent: (action: string, source?: string) => void;
       exportDiagnostics: () => Promise<ExportDiagnosticsResult>;
+      runPreflight: () => Promise<PreflightResult>;
     };
   }
 }
