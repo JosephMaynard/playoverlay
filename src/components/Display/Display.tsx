@@ -32,7 +32,7 @@ function parseScreenOverride(search: string): DisplayScreen | null {
 }
 
 const Display = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [transport] = useState(() => createDisplayTransport());
   // Read once at mount: the pinned screen (if any) never changes for the
   // lifetime of this page load.
@@ -152,6 +152,7 @@ const Display = () => {
       {!isFullscreen && (
         <button
           type="button"
+          aria-label={t('settings:appMenu.windowControls.toggleFullscreen')}
           className="absolute bottom-8 right-8 z-50 rounded-full bg-indigo-600 p-2 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           onClick={() => handleToggleFullscreen()}
         >

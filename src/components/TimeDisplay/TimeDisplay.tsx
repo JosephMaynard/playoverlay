@@ -62,6 +62,7 @@ export default function TimeDisplay({
       {openAdjustmentsModal && time.time && (
         <button
           type="button"
+          aria-label={t('dashboard:timeControl.adjustTimeModalTitle')}
           className="absolute right-4 top-4 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           onClick={() => openAdjustmentsModal()}
         >

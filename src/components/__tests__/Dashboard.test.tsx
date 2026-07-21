@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import { AppSettings, LiveMatch } from '../../types';
@@ -191,24 +191,18 @@ function advance(ms: number) {
   });
 }
 
-// The pencil button that opens the "Adjust Time" modal has no accessible
-// name (icon-only), so it's located structurally: it's the sole button
-// rendered inside TimeDisplay's absolute-positioned corner while a clock
-// value is present.
+// The pencil button that opens the "Adjust Time" modal is icon-only, but
+// carries an aria-label (reusing the same "Adjust Time" copy as the modal's
+// own title), so it can be found by accessible name rather than structurally.
 function getOpenAdjustTimeButton(): HTMLElement {
-  const button = document.querySelector('button.absolute.right-4.top-4');
-  if (!button) throw new Error('Adjust Time button not found');
-  return button as HTMLElement;
+  return screen.getByRole('button', { name: 'Adjust Time' });
 }
 
-// The pause/resume icon button (also unlabeled) lives inside the Adjust
-// Time modal as the 5th of 9 buttons in a fixed, stable order:
-// -10m -1m -10s -1s [pause|resume] +1s +10s +1m +10m
+// The pause/resume icon button is also icon-only, but carries an aria-label
+// of whichever action it currently performs ("Pause" while running, "Resume"
+// while paused), so it too can be found by accessible name.
 function getPauseOrResumeButton(): HTMLElement {
-  const minus10m = screen.getByRole('button', { name: '-10m' });
-  const group = minus10m.parentElement;
-  if (!group) throw new Error('Adjust Time button group not found');
-  return within(group).getAllByRole('button')[4];
+  return screen.getByRole('button', { name: /^(Pause|Resume)$/ });
 }
 
 describe('Dashboard match engine', () => {

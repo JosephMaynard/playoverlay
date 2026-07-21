@@ -31,8 +31,10 @@
     "undoPenalty": "Elfmeter rückgängig machen"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Spielstand von {{team}} verringern",
     "editScore": "Spielstand bearbeiten",
     "editScoreAria": "Spielstand von {{team}} bearbeiten",
+    "increaseScoreAria": "Spielstand von {{team}} erhöhen",
     "scoreLabel": "Spielstand {{team}}",
     "scored": "Tor für {{title}}"
   },
@@ -40,12 +42,15 @@
     "title": "Spielstände"
   },
   "timeControl": {
+    "additionalTimeLabel": "Nachspielzeit",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Zeit anpassen",
     "autoSwitchLabel": "Bildschirme beim Start und Stopp automatisch wechseln",
     "clear": "Löschen",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
     "setAdditionalTime": "Nachspielzeit festlegen",
     "title": "Zeit"
   }

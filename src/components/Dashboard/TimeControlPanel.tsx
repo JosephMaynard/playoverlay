@@ -106,6 +106,9 @@ export default function TimeControlPanel({
         }}
         title={t('dashboard:timeControl.setAdditionalTime')}
       >
+        <label htmlFor="additionalTime" className="sr-only">
+          {t('dashboard:timeControl.additionalTimeLabel')}
+        </label>
         <div className="mb-2 mt-2 flex rounded-md shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <input
@@ -118,6 +121,7 @@ export default function TimeControlPanel({
             />
             <button
               type="button"
+              aria-label={t('dashboard:timeControl.clear')}
               className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
               onClick={() => setAdditionalTime()}
             >
@@ -198,6 +202,7 @@ export default function TimeControlPanel({
               <button
                 type="button"
                 disabled={!time.time}
+                aria-label={t('dashboard:timeControl.resume')}
                 className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
                 onClick={() => resume()}
               >
@@ -207,6 +212,7 @@ export default function TimeControlPanel({
               <button
                 type="button"
                 disabled={!time.time}
+                aria-label={t('dashboard:timeControl.pause')}
                 className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
                 onClick={() => pause()}
               >

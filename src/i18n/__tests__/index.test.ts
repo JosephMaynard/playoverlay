@@ -35,6 +35,16 @@ describe('i18n init', () => {
     await i18n.changeLanguage('en');
   });
 
+  it('keeps <html lang> in sync with the active language, for both windows', async () => {
+    expect(document.documentElement.lang).toBe('en');
+
+    await i18n.changeLanguage('fr');
+    expect(document.documentElement.lang).toBe('fr');
+
+    await i18n.changeLanguage('en');
+    expect(document.documentElement.lang).toBe('en');
+  });
+
   it('never escapes interpolated values itself (React already escapes on render)', () => {
     expect(i18n.options.interpolation?.escapeValue).toBe(false);
   });

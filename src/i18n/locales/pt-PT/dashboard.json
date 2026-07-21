@@ -31,8 +31,10 @@
     "undoPenalty": "Anular grande penalidade"
   },
   "scoreInput": {
+    "decreaseScoreAria": "Reduzir o marcador de {{team}}",
     "editScore": "Editar marcador",
     "editScoreAria": "Editar marcador de {{team}}",
+    "increaseScoreAria": "Aumentar o marcador de {{team}}",
     "scoreLabel": "Marcador de {{team}}",
     "scored": "Golo de {{title}}"
   },
@@ -40,12 +42,15 @@
     "title": "Marcadores"
   },
   "timeControl": {
+    "additionalTimeLabel": "Tempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tempo",
     "autoSwitchLabel": "Mudar automaticamente de ecrã ao iniciar e parar",
     "clear": "Limpar",
+    "pause": "Pausar",
+    "resume": "Retomar",
     "setAdditionalTime": "Definir tempo adicional",
     "title": "Tempo"
   }

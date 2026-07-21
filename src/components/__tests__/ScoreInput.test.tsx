@@ -29,13 +29,28 @@ describe('ScoreInput', () => {
     const user = userEvent.setup();
     render(<ScoreInput {...baseProps} setScore={setScore} />);
 
-    await user.click(
-      screen.getByRole('button', { name: 'Edit Tigers score' })
-    );
+    await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
     fireEvent.change(await screen.findByLabelText('Tigers score'), {
       target: { value: '5' },
     });
 
     expect(setScore).toHaveBeenCalledWith(5);
+  });
+
+  it('adjusts the score by one via the labelled increase/decrease buttons in the edit modal', async () => {
+    const setScore = vi.fn();
+    const user = userEvent.setup();
+    render(<ScoreInput {...baseProps} setScore={setScore} />);
+
+    await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Increase Tigers score' })
+    );
+    expect(setScore).toHaveBeenCalledWith(2);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Decrease Tigers score' })
+    );
+    expect(setScore).toHaveBeenCalledWith(0);
   });
 });
