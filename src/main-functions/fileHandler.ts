@@ -4,7 +4,7 @@ import fs from 'fs';
 import { getCustomScreens, setCustomScreens } from './storage';
 import { CustomScreen } from '../types';
 import convertFilePathToUrl from './convertFilePathToUrl';
-import { logFailedOperation } from './logger';
+import { logFailedOperation, sanitizeLogPath } from './logger';
 
 const userDataPath = app.getPath('userData');
 export const imagesPath = path.join(userDataPath, 'images');
@@ -112,27 +112,29 @@ export function saveImageFile(
   // components so it can't escape the images dir (e.g. via '../../etc').
   const safeFileName = path.basename(fileName);
   if (!safeFileName || safeFileName !== fileName) {
-    logFailedOperation(`Rejected unsafe file name: ${fileName}`);
+    logFailedOperation(
+      `Rejected unsafe file name: ${sanitizeLogPath(fileName)}`
+    );
     return null;
   }
 
   if (!hasAllowedImageExtension(fileName)) {
     logFailedOperation(
-      `Rejected upload with a disallowed file extension: ${fileName}`
+      `Rejected upload with a disallowed file extension: ${sanitizeLogPath(fileName)}`
     );
     return null;
   }
 
   if (buffer.length > MAX_UPLOAD_SIZE_BYTES) {
     logFailedOperation(
-      `Rejected upload exceeding the maximum upload size: ${fileName} (${buffer.length} bytes)`
+      `Rejected upload exceeding the maximum upload size: ${sanitizeLogPath(fileName)} (${buffer.length} bytes)`
     );
     return null;
   }
 
   if (!isValidImageBuffer(buffer, fileName)) {
     logFailedOperation(
-      `Rejected upload whose content does not match its file extension: ${fileName}`
+      `Rejected upload whose content does not match its file extension: ${sanitizeLogPath(fileName)}`
     );
     return null;
   }
@@ -192,7 +194,7 @@ export function handleFileDeletion(filePath: string): boolean {
     realBase = fs.realpathSync(imagesPath);
   } catch (error) {
     logFailedOperation(
-      `Error resolving path for deletion: ${filePath} (${String(error)})`
+      `Error resolving path for deletion: ${sanitizeLogPath(filePath)} (${String(error)})`
     );
     return false;
   }
@@ -203,7 +205,7 @@ export function handleFileDeletion(filePath: string): boolean {
     path.isAbsolute(relative)
   ) {
     logFailedOperation(
-      `Rejected deletion outside the images directory: ${filePath}`
+      `Rejected deletion outside the images directory: ${sanitizeLogPath(filePath)}`
     );
     return false;
   }

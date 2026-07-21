@@ -1,6 +1,6 @@
 import { AppSettings } from '../types';
 import { MatchSettings } from '../zodSchemas';
-import { LogEntry, MatchEventEntry } from './logger';
+import { formatLogLine, LogEntry, MatchEventEntry } from './logger';
 
 // Assembles the one-click support bundle: a single human-readable text file
 // the operator can attach to a GitHub issue. Deliberately plain text/Markdown
@@ -99,10 +99,6 @@ export interface DiagnosticsInput {
 // to paste into a GitHub issue.
 export const MAX_LOG_LINES_IN_REPORT = 200;
 
-function formatLine(entry: LogEntry): string {
-  return `${entry.timestamp} [${entry.level}] ${entry.message}`;
-}
-
 function formatMatchEventLine(entry: MatchEventEntry): string {
   return `${entry.timestamp} ${entry.action} (${entry.source})`;
 }
@@ -180,7 +176,7 @@ export function buildDiagnosticsReport(input: DiagnosticsInput): string {
     lines.push('(none recorded this session)');
   } else {
     input.recentFailedOperations.forEach((entry) =>
-      lines.push(`- ${formatLine(entry)}`)
+      lines.push(`- ${formatLogLine(entry)}`)
     );
   }
   lines.push('');
@@ -193,7 +189,7 @@ export function buildDiagnosticsReport(input: DiagnosticsInput): string {
   if (tail.length === 0) {
     lines.push('(empty)');
   } else {
-    tail.forEach((entry) => lines.push(formatLine(entry)));
+    tail.forEach((entry) => lines.push(formatLogLine(entry)));
   }
   lines.push('```');
   lines.push('');

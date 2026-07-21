@@ -65,6 +65,26 @@ export function formatLogLine(entry: LogEntry): string {
   return `${entry.timestamp} [${entry.level}] ${entry.message}`;
 }
 
+// The durable log is a file the operator exports and hands to someone else
+// (a GitHub issue, a support request), so a raw filesystem path must never
+// land in it verbatim: on most platforms it contains the user's home
+// directory, and therefore their OS username. This reduces a path or file
+// name to just its base name (path.basename drops every directory
+// component), strips control characters (which have no legitimate place in a
+// file name and could otherwise corrupt a plain-text log line or a terminal
+// tailing it), and caps the length so a pathologically long name can't bloat
+// a log line. Pure and exported so every call site that logs a path-shaped
+// value shares this one redaction.
+const MAX_SANITIZED_LOG_PATH_LENGTH = 200;
+
+export function sanitizeLogPath(input: string): string {
+  const baseName = path.basename(input);
+  // Deliberately matching C0 control characters (and DEL) to strip them.
+  // eslint-disable-next-line no-control-regex
+  const withoutControlCharacters = baseName.replace(/[\x00-\x1f\x7f]/g, '');
+  return withoutControlCharacters.slice(0, MAX_SANITIZED_LOG_PATH_LENGTH);
+}
+
 // A fixed-capacity FIFO, oldest entries dropped first once `capacity` is
 // exceeded. Pure and framework-free so it's directly unit-testable; Logger
 // below owns three instances of it (the log tail, match events, and failed
@@ -234,6 +254,29 @@ export class Logger {
   getRecentFailedOperations(): LogEntry[] {
     return this.failedOperations.toArray();
   }
+
+  // Absorbs another Logger's buffered entries into this one, oldest first.
+  // Used once, by initLogger below, so entries recorded by the memory-only
+  // fallback logger before the real (userData-backed) logger existed, e.g.
+  // storage.ts's createStorage running at module load, aren't lost once
+  // logging is initialised: they stay visible through getRecentEntries/
+  // getRecentMatchEvents/getRecentFailedOperations and therefore the
+  // diagnostics export. Entries are pushed straight into this logger's ring
+  // buffers (and, for the general tail, appended to its log file) rather than
+  // re-logged through info/warn/error, so they aren't printed to console a
+  // second time.
+  absorb(previous: Logger): void {
+    previous.getRecentEntries().forEach((entry) => {
+      this.ring.push(entry);
+      this.appendLine(entry);
+    });
+    previous.getRecentMatchEvents().forEach((entry) => {
+      this.matchEvents.push(entry);
+    });
+    previous.getRecentFailedOperations().forEach((entry) => {
+      this.failedOperations.push(entry);
+    });
+  }
 }
 
 // Module-level singleton. initLogger() is called once, early, from main.ts
@@ -246,7 +289,14 @@ let activeLogger: Logger | null = null;
 let fallbackLogger: Logger | null = null;
 
 export function initLogger(userDataPath: string): Logger {
-  activeLogger = new Logger({ logDir: path.join(userDataPath, 'logs') });
+  const logger = new Logger({ logDir: path.join(userDataPath, 'logs') });
+  // Carry over anything the pre-init fallback logger already buffered (see
+  // getLogger below) so it isn't lost the moment the durable logger takes
+  // over.
+  if (fallbackLogger) {
+    logger.absorb(fallbackLogger);
+  }
+  activeLogger = logger;
   return activeLogger;
 }
 

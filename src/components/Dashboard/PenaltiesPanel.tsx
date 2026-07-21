@@ -15,9 +15,12 @@ export interface Props {
   penaltiesFirstTeam: homeOrAway;
   setPenaltiesFirstTeam: (team: homeOrAway) => void;
   matchSettings: MatchSettings;
-  // The panel's "Undo Penalty" button delegates to the global undo so there is
-  // a single source of truth: it and Ctrl/Cmd+Z can never disagree about
-  // state. canUndo drives its disabled state.
+  // The panel's undo button delegates to the global undo (the shared stack,
+  // not a penalty-only one) so there is a single source of truth: it and
+  // Ctrl/Cmd+Z can never disagree about state. Its label is deliberately
+  // generic ("Undo Last Action") rather than penalty-specific, since it can
+  // undo any last action, not only a penalty. canUndo drives its disabled
+  // state.
   onUndo: () => void;
   canUndo: boolean;
 }
@@ -130,7 +133,7 @@ export default function PenaltiesPanel({
         compact
         buttons={[
           {
-            label: t('dashboard:penaltiesPanel.undoPenalty'),
+            label: t('dashboard:penaltiesPanel.undoLastAction'),
             // Delegates to the global undo rather than doing its own local
             // slice: the last penalty add is on the shared undo stack, so this
             // and Ctrl/Cmd+Z reverse the exact same thing. Disabled (not just

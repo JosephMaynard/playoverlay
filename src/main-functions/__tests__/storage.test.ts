@@ -223,6 +223,47 @@ describe('storage', () => {
     expect(stores[0].store.CUSTOM_SCREENS).toEqual([survivingScreen]);
   });
 
+  it('reconcileCustomScreensReadOnly reports dropped screens without persisting the cleaned-up list', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const survivingFilePath = createTemporaryImageFile('keep.png');
+    const missingFilePath = path.join(
+      path.dirname(survivingFilePath),
+      'deleted.png'
+    );
+    const survivingScreen: CustomScreen = {
+      title: 'Keep',
+      filePath: survivingFilePath,
+      url: `file://${survivingFilePath}`,
+      type: 'screen',
+      overlayLinks: [],
+    };
+    const missingScreen: CustomScreen = {
+      title: 'Deleted',
+      filePath: missingFilePath,
+      url: `file://${missingFilePath}`,
+      type: 'screen',
+      overlayLinks: [],
+    };
+    const original = [survivingScreen, missingScreen];
+    const { storage, stores } = await loadStorage({
+      CUSTOM_SCREENS: original,
+    });
+
+    const result = storage.reconcileCustomScreensReadOnly();
+
+    expect(result).toEqual({
+      kept: [survivingScreen],
+      dropped: [missingScreen],
+    });
+    // Unlike getCustomScreensReconciliation, this must never write back the
+    // cleaned-up list: a read-only preflight check must never mutate saved
+    // configuration just from being run.
+    expect(stores[0].store.CUSTOM_SCREENS).toEqual(original);
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
   it('drops a malformed custom screen entry while keeping its valid siblings', async () => {
     const filePath = createTemporaryImageFile('valid.png');
     const validScreen: CustomScreen = {

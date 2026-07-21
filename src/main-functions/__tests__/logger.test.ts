@@ -4,9 +4,13 @@ import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   formatLogLine,
+  getLogger,
+  initLogger,
   Logger,
   MAX_LOG_FILE_BYTES,
+  resetLoggerForTests,
   RingBuffer,
+  sanitizeLogPath,
   shouldRotate,
 } from '../logger';
 
@@ -41,6 +45,24 @@ describe('formatLogLine', () => {
     });
 
     expect(line).toBe('2026-07-20T12:00:00.000Z [error] Something broke');
+  });
+});
+
+describe('sanitizeLogPath', () => {
+  it('reduces a full path to just its base name, dropping directories (and any username in them)', () => {
+    expect(sanitizeLogPath('/Users/alice/secret/logo.png')).toBe('logo.png');
+  });
+
+  it('strips control characters from a file name', () => {
+    expect(sanitizeLogPath('evil\nname\x00here\x1b.png')).toBe(
+      'evilnamehere.png'
+    );
+  });
+
+  it('caps an unreasonably long name to a fixed maximum length', () => {
+    const longName = `${'a'.repeat(500)}.png`;
+
+    expect(sanitizeLogPath(longName).length).toBeLessThanOrEqual(200);
   });
 });
 
@@ -202,6 +224,85 @@ describe('Logger', () => {
       expect.objectContaining({
         action: 'undo:actions.nextPhase',
         source: 'streamDeck',
+      }),
+    ]);
+  });
+
+  it('absorb() copies buffered entries from another logger into this one', () => {
+    const previous = new Logger();
+    previous.info('earlier line');
+    previous.logFailedOperation('earlier failure');
+    previous.logMatchEvent('undo:actions.homeGoal', 'laptop');
+
+    const dir = createTempLogDir();
+    const next = new Logger({ logDir: dir });
+    next.absorb(previous);
+
+    expect(next.getRecentEntries()).toEqual([
+      expect.objectContaining({ level: 'info', message: 'earlier line' }),
+      expect.objectContaining({
+        level: 'error',
+        message: 'earlier failure',
+      }),
+    ]);
+    expect(next.getRecentFailedOperations()).toEqual([
+      expect.objectContaining({ message: 'earlier failure' }),
+    ]);
+    expect(next.getRecentMatchEvents()).toEqual([
+      expect.objectContaining({
+        action: 'undo:actions.homeGoal',
+        source: 'laptop',
+      }),
+    ]);
+    // The absorbed tail also lands in the new logger's own file, so a fresh
+    // main.log still carries the early history.
+    const contents = fs.readFileSync(path.join(dir, 'main.log'), 'utf8');
+    expect(contents).toContain('earlier line');
+    expect(contents).toContain('earlier failure');
+  });
+});
+
+describe('initLogger/getLogger', () => {
+  const temporaryDirectories: string[] = [];
+
+  beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    resetLoggerForTests();
+    temporaryDirectories.splice(0).forEach((dir) => {
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+  });
+
+  it('carries entries the pre-init fallback logger buffered into the initialised logger', () => {
+    resetLoggerForTests();
+
+    // Nothing has called initLogger yet, so this lands in the memory-only
+    // fallback logger, the same path a module-load-time call (e.g. storage.ts's
+    // createStorage) takes before main.ts has had a chance to call initLogger.
+    getLogger().error('pre-init failure');
+
+    const dir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'playoverlay-logger-init-')
+    );
+    temporaryDirectories.push(dir);
+
+    const logger = initLogger(dir);
+
+    expect(logger.getRecentEntries()).toEqual([
+      expect.objectContaining({
+        level: 'error',
+        message: 'pre-init failure',
+      }),
+    ]);
+    // getLogger() now resolves to the initialised logger and still sees it.
+    expect(getLogger().getRecentEntries()).toEqual([
+      expect.objectContaining({
+        level: 'error',
+        message: 'pre-init failure',
       }),
     ]);
   });

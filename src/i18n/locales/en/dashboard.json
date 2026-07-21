@@ -28,7 +28,7 @@
     "resetPenalties": "Reset Penalties",
     "score": "Score",
     "teamFirst": "{{team}} First",
-    "undoPenalty": "Undo Penalty"
+    "undoLastAction": "Undo Last Action"
   },
   "scoreInput": {
     "decreaseScoreAria": "Decrease {{team}} score",

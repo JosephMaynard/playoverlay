@@ -6,6 +6,15 @@ import { useMatchStateStore } from '../../store/matchState';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useAppSettingsStore } from '../../store/appSettings';
 
+// Parses a "MM:SS" clock string into whole seconds. Shared by restoreClock
+// and resyncToTime below, the two places that re-seed the internal second
+// counter from a persisted/restored time string; each keeps its own handling
+// of a missing/empty time value, only the conversion itself is shared here.
+function parseTimeToSeconds(time: string): number {
+  const [minutes, secs] = time.split(':').map(Number);
+  return (minutes || 0) * 60 + (secs || 0);
+}
+
 export interface StopTimeOptions {
   // Whether stopping should apply the auto-switch-screens behaviour (jump
   // to matchTitle). Defaults to true; settings-driven stops (a match
@@ -217,8 +226,7 @@ export default function useMatchClock(): UseMatchClock {
       stopTicking();
 
       if (time?.time) {
-        const [minutes, secs] = time.time.split(':').map(Number);
-        secondsRef.current = (minutes || 0) * 60 + (secs || 0);
+        secondsRef.current = parseTimeToSeconds(time.time);
         baseSecondsRef.current = secondsRef.current;
       }
 
@@ -244,8 +252,7 @@ export default function useMatchClock(): UseMatchClock {
       stopTicking();
 
       if (time?.time) {
-        const [minutes, secs] = time.time.split(':').map(Number);
-        secondsRef.current = (minutes || 0) * 60 + (secs || 0);
+        secondsRef.current = parseTimeToSeconds(time.time);
       } else {
         secondsRef.current = 0;
       }

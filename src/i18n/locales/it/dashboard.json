@@ -28,7 +28,7 @@
     "resetPenalties": "Reimposta calci di rigore",
     "score": "Segnato",
     "teamFirst": "{{team}} per primo",
-    "undoPenalty": "Annulla rigore"
+    "undoLastAction": "Annulla ultima azione"
   },
   "scoreInput": {
     "decreaseScoreAria": "Diminuisci il punteggio di {{team}}",

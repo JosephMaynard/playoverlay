@@ -4,7 +4,7 @@ import { app } from 'electron';
 import Store from 'electron-store';
 import { AppSettings, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
-import { logError } from './logger';
+import { logError, sanitizeLogPath } from './logger';
 import {
   appSettingsSchema,
   customScreenListSchema,
@@ -183,19 +183,33 @@ export function getMatchSettings() {
 // vanished, e.g. the preflight check, can report on them without
 // re-implementing this same read+reconcile+persist sequence.
 export function getCustomScreensReconciliation(): ReconcileCustomScreensResult {
-  const parsed = customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
-  const { kept, dropped } = reconcileCustomScreens(parsed, fs.existsSync);
+  const { kept, dropped } = reconcileStoredCustomScreens();
 
   if (dropped.length > 0) {
     logError(
       `Dropping custom screens with missing backing files: ${dropped
-        .map((screen) => screen.filePath)
+        .map((screen) => sanitizeLogPath(screen.filePath ?? ''))
         .join(', ')}`
     );
     storage.set(CUSTOM_SCREENS, kept);
   }
 
   return { kept, dropped };
+}
+
+// Read-only counterpart of getCustomScreensReconciliation: parses the stored
+// custom screens and reports which are unreachable WITHOUT writing the
+// cleaned-up list back to storage (or logging). Used by the preflight check,
+// which must never mutate saved configuration just from being run; the
+// persisting variant above stays in place for the normal load path
+// (getCustomScreens), where cleaning up a stale entry on read is the point.
+export function reconcileCustomScreensReadOnly(): ReconcileCustomScreensResult {
+  return reconcileStoredCustomScreens();
+}
+
+function reconcileStoredCustomScreens(): ReconcileCustomScreensResult {
+  const parsed = customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
+  return reconcileCustomScreens(parsed, fs.existsSync);
 }
 
 export function getCustomScreens(): CustomScreen[] {
@@ -244,7 +258,7 @@ export function getLiveMatch(): LiveMatch | undefined {
   if (droppedOverlays.length > 0) {
     logError(
       `Dropping overlays with missing backing files from the restored match: ${droppedOverlays
-        .map((screen) => screen.filePath)
+        .map((screen) => sanitizeLogPath(screen.filePath ?? ''))
         .join(', ')}`
     );
   }

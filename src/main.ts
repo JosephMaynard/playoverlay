@@ -53,10 +53,10 @@ import {
   WindowName,
   getAppSettings,
   getCustomScreens,
-  getCustomScreensReconciliation,
   getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
+  reconcileCustomScreensReadOnly,
   setAppSettings,
   setLiveMatch,
   setCustomScreens,
@@ -1050,8 +1050,11 @@ function setupIPCHandlers() {
     // exist. Logo paths are stored as file:// URLs (see fileHandler.ts's
     // saveImageFile), fileURLToPath is wrapped in a try/catch since a
     // corrupt/foreign URL should be treated as "nothing to check" rather
-    // than crashing the whole preflight run.
-    const { dropped: droppedCustomScreens } = getCustomScreensReconciliation();
+    // than crashing the whole preflight run. Uses the read-only
+    // reconciliation (not getCustomScreensReconciliation): this handler must
+    // never write back or delete anything just from being run, so it only
+    // reports what's dropped rather than persisting the cleaned-up list.
+    const { dropped: droppedCustomScreens } = reconcileCustomScreensReadOnly();
     const toLogoPath = (url?: string): string | null => {
       if (!url) return null;
       try {

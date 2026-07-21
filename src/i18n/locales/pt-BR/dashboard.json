@@ -28,7 +28,7 @@
     "resetPenalties": "Redefinir pênaltis",
     "score": "Gol",
     "teamFirst": "{{team}} primeiro",
-    "undoPenalty": "Desfazer pênalti"
+    "undoLastAction": "Desfazer última ação"
   },
   "scoreInput": {
     "decreaseScoreAria": "Diminuir o placar de {{team}}",
