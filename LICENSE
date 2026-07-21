@@ -1,52 +1,6 @@
-PlayOverlay License
-
-The PlayOverlay software is provided under the MIT License (below), subject
-to the following two additional conditions. In short: you are free to use
-PlayOverlay for anything, including commercially — for example to produce
-streams that you are paid for — but you may not sell the software itself,
-and you may not pass it off as your own product.
-
----------------------------------------------------------------------------
-
-"Commons Clause" License Condition v1.0
-
-The Software is provided to you by the Licensor under the License, as
-defined below, subject to the following condition.
-
-Without limiting other conditions in the License, the grant of rights under
-the License will not include, and the License does not grant to you, the
-right to Sell the Software.
-
-For purposes of the foregoing, "Sell" means practicing any or all of the
-rights granted to you under the License to provide to third parties, for a
-fee or other consideration (including without limitation fees for hosting
-or consulting/support services related to the Software), a product or
-service whose value derives, entirely or substantially, from the
-functionality of the Software. Any license notice or attribution required
-by the License must also include this Commons Clause License Condition
-notice.
-
-Software: PlayOverlay
-License: MIT (as set out below)
-Licensor: Joseph Maynard
-
----------------------------------------------------------------------------
-
-Branding Condition
-
-Without limiting other conditions in the License, the License does not
-grant you the right to distribute the Software, or any modified version of
-it, under a different name, brand, or logo, or in any way that
-misrepresents its origin. Copies and substantial portions of the Software
-that you distribute must retain the PlayOverlay name and attribution to the
-Licensor. This condition does not restrict private or internal modification
-and use of the Software.
-
----------------------------------------------------------------------------
-
 MIT License
 
-Copyright (c) 2024-2026 Joseph Maynard
+Copyright (c) 2024-2026 Magic Zebra Ltd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

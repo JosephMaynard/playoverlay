@@ -174,8 +174,8 @@ Issues and pull requests are welcome. Before opening a PR, please run
 (this app's job is to not fall over mid-match, so reliability fixes are
 especially appreciated).
 
-## Source availability and licence
+## Licence
 
-PlayOverlay is **source-available**, not Open Source as defined by the Open Source Initiative. You are welcome to inspect the code, report bugs, and submit pull requests.
+PlayOverlay is open source under the [MIT License](LICENSE): free to use, modify, and redistribute, including commercially.
 
-PlayOverlay is free to use for anything, **including commercial streaming work**. You may not sell the software itself or redistribute it under a different name or brand. See [LICENSE](LICENSE) for the exact terms (MIT with the Commons Clause and a branding condition).
+The **PlayOverlay name, logo, and branding** are owned by Magic Zebra Ltd and are not covered by the MIT licence. A modified or rebranded fork must not present itself as an official PlayOverlay release. See [TRADEMARKS.md](TRADEMARKS.md) for details.
