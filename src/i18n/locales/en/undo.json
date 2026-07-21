@@ -1,0 +1,26 @@
+{
+  "actions": {
+    "additionalTime": "additional time change",
+    "adjustTime": "time adjustment",
+    "awayGoal": "away goal",
+    "awayGoalRemoved": "away goal removal",
+    "homeGoal": "home goal",
+    "homeGoalRemoved": "home goal removal",
+    "nextPhase": "phase change",
+    "pauseClock": "clock pause",
+    "penaltiesReset": "penalties reset",
+    "penaltyMissed": "penalty missed",
+    "penaltyScored": "penalty scored",
+    "resumeClock": "clock resume",
+    "scoreEdit": "score change",
+    "startClock": "clock start",
+    "stopClock": "clock stop",
+    "switchScreen": "screen change"
+  },
+  "button": {
+    "nothingToRedo": "Nothing to redo",
+    "nothingToUndo": "Nothing to undo",
+    "redo": "Redo {{action}}",
+    "undo": "Undo {{action}}"
+  }
+}

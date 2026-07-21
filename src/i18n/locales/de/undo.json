@@ -1,0 +1,26 @@
+{
+  "actions": {
+    "additionalTime": "Nachspielzeit",
+    "adjustTime": "Zeitanpassung",
+    "awayGoal": "Auswärtstor",
+    "awayGoalRemoved": "Auswärtstor-Rücknahme",
+    "homeGoal": "Heimtor",
+    "homeGoalRemoved": "Heimtor-Rücknahme",
+    "nextPhase": "Phasenwechsel",
+    "pauseClock": "Uhrpause",
+    "penaltiesReset": "Zurücksetzen des Elfmeterschießens",
+    "penaltyMissed": "Verschossener Elfmeter",
+    "penaltyScored": "Verwandelter Elfmeter",
+    "resumeClock": "Uhr-Fortsetzung",
+    "scoreEdit": "Spielstandänderung",
+    "startClock": "Uhrstart",
+    "stopClock": "Uhrstopp",
+    "switchScreen": "Bildschirmwechsel"
+  },
+  "button": {
+    "nothingToRedo": "Nichts zu wiederholen",
+    "nothingToUndo": "Nichts rückgängig zu machen",
+    "redo": "{{action}} wiederholen",
+    "undo": "{{action}} rückgängig machen"
+  }
+}

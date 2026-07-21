@@ -1,0 +1,26 @@
+{
+  "actions": {
+    "additionalTime": "il tempo aggiuntivo",
+    "adjustTime": "la regolazione del tempo",
+    "awayGoal": "il gol in trasferta",
+    "awayGoalRemoved": "la rimozione del gol in trasferta",
+    "homeGoal": "il gol in casa",
+    "homeGoalRemoved": "la rimozione del gol in casa",
+    "nextPhase": "il cambio di periodo",
+    "pauseClock": "la pausa del cronometro",
+    "penaltiesReset": "l'azzeramento dei calci di rigore",
+    "penaltyMissed": "il rigore sbagliato",
+    "penaltyScored": "il rigore segnato",
+    "resumeClock": "la ripresa del cronometro",
+    "scoreEdit": "la modifica del punteggio",
+    "startClock": "l'avvio del cronometro",
+    "stopClock": "l'arresto del cronometro",
+    "switchScreen": "il cambio di schermata"
+  },
+  "button": {
+    "nothingToRedo": "Niente da ripristinare",
+    "nothingToUndo": "Niente da annullare",
+    "redo": "Ripristina {{action}}",
+    "undo": "Annulla {{action}}"
+  }
+}

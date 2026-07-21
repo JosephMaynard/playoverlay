@@ -22,6 +22,7 @@ export interface UseMatchClock {
   resume: () => void;
   adjustTime: (difference: number) => void;
   restoreClock: (time: Time | undefined) => void;
+  resyncToTime: (time: Time | undefined) => void;
 }
 
 // Owns the match clock (seconds/baseSeconds/tickingSince/interval) plus the
@@ -139,8 +140,7 @@ export default function useMatchClock(): UseMatchClock {
 
       setMatchState({ matchPhase });
 
-      const { autoSwitchScreens } =
-        useAppSettingsStore.getState().appSettings;
+      const { autoSwitchScreens } = useAppSettingsStore.getState().appSettings;
       if (autoSwitchScreens) {
         setMatchState({
           displayScreen: 'scoreBug',
@@ -173,13 +173,11 @@ export default function useMatchClock(): UseMatchClock {
       setPaused(false);
 
       setMatchState({
-        previousMatchPhase:
-          useMatchStateStore.getState().matchState.matchPhase,
+        previousMatchPhase: useMatchStateStore.getState().matchState.matchPhase,
         matchPhase: undefined,
       });
 
-      const { autoSwitchScreens } =
-        useAppSettingsStore.getState().appSettings;
+      const { autoSwitchScreens } = useAppSettingsStore.getState().appSettings;
       if (autoSwitchScreens && autoSwitch) {
         setMatchState({ displayScreen: 'matchTitle' });
       }
@@ -231,6 +229,42 @@ export default function useMatchClock(): UseMatchClock {
     [setTime, stopTicking]
   );
 
+  // Re-anchor the clock to an externally restored time (used by undo/redo).
+  // Unlike restoreClock, this does NOT re-write the time store (undo/redo has
+  // already restored it) and it does NOT force a pause: it honours the
+  // restored state. If the restored phase is active and not paused the clock
+  // resumes ticking from the restored value; if it was paused, or no phase is
+  // running, the clock stays stopped. The internal second counter is re-seeded
+  // from the restored clock string so ticking continues from there rather than
+  // from wherever the previous anchor left secondsRef, which is the subtle bit:
+  // the running time is derived from baseSeconds + wall-clock elapsed, so
+  // without re-seeding, a resumed clock would leap back to the old value.
+  const resyncToTime = useCallback(
+    (time: Time | undefined) => {
+      stopTicking();
+
+      if (time?.time) {
+        const [minutes, secs] = time.time.split(':').map(Number);
+        secondsRef.current = (minutes || 0) * 60 + (secs || 0);
+      } else {
+        secondsRef.current = 0;
+      }
+      baseSecondsRef.current = secondsRef.current;
+
+      const phaseActive = time?.matchPhase !== undefined;
+      const shouldPause = phaseActive ? Boolean(time?.paused) : false;
+      setPaused(shouldPause);
+
+      // startTicking re-anchors baseSeconds/tickingSince to "now" from the
+      // freshly seeded secondsRef, so the first tick continues from the
+      // restored value instead of leaping.
+      if (phaseActive && !shouldPause) {
+        startTicking();
+      }
+    },
+    [startTicking, stopTicking]
+  );
+
   return {
     paused,
     startTime,
@@ -239,5 +273,6 @@ export default function useMatchClock(): UseMatchClock {
     resume,
     adjustTime,
     restoreClock,
+    resyncToTime,
   };
 }
