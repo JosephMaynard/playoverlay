@@ -153,7 +153,7 @@ suite with `npm test`, and generate coverage with `npm run test:coverage`.
 The CI-only package sanity check is `npm run build:ci`; use `npm run make` to
 produce distributables.
 
-Tagged releases (`v*`) are built automatically for Windows and both macOS architectures by the [release workflow](.github/workflows/release.yml) and attached to a draft GitHub release.
+Tagged releases (`v*`) are built automatically for Windows, both macOS architectures, and Linux (`.deb` and `.rpm`) by the [release workflow](.github/workflows/release.yml) and attached to a draft GitHub release.
 
 ## Privacy and telemetry
 
