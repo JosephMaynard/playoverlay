@@ -116,10 +116,10 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 
 ## Phone remote (LAN)
 
-Off by default. When you want to run the match from the touchline instead of the laptop, PlayOverlay can serve a small control page to a phone on the same wifi:
+Off by default. When you want to run the match from the touchline instead of the laptop, PlayOverlay can serve a small control page to a phone on the same local network (usually the same wifi):
 
 1. Open **System Settings → Phone Remote** and switch it on (default port `3006`).
-2. On the phone (connected to the **same wifi** as the laptop), either scan the QR code shown there or open the URL (`http://<laptop-ip>:<port>/`) in a browser.
+2. On the phone (connected to the **same local network** as the laptop, usually the same wifi), either scan the QR code shown there or open the URL (`http://<laptop-ip>:<port>/`) in a browser.
 3. Enter the 6-digit **PIN** shown in Settings. Once paired, the phone shows the live score, clock, and on-air screen.
 
 From the phone you can:

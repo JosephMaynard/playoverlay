@@ -23,9 +23,10 @@ const config: ForgeConfig = {
   hooks: {
     // Regenerate THIRD_PARTY_NOTICES.md from the current production
     // dependency tree right before packaging, so the bundled notices can
-    // never drift from what actually ships. If the generator is unavailable
-    // (e.g. dev dependencies were not installed), fall back to the committed
-    // copy rather than failing the whole build.
+    // never drift from what actually ships. In CI (where releases are built)
+    // a generation failure fails the build rather than silently shipping a
+    // stale committed copy; locally it falls back to the committed copy so a
+    // developer packaging a one-off build is not blocked.
     generateAssets: async () => {
       try {
         execSync(
@@ -33,6 +34,9 @@ const config: ForgeConfig = {
           { stdio: 'inherit' }
         );
       } catch (error) {
+        if (process.env.CI) {
+          throw error;
+        }
         console.warn(
           'Could not regenerate THIRD_PARTY_NOTICES.md, using the committed copy:',
           error

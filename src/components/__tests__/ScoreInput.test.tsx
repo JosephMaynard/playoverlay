@@ -40,7 +40,9 @@ describe('ScoreInput', () => {
   it('adjusts the score by one via the labelled increase/decrease buttons in the edit modal', async () => {
     const setScore = vi.fn();
     const user = userEvent.setup();
-    render(<ScoreInput {...baseProps} setScore={setScore} />);
+    const { rerender } = render(
+      <ScoreInput {...baseProps} setScore={setScore} />
+    );
 
     await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
     await user.click(
@@ -48,9 +50,14 @@ describe('ScoreInput', () => {
     );
     expect(setScore).toHaveBeenCalledWith(2);
 
+    // The score is controlled by the parent, so reflect the applied increment
+    // before decrementing to prove the decrease works off the updated value
+    // (1 -> 2 -> 1) rather than always off the original prop.
+    rerender(<ScoreInput {...baseProps} score={2} setScore={setScore} />);
+
     await user.click(
       screen.getByRole('button', { name: 'Decrease Tigers score' })
     );
-    expect(setScore).toHaveBeenCalledWith(0);
+    expect(setScore).toHaveBeenCalledWith(1);
   });
 });

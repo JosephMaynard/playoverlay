@@ -79,13 +79,9 @@ function looksLikeWebp(buffer: Buffer): boolean {
 // an image only if it decodes as UTF-8 and its content contains an `<svg`
 // root tag, never executed or otherwise parsed.
 function looksLikeSvg(buffer: Buffer): boolean {
-  let text: string;
-  try {
-    text = buffer.toString('utf8');
-  } catch {
-    return false;
-  }
-  return /<svg[\s>]/i.test(text);
+  // buffer.toString('utf8') never throws (invalid sequences become the
+  // replacement character), so no guarding is needed around the decode.
+  return /<svg[\s>]/i.test(buffer.toString('utf8'));
 }
 
 // Confirms the buffer's actual content matches the claimed image extension,

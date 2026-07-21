@@ -348,8 +348,11 @@ export default function Dashboard() {
   };
 
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
-  // drive the score negative.
+  // drive the score negative. Clears any pending restore prompt first, exactly
+  // like the increment handlers and the manual score edits, so a stale restore
+  // snapshot can never overwrite a correction made from the phone.
   const decrementHomeTeamScore = () => {
+    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     setScores({
       ...prevScores,
@@ -358,6 +361,7 @@ export default function Dashboard() {
   };
 
   const decrementAwayTeamScore = () => {
+    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     setScores({
       ...prevScores,
