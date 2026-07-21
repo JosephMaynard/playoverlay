@@ -1,6 +1,7 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   powerSaveBlocker,
   screen,
@@ -10,7 +11,9 @@ import {
 } from 'electron';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import {
   AppSettings,
   BrowserSourceSettings,
@@ -28,8 +31,11 @@ import {
   defaultScores,
 } from './constants';
 import {
+  appSettingsSchema,
   customScreenListSchema,
+  matchEventLogSchema,
   MatchSettings,
+  matchSetingsSchema,
   matchSettingsListSchema,
   matchStateSchema,
   scoresSchema,
@@ -50,6 +56,7 @@ import {
   getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
+  reconcileCustomScreensReadOnly,
   setAppSettings,
   setLiveMatch,
   setCustomScreens,
@@ -85,6 +92,26 @@ import {
   startRemoteControlServer,
   stopRemoteControlServer,
 } from './main-functions/remoteControlServer';
+import {
+  getLogger,
+  initLogger,
+  logError,
+  logFailedOperation,
+  logInfo,
+  logMatchEvent,
+} from './main-functions/logger';
+import {
+  buildDiagnosticsReport,
+  ExportDiagnosticsResult,
+  sanitizeRemoteControlStatus,
+  suggestedDiagnosticsFileName,
+} from './main-functions/diagnostics';
+import {
+  DEFAULT_DISK_WARNING_THRESHOLD_BYTES,
+  evaluatePreflightChecks,
+  findMissingTeamLogos,
+  PreflightResult,
+} from './main-functions/preflight';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -92,6 +119,17 @@ export const isDev = process.env.NODE_ENV === 'development';
 const quitWhenAllWindowsClose = true;
 
 export const showDevTools = isDev && SHOW_DEV_TOOLS;
+
+// Initialised as early as possible so as much of the app's lifetime as
+// possible is captured durably. Module-scope `app.getPath('userData')` reads
+// (like this one) never require the app to be 'ready', mirroring the
+// existing pattern in storage.ts/fileHandler.ts. One early gap remains:
+// nothing here can capture a console.error from storage.ts's own top-level
+// `createStorage()` call, since that module (imported above) already ran its
+// top-level code before this line executes; that's an extremely narrow,
+// pre-existing edge case (a corrupt config.json on the very first read) that
+// still prints to the console, just not durably.
+initLogger(app.getPath('userData'));
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -135,6 +173,22 @@ let remoteControlError: string | undefined;
 // previous session is useless, and never persisted. Empty when the server is
 // off.
 let remoteControlPin = '';
+
+// True once the current display window has completed the display-ready
+// handshake below (requested and received its initial state), so the
+// preflight check can distinguish "window exists but is still a blank/
+// loading page" from "actually showing something". Reset whenever the
+// window is (re)created, since a fresh window hasn't asked for state yet.
+let displayWindowReady = false;
+
+// The accelerators that failed to register the last time
+// registerKeyboardShortcuts/registerGlobalKeyboardShortcuts ran (most likely
+// because another app already claimed them, see the try/catch in each
+// function). Surfaced to the preflight check, which otherwise has no way to
+// know a configured shortcut silently isn't working; previously this only
+// ever reached logError.
+let lastFailedFocusAccelerators: string[] = [];
+let lastFailedGlobalAccelerators: string[] = [];
 
 function getImagesDirUrlPrefix(): string {
   return `${convertFilePathToUrl(imagesPath)}/`;
@@ -188,7 +242,9 @@ async function applyBrowserSourceSettings(settings: BrowserSourceSettings) {
 
   if (result.ok === false) {
     browserSourceError = result.error;
-    console.error('Failed to start browser source server:', result.error);
+    logFailedOperation(
+      `Failed to start browser source server: ${result.error}`
+    );
   }
 }
 
@@ -203,7 +259,7 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
   browserSourceTransition = browserSourceTransition
     .then(() => applyBrowserSourceSettings(settings))
     .catch((error) => {
-      console.error('Error applying browser source settings:', error);
+      logError(`Error applying browser source settings: ${String(error)}`);
     });
   return browserSourceTransition;
 }
@@ -301,7 +357,9 @@ async function applyRemoteControlSettings(settings: RemoteControlSettings) {
   if (result.ok === false) {
     remoteControlError = result.error;
     remoteControlPin = '';
-    console.error('Failed to start remote control server:', result.error);
+    logFailedOperation(
+      `Failed to start remote control server: ${result.error}`
+    );
   }
 
   notifyRemoteControlStatus();
@@ -315,7 +373,7 @@ function queueRemoteControlSettings(settings: RemoteControlSettings) {
   remoteControlTransition = remoteControlTransition
     .then(() => applyRemoteControlSettings(settings))
     .catch((error) => {
-      console.error('Error applying remote control settings:', error);
+      logError(`Error applying remote control settings: ${String(error)}`);
     });
   return remoteControlTransition;
 }
@@ -383,7 +441,7 @@ function writeLiveMatch() {
       matchSettings: cachedMatchSettings,
     });
   } catch (error) {
-    console.error('Error persisting live match:', error);
+    logFailedOperation(`Error persisting live match: ${String(error)}`);
   }
 }
 
@@ -431,6 +489,8 @@ if (!gotTheLock && !isDev) {
 const createDisplayWindow = () => {
   const window = createAppWindow(DISPLAY_WINDOW);
   displayWindow = window;
+  // A freshly (re)created window hasn't requested its initial state yet.
+  displayWindowReady = false;
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     window.loadURL(`${DISPLAY_WINDOW_VITE_DEV_SERVER_URL}/display.html`);
@@ -450,6 +510,7 @@ const createDisplayWindow = () => {
   window.on('closed', () => {
     if (displayWindow === window) {
       displayWindow = null;
+      displayWindowReady = false;
     }
     // In production a closed display window would silently swallow every
     // update with no way to get output back, recreate it unless the app
@@ -548,7 +609,7 @@ function setupIPCHandlers() {
     // the display or gets persisted.
     const parsed = scoresSchema.safeParse(scores);
     if (!parsed.success) {
-      console.error('Rejected invalid score update:', parsed.error.message);
+      logError(`Rejected invalid score update: ${parsed.error.message}`);
       return;
     }
     cachedScores = parsed.data;
@@ -561,7 +622,7 @@ function setupIPCHandlers() {
   ipcMain.on('update-time', (_, time: Time) => {
     const parsed = timeSchema.safeParse(time);
     if (!parsed.success) {
-      console.error('Rejected invalid time update:', parsed.error.message);
+      logError(`Rejected invalid time update: ${parsed.error.message}`);
       return;
     }
     cachedTime = parsed.data;
@@ -634,10 +695,7 @@ function setupIPCHandlers() {
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
     const parsed = matchStateSchema.safeParse(matchState);
     if (!parsed.success) {
-      console.error(
-        'Rejected invalid match state update:',
-        parsed.error.message
-      );
+      logError(`Rejected invalid match state update: ${parsed.error.message}`);
       return;
     }
     cachedMatchState = parsed.data;
@@ -675,6 +733,7 @@ function setupIPCHandlers() {
   // Display window signals it's ready to receive initial state
   ipcMain.on('display-ready', () => {
     if (!displayWindow) return;
+    displayWindowReady = true;
     // Send settings first, then state/scores/time
     displayWindow.webContents.send(
       'match-settings-updated',
@@ -703,7 +762,7 @@ function setupIPCHandlers() {
     try {
       return await getAppSettings();
     } catch (error) {
-      console.error('Error getting app settings:', error);
+      logFailedOperation(`Error getting app settings: ${String(error)}`);
       throw error;
     }
   });
@@ -712,7 +771,7 @@ function setupIPCHandlers() {
     try {
       return getMatchSettings();
     } catch (error) {
-      console.error('Error getting team settings:', error);
+      logFailedOperation(`Error getting team settings: ${String(error)}`);
       throw error;
     }
   });
@@ -780,25 +839,23 @@ function setupIPCHandlers() {
       // saved custom screen. Once it IS an array, an individually malformed
       // entry is dropped rather than failing the whole write.
       if (!Array.isArray(customScreens)) {
-        console.error(
-          'Rejected set-custom-screens: expected an array, got',
-          typeof customScreens
+        logError(
+          `Rejected set-custom-screens: expected an array, got ${typeof customScreens}`
         );
         return { success: false, error: 'Invalid custom screens payload' };
       }
       const validScreens = customScreenListSchema.parse(customScreens);
       const droppedCount = customScreens.length - validScreens.length;
       if (droppedCount > 0) {
-        console.error(
-          'Dropped malformed custom screen entries on write:',
-          droppedCount
+        logError(
+          `Dropped malformed custom screen entries on write: ${droppedCount}`
         );
       }
       try {
         setCustomScreens(validScreens);
         return { success: true };
       } catch (error) {
-        console.error('Error setting custom screens:', error);
+        logFailedOperation(`Error setting custom screens: ${String(error)}`);
         return { success: false, error: error.message };
       }
     }
@@ -815,9 +872,8 @@ function setupIPCHandlers() {
       // set-custom-screens: a non-array payload would otherwise silently
       // wipe out every saved match.
       if (!Array.isArray(savedMatchSettings)) {
-        console.error(
-          'Rejected set-saved-match-settings: expected an array, got',
-          typeof savedMatchSettings
+        logError(
+          `Rejected set-saved-match-settings: expected an array, got ${typeof savedMatchSettings}`
         );
         return {
           success: false,
@@ -827,16 +883,17 @@ function setupIPCHandlers() {
       const validSettings = matchSettingsListSchema.parse(savedMatchSettings);
       const droppedCount = savedMatchSettings.length - validSettings.length;
       if (droppedCount > 0) {
-        console.error(
-          'Dropped malformed saved match settings entries on write:',
-          droppedCount
+        logError(
+          `Dropped malformed saved match settings entries on write: ${droppedCount}`
         );
       }
       try {
         setSavedMatchSettings(validSettings);
         return { success: true };
       } catch (error) {
-        console.error('Error setting saved match settings:', error);
+        logFailedOperation(
+          `Error setting saved match settings: ${String(error)}`
+        );
         return { success: false, error: error.message };
       }
     }
@@ -852,7 +909,7 @@ function setupIPCHandlers() {
       const updates = await checkForUpdates();
       return { success: true, updates };
     } catch (error) {
-      console.error('Check for updates failed:', error);
+      logFailedOperation(`Check for updates failed: ${String(error)}`);
       return { success: false, error: error.message };
     }
   });
@@ -864,15 +921,15 @@ function setupIPCHandlers() {
     try {
       const parsed = new URL(url);
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        console.error('Blocked non-http(s) URL from opening in browser:', url);
+        logError(`Blocked non-http(s) URL from opening in browser: ${url}`);
         return;
       }
     } catch {
-      console.error('Blocked invalid URL from opening in browser:', url);
+      logError(`Blocked invalid URL from opening in browser: ${url}`);
       return;
     }
     shell.openExternal(url).catch((error) => {
-      console.error('Failed to open URL in browser:', error);
+      logError(`Failed to open URL in browser: ${String(error)}`);
     });
   });
 
@@ -888,6 +945,184 @@ function setupIPCHandlers() {
     keyboardShortcutsDisabled = true;
     unregisterKeyboardShortcuts();
     unregisterGlobalKeyboardShortcuts();
+  });
+
+  // Operator-action event from the undo choke point (see store/undo.ts's
+  // captureUndo). Validated the same way every other IPC boundary is: a
+  // malformed payload (not even matching the shape) is dropped rather than
+  // crashing the handler or polluting the log with garbage. This is a pure
+  // observability side-channel, it never feeds back into undo/redo.
+  ipcMain.on('log-match-event', (_, payload) => {
+    const parsed = matchEventLogSchema.safeParse(payload);
+    if (!parsed.success) return;
+    logMatchEvent(parsed.data.action, parsed.data.source ?? 'laptop');
+  });
+
+  // Assembles and saves the one-click support bundle. See
+  // main-functions/diagnostics.ts for the report contents/sanitization; the
+  // PIN is never read out of getRemoteControlStatus() here, only the fields
+  // sanitizeRemoteControlStatus explicitly picks.
+  ipcMain.handle(
+    'export-diagnostics',
+    async (): Promise<ExportDiagnosticsResult> => {
+      try {
+        const now = new Date();
+        const report = buildDiagnosticsReport({
+          generatedAt: now.toISOString(),
+          versions: {
+            app: app.getVersion(),
+            electron: process.versions.electron ?? 'unknown',
+            chrome: process.versions.chrome ?? 'unknown',
+            node: process.versions.node ?? 'unknown',
+          },
+          os: {
+            platform: os.platform(),
+            arch: os.arch(),
+            release: os.release(),
+          },
+          // Serialized through the same zod schemas used everywhere else
+          // settings cross a trust boundary, so a diagnostics export can
+          // never surface a corrupt in-memory field verbatim.
+          appSettings: appSettingsSchema.parse(cachedAppSettings),
+          matchSettings: matchSetingsSchema.parse(cachedMatchSettings),
+          browserSourceStatus: {
+            running: isBrowserSourceServerRunning(),
+            port:
+              getBrowserSourceServerPort() ??
+              getBrowserSourceSettings(cachedAppSettings).port,
+            error: browserSourceError,
+          },
+          remoteControlStatus: sanitizeRemoteControlStatus(
+            getRemoteControlStatus()
+          ),
+          recentLog: getLogger().getRecentEntries(),
+          recentMatchEvents: getLogger().getRecentMatchEvents(),
+          recentFailedOperations: getLogger().getRecentFailedOperations(),
+        });
+
+        const dialogOptions = {
+          title: 'Export diagnostics',
+          defaultPath: suggestedDiagnosticsFileName(now),
+          filters: [{ name: 'Text', extensions: ['txt'] }],
+        };
+        const dialogResult = mainWindow
+          ? await dialog.showSaveDialog(mainWindow, dialogOptions)
+          : await dialog.showSaveDialog(dialogOptions);
+
+        if (dialogResult.canceled || !dialogResult.filePath) {
+          return { cancelled: true };
+        }
+
+        fs.writeFileSync(dialogResult.filePath, report, 'utf8');
+        logInfo(`Exported diagnostics to ${dialogResult.filePath}`);
+        return { cancelled: false, path: dialogResult.filePath };
+      } catch (error) {
+        logFailedOperation(`Failed to export diagnostics: ${String(error)}`);
+        return { cancelled: false, error: 'Failed to export diagnostics' };
+      }
+    }
+  );
+
+  // The "Go live check": gathers every raw signal the operator would
+  // otherwise have to remember to check by hand (which screen the output is
+  // on, whether the optional servers actually started, whether a logo file
+  // went missing, disk space) and hands them to the pure evaluator. This
+  // handler and everything it calls is read-only: it never moves a window,
+  // starts/stops a server, or touches match state, it only looks and
+  // reports. Re-run by the UI every time the modal opens.
+  ipcMain.handle('run-preflight', async (): Promise<PreflightResult> => {
+    const displays = screen.getAllDisplays();
+    const controlWindowScreenId =
+      mainWindow && !mainWindow.isDestroyed()
+        ? screen.getDisplayMatching(mainWindow.getBounds()).id
+        : null;
+    const displayWindowScreenId =
+      displayWindow && !displayWindow.isDestroyed()
+        ? screen.getDisplayMatching(displayWindow.getBounds()).id
+        : null;
+
+    const browserSourceSettings = getBrowserSourceSettings(cachedAppSettings);
+    const remoteControlSettings = getRemoteControlSettings(cachedAppSettings);
+
+    // Custom screens/overlays already reconcile against disk on every read
+    // (see storage.ts); team logos have no equivalent check anywhere else in
+    // the app, so this is the first place that ever verifies they still
+    // exist. Logo paths are stored as file:// URLs (see fileHandler.ts's
+    // saveImageFile), fileURLToPath is wrapped in a try/catch since a
+    // corrupt/foreign URL should be treated as "nothing to check" rather
+    // than crashing the whole preflight run. Uses the read-only
+    // reconciliation (not getCustomScreensReconciliation): this handler must
+    // never write back or delete anything just from being run, so it only
+    // reports what's dropped rather than persisting the cleaned-up list.
+    const { dropped: droppedCustomScreens } = reconcileCustomScreensReadOnly();
+    const toLogoPath = (url?: string): string | null => {
+      if (!url) return null;
+      try {
+        return fileURLToPath(url);
+      } catch {
+        return null;
+      }
+    };
+    const { homeMissing, awayMissing } = findMissingTeamLogos(
+      {
+        home: toLogoPath(cachedMatchSettings.homeTeamLogo),
+        away: toLogoPath(cachedMatchSettings.awayTeamLogo),
+      },
+      fs.existsSync
+    );
+
+    let freeDiskBytes: number | null = null;
+    try {
+      const stats = await fs.promises.statfs(app.getPath('userData'));
+      freeDiskBytes = stats.bavail * stats.bsize;
+    } catch (error) {
+      // statfs can be unsupported on some platform/Node combinations, or the
+      // path can be briefly unreadable; either way this check degrades to
+      // "unknown" (see evaluateDiskSpace) rather than failing the whole
+      // preflight run.
+      logError(
+        `Could not determine free disk space for preflight: ${String(error)}`
+      );
+      freeDiskBytes = null;
+    }
+
+    return evaluatePreflightChecks({
+      displays: {
+        screenCount: displays.length,
+        controlWindowScreenId,
+        displayWindowScreenId,
+      },
+      displayWindowExists:
+        displayWindow !== null && !displayWindow.isDestroyed(),
+      displayWindowReady,
+      browserSource: {
+        enabled: browserSourceSettings.enabled,
+        running: isBrowserSourceServerRunning(),
+        port: getBrowserSourceServerPort() ?? browserSourceSettings.port,
+        error: browserSourceError,
+      },
+      remoteControl: {
+        enabled: remoteControlSettings.enabled,
+        running: isRemoteControlServerRunning(),
+        port: getRemoteControlServerPort() ?? remoteControlSettings.port,
+        error: remoteControlError,
+      },
+      missingAssets: {
+        homeTeamLogoMissing: homeMissing,
+        awayTeamLogoMissing: awayMissing,
+        missingScreenTitles: droppedCustomScreens.map((screen) => screen.title),
+      },
+      failedShortcuts: Array.from(
+        new Set([
+          ...lastFailedFocusAccelerators,
+          ...lastFailedGlobalAccelerators,
+        ])
+      ),
+      freeDiskBytes,
+      diskWarningThresholdBytes: DEFAULT_DISK_WARNING_THRESHOLD_BYTES,
+      hasUnresolvedLiveMatch:
+        liveMatchAtLaunch !== undefined && !liveMatchResolved,
+    });
   });
 }
 
@@ -940,7 +1175,7 @@ const registerKeyboardShortcuts = () => {
         mainWindow?.webContents.send(channel);
       });
     } catch (error) {
-      console.error(`Invalid keyboard shortcut "${accelerator}":`, error);
+      logError(`Invalid keyboard shortcut "${accelerator}": ${String(error)}`);
     }
     if (registered) {
       registeredFocusAccelerators.push(accelerator);
@@ -949,8 +1184,9 @@ const registerKeyboardShortcuts = () => {
     }
   });
 
+  lastFailedFocusAccelerators = failed;
   if (failed.length > 0) {
-    console.error('Failed to register keyboard shortcut(s):', failed);
+    logError(`Failed to register keyboard shortcut(s): ${failed.join(', ')}`);
   }
 };
 
@@ -979,9 +1215,8 @@ const registerGlobalKeyboardShortcuts = () => {
         mainWindow?.webContents.send(channel);
       });
     } catch (error) {
-      console.error(
-        `Invalid global keyboard shortcut "${globalAccelerator}":`,
-        error
+      logError(
+        `Invalid global keyboard shortcut "${globalAccelerator}": ${String(error)}`
       );
     }
     if (registered) {
@@ -991,8 +1226,11 @@ const registerGlobalKeyboardShortcuts = () => {
     }
   });
 
+  lastFailedGlobalAccelerators = failed;
   if (failed.length > 0) {
-    console.error('Failed to register global keyboard shortcut(s):', failed);
+    logError(
+      `Failed to register global keyboard shortcut(s): ${failed.join(', ')}`
+    );
   }
 };
 
@@ -1005,6 +1243,9 @@ const unregisterGlobalKeyboardShortcuts = () => {
 
 // App ready event
 app.on('ready', async () => {
+  // A single lifecycle marker per launch, so a diagnostics export's log tail
+  // makes it obvious where one session ended and the next began.
+  logInfo(`PlayOverlay v${app.getVersion()} starting up`);
   // Initialize cached settings from storage so display gets something sane immediately
   try {
     const storedApp = await getAppSettings();
@@ -1161,6 +1402,7 @@ app.on('before-quit', () => {
 });
 
 app.on('will-quit', () => {
+  logInfo('PlayOverlay shutting down');
   flushLiveMatch();
   globalShortcut.unregisterAll();
   void stopBrowserSourceServer();

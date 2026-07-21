@@ -17,6 +17,8 @@ import {
   RemoteControlStatus,
 } from './types';
 import { MatchSettings } from './zodSchemas';
+import { ExportDiagnosticsResult } from './main-functions/diagnostics';
+import { PreflightResult } from './main-functions/preflight';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateScores: (scores: Scores) => ipcRenderer.send('update-score', scores),
@@ -185,4 +187,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Handshake for initial state sync from main to display
   displayReady: () => ipcRenderer.send('display-ready'),
+
+  // Mirrors a recorded operator action (see the undo store's captureUndo
+  // choke point) into the main process's durable log / diagnostics ring
+  // buffer. Fire-and-forget: actions are infrequent, never per-frame state.
+  logMatchEvent: (action: string, source?: string) =>
+    ipcRenderer.send('log-match-event', { action, source }),
+
+  // Assembles and saves the one-click support bundle (see
+  // main-functions/diagnostics.ts). Resolves once the save dialog has closed
+  // (or been cancelled) and the file (if any) has been written.
+  exportDiagnostics: (): Promise<ExportDiagnosticsResult> =>
+    ipcRenderer.invoke('export-diagnostics'),
+
+  // The "Go live check": gathers every signal and evaluates the checklist in
+  // the main process (see main-functions/preflight.ts), returning the
+  // already-evaluated result. Read-only: never moves a window, starts/stops
+  // a server, or changes match state. Re-invoked every time the modal opens.
+  runPreflight: (): Promise<PreflightResult> =>
+    ipcRenderer.invoke('run-preflight'),
 });

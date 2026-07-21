@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Verificação antes de transmitir",
+    "runAgain": "Repetir verificação",
+    "running": "A verificar…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Ativado, mas não está em funcionamento: {{error}}",
+      "off": "Não ativado. Ative esta opção em Definições do sistema se o OBS precisar.",
+      "running": "Em funcionamento na porta {{port}}.",
+      "title": "Fonte de vídeo do navegador OBS"
+    },
+    "crashRecovery": {
+      "found": "Existe um jogo por terminar guardado de uma sessão anterior. Restaure-o a partir da notificação no painel, ou dispense-o, antes de iniciar um novo.",
+      "none": "Não existe nenhum jogo por terminar de uma sessão anterior.",
+      "title": "Jogo anterior"
+    },
+    "diskSpace": {
+      "low": "Pouco espaço livre em disco ({{freeMb}} MB). O PlayOverlay pode ter dificuldade em guardar o jogo.",
+      "ok": "Espaço livre em disco suficiente.",
+      "title": "Espaço em disco",
+      "unknown": "Não foi possível verificar o espaço livre em disco neste sistema."
+    },
+    "displayWindowReady": {
+      "notReady": "A janela de saída ainda não carregou. Aguarde um momento, ou reponha as janelas em Definições de janela.",
+      "ready": "A janela de saída está aberta e pronta.",
+      "title": "Janela de saída"
+    },
+    "displays": {
+      "sameScreen": "A janela de saída e a janela de controlo estão no mesmo ecrã. Mova a janela de saída para o segundo ecrã antes do pontapé de saída.",
+      "separated": "A janela de saída está no seu próprio ecrã, separada da janela de controlo.",
+      "singleScreen": "Foi detetado apenas um ecrã. Ainda é possível enviar o marcador para o OBS como fonte de navegador.",
+      "title": "Segundo ecrã"
+    },
+    "missingAssets": {
+      "awayLogo": "logótipo da equipa visitante",
+      "homeLogo": "logótipo da equipa da casa",
+      "missing": "Em falta: {{count}} ({{titles}}). Verifique Definições da equipa e Gráficos personalizados.",
+      "ok": "Todos os logótipos e gráficos estão presentes.",
+      "title": "Logótipos e gráficos das equipas"
+    },
+    "remoteControl": {
+      "failed": "Ativado, mas não está em funcionamento: {{error}}",
+      "off": "Não ativado. Ative esta opção em Definições do sistema se for usado um telemóvel.",
+      "running": "Em funcionamento na porta {{port}}.",
+      "title": "Comando pelo telemóvel"
+    },
+    "shortcuts": {
+      "failed": "Não registado(s): {{count}} ({{accelerators}}), provavelmente já usado por outra aplicação.",
+      "ok": "Todos os atalhos de teclado estão registados.",
+      "title": "Atalhos de teclado"
+    }
+  },
+  "modal": {
+    "intro": "Uma verificação rápida antes do pontapé de saída. Apenas observa, nunca altera nada.",
+    "loadError": "Não foi possível efetuar a verificação. Tente novamente.",
+    "summary": {
+      "allClear": "Tudo em ordem, já é possível transmitir.",
+      "problems": "Problemas a resolver antes de transmitir: {{count}}.",
+      "warnings": "Pontos a verificar antes do pontapé de saída: {{count}}."
+    },
+    "title": "Verificação antes de transmitir"
+  }
+}

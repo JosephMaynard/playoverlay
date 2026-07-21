@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Verificação antes de transmitir",
+    "runAgain": "Repetir verificação",
+    "running": "Verificando…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Ativado, mas não está em execução: {{error}}",
+      "off": "Não ativado. Ative essa opção em Configurações do sistema se o OBS precisar.",
+      "running": "Em execução na porta {{port}}.",
+      "title": "Fonte de vídeo do navegador OBS"
+    },
+    "crashRecovery": {
+      "found": "Há uma partida não concluída salva de uma sessão anterior. Restaure-a a partir da notificação no painel, ou dispense-a, antes de iniciar uma nova.",
+      "none": "Nenhuma partida não concluída de uma sessão anterior.",
+      "title": "Partida anterior"
+    },
+    "diskSpace": {
+      "low": "Pouco espaço livre em disco ({{freeMb}} MB). O PlayOverlay pode ter dificuldade para salvar a partida.",
+      "ok": "Espaço livre em disco suficiente.",
+      "title": "Espaço em disco",
+      "unknown": "Não foi possível verificar o espaço livre em disco neste sistema."
+    },
+    "displayWindowReady": {
+      "notReady": "A janela de saída ainda não carregou. Aguarde um momento, ou redefina as janelas em Configurações de janela.",
+      "ready": "A janela de saída está aberta e pronta.",
+      "title": "Janela de saída"
+    },
+    "displays": {
+      "sameScreen": "A janela de saída e a janela de controle estão na mesma tela. Mova a janela de saída para a segunda tela antes do pontapé inicial.",
+      "separated": "A janela de saída está na própria tela, separada da janela de controle.",
+      "singleScreen": "Foi detectada apenas uma tela. Ainda é possível enviar o placar para o OBS como fonte de navegador.",
+      "title": "Segunda tela"
+    },
+    "missingAssets": {
+      "awayLogo": "logotipo do time visitante",
+      "homeLogo": "logotipo do time da casa",
+      "missing": "Faltando: {{count}} ({{titles}}). Verifique Configurações da equipe e Gráficos personalizados.",
+      "ok": "Todos os logotipos e gráficos estão presentes.",
+      "title": "Logotipos e gráficos dos times"
+    },
+    "remoteControl": {
+      "failed": "Ativado, mas não está em execução: {{error}}",
+      "off": "Não ativado. Ative essa opção em Configurações do sistema se um celular for usado.",
+      "running": "Em execução na porta {{port}}.",
+      "title": "Controle pelo celular"
+    },
+    "shortcuts": {
+      "failed": "Não registrado(s): {{count}} ({{accelerators}}), provavelmente já em uso por outro aplicativo.",
+      "ok": "Todos os atalhos de teclado estão registrados.",
+      "title": "Atalhos de teclado"
+    }
+  },
+  "modal": {
+    "intro": "Uma verificação rápida antes do pontapé inicial. Apenas observa, nunca altera nada.",
+    "loadError": "Não foi possível fazer a verificação. Tente novamente.",
+    "summary": {
+      "allClear": "Tudo certo, já é possível transmitir.",
+      "problems": "Problemas a resolver antes de transmitir: {{count}}.",
+      "warnings": "Pontos a verificar antes do pontapé inicial: {{count}}."
+    },
+    "title": "Verificação antes de transmitir"
+  }
+}

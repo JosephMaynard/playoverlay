@@ -19,6 +19,14 @@
       "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS-Browserquelle"
     },
+    "diagnostics": {
+      "cancelled": "Export abgebrochen.",
+      "error": "Diagnoseexport fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "export": "Diagnose exportieren",
+      "hint": "Erstellt eine Textdatei mit App-Informationen und den letzten Protokollen, um ein Problem zu diagnostizieren. Unbedenklich zum Teilen, enthält keine Passwörter.",
+      "savedTo": "Gespeichert unter {{path}}",
+      "title": "Diagnose"
+    },
     "displays": {
       "moveToScreen": "Auf Bildschirm {{n}} verschieben",
       "none": "Keine externen Bildschirme erkannt."

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RocketLaunchIcon } from '@heroicons/react/24/outline';
 
 import {
   Scores,
@@ -8,6 +9,7 @@ import {
   homeOrAway,
   LiveMatch,
   MatchPhase,
+  MatchState,
   SideMenuType,
 } from '../../types';
 import {
@@ -27,6 +29,7 @@ import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
+import PreflightModal from '../Preflight/PreflightModal';
 import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
@@ -42,6 +45,11 @@ import { useMatchStateStore } from '../../store/matchState';
 import { useAppSettingsStore } from '../../store/appSettings';
 import { useTimeStore } from '../../store/time';
 import { useCustomGraphicsStore } from '../../store/customGraphics';
+import {
+  useUndoStore,
+  selectCanUndo,
+  isTextEntryTarget,
+} from '../../store/undo';
 import logo from '../../assets/playoverlay-logo.svg';
 
 export default function Dashboard() {
@@ -51,6 +59,7 @@ export default function Dashboard() {
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
     null
   );
+  const [preflightOpen, setPreflightOpen] = useState(false);
 
   const clock = useMatchClock();
 
@@ -77,6 +86,19 @@ export default function Dashboard() {
   const setCustomGraphics = useCustomGraphicsStore(
     (state) => state.setCustomGraphics
   );
+
+  // Undo/redo. captureUndo/undo/redo/registerClockResync are stable store
+  // methods; canUndo is subscribed so the penalty panel's shared "Undo"
+  // button enables/disables with the stack.
+  const captureUndo = useUndoStore((state) => state.captureUndo);
+  // undo is wired to the penalty panel's shared "Undo" button; the keyboard
+  // shortcut reads undo/redo fresh from getState() instead (see below), so
+  // redo needs no render-scope binding here.
+  const undo = useUndoStore((state) => state.undo);
+  const registerClockResync = useUndoStore(
+    (state) => state.registerClockResync
+  );
+  const canUndo = useUndoStore(selectCanUndo);
 
   // Check for updates on launch
   useEffect(() => {
@@ -219,6 +241,48 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Let the undo store re-anchor the match clock after a restore. The clock's
+  // running value is derived from an internal anchor (see useMatchClock), so
+  // restoring the time store alone is not enough; undo()/redo() call this to
+  // continue ticking from the restored value (or stay paused). Cleared on
+  // unmount via the returned unregister.
+  useEffect(() => {
+    return registerClockResync(clock.resyncToTime);
+  }, [registerClockResync, clock.resyncToTime]);
+
+  // App-level (renderer window) undo/redo shortcuts, active while the control
+  // window has focus. Deliberately separate from the global-OS accelerators
+  // registered in main.ts. Mount-only: the handler reads undo/redo fresh from
+  // the store's getState() so it never closes over stale references, and the
+  // listener is torn down on unmount so a remount can't double-bind.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      if (event.key.toLowerCase() !== 'z') return;
+
+      // Inside a text field, leave the browser's native text undo/redo alone
+      // rather than hijacking Ctrl/Cmd+Z for the match. Check both the event
+      // target and the active element so a keydown that bubbles up from an
+      // editable element is still recognised.
+      if (
+        isTextEntryTarget(event.target) ||
+        isTextEntryTarget(document.activeElement)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      if (event.shiftKey) {
+        useUndoStore.getState().redo();
+      } else {
+        useUndoStore.getState().undo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const fetchScreens = async () => {
     try {
       const storedScreens = await window?.electronAPI?.getCustomScreens();
@@ -319,15 +383,21 @@ export default function Dashboard() {
     setRestorableMatch(null);
   };
 
-  const setPenalties = (penalties: Penalty[]) => {
-    const updatedScores: Scores = {
-      ...scores,
-      penalties,
-    };
-    setScores(updatedScores);
+  // Penalty add/reset flows through here so it lands on the SAME undo stack as
+  // everything else (the panel's own "Undo" button delegates to the global
+  // undo, see PenaltiesPanel). The caller passes the i18n label for the
+  // specific change (scored/missed/reset). captureUndo runs first, snapshotting
+  // the pre-change state.
+  const setPenalties = (penalties: Penalty[], label: string) => {
+    // Penalties live inside the scores slice, so penalty edits are scores-only:
+    // undoing one never touches the clock.
+    captureUndo(label, ['scores']);
+    const prevScores = useScoresStore.getState().scores;
+    setScores({ ...prevScores, penalties });
   };
 
   const incrementHomeTeamScore = () => {
+    captureUndo('undo:actions.homeGoal', ['scores']);
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     const updatedScores = {
@@ -338,6 +408,7 @@ export default function Dashboard() {
   };
 
   const incrementAwayTeamScore = () => {
+    captureUndo('undo:actions.awayGoal', ['scores']);
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     const updatedScores = {
@@ -350,22 +421,29 @@ export default function Dashboard() {
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
   // drive the score negative. Clears any pending restore prompt first, exactly
   // like the increment handlers and the manual score edits, so a stale restore
-  // snapshot can never overwrite a correction made from the phone.
+  // snapshot can never overwrite a correction made from the phone. When the
+  // score is already 0 there is nothing to remove, so it's a full no-op and
+  // captures no undo entry (an undo that visibly changes nothing is worse than
+  // no entry at all).
   const decrementHomeTeamScore = () => {
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
+    if (prevScores.homeTeam <= 0) return;
+    captureUndo('undo:actions.homeGoalRemoved', ['scores']);
     setScores({
       ...prevScores,
-      homeTeam: Math.max(0, prevScores.homeTeam - 1),
+      homeTeam: prevScores.homeTeam - 1,
     });
   };
 
   const decrementAwayTeamScore = () => {
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
+    if (prevScores.awayTeam <= 0) return;
+    captureUndo('undo:actions.awayGoalRemoved', ['scores']);
     setScores({
       ...prevScores,
-      awayTeam: Math.max(0, prevScores.awayTeam - 1),
+      awayTeam: prevScores.awayTeam - 1,
     });
   };
 
@@ -380,17 +458,71 @@ export default function Dashboard() {
   const toggleClock = () => {
     const { matchPhase, paused } = useTimeStore.getState().time;
     if (matchPhase === undefined) return;
+    // Pause/resume only flips time.paused, so these are time-only: undoing a
+    // pause resumes the clock, undoing a resume pauses it, nothing else moves.
     if (paused) {
+      captureUndo('undo:actions.resumeClock', ['time']);
       clock.resume();
     } else {
+      captureUndo('undo:actions.pauseClock', ['time']);
       clock.pause();
     }
+  };
+
+  // Screen switch (operator's own screen buttons and the phone remote both
+  // funnel through here). A screen switch only changes matchState, so it is
+  // matchState-only: undoing it never touches the clock or the score.
+  const switchDisplayScreen = (update: Partial<MatchState>) => {
+    captureUndo('undo:actions.switchScreen', ['matchState']);
+    setMatchState(update);
   };
 
   // Phone-remote on-air screen switch. Same setter (and the same clearing of
   // any pinned custom-screen image) as the operator's screen buttons.
   const setDisplayScreen = (displayScreen: DisplayScreen) => {
-    setMatchState({ displayScreen, customScreenImageUrl: undefined });
+    switchDisplayScreen({ displayScreen, customScreenImageUrl: undefined });
+  };
+
+  // Capturing wrappers for the operator's own clock/phase controls (Time
+  // panel, System menu). Each records the pre-action snapshot then delegates
+  // to the core clock action. The keyboard/Stream Deck/phone paths funnel
+  // through their own handlers (nextMatchPhase, toggleClock) which capture
+  // once themselves, so no action is ever captured twice.
+  // Starting and stopping a phase both set the clock AND matchState (the phase
+  // itself, previousMatchPhase, and the auto-switched display screen), so they
+  // capture the time + matchState slices together, exactly like nextMatchPhase.
+  // Undoing them correctly restores both the phase and its clock; this is the
+  // one family of actions where restoring the clock on undo is the right thing.
+  const handleStartPhase = (matchPhase: MatchPhase) => {
+    captureUndo('undo:actions.startClock', ['time', 'matchState']);
+    startTime(matchPhase);
+  };
+
+  const handleStopClock = () => {
+    captureUndo('undo:actions.stopClock', ['time', 'matchState']);
+    clock.stopTime();
+  };
+
+  const handlePauseClock = () => {
+    captureUndo('undo:actions.pauseClock', ['time']);
+    clock.pause();
+  };
+
+  const handleResumeClock = () => {
+    captureUndo('undo:actions.resumeClock', ['time']);
+    clock.resume();
+  };
+
+  const handleAdjustTime = (difference: number) => {
+    captureUndo('undo:actions.adjustTime', ['time']);
+    clock.adjustTime(difference);
+  };
+
+  const handleSetAdditionalTime = (additionalTime?: number) => {
+    captureUndo('undo:actions.additionalTime', ['time']);
+    // setTime merges; spreading the render-scope time here would overwrite a
+    // fresher tick with stale clock strings.
+    setTime({ additionalTime: additionalTime || undefined });
   };
 
   const nextMatchPhase = () => {
@@ -403,6 +535,11 @@ export default function Dashboard() {
     const nextPhase = getNextPhaseId(phaseList, matchPhase, previousMatchPhase);
 
     if (nextPhase) {
+      // captureUndo before mutating; startTime here is the CORE (non-capturing)
+      // handler, so advancing the phase records exactly one undo entry even
+      // though the operator's own phase buttons capture through handleStartPhase.
+      // Advancing a phase sets both the clock and the phase, so both slices.
+      captureUndo('undo:actions.nextPhase', ['time', 'matchState']);
       // startTime (and the clock hook underneath it) handles the matchState
       // update and the auto-switch-screens behaviour.
       startTime(nextPhase);
@@ -413,6 +550,7 @@ export default function Dashboard() {
       // finished (matchPhase already undefined) is a no-op, otherwise it
       // would overwrite previousMatchPhase and let the match restart from
       // the first phase.
+      captureUndo('undo:actions.nextPhase', ['time', 'matchState']);
       clock.stopTime();
     }
   };
@@ -433,8 +571,19 @@ export default function Dashboard() {
               />
             </Preview>
             <div className="lg:overflow-y-auto lg:p-4">
+              <div className="mx-4 mb-4 lg:mx-auto">
+                <button
+                  type="button"
+                  onClick={() => setPreflightOpen(true)}
+                  className="flex w-full items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-green-500"
+                >
+                  <RocketLaunchIcon className="h-5 w-5" aria-hidden="true" />
+                  {t('preflight:action.openButton')}
+                </button>
+              </div>
               <DisplayControlsPanel
                 updateMatchState={setMatchState}
+                switchScreen={switchDisplayScreen}
                 matchState={matchState}
                 customGraphics={customGraphics}
                 matchSettings={matchSettings}
@@ -445,17 +594,13 @@ export default function Dashboard() {
             <TimeControlPanel
               time={time}
               matchSettings={matchSettings}
-              pause={clock.pause}
-              resume={clock.resume}
-              adjustTime={clock.adjustTime}
+              pause={handlePauseClock}
+              resume={handleResumeClock}
+              adjustTime={handleAdjustTime}
               isPaused={clock.paused}
-              setAdditionalTime={(additionalTime: number) =>
-                // setTime merges; spreading the render-scope time here
-                // would overwrite a fresher tick with stale clock strings
-                setTime({ additionalTime: additionalTime || undefined })
-              }
-              startTime={startTime}
-              stopTime={clock.stopTime}
+              setAdditionalTime={handleSetAdditionalTime}
+              startTime={handleStartPhase}
+              stopTime={handleStopClock}
               autoSwitchScreens={appSettings.autoSwitchScreens}
               setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
                 updateAppSettings({ autoSwitchScreens })
@@ -465,8 +610,13 @@ export default function Dashboard() {
               matchSettings={matchSettings}
               scores={scores}
               time={time}
+              incrementHomeTeamScore={incrementHomeTeamScore}
+              incrementAwayTeamScore={incrementAwayTeamScore}
               updateScore={(updatedScores: Scores) => {
-                // Editing the score supersedes the restore offer
+                // Capture before mutating, then edit (scores-only, so undoing a
+                // manual correction never touches the clock). Editing the score
+                // also supersedes the restore offer.
+                captureUndo('undo:actions.scoreEdit', ['scores']);
                 setRestorableMatch(null);
                 setScores(updatedScores);
               }}
@@ -480,6 +630,8 @@ export default function Dashboard() {
                   setMatchState({ penaltiesFirstTeam })
                 }
                 matchSettings={matchSettings}
+                onUndo={undo}
+                canUndo={canUndo}
               />
             )}
           </div>
@@ -509,15 +661,16 @@ export default function Dashboard() {
           setOpen={closeSideMenu}
           incrementHomeTeamScore={incrementHomeTeamScore}
           incrementAwayTeamScore={incrementAwayTeamScore}
-          stopTime={clock.stopTime}
+          stopTime={handleStopClock}
           matchSettings={matchSettings}
-          startTime={startTime}
-          updateMatchState={setMatchState}
+          startTime={handleStartPhase}
+          updateMatchState={switchDisplayScreen}
           matchState={matchState}
           time={time}
           appSettings={appSettings}
           updateAppSettings={updateAppSettings}
         />
+        <PreflightModal open={preflightOpen} setOpen={setPreflightOpen} />
       </div>
       <div
         aria-live="assertive"

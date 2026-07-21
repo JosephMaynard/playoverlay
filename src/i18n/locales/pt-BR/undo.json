@@ -1,0 +1,26 @@
+{
+  "actions": {
+    "additionalTime": "o tempo adicional",
+    "adjustTime": "o ajuste do tempo",
+    "awayGoal": "o gol visitante",
+    "awayGoalRemoved": "a remoção do gol visitante",
+    "homeGoal": "o gol da casa",
+    "homeGoalRemoved": "a remoção do gol da casa",
+    "nextPhase": "a mudança de período",
+    "pauseClock": "a pausa do cronômetro",
+    "penaltiesReset": "a redefinição dos pênaltis",
+    "penaltyMissed": "o pênalti perdido",
+    "penaltyScored": "o pênalti convertido",
+    "resumeClock": "a retomada do cronômetro",
+    "scoreEdit": "a alteração do placar",
+    "startClock": "o início do cronômetro",
+    "stopClock": "a parada do cronômetro",
+    "switchScreen": "a mudança de tela"
+  },
+  "button": {
+    "nothingToRedo": "Nada para refazer",
+    "nothingToUndo": "Nada para desfazer",
+    "redo": "Refazer {{action}}",
+    "undo": "Desfazer {{action}}"
+  }
+}

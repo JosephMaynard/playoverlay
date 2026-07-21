@@ -28,7 +28,7 @@
     "resetPenalties": "Réinitialiser les tirs au but",
     "score": "Marqué",
     "teamFirst": "{{team}} en premier",
-    "undoPenalty": "Annuler le tir au but"
+    "undoLastAction": "Annuler la dernière action"
   },
   "scoreInput": {
     "decreaseScoreAria": "Diminuer le score de {{team}}",

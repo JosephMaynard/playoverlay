@@ -19,6 +19,14 @@
       "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS Browser Source"
     },
+    "diagnostics": {
+      "cancelled": "Export cancelled.",
+      "error": "Failed to export diagnostics. Please try again.",
+      "export": "Export diagnostics",
+      "hint": "Creates a text file with app info and recent logs to help diagnose a problem, safe to share, contains no passwords.",
+      "savedTo": "Saved to {{path}}",
+      "title": "Diagnostics"
+    },
     "displays": {
       "moveToScreen": "Move to Screen {{n}}",
       "none": "No external displays detected."

@@ -19,6 +19,14 @@
       "statusWithError": "Estado: {{state}}, {{error}}",
       "title": "Fonte de vídeo do navegador OBS"
     },
+    "diagnostics": {
+      "cancelled": "Exportação cancelada.",
+      "error": "Não foi possível exportar o diagnóstico. Tente novamente.",
+      "export": "Exportar diagnóstico",
+      "hint": "Cria um ficheiro de texto com informações da aplicação e registos recentes para ajudar a diagnosticar um problema. Seguro para partilhar, não contém palavras-passe.",
+      "savedTo": "Guardado em {{path}}",
+      "title": "Diagnóstico"
+    },
     "displays": {
       "moveToScreen": "Mover para o ecrã {{n}}",
       "none": "Não foram detetados ecrãs externos."

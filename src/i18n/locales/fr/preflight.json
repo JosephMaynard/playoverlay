@@ -1,0 +1,65 @@
+{
+  "action": {
+    "openButton": "Vérification avant diffusion",
+    "runAgain": "Relancer",
+    "running": "Vérification en cours…"
+  },
+  "checks": {
+    "browserSource": {
+      "failed": "Activé mais non fonctionnel : {{error}}",
+      "off": "Non activé. Activez cette option dans Paramètres système si OBS en a besoin.",
+      "running": "Fonctionne sur le port {{port}}.",
+      "title": "Source navigateur OBS"
+    },
+    "crashRecovery": {
+      "found": "Un match inachevé a été enregistré lors d'une session précédente. Restaurez-le depuis la notification du tableau de bord, ou ignorez-le, avant d'en commencer un nouveau.",
+      "none": "Aucun match inachevé d'une session précédente.",
+      "title": "Match précédent"
+    },
+    "diskSpace": {
+      "low": "L'espace disque libre est faible ({{freeMb}} Mo). PlayOverlay pourrait avoir du mal à enregistrer votre match.",
+      "ok": "Espace disque libre suffisant.",
+      "title": "Espace disque",
+      "unknown": "Impossible de vérifier l'espace disque libre sur ce système."
+    },
+    "displayWindowReady": {
+      "notReady": "La fenêtre de diffusion n'a pas encore chargé. Patientez un instant, ou réinitialisez les fenêtres depuis Paramètres de fenêtre.",
+      "ready": "La fenêtre de diffusion est ouverte et prête.",
+      "title": "Fenêtre de diffusion"
+    },
+    "displays": {
+      "sameScreen": "La fenêtre de diffusion et la fenêtre de contrôle sont sur le même écran. Déplacez la fenêtre de diffusion sur le second écran avant le coup d'envoi.",
+      "separated": "La fenêtre de diffusion est sur son propre écran, séparée de la fenêtre de contrôle.",
+      "singleScreen": "Un seul écran détecté. Vous pouvez toujours envoyer le tableau des scores à OBS via une source navigateur.",
+      "title": "Second écran"
+    },
+    "missingAssets": {
+      "awayLogo": "logo de l'équipe visiteuse",
+      "homeLogo": "logo de l'équipe à domicile",
+      "missing": "Manquant(s) : {{count}} ({{titles}}). Vérifiez Paramètres de l'équipe et Graphiques personnalisés.",
+      "ok": "Tous les logos et graphiques sont présents.",
+      "title": "Logos et graphiques d'équipe"
+    },
+    "remoteControl": {
+      "failed": "Activé mais non fonctionnel : {{error}}",
+      "off": "Non activé. Activez cette option dans Paramètres système si un téléphone doit être utilisé.",
+      "running": "Fonctionne sur le port {{port}}.",
+      "title": "Télécommande mobile"
+    },
+    "shortcuts": {
+      "failed": "Non enregistré(s) : {{count}} ({{accelerators}}), probablement déjà utilisé(s) par une autre application.",
+      "ok": "Tous les raccourcis clavier sont enregistrés.",
+      "title": "Raccourcis clavier"
+    }
+  },
+  "modal": {
+    "intro": "Une vérification rapide avant le coup d'envoi. Cela ne fait qu'observer, cela ne change jamais rien.",
+    "loadError": "Impossible d'effectuer la vérification. Réessayez.",
+    "summary": {
+      "allClear": "Tout est en ordre, vous êtes prêt à diffuser.",
+      "problems": "Problèmes à résoudre avant de diffuser : {{count}}.",
+      "warnings": "Points à vérifier avant le coup d'envoi : {{count}}."
+    },
+    "title": "Vérification avant diffusion"
+  }
+}

@@ -3,11 +3,13 @@ import {
   ClockIcon,
   AdjustmentsHorizontalIcon,
   PencilIcon,
+  RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import logo from '../../assets/playoverlay-logo.svg';
 
-export type Icon = 'warning' | 'clock' | 'adjust' | 'edit' | 'playoverlay-logo';
+export type Icon =
+  'warning' | 'clock' | 'adjust' | 'edit' | 'playoverlay-logo' | 'rocket';
 
 export interface Props {
   icon: Icon;
@@ -46,6 +48,16 @@ export default function ModalIcon({ icon }: Props) {
     return (
       <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
         <PencilIcon className="h-6 w-6 text-indigo-600" aria-hidden="true" />
+      </div>
+    );
+  }
+  if (icon === 'rocket') {
+    return (
+      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+        <RocketLaunchIcon
+          className="h-6 w-6 text-indigo-600"
+          aria-hidden="true"
+        />
       </div>
     );
   }
