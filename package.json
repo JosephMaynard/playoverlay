@@ -55,7 +55,7 @@
     "vitest": "^4.1.10"
   },
   "keywords": [],
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "dependencies": {
     "@elgato-stream-deck/webhid": "^7.6.3",
     "electron-squirrel-startup": "^1.0.0",
