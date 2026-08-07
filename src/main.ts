@@ -9,6 +9,7 @@ import {
   shell,
   globalShortcut,
 } from 'electron';
+import squirrelStartup from 'electron-squirrel-startup';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -132,8 +133,9 @@ export const showDevTools = isDev && SHOW_DEV_TOOLS;
 initLogger(app.getPath('userData'));
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  console.log('electron-squirrel-startup');
+// Imported (not require'd) so it is bundled into main.js: the packaged app
+// ships no node_modules, so a runtime require would fail to resolve.
+if (squirrelStartup) {
   app.quit();
 }
 

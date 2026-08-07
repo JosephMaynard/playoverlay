@@ -1,11 +1,23 @@
 import { builtinModules } from 'node:module';
 import type { AddressInfo } from 'node:net';
 import type { ConfigEnv, Plugin, UserConfig } from 'vite';
-import pkg from './package.json';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
-export const external = [...builtins, ...Object.keys('dependencies' in pkg ? (pkg.dependencies as Record<string, unknown>) : {})];
+// Optional native addons that `ws` requires inside a try/catch. They are not
+// installed (ws works without them), so keep them external rather than letting
+// Rollup fail to resolve them while bundling ws.
+const optionalNativeModules = ['bufferutil', 'utf-8-validate'];
+
+// Only Electron, Node builtins, and those optional native addons are left
+// external. Every other dependency is BUNDLED into the main and preload
+// output. The electron-forge Vite template externalises all dependencies and
+// relies on node_modules being present in the packaged app.asar, but the Vite
+// plugin does not ship them, so the packaged app crashed on launch with
+// "Cannot find module 'zod'" (the first dependency the main process requires).
+// The main and preload processes use no native modules, so bundling is safe
+// and makes the packaged app self-contained.
+export const external = [...builtins, ...optionalNativeModules];
 
 export function getBuildConfig(env: ConfigEnv<'build'>): UserConfig {
   const { root, mode, command } = env;
