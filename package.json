@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "generate:licenses": "generate-license-file --input package.json --output ./THIRD_PARTY_NOTICES.md --overwrite",
-    "build:ci": "electron-forge package"
+    "build:ci": "electron-forge package",
+    "smoke:packaged": "node scripts/smoke-test-packaged.mjs"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.11.2",
