@@ -814,10 +814,30 @@ function setupIPCHandlers() {
     event.reply('lock-status-info', getLockStatus());
   });
 
+  // Upload payloads cross the renderer trust boundary, so their shape is
+  // checked before any helper runs. Structured-clone IPC delivers the
+  // preload's Buffer as a plain Uint8Array, which is what is required here.
+  // Both handlers also catch rather than let an exception escape: a throw
+  // inside an ipcMain.handle callback only reaches the renderer as a generic
+  // rejection and Electron's stderr, never main.log or the diagnostics
+  // export, which made the v0.19/v0.20 upload failure invisible in the field.
   ipcMain.handle(
     'upload-image',
-    async (_, buffer: Buffer, fileName: string, title: string) => {
-      return await handleFileUpload(buffer, fileName, title);
+    async (_, buffer: unknown, fileName: unknown, title: unknown) => {
+      if (
+        !(buffer instanceof Uint8Array) ||
+        typeof fileName !== 'string' ||
+        typeof title !== 'string'
+      ) {
+        logError('Rejected upload-image: malformed upload payload');
+        return null;
+      }
+      try {
+        return await handleFileUpload(buffer, fileName, title);
+      } catch (error) {
+        logFailedOperation(`Error uploading image: ${String(error)}`);
+        return null;
+      }
     }
   );
 
@@ -825,9 +845,21 @@ function setupIPCHandlers() {
     return handleFileDeletion(filePath);
   });
 
-  ipcMain.handle('upload-logo', async (_, buffer: Buffer, fileName: string) => {
-    return saveImageFile(buffer, fileName);
-  });
+  ipcMain.handle(
+    'upload-logo',
+    async (_, buffer: unknown, fileName: unknown) => {
+      if (!(buffer instanceof Uint8Array) || typeof fileName !== 'string') {
+        logError('Rejected upload-logo: malformed upload payload');
+        return null;
+      }
+      try {
+        return saveImageFile(buffer, fileName);
+      } catch (error) {
+        logFailedOperation(`Error uploading logo: ${String(error)}`);
+        return null;
+      }
+    }
+  );
 
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();

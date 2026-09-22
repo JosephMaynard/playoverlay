@@ -93,6 +93,26 @@ describe('fileHandler', () => {
     expect(setCustomScreens).not.toHaveBeenCalled();
   });
 
+  // Regression: Electron's structured-clone IPC delivers the preload's Buffer
+  // to the main process as a plain Uint8Array. The content sniff used to call
+  // Buffer-only methods on it and threw, so every logo and custom-screen
+  // upload failed in the packaged app from v0.19.0 to v0.20.1.
+  it('saveImageFile accepts the Uint8Array that Electron IPC delivers in place of a Buffer', async () => {
+    const { fileHandler, imagesPath } = await loadFileHandler();
+    const png = validPngBuffer('over-ipc');
+    const asUint8Array = new Uint8Array(png.buffer, png.byteOffset, png.length);
+    expect(Buffer.isBuffer(asUint8Array)).toBe(false);
+
+    const result = fileHandler.saveImageFile(asUint8Array, 'logo.png');
+    const expectedPath = path.join(imagesPath, 'logo.png');
+
+    expect(result).toEqual({
+      filePath: expectedPath,
+      url: convertFilePathToUrl(expectedPath),
+    });
+    expect(fs.readFileSync(expectedPath)).toEqual(png);
+  });
+
   it('saveImageFile returns null when the write fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, imagesPath } = await loadFileHandler();
@@ -430,6 +450,52 @@ describe('fileHandler', () => {
 
       expect(
         fileHandler.isValidImageBuffer(validPngBuffer('data'), 'photo.gif')
+      ).toBe(false);
+    });
+
+    it('sniffs every format from a plain Uint8Array, including a view with a non-zero byte offset', async () => {
+      const { fileHandler } = await loadFileHandler();
+      // Prefix junk and take a view past it, so a naive Buffer.from(view.buffer)
+      // that ignored byteOffset would see the junk and fail the sniff.
+      const asOffsetView = (bytes: Buffer): Uint8Array => {
+        const padded = Buffer.concat([Buffer.from('junk'), bytes]);
+        return new Uint8Array(
+          padded.buffer,
+          padded.byteOffset + 4,
+          bytes.length
+        );
+      };
+      const jpeg = Buffer.concat([
+        Buffer.from([0xff, 0xd8, 0xff]),
+        Buffer.from('rest'),
+      ]);
+      const webp = Buffer.concat([
+        Buffer.from('RIFF', 'ascii'),
+        Buffer.from([0, 0, 0, 0]),
+        Buffer.from('WEBP', 'ascii'),
+      ]);
+      const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>');
+
+      expect(
+        fileHandler.isValidImageBuffer(
+          asOffsetView(validPngBuffer('d')),
+          'a.png'
+        )
+      ).toBe(true);
+      expect(fileHandler.isValidImageBuffer(asOffsetView(jpeg), 'a.jpg')).toBe(
+        true
+      );
+      expect(fileHandler.isValidImageBuffer(asOffsetView(webp), 'a.webp')).toBe(
+        true
+      );
+      expect(fileHandler.isValidImageBuffer(asOffsetView(svg), 'a.svg')).toBe(
+        true
+      );
+      expect(
+        fileHandler.isValidImageBuffer(
+          asOffsetView(Buffer.from('text')),
+          'a.png'
+        )
       ).toBe(false);
     });
   });
