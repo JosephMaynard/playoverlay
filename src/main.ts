@@ -814,10 +814,19 @@ function setupIPCHandlers() {
     event.reply('lock-status-info', getLockStatus());
   });
 
+  // Both upload handlers catch rather than let an exception escape: a throw
+  // inside an ipcMain.handle callback only reaches the renderer as a generic
+  // rejection and Electron's stderr, never main.log or the diagnostics
+  // export, which made the v0.19/v0.20 upload failure invisible in the field.
   ipcMain.handle(
     'upload-image',
-    async (_, buffer: Buffer, fileName: string, title: string) => {
-      return await handleFileUpload(buffer, fileName, title);
+    async (_, buffer: Uint8Array, fileName: string, title: string) => {
+      try {
+        return await handleFileUpload(buffer, fileName, title);
+      } catch (error) {
+        logFailedOperation(`Error uploading image: ${String(error)}`);
+        return null;
+      }
     }
   );
 
@@ -825,9 +834,17 @@ function setupIPCHandlers() {
     return handleFileDeletion(filePath);
   });
 
-  ipcMain.handle('upload-logo', async (_, buffer: Buffer, fileName: string) => {
-    return saveImageFile(buffer, fileName);
-  });
+  ipcMain.handle(
+    'upload-logo',
+    async (_, buffer: Uint8Array, fileName: string) => {
+      try {
+        return saveImageFile(buffer, fileName);
+      } catch (error) {
+        logFailedOperation(`Error uploading logo: ${String(error)}`);
+        return null;
+      }
+    }
+  );
 
   ipcMain.handle('get-custom-screens', () => {
     return getCustomScreens();

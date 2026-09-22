@@ -50,6 +50,17 @@ export function hasAllowedImageExtension(fileName: string): boolean {
   return ALLOWED_IMAGE_EXTENSIONS.has(path.extname(fileName).toLowerCase());
 }
 
+// Electron serialises IPC arguments with the structured clone algorithm, so
+// the Buffer the preload script sends arrives in the main process as a plain
+// Uint8Array. Uint8Array has no Buffer methods (equals, toString('utf8')),
+// so every consumer below normalises through here before touching the data.
+// Wrapping the same memory is zero-copy; nothing is duplicated.
+function toBuffer(data: Buffer | Uint8Array): Buffer {
+  return Buffer.isBuffer(data)
+    ? data
+    : Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+}
+
 // Minimal magic-byte signatures for the raster formats accepted above. This
 // doesn't attempt full format validation, just enough to catch a mislabeled
 // or non-image file (e.g. a renamed executable) before it ever reaches disk.
@@ -88,7 +99,11 @@ function looksLikeSvg(buffer: Buffer): boolean {
 // Confirms the buffer's actual content matches the claimed image extension,
 // so a mislabeled or non-image file is refused even when its file name ends
 // in an allowed extension. Pure and testable: no filesystem access.
-export function isValidImageBuffer(buffer: Buffer, fileName: string): boolean {
+export function isValidImageBuffer(
+  data: Buffer | Uint8Array,
+  fileName: string
+): boolean {
+  const buffer = toBuffer(data);
   switch (path.extname(fileName).toLowerCase()) {
     case '.png':
       return looksLikePng(buffer);
@@ -105,9 +120,10 @@ export function isValidImageBuffer(buffer: Buffer, fileName: string): boolean {
 }
 
 export function saveImageFile(
-  buffer: Buffer,
+  data: Buffer | Uint8Array,
   fileName: string
 ): { filePath: string; url: string } | null {
+  const buffer = toBuffer(data);
   // fileName can come from an IPC caller, resolve away any directory
   // components so it can't escape the images dir (e.g. via '../../etc').
   const safeFileName = path.basename(fileName);
@@ -152,7 +168,7 @@ export function saveImageFile(
 }
 
 export async function handleFileUpload(
-  buffer: Buffer,
+  buffer: Buffer | Uint8Array,
   fileName: string,
   title: string
 ): Promise<string | null> {
