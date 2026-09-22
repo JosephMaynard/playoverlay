@@ -16,6 +16,8 @@ import path from 'node:path';
 const DEBUG_PORT = 9222;
 const STARTUP_TIMEOUT_MS = 45000;
 const POLL_INTERVAL_MS = 1000;
+// Bound for each CDP round trip so a half-open socket cannot hang the poll.
+const CDP_TIMEOUT_MS = 5000;
 const OUT_DIR = 'out';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,30 +41,56 @@ function findPackagedBinary() {
   return null;
 }
 
+// Wraps a promise so it rejects after CDP_TIMEOUT_MS or when the socket
+// closes, whichever comes first. The timer is cleared on settlement.
+function withCdpBound(ws, label, promise) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`CDP ${label} timed out`)),
+      CDP_TIMEOUT_MS
+    );
+    const onClose = () =>
+      reject(new Error(`CDP socket closed during ${label}`));
+    ws.addEventListener('close', onClose);
+    promise.then(resolve, reject).finally(() => {
+      clearTimeout(timer);
+      ws.removeEventListener('close', onClose);
+    });
+  });
+}
+
 // One-shot CDP eval over the target's WebSocket, resolving the returned value.
 async function evaluateInPage(webSocketDebuggerUrl, expression) {
   const ws = new WebSocket(webSocketDebuggerUrl);
   try {
-    await new Promise((resolve, reject) => {
-      ws.onopen = resolve;
-      ws.onerror = () => reject(new Error('CDP socket error'));
-    });
-    return await new Promise((resolve, reject) => {
-      const id = 1;
-      ws.addEventListener('message', (event) => {
-        const data = JSON.parse(event.data);
-        if (data.id !== id) return;
-        if (data.error) reject(new Error(JSON.stringify(data.error)));
-        else resolve(data.result?.result?.value);
-      });
-      ws.send(
-        JSON.stringify({
-          id,
-          method: 'Runtime.evaluate',
-          params: { expression, returnByValue: true },
-        })
-      );
-    });
+    await withCdpBound(
+      ws,
+      'connect',
+      new Promise((resolve, reject) => {
+        ws.onopen = resolve;
+        ws.onerror = () => reject(new Error('CDP socket error'));
+      })
+    );
+    return await withCdpBound(
+      ws,
+      'Runtime.evaluate',
+      new Promise((resolve, reject) => {
+        const id = 1;
+        ws.addEventListener('message', (event) => {
+          const data = JSON.parse(event.data);
+          if (data.id !== id) return;
+          if (data.error) reject(new Error(JSON.stringify(data.error)));
+          else resolve(data.result?.result?.value);
+        });
+        ws.send(
+          JSON.stringify({
+            id,
+            method: 'Runtime.evaluate',
+            params: { expression, returnByValue: true },
+          })
+        );
+      })
+    );
   } finally {
     ws.close();
   }
@@ -75,13 +103,21 @@ async function evaluateInPage(webSocketDebuggerUrl, expression) {
 async function waitForRenderedWindow(child) {
   const deadline = Date.now() + STARTUP_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) {
-      throw new Error(
-        `App exited before a window appeared (code ${child.exitCode})`
-      );
+    // A signal-killed process (e.g. SIGSEGV) has a null exitCode, so check
+    // both or the loop would keep polling a dead app until the timeout.
+    if (child.exitCode !== null || child.signalCode !== null) {
+      const how =
+        child.signalCode !== null
+          ? `signal ${child.signalCode}`
+          : `code ${child.exitCode}`;
+      throw new Error(`App exited before a window appeared (${how})`);
     }
     try {
-      const res = await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`);
+      const res = await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`, {
+        signal: AbortSignal.timeout(
+          Math.max(1, Math.min(CDP_TIMEOUT_MS, deadline - Date.now()))
+        ),
+      });
       const targets = await res.json();
       // The control window titles itself "PlayOverlay"; the display window is
       // "PlayOverlay - Display Window". Prefer the control window.
@@ -126,9 +162,19 @@ async function main() {
   let output = '';
   child.stdout.on('data', (d) => (output += d));
   child.stderr.on('data', (d) => (output += d));
+  // A failed spawn (ENOENT, EACCES, ...) surfaces as an 'error' event. Route it
+  // into the same failure path as a crash instead of an unhandled event.
+  const spawnFailed = new Promise((_, reject) => {
+    child.on('error', (err) =>
+      reject(new Error(`Failed to launch app: ${err.message}`))
+    );
+  });
 
   try {
-    const result = await waitForRenderedWindow(child);
+    const result = await Promise.race([
+      waitForRenderedWindow(child),
+      spawnFailed,
+    ]);
     console.log(
       `OK: window "${result.title}" rendered (#root has ${result.rootChildren} children).`
     );
@@ -146,4 +192,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(`SMOKE TEST FAILED: ${error?.stack ?? error}`);
+  process.exitCode = 1;
+});
