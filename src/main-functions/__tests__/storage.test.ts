@@ -162,6 +162,64 @@ describe('storage', () => {
     expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
   });
 
+  it('persists migrated legacy settings so a second read still returns them', async () => {
+    // Startup reads match settings twice: once in the main process, then
+    // again when the dashboard asks over IPC.
+    const legacySettings: MatchSettings = {
+      homeTeamNameFull: 'Reds',
+      homeTeamNameAbbreviated: 'RED',
+      awayTeamNameFull: 'Blues',
+      awayTeamNameAbbreviated: 'BLU',
+      venue: 'The Park',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: legacySettings,
+    });
+    const expected = { ...defaultMatchSettings, ...legacySettings };
+
+    expect(storage.getMatchSettings()).toEqual(expected);
+    expect(storage.getMatchSettings()).toEqual(expected);
+    expect(stores[0].store.MATCH_SETTINGS).toEqual(expected);
+    expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
+  });
+
+  it('keeps the legacy key when persisting the migrated settings fails', async () => {
+    const legacySettings: MatchSettings = {
+      homeTeamNameFull: 'Reds',
+      homeTeamNameAbbreviated: 'RED',
+      awayTeamNameFull: 'Blues',
+      awayTeamNameAbbreviated: 'BLU',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: legacySettings,
+    });
+    stores[0].set = () => {
+      throw new Error('disk full');
+    };
+
+    expect(() => storage.getMatchSettings()).toThrow('disk full');
+    expect(stores[0].store.TEAM_SETTINGS).toEqual(legacySettings);
+  });
+
+  it('ignores corrupt legacy settings and reads the current ones', async () => {
+    const savedSettings: MatchSettings = {
+      homeTeamNameFull: 'Current',
+      homeTeamNameAbbreviated: 'CUR',
+      awayTeamNameFull: 'Visitors',
+      awayTeamNameAbbreviated: 'VIS',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: { homeTeamNameFull: 'Incomplete' },
+      MATCH_SETTINGS: savedSettings,
+    });
+
+    expect(storage.getMatchSettings()).toEqual({
+      ...defaultMatchSettings,
+      ...savedSettings,
+    });
+    expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
+  });
+
   it('falls back to default match settings when saved data is invalid', async () => {
     const { storage } = await loadStorage({
       MATCH_SETTINGS: {

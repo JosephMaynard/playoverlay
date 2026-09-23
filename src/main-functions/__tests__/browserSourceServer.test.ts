@@ -311,6 +311,69 @@ describe('browser source server lifecycle', () => {
     expect(() => stopBrowserSourceServer()).not.toThrow();
   });
 
+  it('survives a malformed frame from a client and keeps serving others', async () => {
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: '/tmp/does-not-matter',
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort()!;
+
+    // Complete a real WebSocket handshake over a raw TCP socket, then send an
+    // UNMASKED text frame, which the protocol forbids from clients. ws
+    // reports it as an 'error' on the server-side socket; unhandled, that
+    // throws in the main process.
+    const raw = net.connect(port, '127.0.0.1');
+    await new Promise<void>((resolve, reject) => {
+      raw.on('error', reject);
+      raw.once('connect', () => {
+        raw.write(
+          'GET / HTTP/1.1\r\n' +
+            `Host: 127.0.0.1:${port}\r\n` +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n' +
+            'Sec-WebSocket-Version: 13\r\n\r\n'
+        );
+      });
+      raw.once('data', (data) => {
+        expect(data.toString()).toContain('101');
+        resolve();
+      });
+    });
+    const closed = new Promise<void>((resolve) => raw.on('close', resolve));
+    raw.write(Buffer.from([0x81, 0x02, 0x68, 0x69]));
+    await closed;
+
+    expect(isBrowserSourceServerRunning()).toBe(true);
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    await new Promise<void>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('open', () => resolve());
+    });
+    client.close();
+  });
+
+  it('disconnects a client that sends an oversized message', async () => {
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: '/tmp/does-not-matter',
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort()!;
+
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    const closeCode = await new Promise<number>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('close', (code) => resolve(code));
+      client.on('open', () => client.send('x'.repeat(64 * 1024)));
+    });
+
+    // 1009: message too big.
+    expect(closeCode).toBe(1009);
+    expect(isBrowserSourceServerRunning()).toBe(true);
+  });
+
   it('binds only to 127.0.0.1, not all interfaces', async () => {
     await startBrowserSourceServer({
       port: 0,

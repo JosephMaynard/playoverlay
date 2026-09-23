@@ -23,7 +23,9 @@ import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import Screens from '../Screens/Screens';
 import ScoresPanel from '../ScoresPanel/ScoresPanel';
-import DisplayControlsPanel from './DisplayControlsPanel';
+import DisplayControlsPanel, {
+  reconcileActiveOverlays,
+} from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
@@ -69,6 +71,9 @@ export default function Dashboard() {
   const setMatchSettings = useMatchSettingsStore(
     (state) => state.setMatchSettings
   );
+  const replaceStoredMatchSettings = useMatchSettingsStore(
+    (state) => state.replaceMatchSettings
+  );
   const matchState = useMatchStateStore((state) => state.matchState);
   const setMatchState = useMatchStateStore((state) => state.setMatchState);
   const appSettings = useAppSettingsStore((state) => state.appSettings);
@@ -86,6 +91,10 @@ export default function Dashboard() {
   const setCustomGraphics = useCustomGraphicsStore(
     (state) => state.setCustomGraphics
   );
+  // Until the library has actually been read, an empty customGraphics means
+  // "not loaded yet", not "every graphic was deleted", so active overlays are
+  // only reconciled against it once this is set.
+  const [customGraphicsLoaded, setCustomGraphicsLoaded] = useState(false);
 
   // Undo/redo. captureUndo/undo/redo/registerClockResync are stable store
   // methods; canUndo is subscribed so the penalty panel's shared "Undo"
@@ -213,6 +222,7 @@ export default function Dashboard() {
     const unsubscribe = window?.electronAPI?.onCustomScreensUpdated(
       (updatedScreens) => {
         setCustomGraphics(updatedScreens || []);
+        setCustomGraphicsLoaded(true);
       }
     );
 
@@ -249,6 +259,28 @@ export default function Dashboard() {
   useEffect(() => {
     return registerClockResync(clock.resyncToTime);
   }, [registerClockResync, clock.resyncToTime]);
+
+  // Active overlays are copies of library entries, so a rename, a screen-link
+  // edit, a delete or a switch to full-screen in Custom Screens would
+  // otherwise leave a stale copy on air (and, for a rename, one the
+  // operator's toggle could no longer take off). An undo can also bring back
+  // an overlay list from before such an edit. Not recorded as an undo step:
+  // it only follows the library, it isn't an operator action.
+  useEffect(() => {
+    if (!customGraphicsLoaded) return;
+    const reconciled = reconcileActiveOverlays(
+      matchState.overlays ?? [],
+      customGraphics
+    );
+    if (reconciled) {
+      setMatchState({ overlays: reconciled });
+    }
+  }, [
+    customGraphicsLoaded,
+    customGraphics,
+    matchState.overlays,
+    setMatchState,
+  ]);
 
   // App-level (renderer window) undo/redo shortcuts, active while the control
   // window has focus. Deliberately separate from the global-OS accelerators
@@ -287,6 +319,7 @@ export default function Dashboard() {
     try {
       const storedScreens = await window?.electronAPI?.getCustomScreens();
       setCustomGraphics(storedScreens || []);
+      setCustomGraphicsLoaded(true);
     } catch (error) {
       console.error('Failed to fetch custom screens:', error);
     }
@@ -314,13 +347,9 @@ export default function Dashboard() {
   // Settings changes that remove the running phase, timer mode switch,
   // extra time off, fewer periods, stop the clock instead of leaving it
   // orphaned on a phase id that no longer exists.
-  const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
-    const mergedSettings = {
-      ...useMatchSettingsStore.getState().matchSettings,
-      ...settingsUpdate,
-    };
+  const reconcileClockWithSettings = (nextSettings: MatchSettings) => {
     const { matchPhase } = useTimeStore.getState().time;
-    const newPhaseList = getPhaseList(mergedSettings);
+    const newPhaseList = getPhaseList(nextSettings);
     if (
       matchPhase !== undefined &&
       !newPhaseList.some((phase) => phase.id === matchPhase)
@@ -338,7 +367,21 @@ export default function Dashboard() {
     ) {
       setMatchState({ previousMatchPhase: undefined });
     }
+  };
+
+  const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
+    reconcileClockWithSettings({
+      ...useMatchSettingsStore.getState().matchSettings,
+      ...settingsUpdate,
+    });
     setMatchSettings(settingsUpdate);
+  };
+
+  // Restoring a saved fixture replaces the settings wholesale (see the
+  // store's replaceMatchSettings) but still gets the same clock check.
+  const replaceMatchSettings = (settings: MatchSettings) => {
+    reconcileClockWithSettings(settings);
+    replaceStoredMatchSettings(settings);
   };
 
   // Starting a phase supersedes any offer to restore a previous match. That
@@ -363,7 +406,7 @@ export default function Dashboard() {
       // getPhaseList. A failed parse falls back to the current settings.
       const parsed = matchSetingsSchema.safeParse(liveMatch.matchSettings);
       if (parsed.success) {
-        setMatchSettings({ ...defaultMatchSettings, ...parsed.data });
+        replaceStoredMatchSettings({ ...defaultMatchSettings, ...parsed.data });
       }
     }
     setScores(liveMatch.scores);
@@ -491,8 +534,9 @@ export default function Dashboard() {
   // Starting and stopping a phase both set the clock AND matchState (the phase
   // itself, previousMatchPhase, and the auto-switched display screen), so they
   // capture the time + matchState slices together, exactly like nextMatchPhase.
-  // Undoing them correctly restores both the phase and its clock; this is the
-  // one family of actions where restoring the clock on undo is the right thing.
+  // Undoing them restores both the phase and its clock. As with every time
+  // restore, a clock that was running is carried forward by the time since
+  // (see undo.ts), so undoing never rewinds real match time.
   const handleStartPhase = (matchPhase: MatchPhase) => {
     captureUndo('undo:actions.startClock', ['time', 'matchState']);
     startTime(matchPhase);
@@ -641,6 +685,7 @@ export default function Dashboard() {
           setSidebarOpen={closeSideMenu}
           matchSettings={matchSettings}
           updateMatchSettings={updateMatchSettings}
+          replaceMatchSettings={replaceMatchSettings}
           appSettings={appSettings}
         />
         <CustomScreensMenu

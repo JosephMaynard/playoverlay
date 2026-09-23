@@ -91,9 +91,10 @@ const MAX_PAIRING_FAILURES = 5;
 const PAIRING_COOLDOWN_MS = 30000;
 
 // Pairing/command frames are tiny JSON objects. Anything larger is not
-// something this protocol ever sends, so it's dropped unread rather than
-// parsed, so a hostile client can't make the main process allocate on a huge
-// buffer.
+// something this protocol ever sends. The WebSocketServer's maxPayload
+// enforces this while frames are still arriving (ws closes the connection),
+// so an unpaired client on the LAN can't make the main process buffer a huge
+// message; handleMessage re-checks it before parsing as a second line.
 const MAX_MESSAGE_BYTES = 4096;
 
 // Constant-time PIN comparison. crypto.timingSafeEqual requires equal-length
@@ -359,7 +360,10 @@ export function startRemoteControlServer(
       pairingFailureTimestamps = [];
       pairingCooldownUntil = 0;
 
-      wss = new WebSocketServer({ server: httpServer });
+      wss = new WebSocketServer({
+        server: httpServer,
+        maxPayload: MAX_MESSAGE_BYTES,
+      });
       wss.on('connection', (socket) => {
         // Every socket starts UNPAIRED. It must send a valid {type:'pair', pin}
         // before any command it sends is honoured.

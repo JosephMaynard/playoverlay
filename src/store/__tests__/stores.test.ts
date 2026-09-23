@@ -100,6 +100,20 @@ describe('Zustand stores', () => {
     expect(api.updateMatchSettings).toHaveBeenCalledWith(expectedSettings);
   });
 
+  it('replaces match settings wholesale, dropping omitted optional fields', () => {
+    const api = installElectronAPI();
+    useMatchSettingsStore.getState().setMatchSettings({
+      homeTeamLogo: 'file:///images/old-home.png',
+      venue: 'Old Ground',
+    });
+
+    const replacement = { ...defaultMatchSettings, homeTeamNameFull: 'Rovers' };
+    useMatchSettingsStore.getState().replaceMatchSettings(replacement);
+
+    expect(useMatchSettingsStore.getState().matchSettings).toEqual(replacement);
+    expect(api.updateMatchSettings).toHaveBeenLastCalledWith(replacement);
+  });
+
   it('merges match state updates and notifies Electron', () => {
     const api = installElectronAPI();
 

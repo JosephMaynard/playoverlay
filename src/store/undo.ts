@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { MatchState, Scores, Time } from '../types';
+import { parseTimeToSeconds, timeToString } from '../utils';
 import { useScoresStore } from './scores';
 import { useTimeStore } from './time';
 import { useMatchStateStore } from './matchState';
@@ -16,6 +17,13 @@ import { useMatchStateStore } from './matchState';
 // 42:00, the clock must stay at 42:00, not rewind five minutes. Restoring the
 // time slice happens ONLY when the action actually moved the clock (a clock
 // action, or a phase advance which sets both the phase and its clock).
+//
+// Even then, the real match kept running while the operator noticed the
+// mistake. A restore puts the state back as if the action had never happened:
+// if the clock was running when the snapshot was taken, it is carried forward
+// by the wall-clock time since, instead of rewinding to the captured value.
+// Setting +3 at 45:00 and undoing at 47:00 leaves the clock at 47:00 with the
+// +3 removed.
 
 export type UndoSlice = 'scores' | 'time' | 'matchState';
 
@@ -38,6 +46,9 @@ export interface UndoEntry {
   // Optional origin of the action (e.g. 'keyboard', 'phone'), unused by the
   // core logic but available for diagnostics/telemetry later.
   source?: string;
+  // Date.now() when the snapshot was taken, so a restore of a running clock
+  // can be carried forward by the time that has passed since.
+  capturedAt: number;
 }
 
 // The clock is system-clock driven (see useMatchClock): its running value is
@@ -125,6 +136,21 @@ function fullTime(time: Time): Time {
   };
 }
 
+// A snapshot of a running clock (phase active, not paused) advanced by the
+// wall-clock time since it was taken. A stopped or paused clock didn't move,
+// so it restores exactly as captured.
+function carryClockForward(time: Time, capturedAt: number): Time {
+  if (time.matchPhase === undefined || time.paused || !time.time) return time;
+
+  const elapsedSeconds = Math.round((Date.now() - capturedAt) / 1000);
+  if (elapsedSeconds <= 0) return time;
+
+  return {
+    ...time,
+    time: timeToString(parseTimeToSeconds(time.time) + elapsedSeconds),
+  };
+}
+
 function fullMatchState(matchState: MatchState): MatchState {
   return {
     displayScreen: matchState.displayScreen,
@@ -163,11 +189,12 @@ function restoreEntry(entry: UndoEntry, clockResync: ClockResync | null) {
       .setMatchState(fullMatchState(snapshot.matchState));
   }
   if (entry.slices.includes('time') && snapshot.time) {
-    useTimeStore.getState().setTime(fullTime(snapshot.time));
+    const time = carryClockForward(snapshot.time, entry.capturedAt);
+    useTimeStore.getState().setTime(fullTime(time));
     // Re-anchor the match clock to the restored time (continue ticking if the
     // restored phase was active and not paused, stay paused otherwise). Only
     // reached when the time slice is part of this restore.
-    clockResync?.(snapshot.time);
+    clockResync?.(time);
   }
 }
 
@@ -192,6 +219,7 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
       slices,
       label,
       source,
+      capturedAt: Date.now(),
     };
     const nextStack = [...get().undoStack, entry];
     // Bound the history, dropping the oldest entries first.
@@ -223,6 +251,7 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
       slices: entry.slices,
       label: entry.label,
       source: entry.source,
+      capturedAt: Date.now(),
     };
 
     set({
@@ -243,6 +272,7 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
       slices: entry.slices,
       label: entry.label,
       source: entry.source,
+      capturedAt: Date.now(),
     };
 
     set({

@@ -5,6 +5,7 @@ import { timeToString } from '../../../utils';
 import { useMatchSettingsStore } from '../../../store/matchSettings';
 import { useMatchStateStore } from '../../../store/matchState';
 import { useTimeStore } from '../../../store/time';
+import { useUndoStore } from '../../../store/undo';
 import useMatchClock from '../useMatchClock';
 
 // resyncToTime is the hook's undo/redo re-anchoring path (see Dashboard.tsx's
@@ -162,5 +163,123 @@ describe('useMatchClock resyncToTime', () => {
     });
 
     expect(useTimeStore.getState().time.time).toBeUndefined();
+  });
+});
+
+// The real clock hook wired to the real undo store, as Dashboard wires them:
+// undo must remove the operator's edit without rewinding match time that
+// really elapsed in the meantime.
+describe('useMatchClock with undo', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    seedStores();
+    useUndoStore.setState({ undoStack: [], redoStack: [], clockResync: null });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function startFirstHalfAt(seconds: number) {
+    const hook = renderHook(() => useMatchClock());
+    act(() => {
+      useUndoStore
+        .getState()
+        .registerClockResync(hook.result.current.resyncToTime);
+      hook.result.current.startTime('firstHalf');
+      hook.result.current.adjustTime(seconds);
+    });
+    return hook;
+  }
+
+  it('undoing additional time keeps the clock where the match has got to', () => {
+    startFirstHalfAt(45 * 60);
+    const { captureUndo, undo, redo } = useUndoStore.getState();
+
+    act(() => {
+      captureUndo('undo:actions.additionalTime', ['time']);
+      useTimeStore.getState().setTime({ additionalTime: 3 });
+    });
+    act(() => {
+      vi.advanceTimersByTime(120_000);
+    });
+    expect(useTimeStore.getState().time.time).toBe('47:00');
+
+    act(() => undo());
+
+    expect(useTimeStore.getState().time.time).toBe('47:00');
+    expect(useTimeStore.getState().time.additionalTime).toBeUndefined();
+    expect(useTimeStore.getState().time.remainingTime).toBe('+2:00');
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(useTimeStore.getState().time.time).toBe('47:01');
+
+    // Redo puts the +3 back, again without moving the clock.
+    act(() => {
+      vi.advanceTimersByTime(9000);
+    });
+    act(() => redo());
+    expect(useTimeStore.getState().time.time).toBe('47:10');
+    expect(useTimeStore.getState().time.additionalTime).toBe(3);
+  });
+
+  it('undoing a clock adjustment reverses only the adjustment', () => {
+    const { result } = startFirstHalfAt(30 * 60);
+    const { captureUndo, undo } = useUndoStore.getState();
+
+    act(() => {
+      captureUndo('undo:actions.adjustTime', ['time']);
+      result.current.adjustTime(60);
+    });
+    expect(useTimeStore.getState().time.time).toBe('31:00');
+    act(() => {
+      vi.advanceTimersByTime(90_000);
+    });
+    expect(useTimeStore.getState().time.time).toBe('32:30');
+
+    act(() => undo());
+
+    // 30:00 plus the 90 seconds that really elapsed, minus the extra minute.
+    expect(useTimeStore.getState().time.time).toBe('31:30');
+  });
+
+  it('restores a paused clock exactly as it was captured', () => {
+    const { result } = startFirstHalfAt(20 * 60);
+    const { captureUndo, undo } = useUndoStore.getState();
+
+    act(() => result.current.pause());
+    act(() => {
+      captureUndo('undo:actions.resumeClock', ['time']);
+      result.current.resume();
+    });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(useTimeStore.getState().time.time).toBe('21:00');
+
+    act(() => undo());
+
+    // The resume is undone: back to paused at 20:00, and it stays there.
+    expect(useTimeStore.getState().time.time).toBe('20:00');
+    expect(useTimeStore.getState().time.paused).toBe(true);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(useTimeStore.getState().time.time).toBe('20:00');
+  });
+
+  it('starting a phase directly clears the previous phase’s additional time', () => {
+    const { result } = startFirstHalfAt(45 * 60);
+
+    act(() => {
+      useTimeStore.getState().setTime({ additionalTime: 3 });
+    });
+    act(() => result.current.startTime('secondHalf'));
+
+    expect(useTimeStore.getState().time.matchPhase).toBe('secondHalf');
+    expect(useTimeStore.getState().time.time).toBe('45:00');
+    expect(useTimeStore.getState().time.additionalTime).toBeUndefined();
   });
 });

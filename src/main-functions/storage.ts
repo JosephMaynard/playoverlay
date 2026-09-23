@@ -148,17 +148,26 @@ export function setMatchSettings(matchSettings: MatchSettings) {
 }
 
 function getVerifiedMatchSettings(): MatchSettings {
-  const matchSettings = storage.get(MATCH_SETTINGS, defaultMatchSettings);
-
   // Handle Legacy TEAM_SETTINGS
   const legacyMatchSetting = storage.get(TEAM_SETTINGS);
-  const verifiedMatchSettings = legacyMatchSetting
-    ? matchSetingsSchema.safeParse(legacyMatchSetting)
-    : matchSetingsSchema.safeParse(matchSettings);
-
   if (legacyMatchSetting) {
+    const verifiedLegacy = matchSetingsSchema.safeParse(legacyMatchSetting);
+    if (verifiedLegacy.success === true) {
+      const migrated = { ...defaultMatchSettings, ...verifiedLegacy.data };
+      // Persist the migrated value BEFORE dropping the legacy key: startup
+      // reads match settings twice (main process, then the dashboard), and
+      // the second read must find the migrated club details, not defaults.
+      // If the write throws, the legacy key survives for the next launch.
+      storage.set(MATCH_SETTINGS, migrated);
+      storage.delete(TEAM_SETTINGS);
+      return migrated;
+    }
+    // A corrupt legacy value has nothing worth migrating.
     storage.delete(TEAM_SETTINGS);
   }
+
+  const matchSettings = storage.get(MATCH_SETTINGS, defaultMatchSettings);
+  const verifiedMatchSettings = matchSetingsSchema.safeParse(matchSettings);
 
   if (verifiedMatchSettings.success === true) {
     // Always include spread defaultMatchSettings to cover datashape updates

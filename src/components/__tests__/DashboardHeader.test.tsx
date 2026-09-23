@@ -12,7 +12,7 @@ const snapshot: MatchSnapshot = {
 };
 
 function entry(label: string): UndoEntry {
-  return { snapshot, slices: ['scores'], label };
+  return { snapshot, slices: ['scores'], label, capturedAt: 0 };
 }
 
 // The header renders each control twice (mobile top bar + desktop rail), so an

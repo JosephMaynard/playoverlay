@@ -72,6 +72,7 @@ export interface Props {
   setSidebarOpen: (sidebarOpen: boolean) => void;
   matchSettings: MatchSettings;
   updateMatchSettings: (updatedSettings: Partial<MatchSettings>) => void;
+  replaceMatchSettings: (matchSettings: MatchSettings) => void;
   appSettings: AppSettings;
 }
 
@@ -80,6 +81,7 @@ export default function MatchSettingsMenu({
   setSidebarOpen,
   matchSettings,
   updateMatchSettings,
+  replaceMatchSettings,
   appSettings,
 }: Props) {
   const { t } = useTranslation();
@@ -91,7 +93,7 @@ export default function MatchSettingsMenu({
     >
       <SavedMatchSettings
         matchSettings={matchSettings}
-        setMatchSettings={updateMatchSettings}
+        replaceMatchSettings={replaceMatchSettings}
       />
       <TeamSettings
         title={t('settings:matchMenu.homeTeam')}

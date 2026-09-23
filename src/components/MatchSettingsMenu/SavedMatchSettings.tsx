@@ -11,12 +11,12 @@ import { ArrowUpOnSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export interface Props {
   matchSettings: MatchSettings;
-  setMatchSettings: (matchSettings: MatchSettings) => void;
+  replaceMatchSettings: (matchSettings: MatchSettings) => void;
 }
 
 export default function SavedMatchSettings({
   matchSettings,
-  setMatchSettings,
+  replaceMatchSettings,
 }: Props) {
   const { t } = useTranslation();
   const [savedMatchSettingsToDelete, setSavedMatchSettingsToDelete] =
@@ -192,8 +192,9 @@ export default function SavedMatchSettings({
         action={() => {
           if (savedMatchSettingsToRestore) {
             // Restore as a replace against the defaults (not a merge into the
-            // current settings), and keep the save-slot metadata out of the
-            // live match settings.
+            // current settings, so an optional field the fixture omits, like
+            // a logo or venue, doesn't survive from the previous one), and
+            // keep the save-slot metadata out of the live match settings.
             const restoredSettings = {
               ...defaultMatchSettings,
               ...savedMatchSettingsToRestore,
@@ -201,7 +202,7 @@ export default function SavedMatchSettings({
             delete restoredSettings.saveTitle;
             delete restoredSettings.saveDate;
             delete restoredSettings.saveId;
-            setMatchSettings(restoredSettings);
+            replaceMatchSettings(restoredSettings);
           }
           setSavedMatchSettingsToRestore(null);
           setModal(null);

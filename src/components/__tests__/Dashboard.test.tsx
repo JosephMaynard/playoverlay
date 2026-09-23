@@ -624,4 +624,104 @@ describe('Dashboard match engine', () => {
       expect(stores.time.getState().time.time).toBe('0:04');
     });
   });
+
+  describe('restoring a saved fixture', () => {
+    it('replaces the settings, dropping optional details the fixture omits', async () => {
+      const { electronAPI, stores } = await renderDashboard();
+
+      act(() =>
+        stores.matchSettings.getState().setMatchSettings({
+          homeTeamLogo: 'file:///images/old-home.png',
+          venue: 'Old Ground',
+          kickOffTime: '15:00',
+        })
+      );
+      vi.mocked(electronAPI.getSavedMatchSettings).mockResolvedValue([
+        {
+          ...defaultMatchSettings,
+          homeTeamNameFull: 'Rovers',
+          homeTeamNameAbbreviated: 'ROV',
+          saveTitle: 'Rovers at home',
+          saveId: 'fixture-1',
+          saveDate: '2026-07-01T12:00:00.000Z',
+        },
+      ]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Team Settings' }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Open Saved Match Settings' })
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+      // The confirmation modal adds its own "Restore" action button.
+      const restoreButtons = screen.getAllByRole('button', {
+        name: 'Restore',
+      });
+      fireEvent.click(restoreButtons[restoreButtons.length - 1]);
+
+      const restored = stores.matchSettings.getState().matchSettings;
+      expect(restored.homeTeamNameFull).toBe('Rovers');
+      expect(restored.homeTeamLogo).toBeUndefined();
+      expect(restored.venue).toBeUndefined();
+      expect(restored.kickOffTime).toBeUndefined();
+      expect(restored.saveId).toBeUndefined();
+    });
+  });
+
+  describe('active overlays follow the graphics library', () => {
+    const sponsor = {
+      title: 'Sponsor',
+      filePath: '/images/sponsor.png',
+      url: 'file:///images/sponsor.png',
+      type: 'overlay',
+      overlayLinks: ['scoreBug'],
+    };
+
+    it('renaming an overlay on air updates it and it can still be taken off', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.customScreensUpdated?.([sponsor]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor' }));
+      expect(stores.matchState.getState().matchState.overlays).toHaveLength(1);
+
+      act(() =>
+        callbacks.customScreensUpdated?.([
+          {
+            ...sponsor,
+            title: 'Main Sponsor',
+            overlayLinks: ['scoreBug', 'matchTitle'],
+          },
+        ])
+      );
+
+      const [active] = stores.matchState.getState().matchState.overlays;
+      expect(active.title).toBe('Main Sponsor');
+      expect(active.overlayLinks).toEqual(['scoreBug', 'matchTitle']);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Main Sponsor' }));
+      expect(stores.matchState.getState().matchState.overlays).toEqual([]);
+    });
+
+    it('takes an overlay off air when it is deleted or made full-screen', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const scorer = {
+        ...sponsor,
+        title: 'Scorer',
+        filePath: '/images/scorer.png',
+        url: 'file:///images/scorer.png',
+      };
+      act(() => callbacks.customScreensUpdated?.([sponsor, scorer]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Scorer' }));
+      expect(stores.matchState.getState().matchState.overlays).toHaveLength(2);
+
+      act(() =>
+        callbacks.customScreensUpdated?.([{ ...scorer, type: 'screen' }])
+      );
+
+      expect(stores.matchState.getState().matchState.overlays).toEqual([]);
+    });
+  });
 });

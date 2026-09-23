@@ -22,6 +22,14 @@ export const timeToString = (timeInSeconds: number) => {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
 
+// Parses a "MM:SS" clock string (the inverse of timeToString) into whole
+// seconds. Shared by the clock hook's restore paths and undo's running-clock
+// compensation; callers keep their own handling of a missing time value.
+export function parseTimeToSeconds(time: string): number {
+  const [minutes, secs] = time.split(':').map(Number);
+  return (minutes || 0) * 60 + (secs || 0);
+}
+
 function hexToRGB(hex: string): [number, number, number] {
   // Convert hex to RGB
   const r = parseInt(hex.slice(1, 3), 16) / 255;

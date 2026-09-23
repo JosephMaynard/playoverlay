@@ -404,6 +404,31 @@ describe('remote control server lifecycle', () => {
     }
   });
 
+  it('disconnects an unpaired client that sends an oversized message', async () => {
+    const onCommand = vi.fn();
+    await startRemoteControlServer({
+      port: 0,
+      pin: '111111',
+      getSnapshot: () => SNAPSHOT,
+      onCommand,
+    });
+    const port = getRemoteControlServerPort()!;
+
+    // Well past the 4 KiB protocol limit: ws must refuse it while the frame
+    // is arriving rather than buffer it for handleMessage to discard.
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    const closeCode = await new Promise<number>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('close', (code) => resolve(code));
+      client.on('open', () => client.send('x'.repeat(1024 * 1024)));
+    });
+
+    // 1009: message too big.
+    expect(closeCode).toBe(1009);
+    expect(onCommand).not.toHaveBeenCalled();
+    expect(isRemoteControlServerRunning()).toBe(true);
+  });
+
   it('stop is idempotent and safe to call when nothing is running', () => {
     expect(() => stopRemoteControlServer()).not.toThrow();
     expect(() => stopRemoteControlServer()).not.toThrow();

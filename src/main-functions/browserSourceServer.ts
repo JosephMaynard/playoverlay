@@ -27,6 +27,11 @@ export interface StartBrowserSourceServerOptions {
 // displayTransport.ts, which tolerates one missed beat.
 const HEARTBEAT_INTERVAL_MS = 15000;
 
+// Browser-source clients only ever listen; nothing in the protocol flows from
+// them to the server. Cap inbound frames well below ws's 100 MiB default so a
+// misbehaving local client is disconnected instead of buffered.
+const MAX_INBOUND_PAYLOAD_BYTES = 1024;
+
 export type StartBrowserSourceServerResult =
   { ok: true } | { ok: false; error: string };
 
@@ -233,10 +238,19 @@ export function startBrowserSourceServer(
     const onListening = () => {
       httpServer.removeListener('error', onError);
       server = httpServer;
-      wss = new WebSocketServer({ server: httpServer });
+      wss = new WebSocketServer({
+        server: httpServer,
+        maxPayload: MAX_INBOUND_PAYLOAD_BYTES,
+      });
       wss.on('connection', (socket) => {
         sockets.add(socket);
         socket.on('close', () => sockets.delete(socket));
+        // Protocol errors (a malformed or oversized frame) arrive as an
+        // 'error' event on the socket; unhandled, it would throw in the main
+        // process. ws closes the connection itself after emitting it.
+        socket.on('error', (error) => {
+          logError(`Browser source socket error: ${String(error)}`);
+        });
 
         try {
           opts.getSnapshot().forEach(({ channel, payload }) => {
