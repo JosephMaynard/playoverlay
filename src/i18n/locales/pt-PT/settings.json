@@ -184,7 +184,22 @@
       "textColourLabel": "Cor do texto de {{team}}",
       "upload": "Carregar"
     },
-    "title": "Definições do jogo"
+    "title": "Definições do jogo",
+    "clubs": {
+      "title": "Clubes guardados",
+      "loadLabel": "Carregar um clube guardado",
+      "placeholder": "Escolher um clube",
+      "noneSaved": "Ainda sem clubes guardados",
+      "saveAsClub": "Guardar como clube",
+      "saved": "Guardado nos clubes.",
+      "saveError": "Não foi possível guardar o clube. Tente novamente.",
+      "loadError": "Não foi possível carregar os clubes guardados.",
+      "empty": "Ainda sem clubes guardados. Use «{{action}}» nas definições de uma equipa para manter o nome, as cores e o logótipo para os próximos jogos.",
+      "deleteAria": "Eliminar {{club}}",
+      "deleteModalTitle": "Eliminar o clube guardado?",
+      "deleteConfirmBody": "Tem a certeza de que pretende eliminar o clube guardado «{{club}}»? As equipas que já o utilizam não são alteradas.",
+      "deleteError": "Não foi possível eliminar o clube. Tente novamente."
+    }
   },
   "system": {
     "about": "Acerca de",

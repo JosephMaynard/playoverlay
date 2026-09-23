@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import Store from 'electron-store';
-import { AppSettings, CustomScreen, LiveMatch } from '../types';
+import { AppSettings, Club, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { logError, sanitizeLogPath } from './logger';
 import convertFilePathToUrl, {
@@ -10,6 +10,7 @@ import convertFilePathToUrl, {
 } from './convertFilePathToUrl';
 import {
   appSettingsSchema,
+  clubListSchema,
   customScreenListSchema,
   liveMatchSchema,
   matchSetingsSchema,
@@ -90,6 +91,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 const APP_SETTINGS = 'APP_SETTINGS';
 const MATCH_SETTINGS = 'MATCH_SETTINGS';
 const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
+const CLUBS = 'CLUBS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
 const LIVE_MATCH = 'LIVE_MATCH';
@@ -291,6 +293,21 @@ export function getSavedMatchSettings(): MatchSettings[] {
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
   storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
+}
+
+// Saved clubs (Club presets), validated entry by entry like the saved
+// fixtures, with the same legacy logo URL repair.
+export function getClubs(): Club[] {
+  return clubListSchema.parse(storage.get(CLUBS)).map((club) => {
+    const logo = club.logo
+      ? repairLegacyFileUrl(club.logo, fs.existsSync)
+      : club.logo;
+    return logo === club.logo ? club : { ...club, logo };
+  });
+}
+
+export function setClubs(clubs: Club[]) {
+  storage.set(CLUBS, clubs);
 }
 
 export function setLiveMatch(liveMatch: LiveMatch) {

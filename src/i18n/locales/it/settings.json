@@ -184,7 +184,22 @@
       "textColourLabel": "Colore del testo di {{team}}",
       "upload": "Carica"
     },
-    "title": "Impostazioni partita"
+    "title": "Impostazioni partita",
+    "clubs": {
+      "title": "Club salvati",
+      "loadLabel": "Carica un club salvato",
+      "placeholder": "Scegli un club",
+      "noneSaved": "Nessun club salvato",
+      "saveAsClub": "Salva come club",
+      "saved": "Salvato nei tuoi club.",
+      "saveError": "Impossibile salvare il club. Riprova.",
+      "loadError": "Impossibile caricare i club salvati.",
+      "empty": "Ancora nessun club salvato. Usa \"{{action}}\" nelle impostazioni di una squadra per conservarne nome, colori e logo per le prossime partite.",
+      "deleteAria": "Elimina {{club}}",
+      "deleteModalTitle": "Eliminare il club salvato?",
+      "deleteConfirmBody": "Vuoi davvero eliminare il club salvato \"{{club}}\"? Le squadre che lo usano già non vengono modificate.",
+      "deleteError": "Impossibile eliminare il club. Riprova."
+    }
   },
   "system": {
     "about": "Informazioni",

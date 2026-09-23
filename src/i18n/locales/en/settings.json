@@ -184,7 +184,22 @@
       "textColourLabel": "{{team}} Text Colour",
       "upload": "Upload"
     },
-    "title": "Match Settings"
+    "title": "Match Settings",
+    "clubs": {
+      "title": "Saved clubs",
+      "loadLabel": "Load a saved club",
+      "placeholder": "Choose a club",
+      "noneSaved": "No saved clubs yet",
+      "saveAsClub": "Save as club",
+      "saved": "Saved to your clubs.",
+      "saveError": "The club could not be saved. Please try again.",
+      "loadError": "Your saved clubs could not be loaded.",
+      "empty": "No saved clubs yet. Use \"{{action}}\" in a team's settings to keep its name, colours and logo for future fixtures.",
+      "deleteAria": "Delete {{club}}",
+      "deleteModalTitle": "Delete saved club?",
+      "deleteConfirmBody": "Are you sure you want to delete the saved club \"{{club}}\"? Teams already using it are not changed.",
+      "deleteError": "The club could not be deleted. Please try again."
+    }
   },
   "system": {
     "about": "About",

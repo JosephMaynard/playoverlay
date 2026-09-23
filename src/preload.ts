@@ -12,6 +12,7 @@ import {
   Time,
   AppSettings,
   MatchState,
+  Club,
   CustomScreen,
   LiveMatch,
   RemoteControlStatus,
@@ -116,6 +117,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-custom-screens'),
   setCustomScreens: (customScreens: CustomScreen[]) =>
     ipcRenderer.invoke('set-custom-screens', customScreens),
+  getClubs: (): Promise<Club[]> => ipcRenderer.invoke('get-clubs'),
+  setClubs: (clubs: Club[]) => ipcRenderer.invoke('set-clubs', clubs),
   getSavedMatchSettings: (): Promise<MatchSettings[]> =>
     ipcRenderer.invoke('get-saved-match-settings'),
   setSavedMatchSettings: (savedMatchSettings: MatchSettings[]) =>

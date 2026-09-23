@@ -142,6 +142,19 @@ export interface LiveMatch {
   matchSettings?: MatchSettings;
 }
 
+// A saved club: one team's on-air identity, entered once and reused for
+// every fixture it plays in (Club presets in Match Settings). Loading a club
+// into the home or away slot copies these into the match settings; the
+// logo is the same stored image URL match settings use.
+export interface Club {
+  id: string;
+  name: string;
+  abbreviation: string;
+  textColour: string;
+  backgroundColour: string;
+  logo?: string;
+}
+
 export interface Display {
   id: number;
   bounds: {

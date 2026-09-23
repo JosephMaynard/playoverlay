@@ -221,6 +221,25 @@ describe('storage', () => {
     expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
   });
 
+  it('stores saved clubs and drops a corrupt entry on read', async () => {
+    const club = {
+      id: 'c1',
+      name: 'Rovers',
+      abbreviation: 'ROV',
+      textColour: '#ffffff',
+      backgroundColour: '#aa0000',
+    };
+    const { storage, stores } = await loadStorage({
+      CLUBS: [club, { name: 'no id' }],
+    });
+
+    expect(storage.getClubs()).toEqual([club]);
+
+    storage.setClubs([]);
+    expect(stores[0].store.CLUBS).toEqual([]);
+    expect(storage.getClubs()).toEqual([]);
+  });
+
   it('falls back to default match settings when saved data is invalid', async () => {
     const { storage } = await loadStorage({
       MATCH_SETTINGS: {

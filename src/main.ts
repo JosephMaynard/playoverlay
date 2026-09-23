@@ -41,6 +41,7 @@ import {
   MatchSettings,
   matchSetingsSchema,
   matchSettingsListSchema,
+  clubListSchema,
   matchStateSchema,
   scoresSchema,
   timeSchema,
@@ -61,12 +62,14 @@ import {
   getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
+  getClubs,
   reconcileCustomScreensReadOnly,
   setAppSettings,
   setLiveMatch,
   setCustomScreens,
   setMatchSettings,
   setSavedMatchSettings,
+  setClubs,
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
@@ -1209,6 +1212,31 @@ function setupIPCHandlers() {
       }
     }
   );
+
+  ipcMain.handle('get-clubs', () => {
+    return getClubs();
+  });
+
+  // Same reject-if-not-an-array, drop-only-the-bad-entries handling as the
+  // saved fixtures below.
+  ipcMain.handle('set-clubs', (_event, clubs: unknown) => {
+    if (!Array.isArray(clubs)) {
+      logError(`Rejected set-clubs: expected an array, got ${typeof clubs}`);
+      return { success: false, error: 'Invalid clubs payload' };
+    }
+    const validClubs = clubListSchema.parse(clubs);
+    const droppedCount = clubs.length - validClubs.length;
+    if (droppedCount > 0) {
+      logError(`Dropped malformed club entries on write: ${droppedCount}`);
+    }
+    try {
+      setClubs(validClubs);
+      return { success: true };
+    } catch (error) {
+      logFailedOperation(`Error setting clubs: ${String(error)}`);
+      return { success: false, error: String(error) };
+    }
+  });
 
   ipcMain.handle('get-saved-match-settings', () => {
     return getSavedMatchSettings();

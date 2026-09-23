@@ -184,7 +184,22 @@
       "textColourLabel": "Textfarbe von {{team}}",
       "upload": "Hochladen"
     },
-    "title": "Spieleinstellungen"
+    "title": "Spieleinstellungen",
+    "clubs": {
+      "title": "Gespeicherte Vereine",
+      "loadLabel": "Gespeicherten Verein laden",
+      "placeholder": "Verein auswählen",
+      "noneSaved": "Noch keine gespeicherten Vereine",
+      "saveAsClub": "Als Verein speichern",
+      "saved": "In Ihren Vereinen gespeichert.",
+      "saveError": "Der Verein konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "loadError": "Ihre gespeicherten Vereine konnten nicht geladen werden.",
+      "empty": "Noch keine gespeicherten Vereine. Verwenden Sie „{{action}}“ in den Einstellungen einer Mannschaft, um Name, Farben und Logo für künftige Spiele zu behalten.",
+      "deleteAria": "{{club}} löschen",
+      "deleteModalTitle": "Gespeicherten Verein löschen?",
+      "deleteConfirmBody": "Möchten Sie den gespeicherten Verein „{{club}}“ wirklich löschen? Mannschaften, die ihn bereits verwenden, bleiben unverändert.",
+      "deleteError": "Der Verein konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+    }
   },
   "system": {
     "about": "Über",

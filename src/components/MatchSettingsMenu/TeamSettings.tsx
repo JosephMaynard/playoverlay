@@ -19,6 +19,8 @@ export interface Props {
   setTeamLogo: (teamLogo: string | undefined) => void;
   appSettings: AppSettings;
   disabled?: boolean;
+  // Club presets controls (load/save a saved club), shown above the fields.
+  clubPicker?: React.ReactNode;
 }
 
 export default function TeamSettings({
@@ -35,6 +37,7 @@ export default function TeamSettings({
   setTeamLogo,
   appSettings,
   disabled,
+  clubPicker,
 }: Props) {
   const { t } = useTranslation();
   // This component is rendered once per team, so DOM ids must be unique
@@ -84,6 +87,7 @@ export default function TeamSettings({
 
   return (
     <CollapsiblePanel title={title}>
+      {clubPicker}
       <div className="col-span-full mb-4">
         <label
           htmlFor={`${idPrefix}-teamNameFull`}

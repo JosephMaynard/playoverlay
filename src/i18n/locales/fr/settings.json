@@ -184,7 +184,22 @@
       "textColourLabel": "Couleur du texte de {{team}}",
       "upload": "Envoyer"
     },
-    "title": "Paramètres de match"
+    "title": "Paramètres de match",
+    "clubs": {
+      "title": "Clubs enregistrés",
+      "loadLabel": "Charger un club enregistré",
+      "placeholder": "Choisir un club",
+      "noneSaved": "Aucun club enregistré",
+      "saveAsClub": "Enregistrer comme club",
+      "saved": "Enregistré dans vos clubs.",
+      "saveError": "Le club n'a pas pu être enregistré. Veuillez réessayer.",
+      "loadError": "Impossible de charger vos clubs enregistrés.",
+      "empty": "Aucun club enregistré pour l'instant. Utilisez « {{action}} » dans les paramètres d'une équipe pour conserver son nom, ses couleurs et son logo pour les prochains matchs.",
+      "deleteAria": "Supprimer {{club}}",
+      "deleteModalTitle": "Supprimer le club enregistré ?",
+      "deleteConfirmBody": "Voulez-vous vraiment supprimer le club enregistré « {{club}} » ? Les équipes qui l'utilisent déjà ne sont pas modifiées.",
+      "deleteError": "Le club n'a pas pu être supprimé. Veuillez réessayer."
+    }
   },
   "system": {
     "about": "À propos",

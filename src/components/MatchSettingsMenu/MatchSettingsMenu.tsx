@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings } from 'src/types';
+import { AppSettings, Club, homeOrAway } from 'src/types';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { MatchSettings } from 'src/zodSchemas';
 import SavedMatchSettings from './SavedMatchSettings';
+import SavedClubs from './SavedClubs';
+import ClubPicker from './ClubPicker';
+import { clubFromTeam, teamFieldsFromClub, upsertClub } from '../../clubs';
+import { nanoid } from 'nanoid';
 import { classNames } from '../../utils';
 import { MAX_PERIOD_COUNT } from '../../constants';
 
@@ -145,6 +149,64 @@ export default function MatchSettingsMenu({
   appSettings,
 }: Props) {
   const { t } = useTranslation();
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [clubsLoadError, setClubsLoadError] = useState(false);
+
+  // Loaded each time the menu opens, so it reflects the stored list.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const request = window?.electronAPI?.getClubs?.();
+    if (!request) return;
+    let cancelled = false;
+    request
+      .then((storedClubs) => {
+        if (cancelled) return;
+        setClubs(storedClubs ?? []);
+        setClubsLoadError(false);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.error('Failed to load saved clubs:', error);
+        setClubsLoadError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sidebarOpen]);
+
+  // Writes the whole list and only adopts it once the main process confirms
+  // the save, so the menu never shows a club that isn't stored.
+  const writeClubs = async (nextClubs: Club[]) => {
+    try {
+      const result = await window?.electronAPI?.setClubs(nextClubs);
+      if (!result?.success) return false;
+      setClubs(nextClubs);
+      return true;
+    } catch (error) {
+      console.error('Failed to save clubs:', error);
+      return false;
+    }
+  };
+
+  const clubPicker = (team: homeOrAway) => (
+    <ClubPicker
+      idPrefix={team}
+      clubs={clubs}
+      loadClub={(club) => updateMatchSettings(teamFieldsFromClub(club, team))}
+      saveAsClub={() =>
+        writeClubs(
+          upsertClub(clubs, clubFromTeam(nanoid(), matchSettings, team))
+        )
+      }
+      canSave={
+        (team === 'home'
+          ? matchSettings.homeTeamNameFull
+          : matchSettings.awayTeamNameFull
+        ).trim() !== ''
+      }
+    />
+  );
+
   return (
     <SideMenu
       title={t('settings:matchMenu.title')}
@@ -155,8 +217,16 @@ export default function MatchSettingsMenu({
         matchSettings={matchSettings}
         replaceMatchSettings={replaceMatchSettings}
       />
+      <SavedClubs
+        clubs={clubs}
+        loadError={clubsLoadError}
+        deleteClub={(clubId) =>
+          writeClubs(clubs.filter((club) => club.id !== clubId))
+        }
+      />
       <TeamSettings
         title={t('settings:matchMenu.homeTeam')}
+        clubPicker={clubPicker('home')}
         teamNameFull={matchSettings.homeTeamNameFull}
         setTeamNameFull={(homeTeamNameFull: string) =>
           updateMatchSettings({ homeTeamNameFull })
@@ -181,6 +251,7 @@ export default function MatchSettingsMenu({
       />
       <TeamSettings
         title={t('settings:matchMenu.awayTeam')}
+        clubPicker={clubPicker('away')}
         teamNameFull={matchSettings.awayTeamNameFull}
         setTeamNameFull={(awayTeamNameFull: string) =>
           updateMatchSettings({ awayTeamNameFull })

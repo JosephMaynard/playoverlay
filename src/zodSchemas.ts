@@ -10,7 +10,13 @@ import {
   MAX_PERIOD_COUNT,
   MAX_SCORER_LENGTH,
 } from './constants';
-import { CustomScreen, Goal, Penalty, supportedLanguageCodes } from './types';
+import {
+  Club,
+  CustomScreen,
+  Goal,
+  Penalty,
+  supportedLanguageCodes,
+} from './types';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -320,6 +326,28 @@ export const matchSettingsListSchema = z
 // nested objects above (browserSource, keyboardShortcuts, ...) a totally
 // corrupt nested value degrades to that whole field's own safe default
 // (defaultScores/{}/defaultMatchState) rather than becoming optional.
+export const clubSchema = z.object({
+  id: z.string().min(1).max(64),
+  name: z.string().trim().min(1).max(100),
+  abbreviation: z.string().max(3),
+  textColour: z.string().max(32),
+  backgroundColour: z.string().max(32),
+  logo: z.string().optional().catch(undefined),
+});
+
+// Entry by entry, like the saved fixtures: one corrupt club is dropped
+// rather than losing the whole list.
+export const clubListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<Club[]>((acc, entry) => {
+      const parsed = clubSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
 export const liveMatchSchema = z.object({
   scores: scoresSchema.catch({ ...defaultScores, penalties: [], goals: [] }),
   time: timeSchema.catch({}),
