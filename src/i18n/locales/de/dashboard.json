@@ -3,6 +3,19 @@
     "overlays": "Overlays",
     "title": "Anzeigesteuerung"
   },
+  "goalLog": {
+    "empty": "Noch keine Tore. Jedes Tor erscheint hier mit seiner Spielminute, sobald es fällt.",
+    "goal": "Tor: {{team}}",
+    "goalWithMinute": "Tor: {{team}}, {{minute}}",
+    "remove": "Tor entfernen",
+    "removeAria": "Tor entfernen: {{goal}}",
+    "scorerLabel": "Torschütze ({{goal}})",
+    "scorerPlaceholder": "Torschütze",
+    "showAutomatically": "Tor-Einblendung sofort zeigen, wenn ein Tor fällt",
+    "showBanner": "Einblenden",
+    "showBannerAria": "Einblenden: {{goal}}",
+    "title": "Tore"
+  },
   "header": {
     "openMenu": "{{title}}-Menü öffnen",
     "teamSettings": "Team-Einstellungen"

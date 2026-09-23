@@ -3,6 +3,19 @@
     "overlays": "Overlay",
     "title": "Controlli di visualizzazione"
   },
+  "goalLog": {
+    "empty": "Ancora nessun gol. Ogni gol compare qui con il suo minuto appena viene segnato.",
+    "goal": "Gol: {{team}}",
+    "goalWithMinute": "Gol: {{team}}, {{minute}}",
+    "remove": "Rimuovi il gol",
+    "removeAria": "Rimuovi il gol: {{goal}}",
+    "scorerLabel": "Marcatore ({{goal}})",
+    "scorerPlaceholder": "Marcatore",
+    "showAutomatically": "Mostra il banner del gol in onda appena viene segnato un gol",
+    "showBanner": "Mostra in onda",
+    "showBannerAria": "Mostra in onda: {{goal}}",
+    "title": "Gol"
+  },
   "header": {
     "openMenu": "Apri il menu {{title}}",
     "teamSettings": "Impostazioni squadra"

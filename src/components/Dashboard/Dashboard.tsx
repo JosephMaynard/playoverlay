@@ -28,6 +28,7 @@ import DisplayControlsPanel, {
   reconcileActiveScreen,
 } from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
+import GoalLogPanel from './GoalLogPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
@@ -44,10 +45,13 @@ import {
 } from '../../utils';
 import {
   DisplayScreen,
+  MAX_SCORER_LENGTH,
   defaultMatchSettings,
   defaultMatchState,
   defaultScores,
 } from '../../constants';
+import { createGoal, removeLatestGoal, trimGoalsToScore } from '../../goalLog';
+import { nanoid } from 'nanoid';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useMatchStateStore } from '../../store/matchState';
@@ -472,7 +476,7 @@ export default function Dashboard() {
         replaceStoredMatchSettings({ ...defaultMatchSettings, ...parsed.data });
       }
     }
-    setScores(liveMatch.scores);
+    setScores({ ...liveMatch.scores, goals: liveMatch.scores.goals ?? [] });
     // Restore fully replaces the match state. The store setter merges and
     // both defaultMatchState and the snapshot may omit optional keys, so the
     // optional fields are cleared explicitly first, otherwise one left over
@@ -493,6 +497,53 @@ export default function Dashboard() {
     useUndoStore.getState().clearHistory();
   };
 
+  // Goal log edits. Both are score-slice undo entries, like the goals
+  // themselves. Removing an entry removes the goal (the log IS the goals
+  // that were scored), so the team's score goes down with it.
+  const setGoalScorer = (goalId: string, scorer: string) => {
+    const prevScores = useScoresStore.getState().scores;
+    const goals = prevScores.goals ?? [];
+    const trimmed = scorer.trim().slice(0, MAX_SCORER_LENGTH) || undefined;
+    const goal = goals.find((entry) => entry.id === goalId);
+    if (!goal || goal.scorer === trimmed) return;
+    captureUndo('undo:actions.goalScorer', ['scores']);
+    setScores({
+      goals: goals.map((entry) =>
+        entry.id === goalId ? { ...entry, scorer: trimmed } : entry
+      ),
+    });
+  };
+
+  const removeGoal = (goalId: string) => {
+    const prevScores = useScoresStore.getState().scores;
+    const goals = prevScores.goals ?? [];
+    const goal = goals.find((entry) => entry.id === goalId);
+    if (!goal) return;
+    captureUndo('undo:actions.goalRemoved', ['scores']);
+    const scoreKey = goal.team === 'home' ? 'homeTeam' : 'awayTeam';
+    setScores({
+      [scoreKey]: Math.max(0, prevScores[scoreKey] - 1),
+      goals: goals.filter((entry) => entry.id !== goalId),
+    });
+  };
+
+  // Puts the goal banner on air for one goal. Not an undo step: it takes
+  // itself off after GOAL_BANNER_DURATION_MS.
+  const showGoalBanner = (goalId: string) => {
+    setMatchState({ goalBanner: { goalId, shownAt: Date.now() } });
+  };
+
+  // Called for every new goal; shows the banner straight away only if the
+  // operator has chosen that (read fresh: this runs from mount-time
+  // shortcut and phone listeners too).
+  const maybeShowGoalBanner = (goalId: string) => {
+    if (
+      useAppSettingsStore.getState().appSettings.showGoalBannerAutomatically
+    ) {
+      showGoalBanner(goalId);
+    }
+  };
+
   // New match: back to a clean slate between fixtures in one step, instead of
   // resetting the score, penalties, clock, phase history and graphics one by
   // one (easy to get half right between back-to-back fixtures). Team
@@ -501,13 +552,14 @@ export default function Dashboard() {
   // goes to the match title, ready for the next kick-off.
   const startNewMatch = () => {
     clock.resetClock();
-    setScores({ ...defaultScores, penalties: [] });
+    setScores({ ...defaultScores, penalties: [], goals: [] });
     setMatchState({
       ...defaultMatchState,
       overlays: [],
       matchPhase: undefined,
       previousMatchPhase: undefined,
       customScreenImageUrl: undefined,
+      goalBanner: undefined,
       displayScreen: 'matchTitle',
     });
     useUndoStore.getState().clearHistory();
@@ -536,22 +588,26 @@ export default function Dashboard() {
     captureUndo('undo:actions.homeGoal', ['scores']);
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
-    const updatedScores = {
+    const goal = createGoal(nanoid(), 'home', useTimeStore.getState().time);
+    setScores({
       ...prevScores,
       homeTeam: prevScores.homeTeam + 1,
-    };
-    setScores(updatedScores);
+      goals: [...(prevScores.goals ?? []), goal],
+    });
+    maybeShowGoalBanner(goal.id);
   };
 
   const incrementAwayTeamScore = () => {
     captureUndo('undo:actions.awayGoal', ['scores']);
     setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
-    const updatedScores = {
+    const goal = createGoal(nanoid(), 'away', useTimeStore.getState().time);
+    setScores({
       ...prevScores,
       awayTeam: prevScores.awayTeam + 1,
-    };
-    setScores(updatedScores);
+      goals: [...(prevScores.goals ?? []), goal],
+    });
+    maybeShowGoalBanner(goal.id);
   };
 
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
@@ -569,6 +625,7 @@ export default function Dashboard() {
     setScores({
       ...prevScores,
       homeTeam: prevScores.homeTeam - 1,
+      goals: removeLatestGoal(prevScores.goals ?? [], 'home'),
     });
   };
 
@@ -580,6 +637,7 @@ export default function Dashboard() {
     setScores({
       ...prevScores,
       awayTeam: prevScores.awayTeam - 1,
+      goals: removeLatestGoal(prevScores.goals ?? [], 'away'),
     });
   };
 
@@ -764,14 +822,43 @@ export default function Dashboard() {
               time={time}
               incrementHomeTeamScore={incrementHomeTeamScore}
               incrementAwayTeamScore={incrementAwayTeamScore}
-              updateScore={(updatedScores: Scores) => {
+              updateScore={(updatedScores: Partial<Scores>) => {
                 // Capture before mutating, then edit (scores-only, so undoing a
                 // manual correction never touches the clock). Editing the score
-                // also supersedes the restore offer.
+                // also supersedes the restore offer. A correction downwards
+                // takes that team's latest goals out of the log with it.
                 captureUndo('undo:actions.scoreEdit', ['scores']);
                 setRestorableMatch(null);
-                setScores(updatedScores);
+                let goals = useScoresStore.getState().scores.goals ?? [];
+                if (updatedScores.homeTeam !== undefined) {
+                  goals = trimGoalsToScore(
+                    goals,
+                    'home',
+                    updatedScores.homeTeam
+                  );
+                }
+                if (updatedScores.awayTeam !== undefined) {
+                  goals = trimGoalsToScore(
+                    goals,
+                    'away',
+                    updatedScores.awayTeam
+                  );
+                }
+                setScores({ ...updatedScores, goals });
               }}
+            />
+            <GoalLogPanel
+              goals={scores.goals ?? []}
+              matchSettings={matchSettings}
+              showBannerAutomatically={
+                appSettings.showGoalBannerAutomatically ?? false
+              }
+              setShowBannerAutomatically={(showGoalBannerAutomatically) =>
+                updateAppSettings({ showGoalBannerAutomatically })
+              }
+              setScorer={setGoalScorer}
+              showBanner={showGoalBanner}
+              removeGoal={removeGoal}
             />
             {matchSettings.hasPenalties !== false && (
               <PenaltiesPanel

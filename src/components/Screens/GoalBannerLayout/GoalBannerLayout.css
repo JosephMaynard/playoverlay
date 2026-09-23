@@ -1,0 +1,33 @@
+.GoalBannerLayout {
+  --base-size: 1.75cqw;
+  position: absolute;
+  bottom: calc(var(--base-size) * 1.5);
+  left: calc(var(--base-size) * 1.5);
+  font-size: var(--base-size);
+  overflow: hidden;
+  white-space: nowrap;
+  /* Same content-sized reveal as the score bug (see ScoresLayout.css): the
+     banner grows from nothing to its own width, so long team or scorer
+     names are never clipped. */
+  width: fit-content;
+  max-width: 0;
+  transition: max-width 0.6s;
+}
+
+.GoalBannerLayout_active {
+  max-width: calc(var(--base-size) * 40);
+}
+
+.GoalBannerLayout_item {
+  padding: calc(var(--base-size) / 4) calc(var(--base-size) / 2);
+  flex-shrink: 0;
+}
+
+.GoalBannerLayout_label {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.GoalBannerLayout_minute {
+  font-variant-numeric: tabular-nums;
+}

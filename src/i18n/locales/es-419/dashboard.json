@@ -3,6 +3,19 @@
     "overlays": "Superposiciones",
     "title": "Controles de pantalla"
   },
+  "goalLog": {
+    "empty": "Todavía no hay goles. Cada gol aparece aquí con su minuto en cuanto se anota.",
+    "goal": "Gol: {{team}}",
+    "goalWithMinute": "Gol: {{team}}, {{minute}}",
+    "remove": "Quitar el gol",
+    "removeAria": "Quitar el gol: {{goal}}",
+    "scorerLabel": "Goleador ({{goal}})",
+    "scorerPlaceholder": "Goleador",
+    "showAutomatically": "Mostrar el rótulo de gol al aire en cuanto se anote un gol",
+    "showBanner": "Mostrar al aire",
+    "showBannerAria": "Mostrar al aire: {{goal}}",
+    "title": "Goles"
+  },
   "header": {
     "openMenu": "Abrir menú de {{title}}",
     "teamSettings": "Configuración del equipo"

@@ -8,10 +8,26 @@ export interface Penalty {
   result: 'scored' | 'missed';
 }
 
+// One entry in the goal log. Recorded whenever a goal is scored through the
+// Scored button, a shortcut, the Stream Deck or the phone. The match clock
+// and phase are captured at that moment so the minute can be shown on air
+// ("23'", "45+2'"); both are absent for a goal recorded with no phase
+// running. The scorer is optional and typed later by the operator.
+export interface Goal {
+  id: string;
+  team: homeOrAway;
+  time?: string;
+  matchPhase?: MatchPhase;
+  scorer?: string;
+}
+
 export interface Scores {
   homeTeam: number;
   awayTeam: number;
   penalties: Penalty[];
+  // Optional so snapshots and scores from before the goal log still load.
+  // Lives with the score so undoing a goal removes its entry too.
+  goals?: Goal[];
 }
 
 export interface KeyboardShortcuts {
@@ -80,6 +96,10 @@ export interface AppSettings {
   // Once set, it rides the same IPC mirror as the rest of AppSettings, so
   // the operator's choice (not OS locale) drives on-air text everywhere.
   language?: LanguageCode;
+  // Put the goal banner on air as soon as a goal is scored (the operator can
+  // always show it, or show it again with the scorer added, from the goal
+  // log). Off unless chosen.
+  showGoalBannerAutomatically?: boolean;
 }
 
 export interface MatchState {
@@ -89,6 +109,15 @@ export interface MatchState {
   penaltiesFirstTeam: homeOrAway;
   customScreenImageUrl?: string;
   overlays: CustomScreen[];
+  // The goal currently shown in the on-air goal banner, and when it was put
+  // up (epoch ms). Outputs hide the banner GOAL_BANNER_DURATION_MS after
+  // shownAt, so a browser source that reconnects later doesn't replay it.
+  goalBanner?: GoalBanner;
+}
+
+export interface GoalBanner {
+  goalId: string;
+  shownAt: number;
 }
 
 export interface Time {

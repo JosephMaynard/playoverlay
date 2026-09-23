@@ -12,6 +12,7 @@ export const useScoresStore = create<ScoresStore>((set) => ({
     homeTeam: 0,
     awayTeam: 0,
     penalties: [],
+    goals: [],
   },
   setScores: (scoreUpdates: Partial<Scores>) =>
     set((state) => {

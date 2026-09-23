@@ -3,6 +3,19 @@
     "overlays": "Sobreposições",
     "title": "Controlos de ecrã"
   },
+  "goalLog": {
+    "empty": "Ainda sem golos. Cada golo aparece aqui com o respetivo minuto assim que é marcado.",
+    "goal": "Golo: {{team}}",
+    "goalWithMinute": "Golo: {{team}}, {{minute}}",
+    "remove": "Remover o golo",
+    "removeAria": "Remover o golo: {{goal}}",
+    "scorerLabel": "Marcador ({{goal}})",
+    "scorerPlaceholder": "Marcador",
+    "showAutomatically": "Mostrar a faixa de golo no ar assim que for marcado um golo",
+    "showBanner": "Mostrar no ar",
+    "showBannerAria": "Mostrar no ar: {{goal}}",
+    "title": "Golos"
+  },
   "header": {
     "openMenu": "Abrir menu de {{title}}",
     "teamSettings": "Definições da equipa"

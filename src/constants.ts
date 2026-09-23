@@ -89,7 +89,15 @@ export const defaultScores: Scores = {
   homeTeam: 0,
   awayTeam: 0,
   penalties: [],
+  goals: [],
 };
+
+// Goal log limits. The scorer is free text shown on air, so it is bounded to
+// something that fits the goal banner and end screen.
+export const MAX_SCORER_LENGTH = 40;
+
+// How long the on-air goal banner stays up after it is shown.
+export const GOAL_BANNER_DURATION_MS = 10000;
 
 export const screens = {
   none: 'None',

@@ -4,6 +4,8 @@
     "adjustTime": "Zeitanpassung",
     "awayGoal": "Auswärtstor",
     "awayGoalRemoved": "Auswärtstor-Rücknahme",
+    "goalRemoved": "Torentfernung",
+    "goalScorer": "Torschützenänderung",
     "homeGoal": "Heimtor",
     "homeGoalRemoved": "Heimtor-Rücknahme",
     "nextPhase": "Phasenwechsel",

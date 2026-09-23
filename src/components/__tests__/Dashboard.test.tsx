@@ -397,7 +397,12 @@ describe('Dashboard match engine', () => {
       });
       fireEvent.click(restoreButton);
 
-      expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
+      // A snapshot from before the goal log restores with an empty log,
+      // replacing whatever the current session had.
+      expect(stores.scores.getState().scores).toEqual({
+        ...liveMatch.scores,
+        goals: [],
+      });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
       );
@@ -489,7 +494,12 @@ describe('Dashboard match engine', () => {
       expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
         defaultMatchSettings.hasExtraTime
       );
-      expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
+      // A snapshot from before the goal log restores with an empty log,
+      // replacing whatever the current session had.
+      expect(stores.scores.getState().scores).toEqual({
+        ...liveMatch.scores,
+        goals: [],
+      });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
       );
@@ -892,6 +902,125 @@ describe('Dashboard match engine', () => {
       act(() => callbacks.nextMatchPhase?.());
       expect(stores.time.getState().time.matchPhase).toBe('firstHalf');
       expect(stores.time.getState().time.time).toBe('0:00');
+    });
+  });
+
+  describe('goal log', () => {
+    it('logs each goal with its minute, from any input, and undo removes it', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+
+      // Before kick-off: logged, but with no minute.
+      act(() => callbacks.awayTeamScored?.());
+      act(() => callbacks.nextMatchPhase?.());
+      advance(22 * 60 * 1000 + 10 * 1000);
+      act(() => callbacks.homeTeamScored?.());
+
+      const goals = stores.scores.getState().scores.goals ?? [];
+      expect(goals).toHaveLength(2);
+      expect(goals[0]).toEqual(expect.objectContaining({ team: 'away' }));
+      expect(goals[0].time).toBeUndefined();
+      expect(goals[1]).toEqual(
+        expect.objectContaining({
+          team: 'home',
+          time: '22:10',
+          matchPhase: 'firstHalf',
+        })
+      );
+      expect(
+        screen.getByRole('listitem', { name: "Home Team goal, 23'" })
+      ).toBeInTheDocument();
+
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.homeTeam).toBe(0);
+      expect(stores.scores.getState().scores.goals).toHaveLength(1);
+    });
+
+    it('keeps the log in step when goals come off the score', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.homeTeamScored?.());
+      act(() => callbacks.awayTeamScored?.());
+      act(() => callbacks.homeTeamScored?.());
+
+      // Phone minus: the latest home goal goes.
+      act(() => callbacks.homeTeamUnscored?.());
+      expect(
+        stores.scores.getState().scores.goals?.map((goal) => goal.team)
+      ).toEqual(['home', 'away']);
+
+      // Removing an entry from the log removes the goal from the score.
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Remove goal: Away Team goal' })
+      );
+      expect(stores.scores.getState().scores.awayTeam).toBe(0);
+      expect(
+        stores.scores.getState().scores.goals?.map((goal) => goal.team)
+      ).toEqual(['home']);
+    });
+
+    it('records the scorer on blur, as one undoable step', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+      act(() => callbacks.homeTeamScored?.());
+
+      const scorer = screen.getByRole('textbox', {
+        name: 'Scorer (Home Team goal)',
+      });
+      fireEvent.change(scorer, { target: { value: 'S' } });
+      fireEvent.change(scorer, { target: { value: 'Smith ' } });
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      fireEvent.blur(scorer);
+
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBe('Smith');
+      expect(useUndoStore.getState().undoStack).toHaveLength(2);
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      expect(stores.scores.getState().scores.homeTeam).toBe(1);
+    });
+
+    it('shows the goal banner on request, or automatically when chosen', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.homeTeamScored?.());
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show on air: Home Team goal' })
+      );
+      const [goal] = stores.scores.getState().scores.goals ?? [];
+      expect(stores.matchState.getState().matchState.goalBanner).toEqual({
+        goalId: goal.id,
+        shownAt: Date.now(),
+      });
+
+      act(() =>
+        stores.appSettings.getState().setAppSettings({
+          ...stores.appSettings.getState().appSettings,
+          showGoalBannerAutomatically: true,
+        })
+      );
+      act(() => callbacks.awayTeamScored?.());
+      const awayGoal = stores.scores.getState().scores.goals?.[1];
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        awayGoal?.id
+      );
+    });
+
+    it('is cleared by New match', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.homeTeamScored?.());
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show on air: Home Team goal' })
+      );
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'New match' })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Start new match' }));
+
+      expect(stores.scores.getState().scores.goals).toEqual([]);
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
     });
   });
 });

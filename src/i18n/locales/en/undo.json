@@ -4,6 +4,8 @@
     "adjustTime": "time adjustment",
     "awayGoal": "away goal",
     "awayGoalRemoved": "away goal removal",
+    "goalRemoved": "goal removal",
+    "goalScorer": "scorer change",
     "homeGoal": "home goal",
     "homeGoalRemoved": "home goal removal",
     "nextPhase": "phase change",

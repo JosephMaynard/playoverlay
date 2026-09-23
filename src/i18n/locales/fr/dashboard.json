@@ -3,6 +3,19 @@
     "overlays": "Incrustations",
     "title": "Commandes d'affichage"
   },
+  "goalLog": {
+    "empty": "Aucun but pour l'instant. Chaque but apparaît ici avec sa minute dès qu'il est marqué.",
+    "goal": "But : {{team}}",
+    "goalWithMinute": "But : {{team}}, {{minute}}",
+    "remove": "Supprimer le but",
+    "removeAria": "Supprimer le but : {{goal}}",
+    "scorerLabel": "Buteur ({{goal}})",
+    "scorerPlaceholder": "Buteur",
+    "showAutomatically": "Afficher le bandeau de but à l'antenne dès qu'un but est marqué",
+    "showBanner": "Afficher à l'antenne",
+    "showBannerAria": "Afficher à l'antenne : {{goal}}",
+    "title": "Buts"
+  },
   "header": {
     "openMenu": "Ouvrir le menu {{title}}",
     "teamSettings": "Paramètres de l'équipe"
