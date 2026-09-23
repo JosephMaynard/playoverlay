@@ -29,7 +29,7 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 - **Score bug** with team abbreviations, optional team logos, live scores, match clock, and stoppage time
 - **Match clock** driven by the system clock (no drift over a half), with pause/resume and quick time adjustments
-- **Goal log**: every goal is logged with its minute (`23'`, or `45+2'` in stoppage time), you can add the scorer, put a goal banner on air (by hand or automatically as goals go in), and the end screen lists each team's scorers
+- **Goal log**: every goal is logged with its minute (`23'`, or `45+2'` in stoppage time) and a goal banner goes on air automatically (team and minute, no typing needed). Scorers can be added later, e.g. at half-time, and the end screen lists each team's scorers
 - **Undo and redo**: step back through goals, clock and phase changes, screen switches and penalties, without ever rewinding the running clock
 - **Crash recovery**: the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off, and the outputs stay blank rather than showing a false 0-0 until you do
 - **Match phases**: first/second half with configurable half lengths, and extra time that can be toggled off per match
@@ -75,7 +75,7 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. **Save as club** keeps a team's details for next time, and **Load a saved club** fills a team in one step. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
 2. In **Window Settings**, pick your key colour. Whether screens switch automatically when the clock starts and stops is a toggle next to the clock controls on the dashboard.
 3. Move the display window to the output monitor and make it fullscreen.
-4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. Goals appear in the **Goals** panel with their minute; type a scorer there and use **Show on air** for the goal banner.
+4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. Each goal puts a banner on air automatically and is logged with its minute. At half-time or full-time, open the **Goals** panel to add scorers (the end screen lists them) or show a banner again; the automatic banner can be switched off there too.
 5. Between fixtures, **New match** (next to undo and redo) clears the match and puts the match title on air, ready for the next kick-off.
 
 ### Keyboard shortcuts

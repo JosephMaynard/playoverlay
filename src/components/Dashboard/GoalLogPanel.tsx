@@ -68,7 +68,10 @@ export default function GoalLogPanel({
 }: Props) {
   const { t } = useTranslation();
   return (
-    <CollapsiblePanel title={t('dashboard:goalLog.title')}>
+    // Collapsed by default: goals and their minutes are logged whatever the
+    // panel's state, and a solo operator filming the match won't be typing
+    // scorers until half-time or full-time.
+    <CollapsiblePanel title={t('dashboard:goalLog.title')} defaultOpen={false}>
       <Switch.Group as="div" className="mb-4 flex items-center">
         <Switch
           checked={showBannerAutomatically}

@@ -98,7 +98,8 @@ export interface AppSettings {
   language?: LanguageCode;
   // Put the goal banner on air as soon as a goal is scored (the operator can
   // always show it, or show it again with the scorer added, from the goal
-  // log). Off unless chosen.
+  // log). On unless switched off: unset counts as on, since a solo operator
+  // gets a goal graphic with no typing ("GOAL | team | minute").
   showGoalBannerAutomatically?: boolean;
 }
 

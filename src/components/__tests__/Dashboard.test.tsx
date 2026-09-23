@@ -906,6 +906,11 @@ describe('Dashboard match engine', () => {
   });
 
   describe('goal log', () => {
+    // The Goals panel starts collapsed; goals are logged either way.
+    function openGoalsPanel() {
+      fireEvent.click(screen.getByRole('button', { name: 'Goals' }));
+    }
+
     it('logs each goal with its minute, from any input, and undo removes it', async () => {
       const { callbacks, stores } = await renderDashboard();
       const { useUndoStore } = await import('../../store/undo');
@@ -927,6 +932,7 @@ describe('Dashboard match engine', () => {
           matchPhase: 'firstHalf',
         })
       );
+      openGoalsPanel();
       expect(
         screen.getByRole('listitem', { name: "Home Team goal, 23'" })
       ).toBeInTheDocument();
@@ -949,6 +955,7 @@ describe('Dashboard match engine', () => {
       ).toEqual(['home', 'away']);
 
       // Removing an entry from the log removes the goal from the score.
+      openGoalsPanel();
       fireEvent.click(
         screen.getByRole('button', { name: 'Remove goal: Away Team goal' })
       );
@@ -962,6 +969,7 @@ describe('Dashboard match engine', () => {
       const { callbacks, stores } = await renderDashboard();
       const { useUndoStore } = await import('../../store/undo');
       act(() => callbacks.homeTeamScored?.());
+      openGoalsPanel();
 
       const scorer = screen.getByRole('textbox', {
         name: 'Scorer (Home Team goal)',
@@ -978,29 +986,35 @@ describe('Dashboard match engine', () => {
       expect(stores.scores.getState().scores.homeTeam).toBe(1);
     });
 
-    it('shows the goal banner on request, or automatically when chosen', async () => {
+    it('shows the goal banner automatically unless switched off, and on request', async () => {
       const { callbacks, stores } = await renderDashboard();
-      act(() => callbacks.homeTeamScored?.());
-      expect(
-        stores.matchState.getState().matchState.goalBanner
-      ).toBeUndefined();
 
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Show on air: Home Team goal' })
-      );
-      const [goal] = stores.scores.getState().scores.goals ?? [];
+      // On by default: no typing needed for a goal graphic.
+      act(() => callbacks.homeTeamScored?.());
+      const [homeGoal] = stores.scores.getState().scores.goals ?? [];
       expect(stores.matchState.getState().matchState.goalBanner).toEqual({
-        goalId: goal.id,
+        goalId: homeGoal.id,
         shownAt: Date.now(),
       });
 
-      act(() =>
-        stores.appSettings.getState().setAppSettings({
-          ...stores.appSettings.getState().appSettings,
-          showGoalBannerAutomatically: true,
+      openGoalsPanel();
+      fireEvent.click(
+        screen.getByRole('switch', {
+          name: 'Show the goal banner on air as soon as a goal is scored',
         })
       );
+      expect(
+        stores.appSettings.getState().appSettings.showGoalBannerAutomatically
+      ).toBe(false);
       act(() => callbacks.awayTeamScored?.());
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        homeGoal.id
+      );
+
+      // Shown by hand from the log.
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show on air: Away Team goal' })
+      );
       const awayGoal = stores.scores.getState().scores.goals?.[1];
       expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
         awayGoal?.id
@@ -1009,10 +1023,9 @@ describe('Dashboard match engine', () => {
 
     it('is cleared by New match', async () => {
       const { callbacks, stores } = await renderDashboard();
+      // The goal puts the banner up automatically.
       act(() => callbacks.homeTeamScored?.());
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Show on air: Home Team goal' })
-      );
+      expect(stores.matchState.getState().matchState.goalBanner).toBeDefined();
 
       fireEvent.click(screen.getAllByRole('button', { name: 'New match' })[0]);
       fireEvent.click(screen.getByRole('button', { name: 'Start new match' }));

@@ -95,9 +95,10 @@ export default function DocsPage() {
                 <h3 className="font-semibold text-slate-900 dark:text-white">4. Kick off</h3>
                 <p className="mt-1 text-slate-600 dark:text-slate-400">
                   Start the first half, add goals as they happen, add stoppage time, and advance
-                  phases. Each goal appears in the Goals panel with its minute: type the scorer
-                  there and use <strong>Show on air</strong> for the goal banner, or have it shown
-                  automatically. If the app closes mid-match, the score, clock, and match state are
+                  phases. Each goal puts a banner on air automatically and is logged with its
+                  minute. At half-time or full-time, open the Goals panel to add scorers (the end
+                  screen lists them) or show a banner again; the automatic banner can be switched
+                  off there too. If the app closes mid-match, the score, clock, and match state are
                   saved continuously, so you can restore where you left off. Between fixtures,{" "}
                   <strong>New match</strong> clears the match and keeps your team settings.
                 </p>

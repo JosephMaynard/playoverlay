@@ -527,12 +527,13 @@ export default function Dashboard() {
     setMatchState({ goalBanner: { goalId, shownAt: Date.now() } });
   };
 
-  // Called for every new goal; shows the banner straight away only if the
-  // operator has chosen that (read fresh: this runs from mount-time
+  // Called for every new goal; shows the banner straight away unless the
+  // operator has switched that off (read fresh: this runs from mount-time
   // shortcut and phone listeners too).
   const maybeShowGoalBanner = (goalId: string) => {
     if (
-      useAppSettingsStore.getState().appSettings.showGoalBannerAutomatically
+      useAppSettingsStore.getState().appSettings.showGoalBannerAutomatically !==
+      false
     ) {
       showGoalBanner(goalId);
     }
@@ -841,19 +842,6 @@ export default function Dashboard() {
                 setScores({ ...updatedScores, goals });
               }}
             />
-            <GoalLogPanel
-              goals={scores.goals ?? []}
-              matchSettings={matchSettings}
-              showBannerAutomatically={
-                appSettings.showGoalBannerAutomatically ?? false
-              }
-              setShowBannerAutomatically={(showGoalBannerAutomatically) =>
-                updateAppSettings({ showGoalBannerAutomatically })
-              }
-              setScorer={setGoalScorer}
-              showBanner={showGoalBanner}
-              removeGoal={removeGoal}
-            />
             {matchSettings.hasPenalties !== false && (
               <PenaltiesPanel
                 penalties={scores.penalties}
@@ -867,6 +855,19 @@ export default function Dashboard() {
                 canUndo={canUndo}
               />
             )}
+            <GoalLogPanel
+              goals={scores.goals ?? []}
+              matchSettings={matchSettings}
+              showBannerAutomatically={
+                appSettings.showGoalBannerAutomatically !== false
+              }
+              setShowBannerAutomatically={(showGoalBannerAutomatically) =>
+                updateAppSettings({ showGoalBannerAutomatically })
+              }
+              setScorer={setGoalScorer}
+              showBanner={showGoalBanner}
+              removeGoal={removeGoal}
+            />
           </div>
         </main>
         <MatchSettingsMenu
