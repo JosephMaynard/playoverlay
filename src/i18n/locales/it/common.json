@@ -16,5 +16,6 @@
     "alt": "Logo PlayOverlay"
   },
   "logoAlt": "Logo PlayOverlay",
-  "reset": "Reimposta"
+  "reset": "Reimposta",
+  "versionLabel": "Versione: {{version}}"
 }

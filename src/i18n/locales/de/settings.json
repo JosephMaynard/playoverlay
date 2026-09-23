@@ -35,9 +35,13 @@
     "keyboardShortcutRow": {
       "change": "Ändern",
       "invalidKey": "Diese Taste kann nicht für einen Shortcut verwendet werden.",
+      "metaKey": "Die Windows-/Super-Taste kann nicht verwendet werden. Verwenden Sie Strg oder Alt.",
       "needModifier": "Fügen Sie dem Shortcut Cmd/Strg oder Alt hinzu.",
       "pressKeys": "Tasten drücken…",
-      "pressKeysFor": "Tasten drücken für {{label}}"
+      "pressKeysFor": "Tasten drücken für {{label}}",
+      "reservedAppWindow": "{{shortcut}} beendet oder schließt die App. Wählen Sie einen anderen Shortcut.",
+      "reservedEditing": "{{shortcut}} wird zum Kopieren, Ausschneiden, Einfügen oder Alles auswählen verwendet. Wählen Sie einen anderen Shortcut.",
+      "reservedUndoRedo": "{{shortcut}} wird für Rückgängig und Wiederholen verwendet. Wählen Sie einen anderen Shortcut."
     },
     "keyboardShortcuts": {
       "awayTeamScored": "Tor der Gastmannschaft",
@@ -87,16 +91,20 @@
     "deleteConfirmAction": "Benutzerdefinierten Bildschirm löschen",
     "deleteConfirmBody": "Möchten Sie den benutzerdefinierten Bildschirm „{{title}}“ wirklich löschen?",
     "deleteConfirmTitle": "Benutzerdefinierten Bildschirm löschen?",
+    "deleteError": "Die Grafik konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "deleteOnAirWarning": "Diese Grafik ist gerade auf Sendung. Wenn Sie sie löschen, wird sie aus der Sendung genommen.",
     "edit": "Bearbeiten",
     "editModal": {
       "allScreens": "Alle Bildschirme",
       "overlayScreens": "Overlay auf Bildschirmen anzeigen",
       "saveChanges": "Änderungen speichern",
+      "saveError": "Ihre Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
       "title": "Eigene Grafik bearbeiten",
       "type": "Typ"
     },
     "emptyDescription": "Klicken Sie auf die Schaltfläche „{{action}}“, um eigene Grafiken hinzuzufügen",
     "emptyTitle": "Keine eigenen Grafiken",
+    "onAir": "Auf Sendung",
     "title": "Eigene Grafiken",
     "typeLine": "Typ: {{type}}",
     "typeOverlay": "Overlay",
@@ -108,10 +116,14 @@
       "dropHere": "Datei hier ablegen ...",
       "image": "Bild",
       "missingFields": "Bitte geben Sie sowohl eine Datei als auch einen Titel an.",
+      "notSaved": "Das Bild konnte nicht gespeichert werden. Prüfen Sie, ob es wirklich eine PNG-, JPEG-, WebP- oder SVG-Datei ist, und versuchen Sie es erneut.",
       "selectFile": "Zum Auswählen klicken",
       "titleLabel": "Titel",
+      "tooLarge": "„{{name}}“ ist {{size}} MB groß. Bilder dürfen höchstens {{max}} MB groß sein.",
+      "unsupportedType": "„{{name}}“ ist kein unterstütztes Bild. Verwenden Sie eine PNG-, JPEG-, WebP- oder SVG-Datei.",
       "uploadFailed": "Hochladen des Bilds fehlgeschlagen. Bitte versuchen Sie es erneut.",
-      "uploadedImage": "Hochgeladenes Bild:"
+      "uploadedImage": "Hochgeladenes Bild:",
+      "uploading": "Wird hochgeladen…"
     }
   },
   "language": {
@@ -132,8 +144,10 @@
       "generic": "Allgemein",
       "halfLength": "Halbzeitdauer",
       "kickOffTime": "Anstoßzeit",
+      "lengthError": "Geben Sie eine Minutenzahl über 0 und höchstens 300 ein.",
       "penalties": "Elfmeterschießen",
       "periodCount": "Anzahl der Perioden",
+      "periodCountError": "Geben Sie eine ganze Zahl von 1 bis 50 ein.",
       "periodLength": "Periodendauer",
       "periodNameLabel": "Name der Periode",
       "periodNamePlaceholder": "Periode",
@@ -143,7 +157,9 @@
     },
     "homeTeam": "Heimmannschaft",
     "saved": {
+      "defaultName": "{{home}} gegen {{away}}",
       "deleteConfirmBody": "Möchten Sie die gespeicherten Spieleinstellungen „{{title}}“ wirklich löschen?",
+      "deleteError": "Die gespeicherten Spieleinstellungen konnten nicht gelöscht werden. Bitte versuchen Sie es erneut.",
       "deleteModalTitle": "Gespeicherte Spieleinstellungen löschen?",
       "emptyDescription": "Klicken Sie auf die Schaltfläche „{{action}}“, um Spieleinstellungen zu speichern",
       "emptyTitle": "Keine gespeicherten Spieleinstellungen",
@@ -153,6 +169,7 @@
       "restoreConfirmBody": "Möchten Sie die gespeicherten Spieleinstellungen wirklich wiederherstellen? Die aktuellen Spieleinstellungen werden dabei überschrieben.",
       "restoreModalTitle": "Gespeicherte Spieleinstellungen wiederherstellen?",
       "saveCurrent": "Aktuelle Spieleinstellungen speichern",
+      "saveError": "Die Spieleinstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
       "saveModalTitle": "Spieleinstellungen speichern?",
       "savedAt": "Gespeichert: {{date}}",
       "title": "Spieleinstellungen speichern/wiederherstellen"

@@ -431,124 +431,204 @@ describe('utils', () => {
   });
 
   describe('keyboardEventToAccelerator', () => {
-    it('builds a CommandOrControl+Shift+<letter> accelerator from a keydown', () => {
-      expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: true,
-          key: 'h',
-          code: 'KeyH',
-        })
-      ).toBe('CommandOrControl+Shift+H');
+    // A keydown with no modifiers held; each test overrides what it needs.
+    const keydown = (
+      overrides: Partial<{
+        metaKey: boolean;
+        ctrlKey: boolean;
+        altKey: boolean;
+        shiftKey: boolean;
+        key: string;
+        code: string;
+      }>
+    ) => ({
+      metaKey: false,
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      key: 'h',
+      code: 'KeyH',
+      ...overrides,
     });
 
-    it('treats ctrlKey the same as metaKey', () => {
+    it('builds a CommandOrControl+Shift+<letter> accelerator from Cmd on macOS', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: false,
-          ctrlKey: true,
-          altKey: false,
-          shiftKey: true,
-          key: 'a',
-          code: 'KeyA',
-        })
-      ).toBe('CommandOrControl+Shift+A');
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, shiftKey: true }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Shift+H' });
+    });
+
+    it('records Ctrl on macOS as Control, not as Cmd', () => {
+      // Regression: Ctrl+Shift+H used to be saved as CommandOrControl, which
+      // on macOS means Cmd+Shift+H, a different chord from the one pressed.
+      expect(
+        keyboardEventToAccelerator(
+          keydown({ ctrlKey: true, shiftKey: true }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'Control+Shift+H' });
+    });
+
+    it('keeps Cmd and Ctrl as separate modifiers when both are held on macOS', () => {
+      expect(
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, ctrlKey: true }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Control+H' });
+    });
+
+    it('maps Ctrl to CommandOrControl on Windows and Linux', () => {
+      for (const platform of ['win32', 'linux']) {
+        expect(
+          keyboardEventToAccelerator(
+            keydown({ ctrlKey: true, shiftKey: true, key: 'a', code: 'KeyA' }),
+            platform
+          )
+        ).toEqual({ accelerator: 'CommandOrControl+Shift+A' });
+      }
+    });
+
+    it('refuses the Windows/Super key on Windows and Linux instead of treating it as Ctrl', () => {
+      for (const platform of ['win32', 'linux']) {
+        expect(
+          keyboardEventToAccelerator(
+            keydown({ metaKey: true, shiftKey: true }),
+            platform
+          )
+        ).toEqual({ rejection: 'metaKeyUnsupported' });
+      }
     });
 
     it('maps the space key to "Space"', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: true,
-          key: ' ',
-          code: 'Space',
-        })
-      ).toBe('CommandOrControl+Shift+Space');
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, shiftKey: true, key: ' ', code: 'Space' }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Shift+Space' });
     });
 
     it('uses the physical key code for digits, ignoring a shifted symbol', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: true,
-          key: '@', // Shift+2 on a US layout
-          code: 'Digit2',
-        })
-      ).toBe('CommandOrControl+Shift+2');
+        keyboardEventToAccelerator(
+          // Shift+2 on a US layout
+          keydown({ ctrlKey: true, shiftKey: true, key: '@', code: 'Digit2' }),
+          'win32'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Shift+2' });
     });
 
     it('supports F-keys', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: false,
-          key: 'F5',
-          code: 'F5',
-        })
-      ).toBe('CommandOrControl+F5');
+        keyboardEventToAccelerator(
+          keydown({ ctrlKey: true, key: 'F5', code: 'F5' }),
+          'linux'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+F5' });
     });
 
     it('allows Alt alone to satisfy the non-Shift modifier requirement', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: false,
-          ctrlKey: false,
-          altKey: true,
-          shiftKey: false,
-          key: 'k',
-          code: 'KeyK',
-        })
-      ).toBe('Alt+K');
+        keyboardEventToAccelerator(
+          keydown({ altKey: true, key: 'k', code: 'KeyK' }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'Alt+K' });
     });
 
-    it('returns null for a modifier-only keydown', () => {
+    it('rejects a modifier-only keydown', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: false,
-          key: 'Meta',
-          code: 'MetaLeft',
-        })
-      ).toBeNull();
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, key: 'Meta', code: 'MetaLeft' }),
+          'darwin'
+        )
+      ).toEqual({ rejection: 'modifierOnly' });
     });
 
-    it('returns null when there is no non-Shift modifier', () => {
+    it('rejects a binding with no non-Shift modifier', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: false,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: true,
-          key: 'h',
-          code: 'KeyH',
-        })
-      ).toBeNull();
+        keyboardEventToAccelerator(keydown({ shiftKey: true }), 'darwin')
+      ).toEqual({ rejection: 'needModifier' });
     });
 
-    it('returns null for keys it does not know how to bind', () => {
+    it('rejects keys it does not know how to bind', () => {
       expect(
-        keyboardEventToAccelerator({
-          metaKey: true,
-          ctrlKey: false,
-          altKey: false,
-          shiftKey: false,
-          key: 'Escape',
-          code: 'Escape',
-        })
-      ).toBeNull();
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, key: 'Escape', code: 'Escape' }),
+          'darwin'
+        )
+      ).toEqual({ rejection: 'unsupportedKey' });
+    });
+
+    it.each([
+      ['darwin', { metaKey: true }, 'Z', 'reservedUndoRedo'],
+      ['darwin', { metaKey: true, shiftKey: true }, 'Z', 'reservedUndoRedo'],
+      // The Dashboard's undo handler accepts Ctrl on macOS too.
+      ['darwin', { ctrlKey: true }, 'Z', 'reservedUndoRedo'],
+      ['darwin', { ctrlKey: true, shiftKey: true }, 'Z', 'reservedUndoRedo'],
+      ['win32', { ctrlKey: true }, 'Z', 'reservedUndoRedo'],
+      ['linux', { ctrlKey: true, shiftKey: true }, 'Z', 'reservedUndoRedo'],
+      ['darwin', { metaKey: true }, 'C', 'reservedEditing'],
+      ['win32', { ctrlKey: true }, 'V', 'reservedEditing'],
+      ['linux', { ctrlKey: true }, 'X', 'reservedEditing'],
+      ['darwin', { metaKey: true }, 'A', 'reservedEditing'],
+      ['darwin', { metaKey: true }, 'Q', 'reservedAppWindow'],
+      ['win32', { ctrlKey: true }, 'W', 'reservedAppWindow'],
+    ] as const)(
+      'refuses the reserved chord on %s: %o + %s',
+      (platform, modifiers, letter, rejection) => {
+        const result = keyboardEventToAccelerator(
+          keydown({
+            ...modifiers,
+            key: letter.toLowerCase(),
+            code: `Key${letter}`,
+          }),
+          platform
+        );
+        expect(result).toMatchObject({ rejection });
+      }
+    );
+
+    it('still allows reserved letters with other modifier combinations', () => {
+      // Shift+A is the default away-team shortcut; only plain Cmd/Ctrl+A is
+      // select-all. Alt+Z is not undo.
+      expect(
+        keyboardEventToAccelerator(
+          keydown({ metaKey: true, shiftKey: true, key: 'a', code: 'KeyA' }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Shift+A' });
+      expect(
+        keyboardEventToAccelerator(
+          keydown({ ctrlKey: true, altKey: true, key: 'z', code: 'KeyZ' }),
+          'win32'
+        )
+      ).toEqual({ accelerator: 'CommandOrControl+Alt+Z' });
+      // Plain Control+C on macOS is not copy (Cmd+C is).
+      expect(
+        keyboardEventToAccelerator(
+          keydown({ ctrlKey: true, key: 'c', code: 'KeyC' }),
+          'darwin'
+        )
+      ).toEqual({ accelerator: 'Control+C' });
+    });
+
+    it('detects the platform from the renderer when none is passed', () => {
+      const platformSpy = vi
+        .spyOn(window.navigator, 'platform', 'get')
+        .mockReturnValue('MacIntel');
+      try {
+        expect(
+          keyboardEventToAccelerator(keydown({ ctrlKey: true, shiftKey: true }))
+        ).toEqual({ accelerator: 'Control+Shift+H' });
+      } finally {
+        platformSpy.mockRestore();
+      }
     });
   });
-
   describe('debounce', () => {
     it('runs the last call after the delay', () => {
       vi.useFakeTimers();

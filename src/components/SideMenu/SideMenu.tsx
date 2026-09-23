@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
@@ -10,8 +10,23 @@ export interface Props {
   children?: React.ReactNode;
 }
 
+// The running app's version, or null when it can't be read (e.g. no
+// preload bridge in a browser preview or a failed IPC call). It used to fall
+// back to a made-up '1.0.0', which is worse than showing nothing when an
+// operator reads it out to support.
+function readAppVersion(): string | null {
+  try {
+    return window?.electronAPI?.getVersion() || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function SideMenu({ open, setOpen, title, children }: Props) {
   const { t } = useTranslation();
+  // getVersion is a synchronous IPC round trip and the version can't change
+  // while the app runs, so read it once per mount rather than every render.
+  const [version] = useState(readAppVersion);
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={setOpen}>
@@ -64,11 +79,13 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">{children}</div>
                     </div>
-                    <div>
-                      <p className="text-center text-xs">
-                        Version: {window?.electronAPI?.getVersion() || '1.0.0'}
-                      </p>
-                    </div>
+                    {version && (
+                      <div>
+                        <p className="text-center text-xs">
+                          {t('common:versionLabel', { version })}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

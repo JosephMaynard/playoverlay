@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
@@ -30,58 +30,118 @@ export default function SavedMatchSettings({
     null | 'save-current-match-settings' | 'show-saved-match-settings'
   >(null);
   const [savedMatchName, setSavedMatchName] = useState('');
+  // Save and delete keep their dialog open until the main process answers,
+  // so a failed write can be retried without retyping anything. The ref is
+  // the synchronous double-click guard; the state drives the disabled button.
+  const [isWriting, setIsWriting] = useState(false);
+  const writeInFlight = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchSavedMatchSettings = async () => {
-    const storedMatchSettings =
-      await window?.electronAPI?.getSavedMatchSettings();
-    // Rows saved before saveId existed get one assigned here, so
-    // delete-by-saveId can't remove multiple rows and React keys are stable.
-    setSavedMatchSettings(
-      (storedMatchSettings ?? []).map((settings) =>
-        settings.saveId ? settings : { ...settings, saveId: nanoid() }
-      )
+    try {
+      const storedMatchSettings =
+        await window?.electronAPI?.getSavedMatchSettings();
+      // Rows saved before saveId existed get one assigned here, so
+      // delete-by-saveId can't remove multiple rows and React keys are stable.
+      setSavedMatchSettings(
+        (storedMatchSettings ?? []).map((settings) =>
+          settings.saveId ? settings : { ...settings, saveId: nanoid() }
+        )
+      );
+    } catch (error) {
+      // The list just stays as it was; the write that preceded this (if
+      // any) has already been confirmed.
+      console.error('Failed to load saved match settings:', error);
+    }
+  };
+
+  // Writes the whole saved-fixtures list and resolves true only once the
+  // main process confirms it. A missing API or response counts as a failure
+  // rather than a silent success.
+  const writeSavedMatchSettings = async (
+    updatedList: MatchSettings[]
+  ): Promise<boolean> => {
+    try {
+      const response =
+        await window?.electronAPI?.setSavedMatchSettings(updatedList);
+      if (response?.success) return true;
+      console.error('Failed to write saved match settings:', response?.error);
+    } catch (error) {
+      console.error('Failed to write saved match settings:', error);
+    }
+    return false;
+  };
+
+  const runWrite = async (write: () => Promise<void>) => {
+    if (writeInFlight.current) return;
+    writeInFlight.current = true;
+    setIsWriting(true);
+    try {
+      await write();
+    } finally {
+      writeInFlight.current = false;
+      setIsWriting(false);
+    }
+  };
+
+  const handleSave = () =>
+    runWrite(async () => {
+      setSaveError(null);
+      const saved = await writeSavedMatchSettings([
+        ...savedMatchSettings,
+        {
+          ...matchSettings,
+          saveTitle: savedMatchName,
+          saveDate: new Date().toISOString(),
+          saveId: nanoid(),
+        },
+      ]);
+      if (!saved) {
+        setSaveError(t('settings:matchMenu.saved.saveError'));
+        return;
+      }
+      setModal(null);
+      await fetchSavedMatchSettings();
+    });
+
+  const handleDelete = () =>
+    runWrite(async () => {
+      if (!savedMatchSettingsToDelete) {
+        return;
+      }
+      setDeleteError(null);
+      const deleted = await writeSavedMatchSettings(
+        savedMatchSettings.filter(
+          (matchSettings) =>
+            matchSettings.saveId !== savedMatchSettingsToDelete.saveId
+        )
+      );
+      if (!deleted) {
+        setDeleteError(t('settings:matchMenu.saved.deleteError'));
+        return;
+      }
+      setSavedMatchSettingsToDelete(null);
+      await fetchSavedMatchSettings();
+    });
+
+  // Suggest a name from the current teams each time the save dialog opens,
+  // not on every settings change, so a name the operator has typed survives
+  // while the dialog is open (including across a failed save and retry).
+  const openSaveDialog = () => {
+    setSavedMatchName(
+      t('settings:matchMenu.saved.defaultName', {
+        home: matchSettings.homeTeamNameFull,
+        away: matchSettings.awayTeamNameFull,
+      })
     );
-  };
-
-  const handleSave = async () => {
-    const response = await window?.electronAPI?.setSavedMatchSettings([
-      ...savedMatchSettings,
-      {
-        ...matchSettings,
-        saveTitle: savedMatchName,
-        saveDate: new Date().toISOString(),
-        saveId: nanoid(),
-      },
-    ]);
-    if (response.success) {
-      fetchSavedMatchSettings();
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!savedMatchSettingsToDelete) {
-      return;
-    }
-    const response = await window?.electronAPI?.setSavedMatchSettings([
-      ...savedMatchSettings.filter(
-        (matchSettings) =>
-          matchSettings.saveId !== savedMatchSettingsToDelete.saveId
-      ),
-    ]);
-    if (response.success) {
-      fetchSavedMatchSettings();
-    }
+    setSaveError(null);
+    setModal('save-current-match-settings');
   };
 
   useEffect(() => {
     fetchSavedMatchSettings();
   }, []);
-
-  useEffect(() => {
-    setSavedMatchName(
-      `${matchSettings.homeTeamNameFull} vs ${matchSettings.awayTeamNameFull}`
-    );
-  }, [matchSettings]);
 
   return (
     <>
@@ -90,7 +150,7 @@ export default function SavedMatchSettings({
           <button
             type="button"
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            onClick={() => setModal('save-current-match-settings')}
+            onClick={openSaveDialog}
           >
             {t('settings:matchMenu.saved.saveCurrent')}
           </button>
@@ -153,9 +213,10 @@ export default function SavedMatchSettings({
                 <button
                   type="button"
                   className="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                  onClick={() =>
-                    setSavedMatchSettingsToDelete(savedMatchSetting)
-                  }
+                  onClick={() => {
+                    setDeleteError(null);
+                    setSavedMatchSettingsToDelete(savedMatchSetting);
+                  }}
                 >
                   <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
                   {t('settings:actions.delete')}
@@ -171,16 +232,19 @@ export default function SavedMatchSettings({
         title={t('settings:matchMenu.saved.deleteModalTitle')}
         actionButtonLabel={t('settings:actions.delete')}
         icon="warning"
-        action={() => {
-          handleDelete();
-          setSavedMatchSettingsToDelete(null);
-        }}
+        action={handleDelete}
+        actionDisabled={isWriting}
       >
         <p className="text-sm text-gray-500">
           {t('settings:matchMenu.saved.deleteConfirmBody', {
             title: savedMatchSettingsToDelete?.saveTitle,
           })}
         </p>
+        {deleteError && (
+          <p role="alert" className="mt-2 text-sm text-red-600">
+            {deleteError}
+          </p>
+        )}
       </Modal>
       <Modal
         open={!!savedMatchSettingsToRestore}
@@ -219,10 +283,8 @@ export default function SavedMatchSettings({
         actionButtonLabel={t('settings:actions.save')}
         actionButtonColor="green"
         icon="playoverlay-logo"
-        action={() => {
-          handleSave();
-          setModal(null);
-        }}
+        action={handleSave}
+        actionDisabled={isWriting}
       >
         <div className="my-4">
           <label
@@ -240,6 +302,11 @@ export default function SavedMatchSettings({
               onChange={(e) => setSavedMatchName(e.target.value)}
             />
           </div>
+          {saveError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              {saveError}
+            </p>
+          )}
         </div>
       </Modal>
     </>

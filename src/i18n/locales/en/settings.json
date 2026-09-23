@@ -35,9 +35,13 @@
     "keyboardShortcutRow": {
       "change": "Change",
       "invalidKey": "That key can't be used in a shortcut.",
+      "metaKey": "The Windows/Super key can't be used. Use Ctrl or Alt.",
       "needModifier": "Include Cmd/Ctrl or Alt in the shortcut.",
       "pressKeys": "Press keys…",
-      "pressKeysFor": "Press keys for {{label}}"
+      "pressKeysFor": "Press keys for {{label}}",
+      "reservedAppWindow": "{{shortcut}} quits or closes the app. Choose another shortcut.",
+      "reservedEditing": "{{shortcut}} is used for copy, cut, paste or select all. Choose another shortcut.",
+      "reservedUndoRedo": "{{shortcut}} is used for undo and redo. Choose another shortcut."
     },
     "keyboardShortcuts": {
       "awayTeamScored": "Away team scored",
@@ -87,16 +91,20 @@
     "deleteConfirmAction": "Delete custom screen",
     "deleteConfirmBody": "Are you sure you want to delete the custom screen \"{{title}}\"?",
     "deleteConfirmTitle": "Delete custom screen?",
+    "deleteError": "Couldn't delete the graphic. Try again.",
+    "deleteOnAirWarning": "This graphic is on air right now. Deleting it will take it off air.",
     "edit": "Edit",
     "editModal": {
       "allScreens": "All Screens",
       "overlayScreens": "Show overlay on screens",
       "saveChanges": "Save changes",
+      "saveError": "Couldn't save your changes. Try again.",
       "title": "Edit Custom Graphic",
       "type": "Type"
     },
     "emptyDescription": "Click the \"{{action}}\" button to add custom graphics",
     "emptyTitle": "No Custom Graphics",
+    "onAir": "On air",
     "title": "Custom Graphics",
     "typeLine": "Type: {{type}}",
     "typeOverlay": "Overlay",
@@ -108,10 +116,14 @@
       "dropHere": "Drop the file here...",
       "image": "Image",
       "missingFields": "Please provide both a file and a title.",
+      "notSaved": "The image couldn't be saved. Check it's a real PNG, JPEG, WebP or SVG file and try again.",
       "selectFile": "Click to select one",
       "titleLabel": "Title",
+      "tooLarge": "\"{{name}}\" is {{size}} MB. Images must be {{max}} MB or smaller.",
+      "unsupportedType": "\"{{name}}\" isn't a supported image. Use a PNG, JPEG, WebP or SVG file.",
       "uploadFailed": "Failed to upload the image. Please try again.",
-      "uploadedImage": "Uploaded Image:"
+      "uploadedImage": "Uploaded Image:",
+      "uploading": "Uploading…"
     }
   },
   "language": {
@@ -132,8 +144,10 @@
       "generic": "Generic",
       "halfLength": "Half Length",
       "kickOffTime": "Kick-off Time",
+      "lengthError": "Enter a number of minutes above 0 and no more than 300.",
       "penalties": "Penalties",
       "periodCount": "Number of Periods",
+      "periodCountError": "Enter a whole number from 1 to 50.",
       "periodLength": "Period Length",
       "periodNameLabel": "Period Name",
       "periodNamePlaceholder": "Period",
@@ -143,7 +157,9 @@
     },
     "homeTeam": "Home Team",
     "saved": {
+      "defaultName": "{{home}} vs {{away}}",
       "deleteConfirmBody": "Are you sure you want to delete the saved match settings \"{{title}}\"?",
+      "deleteError": "Couldn't delete the saved match settings. Try again.",
       "deleteModalTitle": "Delete Saved Match Settings?",
       "emptyDescription": "Click the \"{{action}}\" button to save match settings",
       "emptyTitle": "No Saved Match Settings",
@@ -153,6 +169,7 @@
       "restoreConfirmBody": "Are you sure you want to restore the saved match settings? The current match settings will be overwritten if you proceed.",
       "restoreModalTitle": "Restore Saved Match Settings?",
       "saveCurrent": "Save Current Match Settings",
+      "saveError": "Couldn't save the match settings. Try again.",
       "saveModalTitle": "Save Match Settings?",
       "savedAt": "Saved: {{date}}",
       "title": "Save / Restore Match Settings"

@@ -17,9 +17,19 @@ export interface Props {
 }
 
 // Turns an Electron accelerator like "CommandOrControl+Shift+H" into the
-// friendlier "Cmd/Ctrl+Shift+H" shown in the UI.
+// friendlier "Cmd/Ctrl+Shift+H" shown in the UI. A macOS binding recorded
+// with the Control key itself ("Control+Shift+H") reads as "Ctrl+Shift+H".
 function formatAccelerator(accelerator: string): string {
-  return accelerator.replace('CommandOrControl', 'Cmd/Ctrl');
+  return accelerator
+    .split('+')
+    .map((part) =>
+      part === 'CommandOrControl'
+        ? 'Cmd/Ctrl'
+        : part === 'Control'
+          ? 'Ctrl'
+          : part
+    )
+    .join('+');
 }
 
 export default function KeyboardShortcutRow({
@@ -61,7 +71,7 @@ export default function KeyboardShortcutRow({
       return;
     }
 
-    const nextAccelerator = keyboardEventToAccelerator({
+    const result = keyboardEventToAccelerator({
       metaKey: event.metaKey,
       ctrlKey: event.ctrlKey,
       altKey: event.altKey,
@@ -70,16 +80,47 @@ export default function KeyboardShortcutRow({
       code: event.code,
     });
 
-    if (!nextAccelerator) {
-      setError(
-        !event.metaKey && !event.ctrlKey && !event.altKey
-          ? t('settings:appMenu.keyboardShortcutRow.needModifier')
-          : t('settings:appMenu.keyboardShortcutRow.invalidKey')
-      );
-      return;
+    if ('rejection' in result) {
+      const shortcut = result.accelerator
+        ? formatAccelerator(result.accelerator)
+        : '';
+      switch (result.rejection) {
+        case 'modifierOnly':
+          return;
+        case 'needModifier':
+          setError(t('settings:appMenu.keyboardShortcutRow.needModifier'));
+          return;
+        case 'metaKeyUnsupported':
+          setError(t('settings:appMenu.keyboardShortcutRow.metaKey'));
+          return;
+        case 'reservedUndoRedo':
+          setError(
+            t('settings:appMenu.keyboardShortcutRow.reservedUndoRedo', {
+              shortcut,
+            })
+          );
+          return;
+        case 'reservedEditing':
+          setError(
+            t('settings:appMenu.keyboardShortcutRow.reservedEditing', {
+              shortcut,
+            })
+          );
+          return;
+        case 'reservedAppWindow':
+          setError(
+            t('settings:appMenu.keyboardShortcutRow.reservedAppWindow', {
+              shortcut,
+            })
+          );
+          return;
+        default:
+          setError(t('settings:appMenu.keyboardShortcutRow.invalidKey'));
+          return;
+      }
     }
 
-    onChange(nextAccelerator);
+    onChange(result.accelerator);
   };
 
   return (

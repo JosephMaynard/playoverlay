@@ -10,60 +10,120 @@ import { MatchSettings } from 'src/zodSchemas';
 import SavedMatchSettings from './SavedMatchSettings';
 import { classNames } from '../../utils';
 
-// Parses a numeric timer-input's raw string value; returns undefined (so the
-// engine falls back to its default) for anything that isn't a finite
-// positive number, rather than persisting 0/NaN/negative values.
-function parsePositiveNumberInput(value: string): number | undefined {
-  if (value.trim() === '') return undefined;
+// Upper bounds matching the persistence schema (zodSchemas.ts): a value the
+// schema rejects is silently reset to the default on the next reload, so the
+// UI must refuse it up front rather than show a number that won't survive.
+const MAX_PERIOD_COUNT = 50;
+const MAX_LENGTH_MINUTES = 300;
+
+// The outcome of parsing a numeric timer input: an empty field is valid and
+// means "use the engine's default" (undefined); anything else must be a
+// finite positive number within the schema's bounds.
+type ParsedNumberInput =
+  { valid: true; value: number | undefined } | { valid: false };
+
+function parseLengthInput(value: string): ParsedNumberInput {
+  if (value.trim() === '') return { valid: true, value: undefined };
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= MAX_LENGTH_MINUTES
+    ? { valid: true, value: parsed }
+    : { valid: false };
 }
 
-// Same as parsePositiveNumberInput, but additionally rejects fractional
-// values, used for periodCount, which must be a whole number of periods.
-function parsePositiveIntegerInput(value: string): number | undefined {
-  const parsed = parsePositiveNumberInput(value);
-  return parsed !== undefined && Number.isInteger(parsed) ? parsed : undefined;
+// Same as parseLengthInput, but for periodCount, which must be a whole
+// number of periods between 1 and MAX_PERIOD_COUNT.
+function parsePeriodCountInput(value: string): ParsedNumberInput {
+  if (value.trim() === '') return { valid: true, value: undefined };
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 && parsed <= MAX_PERIOD_COUNT
+    ? { valid: true, value: parsed }
+    : { valid: false };
 }
 
 // Numeric timer input that only commits once the user has finished typing
 // (blur or Enter), committing on every keystroke would persist transient
 // values like the "1" while typing "12", which can delete the running phase
-// and stop the live clock. Same draft + commit pattern as the browser-source
-// port field in AppSettingsMenu.
+// and stop the live clock. Same draft + commit + inline error pattern as the
+// port fields in SystemSettingsMenu.
+//
+// The draft is null whenever the user isn't mid-edit, so the field always
+// shows the canonical (in-effect) value: a valid commit drops the draft even
+// when the canonical value doesn't change (e.g. clearing a field that was
+// already on its default), and an invalid one keeps the typed text with an
+// error beside it and leaves the settings untouched, rather than displaying
+// a number the clock isn't actually using.
 function DraftNumberInput({
   id,
   value,
+  parse,
   commit,
+  errorMessage,
+  min,
+  max,
+  step,
 }: {
   id: string;
   value: string;
-  commit: (rawValue: string) => void;
+  parse: (rawValue: string) => ParsedNumberInput;
+  commit: (value: number | undefined) => void;
+  errorMessage: string;
+  min?: number;
+  max: number;
+  // 'any' for lengths, which may be fractional (e.g. 22.5 minutes).
+  step?: number | 'any';
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
 
-  // Keep the draft in sync when settings change from outside this input
-  // (e.g. loaded from disk, restored, or committed by this same input).
+  // Drop any draft when settings change from outside this input (e.g.
+  // loaded from disk, a fixture restored, or the Reset button).
   useEffect(() => {
-    setDraft(value);
+    setDraft(null);
+    setInvalid(false);
   }, [value]);
 
+  const handleCommit = () => {
+    if (draft === null) return;
+    const parsed = parse(draft);
+    if (!parsed.valid) {
+      setInvalid(true);
+      return;
+    }
+    setInvalid(false);
+    setDraft(null);
+    commit(parsed.value);
+  };
+
+  const errorId = `${id}-error`;
+
   return (
-    <input
-      type="number"
-      name={id}
-      id={id}
-      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => commit(draft)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          commit(draft);
-        }
-      }}
-    />
+    <>
+      <input
+        type="number"
+        name={id}
+        id={id}
+        min={min}
+        max={max}
+        step={step}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? errorId : undefined}
+        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        value={draft ?? value}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={handleCommit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleCommit();
+          }
+        }}
+      />
+      {invalid && (
+        <p id={errorId} className="mt-1 text-xs text-red-600">
+          {errorMessage}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -219,11 +279,14 @@ export default function MatchSettingsMenu({
                 <DraftNumberInput
                   id="periodCount"
                   value={String(matchSettings.periodCount ?? 4)}
-                  commit={(rawValue) =>
-                    updateMatchSettings({
-                      periodCount: parsePositiveIntegerInput(rawValue),
-                    })
-                  }
+                  parse={parsePeriodCountInput}
+                  commit={(periodCount) => updateMatchSettings({ periodCount })}
+                  errorMessage={t(
+                    'settings:matchMenu.details.periodCountError'
+                  )}
+                  min={1}
+                  max={MAX_PERIOD_COUNT}
+                  step={1}
                 />
               </div>
             </div>
@@ -238,11 +301,13 @@ export default function MatchSettingsMenu({
                 <DraftNumberInput
                   id="periodLength"
                   value={String(matchSettings.periodLength ?? 10)}
-                  commit={(rawValue) =>
-                    updateMatchSettings({
-                      periodLength: parsePositiveNumberInput(rawValue),
-                    })
+                  parse={parseLengthInput}
+                  commit={(periodLength) =>
+                    updateMatchSettings({ periodLength })
                   }
+                  errorMessage={t('settings:matchMenu.details.lengthError')}
+                  max={MAX_LENGTH_MINUTES}
+                  step="any"
                 />
               </div>
             </div>
@@ -284,16 +349,14 @@ export default function MatchSettingsMenu({
               <div className="mt-2">
                 <DraftNumberInput
                   id="halfLength"
-                  value={
-                    matchSettings.halfLength
-                      ? String(matchSettings.halfLength)
-                      : ''
-                  }
-                  commit={(rawValue) =>
-                    updateMatchSettings({
-                      halfLength: parsePositiveNumberInput(rawValue),
-                    })
-                  }
+                  // Show the length actually in effect: getPhaseList falls
+                  // back to 45 when it's unset.
+                  value={String(matchSettings.halfLength ?? 45)}
+                  parse={parseLengthInput}
+                  commit={(halfLength) => updateMatchSettings({ halfLength })}
+                  errorMessage={t('settings:matchMenu.details.lengthError')}
+                  max={MAX_LENGTH_MINUTES}
+                  step="any"
                 />
               </div>
             </div>
@@ -308,16 +371,15 @@ export default function MatchSettingsMenu({
                 <div className="mt-2">
                   <DraftNumberInput
                     id="extraTimeHalfLength"
-                    value={
-                      matchSettings.extraTimeHalfLength
-                        ? String(matchSettings.extraTimeHalfLength)
-                        : ''
+                    // getPhaseList falls back to 15 when it's unset.
+                    value={String(matchSettings.extraTimeHalfLength ?? 15)}
+                    parse={parseLengthInput}
+                    commit={(extraTimeHalfLength) =>
+                      updateMatchSettings({ extraTimeHalfLength })
                     }
-                    commit={(rawValue) =>
-                      updateMatchSettings({
-                        extraTimeHalfLength: parsePositiveNumberInput(rawValue),
-                      })
-                    }
+                    errorMessage={t('settings:matchMenu.details.lengthError')}
+                    max={MAX_LENGTH_MINUTES}
+                    step="any"
                   />
                 </div>
               </div>

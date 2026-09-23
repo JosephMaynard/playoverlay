@@ -35,9 +35,13 @@
     "keyboardShortcutRow": {
       "change": "Modifier",
       "invalidKey": "Cette touche ne peut pas être utilisée dans un raccourci.",
+      "metaKey": "La touche Windows/Super ne peut pas être utilisée. Utilisez Ctrl ou Alt.",
       "needModifier": "Incluez Cmd/Ctrl ou Alt dans le raccourci.",
       "pressKeys": "Appuyez sur des touches…",
-      "pressKeysFor": "Appuyez sur les touches pour {{label}}"
+      "pressKeysFor": "Appuyez sur les touches pour {{label}}",
+      "reservedAppWindow": "{{shortcut}} quitte ou ferme l'application. Choisissez un autre raccourci.",
+      "reservedEditing": "{{shortcut}} sert à copier, couper, coller ou tout sélectionner. Choisissez un autre raccourci.",
+      "reservedUndoRedo": "{{shortcut}} sert à annuler et rétablir. Choisissez un autre raccourci."
     },
     "keyboardShortcuts": {
       "awayTeamScored": "But de l'équipe visiteuse",
@@ -87,16 +91,20 @@
     "deleteConfirmAction": "Supprimer l'écran personnalisé",
     "deleteConfirmBody": "Voulez-vous vraiment supprimer l'écran personnalisé « {{title}} » ?",
     "deleteConfirmTitle": "Supprimer l'écran personnalisé ?",
+    "deleteError": "Impossible de supprimer le graphique. Veuillez réessayer.",
+    "deleteOnAirWarning": "Ce graphique est actuellement à l'antenne. Le supprimer le retirera de l'antenne.",
     "edit": "Modifier",
     "editModal": {
       "allScreens": "Tous les écrans",
       "overlayScreens": "Afficher l'incrustation sur les écrans",
       "saveChanges": "Enregistrer les modifications",
+      "saveError": "Impossible d'enregistrer vos modifications. Veuillez réessayer.",
       "title": "Modifier le graphique personnalisé",
       "type": "Type"
     },
     "emptyDescription": "Cliquez sur le bouton « {{action}} » pour ajouter des graphiques personnalisés",
     "emptyTitle": "Aucun graphique personnalisé",
+    "onAir": "À l'antenne",
     "title": "Graphiques personnalisés",
     "typeLine": "Type : {{type}}",
     "typeOverlay": "Incrustation",
@@ -108,10 +116,14 @@
       "dropHere": "Déposez le fichier ici...",
       "image": "Image",
       "missingFields": "Veuillez fournir à la fois un fichier et un titre.",
+      "notSaved": "L'image n'a pas pu être enregistrée. Vérifiez qu'il s'agit bien d'un fichier PNG, JPEG, WebP ou SVG, puis réessayez.",
       "selectFile": "Cliquez pour en sélectionner un",
       "titleLabel": "Titre",
+      "tooLarge": "« {{name}} » fait {{size}} Mo. Les images ne doivent pas dépasser {{max}} Mo.",
+      "unsupportedType": "« {{name}} » n'est pas une image prise en charge. Utilisez un fichier PNG, JPEG, WebP ou SVG.",
       "uploadFailed": "Échec de l'envoi de l'image. Veuillez réessayer.",
-      "uploadedImage": "Image envoyée :"
+      "uploadedImage": "Image envoyée :",
+      "uploading": "Envoi en cours…"
     }
   },
   "language": {
@@ -132,8 +144,10 @@
       "generic": "Générique",
       "halfLength": "Durée d'une mi-temps",
       "kickOffTime": "Heure du coup d'envoi",
+      "lengthError": "Saisissez un nombre de minutes supérieur à 0 et inférieur ou égal à 300.",
       "penalties": "Tirs au but",
       "periodCount": "Nombre de périodes",
+      "periodCountError": "Saisissez un nombre entier compris entre 1 et 50.",
       "periodLength": "Durée d'une période",
       "periodNameLabel": "Nom de la période",
       "periodNamePlaceholder": "Période",
@@ -143,7 +157,9 @@
     },
     "homeTeam": "Équipe à domicile",
     "saved": {
+      "defaultName": "{{home}} contre {{away}}",
       "deleteConfirmBody": "Voulez-vous vraiment supprimer les paramètres de match enregistrés « {{title}} » ?",
+      "deleteError": "Impossible de supprimer les paramètres de match enregistrés. Veuillez réessayer.",
       "deleteModalTitle": "Supprimer les paramètres de match enregistrés ?",
       "emptyDescription": "Cliquez sur le bouton « {{action}} » pour enregistrer des paramètres de match",
       "emptyTitle": "Aucun paramètre de match enregistré",
@@ -153,6 +169,7 @@
       "restoreConfirmBody": "Voulez-vous vraiment restaurer les paramètres de match enregistrés ? Les paramètres de match actuels seront écrasés si vous continuez.",
       "restoreModalTitle": "Restaurer les paramètres de match enregistrés ?",
       "saveCurrent": "Enregistrer les paramètres de match actuels",
+      "saveError": "Impossible d'enregistrer les paramètres de match. Veuillez réessayer.",
       "saveModalTitle": "Enregistrer les paramètres de match ?",
       "savedAt": "Enregistré : {{date}}",
       "title": "Enregistrer / Restaurer les paramètres de match"

@@ -23,6 +23,11 @@ export interface Props {
   handleSaveChanges: () => void;
   handleOnChange: (change: Partial<CustomScreen>) => void;
   keyColour: string;
+  // Shown under the form when the last save failed; the draft stays as
+  // typed so the operator can retry.
+  saveError?: string | null;
+  // True while a save is in flight, so Save can't be clicked twice.
+  isSaving?: boolean;
 }
 
 export default function EditCustomScreen({
@@ -31,6 +36,8 @@ export default function EditCustomScreen({
   handleSaveChanges,
   handleOnChange,
   keyColour,
+  saveError = null,
+  isSaving = false,
 }: Props) {
   const { t } = useTranslation();
   if (customScreenToEdit === null) return null;
@@ -54,6 +61,7 @@ export default function EditCustomScreen({
       action={() => {
         handleSaveChanges();
       }}
+      actionDisabled={isSaving}
       title={t('settings:customScreens.editModal.title')}
       icon="edit"
     >
@@ -198,6 +206,11 @@ export default function EditCustomScreen({
             ))}
           </div>
         </fieldset>
+      )}
+      {saveError && (
+        <p role="alert" className="mt-4 text-sm text-red-600">
+          {saveError}
+        </p>
       )}
     </Modal>
   );
