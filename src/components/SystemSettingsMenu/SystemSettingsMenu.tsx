@@ -19,7 +19,11 @@ import {
 } from '../../utils';
 import Modal from '../Modal/Modal';
 import { MatchSettings } from '../../zodSchemas';
-import { connectToStreamDeck, NEXT_SET_KEY_INDEX } from '../../stream-deck';
+import {
+  connectToStreamDeck,
+  NEXT_SET_KEY_INDEX,
+  onStreamDeckDisconnected,
+} from '../../stream-deck';
 import {
   AppSettings,
   KeyboardShortcuts,
@@ -507,6 +511,13 @@ export default function SystemSettingsMenu({
   const handleNextButtonSet = () => {
     nextButtonSet();
   };
+
+  // An unplug (or a device dropped over sleep) shows as disconnected at
+  // once, so Connect is offered again without waiting for a redraw to fail.
+  useEffect(
+    () => onStreamDeckDisconnected(() => setStreamDeckConnected(false)),
+    []
+  );
 
   useEffect(() => {
     if (streamDeckConnected) {

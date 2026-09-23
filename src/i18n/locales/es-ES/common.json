@@ -6,7 +6,9 @@
     "cut": "Cortar",
     "copy": "Copiar",
     "paste": "Pegar",
-    "selectAll": "Seleccionar todo"
+    "selectAll": "Seleccionar todo",
+    "exportDiagnosticsTitle": "Exportar diagnóstico",
+    "textFiles": "Archivos de texto"
   },
   "cancel": "Cancelar",
   "close": "Cerrar",

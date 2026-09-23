@@ -51,6 +51,7 @@ import {
   defaultScores,
 } from '../../constants';
 import { createGoal, removeLatestGoal, trimGoalsToScore } from '../../goalLog';
+import { isRestorableLiveMatch } from '../../liveMatch';
 import { nanoid } from 'nanoid';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
@@ -214,14 +215,7 @@ export default function Dashboard() {
     window?.electronAPI
       ?.getLiveMatch()
       .then((liveMatch) => {
-        if (
-          liveMatch &&
-          (liveMatch.scores?.homeTeam > 0 ||
-            liveMatch.scores?.awayTeam > 0 ||
-            (liveMatch.scores?.penalties?.length ?? 0) > 0 ||
-            liveMatch.time?.matchPhase !== undefined ||
-            liveMatch.matchState?.previousMatchPhase !== undefined)
-        ) {
+        if (liveMatch && isRestorableLiveMatch(liveMatch)) {
           setRestorableMatch(liveMatch);
         }
       })

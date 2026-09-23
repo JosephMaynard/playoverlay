@@ -76,6 +76,28 @@ describe('connectToStreamDeck', () => {
     expect(freshDeck.clearPanel).toHaveBeenCalled();
   });
 
+  it('tells subscribers when a Stream Deck (and only a Stream Deck) goes away', async () => {
+    const { onStreamDeckDisconnected } = await loadStreamDeck();
+    const listener = vi.fn();
+    const unsubscribe = onStreamDeckDisconnected(listener);
+
+    hid.dispatchEvent(
+      Object.assign(new Event('disconnect'), { device: { vendorId: 0x046d } })
+    );
+    expect(listener).not.toHaveBeenCalled();
+
+    hid.dispatchEvent(
+      Object.assign(new Event('disconnect'), { device: { vendorId: 0x0fd9 } })
+    );
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    hid.dispatchEvent(
+      Object.assign(new Event('disconnect'), { device: { vendorId: 0x0fd9 } })
+    );
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   it('drops the device when WebHID reports a Stream Deck disconnect', async () => {
     const firstDeck = fakeDeck();
     const secondDeck = fakeDeck();

@@ -1,5 +1,11 @@
 import { DisplayScreen, defaultMatchState } from '../constants';
 import { LiveMatch, MatchState, Scores, Time } from '../types';
+import { isRestorableLiveMatch } from '../liveMatch';
+
+// Re-exported for the main process, which imports the output-hold pieces
+// from here; the rule itself lives in liveMatch.ts, shared with the
+// dashboard.
+export { isRestorableLiveMatch };
 
 // What the on-air outputs (display window, OBS browser sources, paired
 // phones) are sent: the live state, or a held stand-in for it.
@@ -7,22 +13,6 @@ export interface OutputState {
   scores: Scores;
   time: Time;
   matchState: MatchState;
-}
-
-// Mirrors the dashboard's own "offer to restore" condition (see
-// Dashboard.tsx's getLiveMatch effect): a snapshot only gets a restore
-// prompt when it shows a match underway. Holding the outputs for a snapshot
-// the dashboard never offers would leave them blank with nothing for the
-// operator to resolve.
-export function isRestorableLiveMatch(liveMatch: LiveMatch | undefined) {
-  if (!liveMatch) return false;
-  return (
-    liveMatch.scores?.homeTeam > 0 ||
-    liveMatch.scores?.awayTeam > 0 ||
-    (liveMatch.scores?.penalties?.length ?? 0) > 0 ||
-    liveMatch.time?.matchPhase !== undefined ||
-    liveMatch.matchState?.previousMatchPhase !== undefined
-  );
 }
 
 // The held view shown at launch while a restore prompt is pending. The

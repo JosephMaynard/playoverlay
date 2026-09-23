@@ -121,7 +121,10 @@ import {
   findMissingTeamLogos,
   PreflightResult,
 } from './main-functions/preflight';
-import { buildAppMenuTemplate } from './main-functions/appMenu';
+import {
+  buildAppMenuTemplate,
+  getAppMenuLabels,
+} from './main-functions/appMenu';
 import {
   isRestorableLiveMatch,
   launchHoldState,
@@ -1384,10 +1387,11 @@ function setupIPCHandlers() {
           homeDirectory: os.homedir(),
         });
 
+        const labels = getAppMenuLabels(operatorLanguage());
         const dialogOptions = {
-          title: 'Export diagnostics',
+          title: labels.exportDiagnosticsTitle,
           defaultPath: suggestedDiagnosticsFileName(now),
-          filters: [{ name: 'Text', extensions: ['txt'] }],
+          filters: [{ name: labels.textFiles, extensions: ['txt'] }],
         };
         const dialogResult = mainWindow
           ? await dialog.showSaveDialog(mainWindow, dialogOptions)
@@ -1633,11 +1637,17 @@ function updatePowerSaveBlocker() {
   }
 }
 
-// The native menu follows the operator's language, or the OS locale before
-// one has been chosen (the same fallback the renderers use).
+// The operator's language, or the OS locale before one has been chosen (the
+// same fallback the renderers use), for the few strings the main process
+// shows itself: the native menu and file dialogs.
+function operatorLanguage() {
+  return (
+    cachedAppSettings.language ?? nearestSupportedLanguage(app.getLocale())
+  );
+}
+
 function applyAppMenu() {
-  const language =
-    cachedAppSettings.language ?? nearestSupportedLanguage(app.getLocale());
+  const language = operatorLanguage();
   Menu.setApplicationMenu(
     Menu.buildFromTemplate(buildAppMenuTemplate(language))
   );

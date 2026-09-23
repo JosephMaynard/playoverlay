@@ -121,6 +121,18 @@ async function resetConnectedStreamDecks() {
 // (tests, a browser without WebHID) have no navigator.hid at all.
 let listeningForDisconnects = false;
 
+// Told when a connected Stream Deck goes away, so the UI can stop saying
+// "connected" straight away instead of when the next redraw fails.
+const disconnectListeners = new Set<() => void>();
+
+export function onStreamDeckDisconnected(listener: () => void): () => void {
+  disconnectListeners.add(listener);
+  listenForDisconnects();
+  return () => {
+    disconnectListeners.delete(listener);
+  };
+}
+
 function listenForDisconnects() {
   if (listeningForDisconnects) return;
   if (typeof navigator === 'undefined' || !navigator.hid) return;
@@ -129,6 +141,7 @@ function listenForDisconnects() {
     const vendorId = event.device.vendorId;
     if (vendorId !== VENDOR_ID && vendorId !== CORSAIR_VENDOR_ID) return;
     void resetConnectedStreamDecks();
+    disconnectListeners.forEach((listener) => listener());
   });
 }
 
