@@ -33,7 +33,7 @@ describe('DashboardHeader undo/redo controls', () => {
   });
 
   it('disables both actions and labels them "nothing" when the stacks are empty', () => {
-    render(<DashboardHeader setSideMenu={vi.fn()} />);
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
 
     const undoButtons = buttons('Nothing to undo');
     const redoButtons = buttons('Nothing to redo');
@@ -45,7 +45,7 @@ describe('DashboardHeader undo/redo controls', () => {
 
   it('enables undo and names it after the next undoable action', () => {
     useUndoStore.setState({ undoStack: [entry('undo:actions.homeGoal')] });
-    render(<DashboardHeader setSideMenu={vi.fn()} />);
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
 
     const undoButtons = buttons('Undo home goal');
     expect(undoButtons).toHaveLength(2);
@@ -60,7 +60,7 @@ describe('DashboardHeader undo/redo controls', () => {
     useUndoStore.setState({
       redoStack: [entry('undo:actions.switchScreen')],
     });
-    render(<DashboardHeader setSideMenu={vi.fn()} />);
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
 
     const redoButtons = buttons('Redo screen change');
     expect(redoButtons).toHaveLength(2);
@@ -73,7 +73,7 @@ describe('DashboardHeader undo/redo controls', () => {
       undoStack: [entry('undo:actions.awayGoal')],
       undo,
     });
-    render(<DashboardHeader setSideMenu={vi.fn()} />);
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
 
     fireEvent.click(buttons('Undo away goal')[0]);
     expect(undo).toHaveBeenCalledTimes(1);
@@ -81,9 +81,19 @@ describe('DashboardHeader undo/redo controls', () => {
 
   it('keeps the settings-navigation buttons working alongside the match actions', () => {
     const setSideMenu = vi.fn();
-    render(<DashboardHeader setSideMenu={setSideMenu} />);
+    render(<DashboardHeader setSideMenu={setSideMenu} onNewMatch={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Team Settings' }));
     expect(setSideMenu).toHaveBeenCalledWith('team-settings');
+  });
+
+  it('offers New match in both the top bar and the rail', () => {
+    const onNewMatch = vi.fn();
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={onNewMatch} />);
+
+    const newMatchButtons = buttons('New match');
+    expect(newMatchButtons).toHaveLength(2);
+    fireEvent.click(newMatchButtons[1]);
+    expect(onNewMatch).toHaveBeenCalledTimes(1);
   });
 });

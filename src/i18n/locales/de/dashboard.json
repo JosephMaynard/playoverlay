@@ -7,6 +7,12 @@
     "openMenu": "{{title}}-Menü öffnen",
     "teamSettings": "Team-Einstellungen"
   },
+  "newMatch": {
+    "button": "Neues Spiel",
+    "confirm": "Neues Spiel beginnen",
+    "modalBody": "Spielstand, Elfmeterschießen, Tore, Uhr und Einblendungen werden zurückgesetzt, und der Rückgängig-Verlauf wird gelöscht. Die Team-Einstellungen bleiben erhalten.",
+    "modalTitle": "Neues Spiel beginnen?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "Als PlayOverlay zuletzt geschlossen wurde, lief noch ein Spiel ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Die Wiederherstellung stellt Spielstand und Uhr wieder her, wobei die Uhr angehalten ist.",

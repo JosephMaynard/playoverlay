@@ -7,6 +7,12 @@
     "openMenu": "Abrir menu de {{title}}",
     "teamSettings": "Definições da equipa"
   },
+  "newMatch": {
+    "button": "Novo jogo",
+    "confirm": "Iniciar novo jogo",
+    "modalBody": "Os resultados, as grandes penalidades, os golos, o relógio e os gráficos no ar são repostos, e o histórico para anular é limpo. As definições das equipas são mantidas.",
+    "modalTitle": "Iniciar um novo jogo?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "Estava um jogo em curso da última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). A restauração repõe o resultado e o cronómetro, com o cronómetro em pausa.",

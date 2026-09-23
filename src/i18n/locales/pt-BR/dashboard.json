@@ -7,6 +7,12 @@
     "openMenu": "Abrir menu de {{title}}",
     "teamSettings": "Configurações da equipe"
   },
+  "newMatch": {
+    "button": "Nova partida",
+    "confirm": "Iniciar nova partida",
+    "modalBody": "Placar, pênaltis, gols, cronômetro e gráficos no ar são redefinidos, e o histórico para desfazer é apagado. As configurações das equipes são mantidas.",
+    "modalTitle": "Iniciar uma nova partida?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "Uma partida estava em andamento na última vez que o PlayOverlay foi fechado ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). A restauração recupera o placar e o cronômetro, com o cronômetro pausado.",

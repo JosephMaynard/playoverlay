@@ -840,4 +840,58 @@ describe('Dashboard match engine', () => {
       expect(electronAPI.enableKeyboardShortcuts).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('new match', () => {
+    it('resets the match to a clean slate but keeps team settings', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+
+      act(() =>
+        stores.matchSettings
+          .getState()
+          .setMatchSettings({ homeTeamNameFull: 'Rovers' })
+      );
+      act(() => callbacks.nextMatchPhase?.()); // kick off
+      act(() => callbacks.homeTeamScored?.());
+      advance(3000);
+      act(() =>
+        stores.matchState.getState().setMatchState({
+          overlays: [
+            {
+              title: 'Sponsor',
+              filePath: '/images/sponsor.png',
+              url: 'file:///images/sponsor.png',
+              type: 'overlay',
+            },
+          ],
+        })
+      );
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'New match' })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Start new match' }));
+
+      expect(stores.scores.getState().scores).toEqual(
+        expect.objectContaining({ homeTeam: 0, awayTeam: 0, penalties: [] })
+      );
+      const time = stores.time.getState().time;
+      expect(time.matchPhase).toBeUndefined();
+      expect(time.time).toBeUndefined();
+      const matchState = stores.matchState.getState().matchState;
+      expect(matchState.previousMatchPhase).toBeUndefined();
+      expect(matchState.overlays).toEqual([]);
+      expect(matchState.displayScreen).toBe('matchTitle');
+      expect(useUndoStore.getState().undoStack).toHaveLength(0);
+      expect(
+        stores.matchSettings.getState().matchSettings.homeTeamNameFull
+      ).toBe('Rovers');
+
+      // The clock stays stopped, and the next-phase shortcut starts the
+      // first half again rather than carrying on from the old match.
+      advance(2000);
+      expect(stores.time.getState().time.time).toBeUndefined();
+      act(() => callbacks.nextMatchPhase?.());
+      expect(stores.time.getState().time.matchPhase).toBe('firstHalf');
+      expect(stores.time.getState().time.time).toBe('0:00');
+    });
+  });
 });

@@ -3,6 +3,7 @@ import {
   ArrowUturnRightIcon,
   Cog6ToothIcon,
   ComputerDesktopIcon,
+  DocumentPlusIcon,
   PhotoIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
@@ -21,6 +22,8 @@ import {
 
 export interface Props {
   setSideMenu: (sideMenu: SideMenuType) => void;
+  // Opens the New match confirmation (the reset itself lives in Dashboard).
+  onNewMatch: () => void;
 }
 
 // Titles are i18n keys rather than literal strings: three of the four reuse
@@ -51,14 +54,14 @@ const menuButtons = [
 ];
 
 interface MatchAction {
-  key: 'undo' | 'redo';
+  key: 'newMatch' | 'undo' | 'redo';
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
   disabled: boolean;
   onClick: () => void;
 }
 
-// An icon-only match-action button (undo/redo). Genuinely disabled (not just
+// An icon-only match-action button (new match, undo, redo). Genuinely disabled (not just
 // greyed) when its stack is empty, and carries an accessible name/title that
 // names the specific action it will reverse ("Undo home goal") or "Nothing to
 // undo" when the stack is empty. Shared by the mobile top bar and the desktop
@@ -92,7 +95,7 @@ function MatchActionButton({
   );
 }
 
-export default function DashboardHeader({ setSideMenu }: Props) {
+export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
   const { t } = useTranslation();
 
   const canUndo = useUndoStore(selectCanUndo);
@@ -115,6 +118,13 @@ export default function DashboardHeader({ setSideMenu }: Props) {
       : t('undo:button.nothingToRedo');
 
   const matchActions: MatchAction[] = [
+    {
+      key: 'newMatch',
+      icon: DocumentPlusIcon,
+      label: t('dashboard:newMatch.button'),
+      disabled: false,
+      onClick: onNewMatch,
+    },
     {
       key: 'undo',
       icon: ArrowUturnLeftIcon,
@@ -141,8 +151,8 @@ export default function DashboardHeader({ setSideMenu }: Props) {
           </div>
         </div>
         <ul className="flex items-center gap-x-4">
-          {/* Match actions (undo/redo) are global controls, kept apart from the
-              settings-navigation icons by a divider. */}
+          {/* Match actions (new match, undo, redo) are global controls, kept
+              apart from the settings-navigation icons by a divider. */}
           {matchActions.map((action) => (
             <li key={action.key}>
               <MatchActionButton action={action} iconClassName="h-6 w-6" />

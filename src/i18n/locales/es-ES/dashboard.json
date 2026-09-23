@@ -7,6 +7,12 @@
     "openMenu": "Abrir menú de {{title}}",
     "teamSettings": "Configuración del equipo"
   },
+  "newMatch": {
+    "button": "Nuevo partido",
+    "confirm": "Empezar nuevo partido",
+    "modalBody": "Se restablecen los marcadores, los penaltis, los goles, el reloj y los gráficos en pantalla, y se borra el historial para deshacer. Se mantiene la configuración de los equipos.",
+    "modalTitle": "¿Empezar un nuevo partido?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "Había un partido en curso la última vez que se cerró PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Al restaurar se recuperan el marcador y el crono, con el crono en pausa.",

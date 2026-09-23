@@ -7,6 +7,12 @@
     "openMenu": "Apri il menu {{title}}",
     "teamSettings": "Impostazioni squadra"
   },
+  "newMatch": {
+    "button": "Nuova partita",
+    "confirm": "Inizia nuova partita",
+    "modalBody": "Punteggi, rigori, gol, cronometro e grafiche in onda vengono azzerati e la cronologia degli annullamenti viene cancellata. Le impostazioni delle squadre restano invariate.",
+    "modalTitle": "Iniziare una nuova partita?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "Una partita era in corso all'ultima chiusura di PlayOverlay ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Il ripristino riporta punteggio e cronometro, con il cronometro in pausa.",

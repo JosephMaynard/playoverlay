@@ -7,6 +7,12 @@
     "openMenu": "Open {{title}} Menu",
     "teamSettings": "Team Settings"
   },
+  "newMatch": {
+    "button": "New match",
+    "confirm": "Start new match",
+    "modalBody": "Scores, penalties, goals, the clock and on-air graphics are reset, and the undo history is cleared. Team settings are kept.",
+    "modalTitle": "Start a new match?"
+  },
   "notifications": {
     "restoreMatch": {
       "body": "A match was in progress when PlayOverlay last closed ({{homeTeam}} {{homeScore}}–{{awayScore}} {{awayTeam}}). Restoring brings back the score and clock, with the clock paused.",

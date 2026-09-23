@@ -23,6 +23,7 @@ export interface UseMatchClock {
   adjustTime: (difference: number) => void;
   restoreClock: (time: Time | undefined) => void;
   resyncToTime: (time: Time | undefined) => void;
+  resetClock: () => void;
 }
 
 // Owns the match clock (seconds/baseSeconds/tickingSince/interval) plus the
@@ -274,6 +275,24 @@ export default function useMatchClock(): UseMatchClock {
     [applyTime, startTicking, stopTicking]
   );
 
+  // Back to a fresh, stopped clock for a new match: no phase, no time, no
+  // additional time. Unlike stopTime it records nothing as the previous
+  // phase (there is no match in progress to remember) and never switches
+  // the display screen; the caller decides what goes on air.
+  const resetClock = useCallback(() => {
+    stopTicking();
+    secondsRef.current = 0;
+    baseSecondsRef.current = 0;
+    setPaused(false);
+    setTime({
+      time: undefined,
+      remainingTime: undefined,
+      additionalTime: undefined,
+      matchPhase: undefined,
+      paused: false,
+    });
+  }, [setTime, stopTicking]);
+
   return {
     paused,
     startTime,
@@ -283,5 +302,6 @@ export default function useMatchClock(): UseMatchClock {
     adjustTime,
     restoreClock,
     resyncToTime,
+    resetClock,
   };
 }

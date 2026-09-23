@@ -33,6 +33,7 @@ import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import PreflightModal from '../Preflight/PreflightModal';
+import Modal from '../Modal/Modal';
 import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
@@ -45,6 +46,7 @@ import {
   DisplayScreen,
   defaultMatchSettings,
   defaultMatchState,
+  defaultScores,
 } from '../../constants';
 import { useScoresStore } from '../../store/scores';
 import { useMatchSettingsStore } from '../../store/matchSettings';
@@ -67,6 +69,7 @@ export default function Dashboard() {
     null
   );
   const [preflightOpen, setPreflightOpen] = useState(false);
+  const [newMatchOpen, setNewMatchOpen] = useState(false);
 
   const clock = useMatchClock();
 
@@ -490,6 +493,32 @@ export default function Dashboard() {
     useUndoStore.getState().clearHistory();
   };
 
+  // New match: back to a clean slate between fixtures in one step, instead of
+  // resetting the score, penalties, clock, phase history and graphics one by
+  // one (easy to get half right between back-to-back fixtures). Team
+  // settings are kept. Not undoable: it replaces the whole match, behind a
+  // confirmation, so the previous match's history goes with it. The display
+  // goes to the match title, ready for the next kick-off.
+  const startNewMatch = () => {
+    clock.resetClock();
+    setScores({ ...defaultScores, penalties: [] });
+    setMatchState({
+      ...defaultMatchState,
+      overlays: [],
+      matchPhase: undefined,
+      previousMatchPhase: undefined,
+      customScreenImageUrl: undefined,
+      displayScreen: 'matchTitle',
+    });
+    useUndoStore.getState().clearHistory();
+    if (restorableMatch) {
+      // Choosing a new match is choosing not to restore the previous one.
+      window?.electronAPI?.resolveLiveMatch();
+      setRestorableMatch(null);
+    }
+    setNewMatchOpen(false);
+  };
+
   // Penalty add/reset flows through here so it lands on the SAME undo stack as
   // everything else (the panel's own "Undo" button delegates to the global
   // undo, see PenaltiesPanel). The caller passes the i18n label for the
@@ -678,7 +707,10 @@ export default function Dashboard() {
   return (
     <>
       <div className="select-none">
-        <DashboardHeader setSideMenu={openSideMenu} />
+        <DashboardHeader
+          setSideMenu={openSideMenu}
+          onNewMatch={() => setNewMatchOpen(true)}
+        />
         <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
           <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
             <Preview keyColour={appSettings.keyColour}>
@@ -792,6 +824,19 @@ export default function Dashboard() {
           updateAppSettings={updateAppSettings}
         />
         <PreflightModal open={preflightOpen} setOpen={setPreflightOpen} />
+        <Modal
+          open={newMatchOpen}
+          setOpen={setNewMatchOpen}
+          title={t('dashboard:newMatch.modalTitle')}
+          actionButtonLabel={t('dashboard:newMatch.confirm')}
+          actionButtonColor="indigo"
+          icon="warning"
+          action={startNewMatch}
+        >
+          <p className="text-sm text-gray-500">
+            {t('dashboard:newMatch.modalBody')}
+          </p>
+        </Modal>
       </div>
       <div
         aria-live="assertive"
