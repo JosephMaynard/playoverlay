@@ -14,6 +14,16 @@ const FEATURES: { title: string; description: string }[] = [
       "Driven by the system clock, so it never drifts over a half. Pause, resume, and adjust the time in a couple of clicks.",
   },
   {
+    title: "Goal log",
+    description:
+      "Every goal logged with its minute, including stoppage time. Add the scorer, put a goal banner on air, and the end screen lists who scored.",
+  },
+  {
+    title: "Club presets",
+    description:
+      "Save each club's name, colours, and logo once, then load any club into the home or away slot. New match resets everything else between fixtures.",
+  },
+  {
     title: "Penalty shootout tracker",
     description:
       "Alternates teams automatically, records scored and missed attempts, supports undo, and can be switched off for matches that don't need it.",
