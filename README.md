@@ -4,7 +4,7 @@
 
 **PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams, built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
 
-It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
+It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (blue by default, and you can pick any colour your mixer keys well). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
 
 ![The score bug rendered on the chroma-key display output](docs/screenshots/score-bug.png)
 
@@ -69,7 +69,7 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 ## Using it
 
 1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
-2. In **Window Settings**, pick your key colour and whether screens auto-switch on phase changes.
+2. In **Window Settings**, pick your key colour. Whether screens switch automatically when the clock starts and stops is a toggle next to the clock controls on the dashboard.
 3. Move the display window to the output monitor and make it fullscreen.
 4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases.
 
@@ -85,7 +85,7 @@ While PlayOverlay is focused, by default:
 
 The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`, unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
 
-These are rebindable: open **Window Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). **Reset** restores that action's default.
+These are rebindable: open **System Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). Combinations the app already uses, such as `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z` for undo and redo or `Cmd/Ctrl+C`/`V`/`X`/`A` for editing, are refused. On macOS, `Cmd` and `Ctrl` are recorded as the separate keys you pressed; on Windows and Linux, use `Ctrl` or `Alt` (the Windows/Super key can't be used). **Reset** restores that action's default.
 
 ### Stream Deck
 
@@ -95,15 +95,15 @@ Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck*
 
 Off by default. If you'd rather not manage a second display and chroma key, PlayOverlay can serve the display graphics directly as an OBS Browser Source, with a transparent background instead of a key colour:
 
-1. Open **Window Settings → OBS Browser Source** and switch it on (default port `4750`).
+1. Open **System Settings → OBS Browser Source** and switch it on (default port `4750`).
 2. In OBS, add a **Browser Source** pointed at the URL shown there (`http://127.0.0.1:<port>/`), sized to your canvas resolution.
 3. That's it, no chroma key needed, since the page background is transparent.
 
-The server only listens on `127.0.0.1` (never reachable from the network) and stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
+The server only listens on `127.0.0.1` (loopback), so it serves OBS running on the same computer as PlayOverlay; other devices on the network can't connect to it, and OBS on a different machine can't use it. It stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
 
 #### Pinned views
 
-Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server.
+Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server. Because the server is loopback-only, a venue TV has to be driven by a browser on the PlayOverlay computer itself (for example a window on a second display).
 
 | `?screen=` value | Shows                          |
 | ---------------- | ------------------------------ |
@@ -114,7 +114,7 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 | `endScreen`      | End screen                     |
 | `scoreboard`     | Spectator scoreboard           |
 
-**Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
+**System Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
 
 ## Phone remote (LAN)
 
@@ -133,7 +133,7 @@ From the phone you can:
 
 The phone mirrors the live match state, so it stays in sync with the operator and with any other paired phone. Everything it does goes through exactly the same controls as the dashboard, so a phone tap and an on-screen click behave identically.
 
-**Security**: the remote server binds to the local network only and is **never reachable from the internet**. Pairing is gated by a 6-digit PIN that is regenerated every time you enable the feature, and repeated wrong guesses are rate-limited to defeat brute forcing. It's intended for a trusted venue network, not a hostile public one; leave it off when you don't need it, and treat the PIN like any other password. A new PIN is issued whenever you toggle it back on or restart the app, so paired phones will need to re-enter it.
+**Security**: while it's on, the remote server listens on all of the laptop's network interfaces (`0.0.0.0`), so any device that can reach the laptop on your local network can open the page. It isn't exposed to the internet unless the network forwards that port to the laptop (a router port-forward, a DMZ setting, or a laptop with a public IP address), which venue and home networks don't do by default. Pairing is gated by a 6-digit PIN that is regenerated every time you enable the feature, and repeated wrong guesses are rate-limited to defeat brute forcing. It's intended for a trusted venue network, not a hostile public one; leave it off when you don't need it, and treat the PIN like any other password. A new PIN is issued whenever you toggle it back on or restart the app, so paired phones will need to re-enter it.
 
 ## Languages
 
