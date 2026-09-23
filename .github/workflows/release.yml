@@ -9,19 +9,26 @@ on:
   push:
     tags: ['v*']
 
-permissions:
-  contents: write
+# No workflow-wide grant: each job asks for only what it needs, so the
+# verify job (which runs npm ci, and with it every dependency's install
+# scripts) never holds a token that can write to the repository or its
+# releases. Third-party actions are pinned to full commit SHAs (with the
+# release tag alongside) so a moved or compromised tag can't change what
+# runs here; Dependabot's github-actions updates keep the pins current.
+permissions: {}
 
 jobs:
   # Runs once, before anything is built or released: a broken build or a tag
   # that doesn't match package.json's version must never reach a release.
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -41,8 +48,11 @@ jobs:
   create-release:
     needs: verify
     runs-on: ubuntu-latest
+    # Creates the draft release.
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Create draft release
@@ -71,11 +81,16 @@ jobs:
           - os: ubuntu-latest
             arch: x64
     runs-on: ${{ matrix.os }}
+    # Uploads the built distributables to the draft release. Run steps only
+    # get the token where it's passed explicitly (the upload step's GH_TOKEN)
+    # and checkout doesn't persist it, so npm ci and the build never see it.
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -87,6 +102,33 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y rpm dpkg fakeroot
       - name: Build distributables
         run: npm run make -- --arch=${{ matrix.arch }}
+      # Launch the packaged binary on every release platform, not just the
+      # Linux one CI covers, so a macOS or Windows packaging fault (e.g. a
+      # dependency that isn't bundled and crashes the app on launch) fails
+      # this job instead of landing in the draft release. It runs after make
+      # (which packages to out/<name>-<platform>-<arch>/, where the script
+      # looks) and before the upload step below.
+      - name: Install libraries for the packaged-app smoke test
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgbm1 libnss3 libgtk-3-0t64 libasound2t64
+      - name: Install Rosetta for the cross-built Intel macOS smoke test
+        if: runner.os == 'macOS' && matrix.arch == 'x64'
+        # The Intel app is cross-built on an Apple Silicon runner, so it can
+        # only be launched through Rosetta. Install it if the image lacks it.
+        run: |
+          if [ "$(uname -m)" = arm64 ] && ! arch -x86_64 /usr/bin/true 2>/dev/null; then
+            sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+      - name: Smoke test that the packaged app launches (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 5
+        run: xvfb-run --auto-servernum npm run smoke:packaged
+      - name: Smoke test that the packaged app launches
+        if: runner.os != 'Linux'
+        timeout-minutes: 5
+        run: npm run smoke:packaged
       - name: Upload to release
         shell: bash
         env:
