@@ -3,9 +3,9 @@ https://www.npmjs.com/package/generate-license-file
 
 The following npm packages may be included in this product:
 
- - @types/prop-types@15.7.12
+ - @types/prop-types@15.7.15
  - @types/react@18.3.31
- - @types/w3c-web-hid@1.0.6
+ - @types/w3c-web-hid@1.0.7
 
 These packages each contain the following license:
 
@@ -409,7 +409,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 The following npm package may be included in this product:
 
- - ws@8.21.1
+ - ws@8.21.3
 
 This package contains the following license:
 
@@ -467,7 +467,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - fast-uri@3.1.3
+ - fast-uri@3.1.8
 
 This package contains the following license:
 
@@ -753,7 +753,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - zustand@5.0.14
+ - zustand@5.0.15
 
 This package contains the following license:
 
@@ -813,8 +813,8 @@ SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @elgato-stream-deck/core@7.6.3
- - @elgato-stream-deck/webhid@7.6.3
+ - @elgato-stream-deck/core@7.7.0
+ - @elgato-stream-deck/webhid@7.7.0
 
 These packages each contain the following license:
 
@@ -937,7 +937,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - use-sync-external-store@1.6.0
+ - use-sync-external-store@1.7.0
 
 This package contains the following license:
 
@@ -1143,7 +1143,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - i18next@26.3.6
+ - i18next@26.4.2
 
 This package contains the following license:
 
@@ -1312,7 +1312,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - react-i18next@17.0.11
+ - react-i18next@17.0.15
 
 This package contains the following license:
 
