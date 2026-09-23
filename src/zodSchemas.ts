@@ -7,6 +7,7 @@ import {
   defaultScores,
   screens,
   DisplayScreen,
+  MAX_PERIOD_COUNT,
   MAX_SCORER_LENGTH,
 } from './constants';
 import { CustomScreen, Goal, Penalty, supportedLanguageCodes } from './types';
@@ -64,7 +65,13 @@ export const matchSetingsSchema = z.object({
     .catch(undefined),
   hasExtraTime: z.optional(z.boolean()),
   hasPenalties: z.optional(z.boolean()),
-  periodCount: z.number().int().positive().max(50).optional().catch(undefined),
+  periodCount: z
+    .number()
+    .int()
+    .positive()
+    .max(MAX_PERIOD_COUNT)
+    .optional()
+    .catch(undefined),
   periodLength: z
     .number()
     .positive()

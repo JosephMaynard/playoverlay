@@ -9,11 +9,11 @@ import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { MatchSettings } from 'src/zodSchemas';
 import SavedMatchSettings from './SavedMatchSettings';
 import { classNames } from '../../utils';
+import { MAX_PERIOD_COUNT } from '../../constants';
 
 // Upper bounds matching the persistence schema (zodSchemas.ts): a value the
 // schema rejects is silently reset to the default on the next reload, so the
 // UI must refuse it up front rather than show a number that won't survive.
-const MAX_PERIOD_COUNT = 50;
 const MAX_LENGTH_MINUTES = 300;
 
 // The outcome of parsing a numeric timer input: an empty field is valid and

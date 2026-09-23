@@ -23,6 +23,7 @@ import {
   timeToString,
 } from '../utils';
 import {
+  MAX_PERIOD_COUNT,
   defaultAppSettings,
   defaultKeyboardShortcuts,
   defaultMatchSettings,
@@ -241,7 +242,8 @@ describe('utils', () => {
           timerMode: 'generic',
           periodCount: 1e9,
         })
-      ).toHaveLength(100);
+        // The same cap the settings form and schema enforce.
+      ).toHaveLength(MAX_PERIOD_COUNT);
       expect(
         getPhaseList({
           ...defaultMatchSettings,

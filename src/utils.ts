@@ -14,6 +14,7 @@ import {
   defaultBrowserSourceSettings,
   defaultKeyboardShortcuts,
   defaultRemoteControlSettings,
+  MAX_PERIOD_COUNT,
 } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
@@ -110,7 +111,7 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
     const rawPeriodCount = matchSettings.periodCount ?? 4;
     const periodCount =
       Number.isInteger(rawPeriodCount) && rawPeriodCount > 0
-        ? Math.min(rawPeriodCount, 100)
+        ? Math.min(rawPeriodCount, MAX_PERIOD_COUNT)
         : 4;
     const periodLength = matchSettings.periodLength ?? 10;
     // A custom periodName is user-entered text (e.g. "Quarter", "Innings"),
