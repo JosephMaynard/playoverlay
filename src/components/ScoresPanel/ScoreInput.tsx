@@ -35,6 +35,22 @@ export default function ScoreInput({
 }: Props) {
   const { t } = useTranslation();
   const [editScoreModalOpen, setEditScoreModalOpen] = useState(false);
+  // What the operator is typing, committed on blur or Enter. Committing every
+  // keystroke would put each intermediate value on air (clearing "3" to type
+  // "4" flashes 0 to the display, OBS and the phone) and record one undo
+  // entry per keystroke. null means "not editing": show the live score.
+  const [draftScore, setDraftScore] = useState<string | null>(null);
+
+  const commitDraftScore = () => {
+    if (draftScore === null) return;
+    const updatedScore = Number(draftScore);
+    setDraftScore(null);
+    if (draftScore.trim() === '' || !Number.isFinite(updatedScore)) return;
+    const nextScore = Math.max(0, Math.trunc(updatedScore));
+    if (nextScore !== score) {
+      setScore(nextScore);
+    }
+  };
   return (
     <>
       <div className="overflow-hidden border border-gray-200 bg-white shadow sm:rounded-md">
@@ -92,7 +108,12 @@ export default function ScoreInput({
       </div>
       <Modal
         open={editScoreModalOpen}
-        setOpen={setEditScoreModalOpen}
+        setOpen={(open) => {
+          // Closing the modal (Escape, backdrop, close button) keeps what
+          // was typed, the same as tabbing away from the field.
+          if (!open) commitDraftScore();
+          setEditScoreModalOpen(open);
+        }}
         title={t('dashboard:scoreInput.editScore')}
         icon="edit"
       >
@@ -108,6 +129,7 @@ export default function ScoreInput({
               })}
               className="relative -mr-px inline-flex items-center gap-x-1.5 rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
               onClick={() => {
+                setDraftScore(null);
                 if (score > 0) {
                   setScore(score - 1);
                 }
@@ -124,13 +146,12 @@ export default function ScoreInput({
               id={id}
               className="block w-full rounded-none border-0 p-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               min={0}
-              onChange={(e) => {
-                const updatedScore = Number(e.target.value);
-                if (!Number.isNaN(updatedScore)) {
-                  setScore(Math.max(0, Math.trunc(updatedScore)));
-                }
+              onChange={(e) => setDraftScore(e.target.value)}
+              onBlur={commitDraftScore}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitDraftScore();
               }}
-              value={score}
+              value={draftScore ?? score}
             />
           </div>
           <button
@@ -139,7 +160,10 @@ export default function ScoreInput({
               team: teamNameFull,
             })}
             className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            onClick={() => setScore(score + 1)}
+            onClick={() => {
+              setDraftScore(null);
+              setScore(score + 1);
+            }}
           >
             <PlusIcon
               className="-ml-0.5 h-5 w-5 text-gray-400"

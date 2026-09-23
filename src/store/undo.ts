@@ -86,6 +86,12 @@ interface UndoStore {
 
   // Inverse of undo().
   redo: () => void;
+
+  // Drop both stacks. For operations that replace the whole match (restoring
+  // a crashed match, starting a new one): an entry captured before them
+  // describes a different match, and undoing it would splice that state into
+  // this one.
+  clearHistory: () => void;
 }
 
 // Deep clone so a snapshot can never alias live store state (the penalties and
@@ -151,11 +157,17 @@ function carryClockForward(time: Time, capturedAt: number): Time {
   };
 }
 
-function fullMatchState(matchState: MatchState): MatchState {
+// Overlays and the first penalty taker are deliberately NOT restored: no
+// undoable action changes them (overlay toggles and the first-team choice are
+// direct edits), so restoring them from a screen-switch or phase snapshot
+// would silently revert a later change, e.g. put a sponsor overlay the
+// operator has since taken off straight back on air. They keep their live
+// values.
+function fullMatchState(matchState: MatchState, live: MatchState): MatchState {
   return {
     displayScreen: matchState.displayScreen,
-    penaltiesFirstTeam: matchState.penaltiesFirstTeam,
-    overlays: matchState.overlays ?? [],
+    penaltiesFirstTeam: live.penaltiesFirstTeam,
+    overlays: live.overlays ?? [],
     matchPhase: matchState.matchPhase,
     previousMatchPhase: matchState.previousMatchPhase,
     customScreenImageUrl: matchState.customScreenImageUrl,
@@ -184,9 +196,10 @@ function restoreEntry(entry: UndoEntry, clockResync: ClockResync | null) {
     useScoresStore.getState().setScores(fullScores(snapshot.scores));
   }
   if (entry.slices.includes('matchState') && snapshot.matchState) {
-    useMatchStateStore
-      .getState()
-      .setMatchState(fullMatchState(snapshot.matchState));
+    const matchStateStore = useMatchStateStore.getState();
+    matchStateStore.setMatchState(
+      fullMatchState(snapshot.matchState, matchStateStore.matchState)
+    );
   }
   if (entry.slices.includes('time') && snapshot.time) {
     const time = carryClockForward(snapshot.time, entry.capturedAt);
@@ -282,6 +295,10 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
 
     restoreEntry(entry, clockResync);
   },
+
+  clearHistory: () => {
+    set({ undoStack: [], redoStack: [] });
+  },
 }));
 
 // Reactive selectors for the header buttons: subscribing to these makes the
@@ -301,11 +318,29 @@ export const selectNextRedoLabel = (state: UndoStore): string | null =>
 // alone: undo/redo shortcuts inside an input, textarea, contenteditable, or an
 // ARIA textbox belong to the text field, not to the match. Kept as a pure,
 // DOM-only helper so it can be unit tested without React or Electron.
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
+
 export function isTextEntryTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
 
   const tagName = target.tagName;
-  if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+  if (tagName === 'INPUT') {
+    // A checkbox, colour swatch or button-like input takes no typing, so it
+    // must not swallow the match shortcuts (or undo) just by having focus
+    // after a click.
+    return !NON_TEXT_INPUT_TYPES.has((target as HTMLInputElement).type);
+  }
+  if (tagName === 'TEXTAREA' || tagName === 'SELECT') {
     return true;
   }
   if (target.isContentEditable) return true;

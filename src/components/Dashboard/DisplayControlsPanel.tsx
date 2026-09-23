@@ -91,6 +91,26 @@ export function reconcileActiveOverlays(
   return unchanged ? null : reconciled;
 }
 
+// The full-screen counterpart of reconcileActiveOverlays: a custom graphic
+// that is on air full-screen but has since been deleted, or turned into an
+// overlay, is taken off air (back to the score bug) instead of leaving a
+// missing image on the display and OBS with no dashboard button selected.
+// Returns the matchState update to apply, or null when nothing changed.
+export function reconcileActiveScreen(
+  matchState: MatchState,
+  library: CustomScreen[]
+): Partial<MatchState> | null {
+  if (matchState.displayScreen !== 'custom') return null;
+  const stillAScreen = library.some(
+    (graphic) =>
+      (graphic.type === undefined || graphic.type === 'screen') &&
+      (graphic.url ?? undefined) === matchState.customScreenImageUrl
+  );
+  return stillAScreen
+    ? null
+    : { displayScreen: 'scoreBug', customScreenImageUrl: undefined };
+}
+
 export default function DisplayControlsPanel({
   updateMatchState,
   switchScreen,

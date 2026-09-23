@@ -22,6 +22,16 @@ export const timeToString = (timeInSeconds: number) => {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
 
+// Additional time is whole minutes, at least one. Shared by the operator's
+// input, the Dashboard handler (which also serves Stream Deck and restore
+// paths) and the persisted-state schema, so a value that would render on air
+// as "+ -2" or "+2.5" is rejected everywhere.
+export function isValidAdditionalTime(minutes: unknown): minutes is number {
+  return (
+    typeof minutes === 'number' && Number.isInteger(minutes) && minutes > 0
+  );
+}
+
 // Parses a "MM:SS" clock string (the inverse of timeToString) into whole
 // seconds. Shared by the clock hook's restore paths and undo's running-clock
 // compensation; callers keep their own handling of a missing time value.

@@ -659,9 +659,10 @@ function setupIPCHandlers() {
       previousShortcuts.awayTeamScored !== nextShortcuts.awayTeamScored;
 
     // Re-register with the new bindings. If shortcuts are currently
-    // disabled (a side menu is open) both sets are already unregistered -
-    // leave them alone and let enable-keyboard-shortcuts pick up the new
-    // bindings when the menu closes. The global Alt set is always on while
+    // disabled (the operator is typing in a text field or recording a
+    // shortcut) both sets are already unregistered: leave them alone and let
+    // enable-keyboard-shortcuts pick up the new bindings when focus leaves
+    // the field. The global Alt set is always on while
     // enabled; the focus set only registers while the main window has
     // focus.
     if (shortcutsChanged && !keyboardShortcutsDisabled) {
@@ -971,7 +972,13 @@ function setupIPCHandlers() {
   // so no shortcut fires while the user is typing in a text field
   ipcMain.on('enable-keyboard-shortcuts', () => {
     keyboardShortcutsDisabled = false;
-    registerKeyboardShortcuts();
+    // The renderer also re-enables when the control window loses focus (so
+    // the global set works from OBS even if a text field kept focus). The
+    // focus set must then stay unregistered, or its plain keys would be
+    // grabbed system-wide; mainWindow's focus handler registers it later.
+    if (mainWindow?.isFocused()) {
+      registerKeyboardShortcuts();
+    }
     registerGlobalKeyboardShortcuts();
   });
 

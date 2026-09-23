@@ -208,7 +208,9 @@ export const scoresSchema = z.object({
 export const timeSchema = z.object({
   time: z.string().optional().catch(undefined),
   remainingTime: z.string().optional().catch(undefined),
-  additionalTime: z.number().finite().optional().catch(undefined),
+  // Whole minutes only (see isValidAdditionalTime): a negative or fractional
+  // value would render on air as "+ -2" or "+2.5".
+  additionalTime: z.number().int().positive().optional().catch(undefined),
   paused: z.boolean().optional().catch(undefined),
   showAdditionalTime: z.boolean().optional().catch(undefined),
   // Phase ids are no longer a fixed football-only set (see MatchPhase in

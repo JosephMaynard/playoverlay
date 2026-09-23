@@ -25,6 +25,7 @@ import Screens from '../Screens/Screens';
 import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel, {
   reconcileActiveOverlays,
+  reconcileActiveScreen,
 } from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
@@ -35,7 +36,11 @@ import PreflightModal from '../Preflight/PreflightModal';
 import DashboardHeader from './DashboardHeader';
 import useMatchClock from './useMatchClock';
 
-import { getPhaseList, getNextPhaseId } from '../../utils';
+import {
+  getPhaseList,
+  getNextPhaseId,
+  isValidAdditionalTime,
+} from '../../utils';
 import {
   DisplayScreen,
   defaultMatchSettings,
@@ -263,24 +268,81 @@ export default function Dashboard() {
   // Active overlays are copies of library entries, so a rename, a screen-link
   // edit, a delete or a switch to full-screen in Custom Screens would
   // otherwise leave a stale copy on air (and, for a rename, one the
-  // operator's toggle could no longer take off). An undo can also bring back
-  // an overlay list from before such an edit. Not recorded as an undo step:
-  // it only follows the library, it isn't an operator action.
+  // operator's toggle could no longer take off). A full-screen graphic that
+  // is deleted or turned into an overlay likewise comes off air. An undo can
+  // also bring back state from before such an edit. Not recorded as an undo
+  // step: it only follows the library, it isn't an operator action.
   useEffect(() => {
     if (!customGraphicsLoaded) return;
-    const reconciled = reconcileActiveOverlays(
+    const reconciledOverlays = reconcileActiveOverlays(
       matchState.overlays ?? [],
       customGraphics
     );
-    if (reconciled) {
-      setMatchState({ overlays: reconciled });
+    const reconciledScreen = reconcileActiveScreen(matchState, customGraphics);
+    if (reconciledOverlays || reconciledScreen) {
+      setMatchState({
+        ...(reconciledOverlays ? { overlays: reconciledOverlays } : {}),
+        ...reconciledScreen,
+      });
     }
-  }, [
-    customGraphicsLoaded,
-    customGraphics,
-    matchState.overlays,
-    setMatchState,
-  ]);
+  }, [customGraphicsLoaded, customGraphics, matchState, setMatchState]);
+
+  // Match shortcuts (both the focused-window set and the system-wide Alt set)
+  // are paused only while the operator is typing: focus in a text field
+  // anywhere in the control window, or the shortcut recorder. They used to be
+  // paused for as long as any side menu was open, so leaving System Settings
+  // open (e.g. showing the phone QR code) silently killed every hotkey,
+  // including the global ones pressed from OBS. When the control window loses
+  // focus, the global set must work again even if a field still holds focus,
+  // so window blur re-enables them. Evaluated after the focus event settles
+  // (moving between two fields fires focusout then focusin) and only sends
+  // IPC on an actual change.
+  useEffect(() => {
+    let shortcutsPaused = false;
+    // Set by the window blur/focus events; document.hasFocus() is read at
+    // evaluation time as well so a window that mounted unfocused is handled.
+    let windowBlurred = false;
+    let pending: ReturnType<typeof setTimeout> | undefined;
+
+    const apply = () => {
+      pending = undefined;
+      const shouldPause =
+        !windowBlurred &&
+        document.hasFocus() &&
+        isTextEntryTarget(document.activeElement);
+      if (shouldPause === shortcutsPaused) return;
+      shortcutsPaused = shouldPause;
+      if (shouldPause) {
+        window?.electronAPI?.disableKeyboardShortcuts();
+      } else {
+        window?.electronAPI?.enableKeyboardShortcuts();
+      }
+    };
+    const schedule = () => {
+      if (pending === undefined) pending = setTimeout(apply, 0);
+    };
+    const handleWindowFocus = () => {
+      windowBlurred = false;
+      schedule();
+    };
+    const handleWindowBlur = () => {
+      windowBlurred = true;
+      schedule();
+    };
+
+    document.addEventListener('focusin', schedule);
+    document.addEventListener('focusout', schedule);
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      document.removeEventListener('focusin', schedule);
+      document.removeEventListener('focusout', schedule);
+      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('blur', handleWindowBlur);
+      if (pending !== undefined) clearTimeout(pending);
+      if (shortcutsPaused) window?.electronAPI?.enableKeyboardShortcuts();
+    };
+  }, []);
 
   // App-level (renderer window) undo/redo shortcuts, active while the control
   // window has focus. Deliberately separate from the global-OS accelerators
@@ -327,12 +389,10 @@ export default function Dashboard() {
 
   const openSideMenu = (sideMenu: SideMenuType) => {
     setSideMenu(sideMenu);
-    window?.electronAPI?.disableKeyboardShortcuts();
   };
 
   const closeSideMenu = () => {
     setSideMenu(null);
-    window?.electronAPI?.enableKeyboardShortcuts();
   };
 
   const updateAppSettings = (settingsUpdated: Partial<AppSettings>) => {
@@ -424,6 +484,10 @@ export default function Dashboard() {
     });
     clock.restoreClock(liveMatch.time);
     setRestorableMatch(null);
+    // Anything captured before the restore (a screen switch or penalty made
+    // while the offer was showing) belongs to the blank launch state; undoing
+    // it would mix that into the restored match.
+    useUndoStore.getState().clearHistory();
   };
 
   // Penalty add/reset flows through here so it lands on the SAME undo stack as
@@ -462,16 +526,16 @@ export default function Dashboard() {
   };
 
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
-  // drive the score negative. Clears any pending restore prompt first, exactly
-  // like the increment handlers and the manual score edits, so a stale restore
+  // drive the score negative. Clears any pending restore prompt, exactly like
+  // the increment handlers and the manual score edits, so a stale restore
   // snapshot can never overwrite a correction made from the phone. When the
-  // score is already 0 there is nothing to remove, so it's a full no-op and
-  // captures no undo entry (an undo that visibly changes nothing is worse than
-  // no entry at all).
+  // score is already 0 there is nothing to remove, so it's a full no-op: no
+  // undo entry (an undo that visibly changes nothing is worse than no entry
+  // at all), and the restore offer stays, since nothing was corrected.
   const decrementHomeTeamScore = () => {
-    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     if (prevScores.homeTeam <= 0) return;
+    setRestorableMatch(null);
     captureUndo('undo:actions.homeGoalRemoved', ['scores']);
     setScores({
       ...prevScores,
@@ -480,9 +544,9 @@ export default function Dashboard() {
   };
 
   const decrementAwayTeamScore = () => {
-    setRestorableMatch(null);
     const prevScores = useScoresStore.getState().scores;
     if (prevScores.awayTeam <= 0) return;
+    setRestorableMatch(null);
     captureUndo('undo:actions.awayGoalRemoved', ['scores']);
     setScores({
       ...prevScores,
@@ -543,6 +607,11 @@ export default function Dashboard() {
   };
 
   const handleStopClock = () => {
+    // Stopping with no phase running would overwrite previousMatchPhase with
+    // undefined, so the next-phase shortcut would restart the match from the
+    // first phase (a Stream Deck double-tap is enough). Same guard as
+    // nextMatchPhase's full-time branch; it records no undo entry either.
+    if (useTimeStore.getState().time.matchPhase === undefined) return;
     captureUndo('undo:actions.stopClock', ['time', 'matchState']);
     clock.stopTime();
   };
@@ -563,10 +632,17 @@ export default function Dashboard() {
   };
 
   const handleSetAdditionalTime = (additionalTime?: number) => {
+    // Anything but whole positive minutes clears it rather than putting
+    // "+ -2" or "+2.5" on air; setting the value it already has is a no-op
+    // with no undo entry.
+    const next = isValidAdditionalTime(additionalTime)
+      ? additionalTime
+      : undefined;
+    if (next === useTimeStore.getState().time.additionalTime) return;
     captureUndo('undo:actions.additionalTime', ['time']);
     // setTime merges; spreading the render-scope time here would overwrite a
     // fresher tick with stale clock strings.
-    setTime({ additionalTime: additionalTime || undefined });
+    setTime({ additionalTime: next });
   };
 
   const nextMatchPhase = () => {

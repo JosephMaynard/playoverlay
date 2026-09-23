@@ -221,6 +221,49 @@ describe('undo store', () => {
     );
   });
 
+  it('undoing a screen switch leaves later overlay and first-taker changes alone', () => {
+    const { captureUndo, undo } = useUndoStore.getState();
+    const sponsor = {
+      title: 'Sponsor',
+      filePath: '/images/sponsor.png',
+      url: 'file:///images/sponsor.png',
+      type: 'overlay' as const,
+    };
+    seedStores(scores(0), undefined, {
+      ...defaultMatchState,
+      displayScreen: 'scoreBug',
+      overlays: [sponsor],
+    });
+
+    captureUndo('undo:actions.switchScreen', ['matchState']);
+    useMatchStateStore
+      .getState()
+      .setMatchState({ displayScreen: 'matchTitle' });
+    // Neither of these is an undoable action.
+    useMatchStateStore
+      .getState()
+      .setMatchState({ overlays: [], penaltiesFirstTeam: 'away' });
+
+    undo();
+
+    const { matchState } = useMatchStateStore.getState();
+    expect(matchState.displayScreen).toBe('scoreBug');
+    expect(matchState.overlays).toEqual([]);
+    expect(matchState.penaltiesFirstTeam).toBe('away');
+  });
+
+  it('clearHistory drops both stacks', () => {
+    const { captureUndo, undo, clearHistory } = useUndoStore.getState();
+    captureUndo('undo:actions.homeGoal', ['scores']);
+    captureUndo('undo:actions.awayGoal', ['scores']);
+    undo();
+
+    clearHistory();
+
+    expect(useUndoStore.getState().undoStack).toEqual([]);
+    expect(useUndoStore.getState().redoStack).toEqual([]);
+  });
+
   it('a time-only undo restores only the time slice, leaving scores and matchState alone', () => {
     const { captureUndo, undo } = useUndoStore.getState();
 
@@ -420,6 +463,17 @@ describe('isTextEntryTarget', () => {
     expect(isTextEntryTarget(document.createElement('input'))).toBe(true);
     expect(isTextEntryTarget(document.createElement('textarea'))).toBe(true);
     expect(isTextEntryTarget(document.createElement('select'))).toBe(true);
+  });
+
+  it('does not treat a checkbox, colour swatch or button input as text entry', () => {
+    for (const type of ['checkbox', 'color', 'radio', 'button', 'range']) {
+      const input = document.createElement('input');
+      input.type = type;
+      expect(isTextEntryTarget(input)).toBe(false);
+    }
+    const number = document.createElement('input');
+    number.type = 'number';
+    expect(isTextEntryTarget(number)).toBe(true);
   });
 
   it('treats an ARIA textbox as a text-entry target', () => {

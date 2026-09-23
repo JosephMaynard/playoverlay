@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { defaultMatchSettings } from '../../constants';
@@ -73,5 +73,48 @@ describe('TimeControlPanel', () => {
     await user.click(await screen.findByRole('button', { name: '5min' }));
 
     expect(props.setAdditionalTime).toHaveBeenCalledWith(5);
+  });
+
+  it('commits typed additional time once, on Enter, not per keystroke', async () => {
+    const user = userEvent.setup();
+    const props = createProps();
+    render(<TimeControlPanel {...props} />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Set Additional Time' })
+    );
+    const input = await screen.findByLabelText('Additional time');
+    fireEvent.change(input, { target: { value: '1' } });
+    fireEvent.change(input, { target: { value: '10' } });
+    expect(props.setAdditionalTime).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(props.setAdditionalTime).toHaveBeenCalledTimes(1);
+    expect(props.setAdditionalTime).toHaveBeenCalledWith(10);
+  });
+
+  it.each(['-2', '2.5', '0'])(
+    'discards additional time that is not whole positive minutes (%s)',
+    async (typed) => {
+      const user = userEvent.setup();
+      const props = createProps();
+      render(<TimeControlPanel {...props} />);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Set Additional Time' })
+      );
+      const input = await screen.findByLabelText('Additional time');
+      fireEvent.change(input, { target: { value: typed } });
+      fireEvent.blur(input);
+
+      expect(props.setAdditionalTime).not.toHaveBeenCalled();
+    }
+  );
+
+  it('disables Stop when no phase is running', () => {
+    const props = createProps({ time: {} });
+    render(<TimeControlPanel {...props} />);
+
+    expect(screen.getByRole('button', { name: 'Stop' })).toBeDisabled();
   });
 });

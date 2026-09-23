@@ -7,7 +7,12 @@ import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
-import { classNames, getPhaseList, getPhaseTitle } from '../..//utils';
+import {
+  classNames,
+  getPhaseList,
+  getPhaseTitle,
+  isValidAdditionalTime,
+} from '../../utils';
 import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
@@ -41,6 +46,27 @@ export default function TimeControlPanel({
   const [modal, setModal] = useState<
     'adjustTime' | 'additionalTime' | undefined
   >();
+  // Typed additional time, committed on blur or Enter rather than per
+  // keystroke: typing "10" would otherwise put "+1" on air first and record
+  // two undo entries. null means "not editing": show the live value.
+  const [draftAdditionalTime, setDraftAdditionalTime] = useState<string | null>(
+    null
+  );
+
+  const commitDraftAdditionalTime = () => {
+    if (draftAdditionalTime === null) return;
+    const typed = draftAdditionalTime.trim();
+    setDraftAdditionalTime(null);
+    if (typed === '') {
+      if (time.additionalTime !== undefined) setAdditionalTime();
+      return;
+    }
+    // Whole minutes only: "-2" or "2.5" would render on air as "+ -2" and
+    // "+2.5". Anything else is discarded and the field shows the live value.
+    const minutes = Number(typed);
+    if (!isValidAdditionalTime(minutes)) return;
+    if (minutes !== time.additionalTime) setAdditionalTime(minutes);
+  };
   // Starting/stopping a phase's auto-switch-screens behaviour is handled by
   // startTime/stopTime themselves (centralised in useMatchClock); this
   // panel just triggers them.
@@ -64,6 +90,7 @@ export default function TimeControlPanel({
             {
               label: t('settings:system.stop'),
               onClick: () => stopTime(),
+              disabled: time.matchPhase === undefined,
               backgroundColor: 'bg-red-700',
               color: 'text-white',
             },
@@ -102,6 +129,7 @@ export default function TimeControlPanel({
       <WideModal
         open={modal === 'additionalTime'}
         setOpen={() => {
+          commitDraftAdditionalTime();
           setModal(undefined);
         }}
         title={t('dashboard:timeControl.setAdditionalTime')}
@@ -116,14 +144,26 @@ export default function TimeControlPanel({
               name="additionalTime"
               id="additionalTime"
               className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              onChange={(e) => setAdditionalTime(Number(e.target.value))}
-              value={time.additionalTime || ''}
+              min={1}
+              step={1}
+              onChange={(e) => setDraftAdditionalTime(e.target.value)}
+              onBlur={commitDraftAdditionalTime}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  commitDraftAdditionalTime();
+                  setModal(undefined);
+                }
+              }}
+              value={draftAdditionalTime ?? time.additionalTime ?? ''}
             />
             <button
               type="button"
               aria-label={t('dashboard:timeControl.clear')}
               className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              onClick={() => setAdditionalTime()}
+              onClick={() => {
+                setDraftAdditionalTime(null);
+                setAdditionalTime();
+              }}
             >
               <XMarkIcon
                 className="-ml-0.5 h-5 w-5 text-gray-900"
@@ -139,6 +179,7 @@ export default function TimeControlPanel({
                 n: index + 1,
               }),
               onClick: () => {
+                setDraftAdditionalTime(null);
                 setAdditionalTime(index + 1);
                 setModal(undefined);
               },
@@ -146,6 +187,7 @@ export default function TimeControlPanel({
             {
               label: t('dashboard:timeControl.clear'),
               onClick: () => {
+                setDraftAdditionalTime(null);
                 setAdditionalTime();
                 setModal(undefined);
               },

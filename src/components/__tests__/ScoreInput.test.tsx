@@ -31,17 +31,51 @@ describe('ScoreInput', () => {
     expect(setScore).not.toHaveBeenCalled();
   });
 
-  it('opens the edit modal and sends numeric score changes', async () => {
+  it('opens the edit modal and sends the typed score once it is committed', async () => {
     const setScore = vi.fn();
     const user = userEvent.setup();
     render(<ScoreInput {...baseProps} setScore={setScore} />);
 
     await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
-    fireEvent.change(await screen.findByLabelText('Tigers score'), {
-      target: { value: '5' },
-    });
+    const input = await screen.findByLabelText('Tigers score');
+    fireEvent.change(input, { target: { value: '5' } });
+    expect(setScore).not.toHaveBeenCalled();
 
+    fireEvent.blur(input);
     expect(setScore).toHaveBeenCalledWith(5);
+  });
+
+  it('does not put intermediate keystrokes on air', async () => {
+    // Clearing "3" to type "4" must not send 0 to the outputs (and record an
+    // undo entry) on the way.
+    const setScore = vi.fn();
+    const user = userEvent.setup();
+    render(<ScoreInput {...baseProps} score={3} setScore={setScore} />);
+
+    await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
+    const input = await screen.findByLabelText('Tigers score');
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.change(input, { target: { value: '4' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(setScore).toHaveBeenCalledTimes(1);
+    expect(setScore).toHaveBeenCalledWith(4);
+  });
+
+  it('discards an empty or unchanged score instead of committing it', async () => {
+    const setScore = vi.fn();
+    const user = userEvent.setup();
+    render(<ScoreInput {...baseProps} score={3} setScore={setScore} />);
+
+    await user.click(screen.getByRole('button', { name: 'Edit Tigers score' }));
+    const input = await screen.findByLabelText('Tigers score');
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.blur(input);
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.blur(input);
+
+    expect(setScore).not.toHaveBeenCalled();
+    expect(input).toHaveValue(3);
   });
 
   it('adjusts the score by one via the labelled increase/decrease buttons in the edit modal', async () => {

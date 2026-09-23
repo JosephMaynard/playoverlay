@@ -724,4 +724,120 @@ describe('Dashboard match engine', () => {
       expect(stores.matchState.getState().matchState.overlays).toEqual([]);
     });
   });
+
+  describe('stopping', () => {
+    it('a second Stop cannot wipe how far the match got', async () => {
+      const { callbacks, stores } = await renderDashboard();
+
+      act(() => callbacks.nextMatchPhase?.()); // start firstHalf
+      const stop = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stop);
+      expect(stores.matchState.getState().matchState.previousMatchPhase).toBe(
+        'firstHalf'
+      );
+
+      // Stop is disabled with no phase running, and even a stray press (a
+      // Stream Deck double-tap goes straight to the handler) changes nothing.
+      expect(stop).toBeDisabled();
+      fireEvent.click(stop);
+      expect(stores.matchState.getState().matchState.previousMatchPhase).toBe(
+        'firstHalf'
+      );
+
+      act(() => callbacks.nextMatchPhase?.());
+      expect(stores.time.getState().time.matchPhase).toBe('secondHalf');
+    });
+  });
+
+  describe('restoring a crashed match', () => {
+    const liveMatch: LiveMatch = {
+      scores: { homeTeam: 2, awayTeam: 1, penalties: [] },
+      time: { time: '67:12', matchPhase: 'secondHalf', paused: false },
+      matchState: {
+        matchPhase: 'secondHalf',
+        displayScreen: 'scoreBug',
+        penaltiesFirstTeam: 'home',
+        overlays: [],
+      },
+      savedAt: Date.now(),
+    };
+
+    it('drops undo history captured before the restore', async () => {
+      const { callbacks, stores } = await renderDashboard({ liveMatch });
+      const { useUndoStore } = await import('../../store/undo');
+
+      // A screen switch while the restore offer is showing records an entry
+      // against the blank launch state.
+      act(() => callbacks.setDisplayScreen?.('matchTitle'));
+      expect(useUndoStore.getState().undoStack).toHaveLength(1);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+      expect(useUndoStore.getState().undoStack).toHaveLength(0);
+      act(() => useUndoStore.getState().undo());
+
+      expect(stores.time.getState().time.matchPhase).toBe('secondHalf');
+      expect(stores.matchState.getState().matchState.matchPhase).toBe(
+        'secondHalf'
+      );
+    });
+
+    it('keeps the restore offer when a phone minus tap at 0-0 does nothing', async () => {
+      const { callbacks } = await renderDashboard({ liveMatch });
+
+      act(() => callbacks.homeTeamUnscored?.());
+
+      expect(
+        screen.getByRole('button', { name: 'Restore' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('full-screen graphics follow the graphics library', () => {
+    it('takes a deleted full-screen graphic off air', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const board = {
+        title: 'Sponsor Board',
+        filePath: '/images/board.png',
+        url: 'file:///images/board.png',
+      };
+      act(() => callbacks.customScreensUpdated?.([board]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor Board' }));
+      expect(stores.matchState.getState().matchState.displayScreen).toBe(
+        'custom'
+      );
+
+      act(() => callbacks.customScreensUpdated?.([]));
+
+      const { matchState } = stores.matchState.getState();
+      expect(matchState.displayScreen).toBe('scoreBug');
+      expect(matchState.customScreenImageUrl).toBeUndefined();
+    });
+  });
+
+  describe('keyboard shortcut pausing', () => {
+    it('pauses shortcuts only while a text field has focus, not while a menu is open', async () => {
+      const { electronAPI } = await renderDashboard();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Team Settings' }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      advance(250);
+      expect(electronAPI.disableKeyboardShortcuts).not.toHaveBeenCalled();
+
+      const [field] = screen.getAllByRole('textbox');
+      act(() => field.focus());
+      advance(250);
+      expect(electronAPI.disableKeyboardShortcuts).toHaveBeenCalledTimes(1);
+
+      // Switching to OBS with the field still focused must bring the global
+      // shortcuts back.
+      act(() => {
+        window.dispatchEvent(new Event('blur'));
+      });
+      advance(250);
+      expect(electronAPI.enableKeyboardShortcuts).toHaveBeenCalledTimes(1);
+    });
+  });
 });
