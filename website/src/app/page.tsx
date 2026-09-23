@@ -16,7 +16,7 @@ const FEATURES: { title: string; description: string }[] = [
   {
     title: "Goal log",
     description:
-      "Every goal logged with its minute, including stoppage time, with an automatic on-air goal banner. Add scorers at half-time and the end screen lists who scored.",
+      "Every goal logged, with its minute (including stoppage time) whenever the clock is running, and an automatic on-air goal banner. Add scorers at half-time and the end screen lists who scored.",
   },
   {
     title: "Club presets",

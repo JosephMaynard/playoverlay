@@ -87,6 +87,21 @@ describe('formatGoalMinute', () => {
     ).toBe("16'");
   });
 
+  it('keeps labels whole and in order with fractional half lengths', () => {
+    const shortHalves = { ...defaultMatchSettings, halfLength: 22.5 };
+    const label = (time: string) =>
+      formatGoalMinute(
+        goal({ id: 'g', team: 'home', time, matchPhase: 'firstHalf' }),
+        shortHalves
+      );
+
+    expect(label('22:20')).toBe("23'");
+    // The scheduled end (22:30) falls in the 23rd minute, which stays regular.
+    expect(label('22:40')).toBe("23'");
+    expect(label('23:10')).toBe("23+1'");
+    expect(label('25:05')).toBe("23+3'");
+  });
+
   it('is empty for a goal with no recorded minute', () => {
     expect(formatGoalMinute(goal({ id: 'g', team: 'home' }), football)).toBe(
       ''

@@ -174,14 +174,19 @@ export default function MatchSettingsMenu({
     };
   }, [sidebarOpen]);
 
-  // Writes the whole list and only adopts it once the main process confirms
-  // the save, so the menu never shows a club that isn't stored.
+  // Writes the whole list, then shows what was actually stored: the main
+  // process validates entries and can drop one it rejects while still
+  // reporting success. The save only counts as successful when every club
+  // sent is in the stored list, so the menu never claims a club it doesn't
+  // have.
   const writeClubs = async (nextClubs: Club[]) => {
     try {
       const result = await window?.electronAPI?.setClubs(nextClubs);
       if (!result?.success) return false;
-      setClubs(nextClubs);
-      return true;
+      const stored = (await window?.electronAPI?.getClubs?.()) ?? nextClubs;
+      setClubs(stored);
+      const storedIds = new Set(stored.map((club) => club.id));
+      return nextClubs.every((club) => storedIds.has(club.id));
     } catch (error) {
       console.error('Failed to save clubs:', error);
       return false;

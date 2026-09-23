@@ -14,13 +14,24 @@ const rovers: Club = {
   backgroundColour: '#aa0000',
 };
 
-function installElectronAPI(clubs: Club[], setResult = { success: true }) {
+// A stand-in for the main process's club storage: setClubs stores what it's
+// given (through `store`, which can drop entries the way validation does)
+// and getClubs returns what was stored.
+function installElectronAPI(
+  clubs: Club[],
+  setResult = { success: true },
+  store: (clubs: Club[]) => Club[] = (submitted) => submitted
+) {
+  let stored = clubs;
   const api = {
     getVersion: vi.fn(() => '0.21.0-test'),
     getSavedMatchSettings: vi.fn().mockResolvedValue([]),
     setSavedMatchSettings: vi.fn().mockResolvedValue({ success: true }),
-    getClubs: vi.fn().mockResolvedValue(clubs),
-    setClubs: vi.fn().mockResolvedValue(setResult),
+    getClubs: vi.fn(async () => stored),
+    setClubs: vi.fn(async (submitted: Club[]) => {
+      if (setResult.success) stored = store(submitted);
+      return setResult;
+    }),
   };
   Object.defineProperty(window, 'electronAPI', {
     configurable: true,
@@ -129,6 +140,23 @@ describe('Club presets', () => {
       screen.getByText('The club could not be saved. Please try again.')
     ).toBeInTheDocument();
     expect(screen.getAllByText('No saved clubs yet')).toHaveLength(2);
+  });
+
+  it('does not claim a club was saved when the main process dropped it', async () => {
+    installElectronAPI([], { success: true }, () => []);
+    renderMenu({ homeTeamNameFull: 'Rovers' });
+    await flush();
+
+    const [homeSave] = screen.getAllByRole('button', { name: 'Save as club' });
+    fireEvent.click(homeSave);
+    await flush();
+
+    expect(
+      screen.getByText('The club could not be saved. Please try again.')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete Rovers' })
+    ).not.toBeInTheDocument();
   });
 
   it('deletes a saved club after confirmation', async () => {

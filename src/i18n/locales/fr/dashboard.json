@@ -22,7 +22,7 @@
   },
   "newMatch": {
     "button": "Nouveau match",
-    "confirm": "Commencer le match",
+    "confirm": "Commencer un nouveau match",
     "modalBody": "Les scores, les tirs au but, les buts, le chronomètre et les graphismes à l'antenne sont réinitialisés, et l'historique d'annulation est effacé. Les paramètres des équipes sont conservés.",
     "modalTitle": "Commencer un nouveau match ?"
   },

@@ -20,6 +20,12 @@ export function createGoal(id: string, team: homeOrAway, time: Time): Goal {
 // (22:10 on the clock is the 23rd minute), and a goal after a phase's
 // scheduled end is shown as stoppage time: 46:30 in the first half is
 // "45+2'". Empty when the goal was recorded with no phase running.
+//
+// Phase lengths can be fractional (22.5-minute halves), so the stoppage base
+// is the whole minute the scheduled end falls in: with an end of 22.5, the
+// 23rd minute is still regular time and 23:10 is "23+1'". That keeps labels
+// whole and in order (a plain seconds comparison would show 22:20 as "23'"
+// but 22:40 as "22+1'"). For whole-minute lengths it is the usual rule.
 export function formatGoalMinute(
   goal: Goal,
   matchSettings: MatchSettings
@@ -27,8 +33,9 @@ export function formatGoalMinute(
   if (!goal.time) return '';
   const minute = Math.floor(parseTimeToSeconds(goal.time) / 60) + 1;
   const phase = getPhaseById(matchSettings, goal.matchPhase);
-  if (phase && minute > phase.end) {
-    return `${phase.end}+${minute - phase.end}'`;
+  if (phase) {
+    const base = Math.ceil(phase.end);
+    if (minute > base) return `${base}+${minute - base}'`;
   }
   return `${minute}'`;
 }
