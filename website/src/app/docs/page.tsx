@@ -234,7 +234,10 @@ export default function DocsPage() {
               running clock, advance to the next match phase (which starts each half), and switch
               which graphic is on air. It
               mirrors the live match state, so it stays in sync with the operator and any other
-              paired phone: a phone tap and an on-screen click behave identically.
+              paired phone: a phone tap and an on-screen click behave identically. While the
+              laptop is offering to restore a match after a crash, the phone&rsquo;s controls
+              pause until the offer is answered there, so a tap can&rsquo;t overwrite the
+              recovered score.
             </p>
             <p className="mt-4 text-slate-600 dark:text-slate-400">
               <strong>Security</strong>: while it&rsquo;s on, the remote server listens on all of
