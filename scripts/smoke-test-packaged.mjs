@@ -10,7 +10,8 @@
 // Linux CI runner (under xvfb, with --no-sandbox).
 
 import { spawn } from 'node:child_process';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const DEBUG_PORT = 9222;
@@ -158,7 +159,17 @@ async function main() {
   // not have; user machines do not need this flag.
   if (process.platform !== 'darwin') args.push('--no-sandbox');
 
-  const child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  // The app gets a throwaway profile (see src/main-functions/
+  // userDataOverride.ts), so a local run never reads or overwrites the
+  // developer's real settings, saved matches, images or logs, and never
+  // collides with a copy of PlayOverlay that is already open.
+  const userDataDir = mkdtempSync(
+    path.join(os.tmpdir(), 'playoverlay-smoke-test-')
+  );
+  const child = spawn(binary, args, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PLAYOVERLAY_USER_DATA_DIR: userDataDir },
+  });
   let output = '';
   child.stdout.on('data', (d) => (output += d));
   child.stderr.on('data', (d) => (output += d));
@@ -189,6 +200,31 @@ async function main() {
     process.exitCode = 1;
   } finally {
     child.kill('SIGKILL');
+    await removeUserDataDir(child, userDataDir);
+  }
+}
+
+// Waits for the killed app to exit (on Windows its files stay locked until
+// then) and deletes the throwaway profile. A leftover temp folder is not
+// worth failing the smoke test over, so errors are only reported.
+async function removeUserDataDir(child, userDataDir) {
+  if (child.exitCode === null && child.signalCode === null) {
+    await Promise.race([
+      new Promise((resolve) => child.once('exit', resolve)),
+      sleep(5000),
+    ]);
+  }
+  try {
+    rmSync(userDataDir, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 200,
+    });
+  } catch (error) {
+    console.warn(
+      `Could not remove the smoke test profile ${userDataDir}: ${error.message}`
+    );
   }
 }
 

@@ -430,4 +430,64 @@ describe('browser source server lifecycle', () => {
     fs.rmSync(secretPath, { force: true });
     fs.rmSync(dir, { force: true, recursive: true });
   });
+
+  it('serves image names containing "#", "?" and "%" when correctly encoded', async () => {
+    const fs = await import('fs');
+    const os = await import('os');
+    const path = await import('path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'playoverlay-images-'));
+    fs.writeFileSync(path.join(dir, 'logo#2 what? 100%.png'), 'encoded');
+
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: dir,
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort();
+
+    const response = await fetch(
+      `http://127.0.0.1:${port}/images/logo%232%20what%3F%20100%25.png`
+    );
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('encoded');
+
+    fs.rmSync(dir, { force: true, recursive: true });
+  });
+
+  it('answers a stray "%" in an image name without throwing, serving the literal name when it exists', async () => {
+    const fs = await import('fs');
+    const os = await import('os');
+    const path = await import('path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'playoverlay-images-'));
+    fs.writeFileSync(path.join(dir, '100%.png'), 'legacy');
+
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: dir,
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort();
+
+    // http.get sends the path byte for byte, the way an old saved URL with
+    // an unescaped "%" reaches the server.
+    const get = (requestPath: string) =>
+      new Promise<{ status?: number; body: string }>((resolve, reject) => {
+        http
+          .get({ host: '127.0.0.1', port, path: requestPath }, (res) => {
+            let body = '';
+            res.on('data', (chunk) => (body += chunk));
+            res.on('end', () => resolve({ status: res.statusCode, body }));
+          })
+          .on('error', reject);
+      });
+
+    expect(await get('/images/100%.png')).toEqual({
+      status: 200,
+      body: 'legacy',
+    });
+    expect((await get('/images/missing%zz.png')).status).toBe(404);
+    expect(isBrowserSourceServerRunning()).toBe(true);
+
+    fs.rmSync(dir, { force: true, recursive: true });
+  });
 });

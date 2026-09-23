@@ -1,5 +1,6 @@
 import { BrowserWindow, screen } from 'electron';
 import { WindowName, setWindowPosition, setWindowSize } from './storage';
+import { logFailedOperation } from './logger';
 
 export default function resetWindow(
   window: BrowserWindow | null,
@@ -26,7 +27,17 @@ export default function resetWindow(
     window.setAlwaysOnTop(false);
     window.setBounds({ x, y, width: windowWidth, height: windowHeight });
 
-    setWindowPosition(windowName, window.getPosition());
-    setWindowSize(windowName, window.getSize());
+    // Runs from screen 'display-removed' listeners, where a throw (a config
+    // write failing with EACCES or a full disk) would be an uncaught
+    // main-process exception mid-match. The window has already moved; only
+    // remembering its position for next launch is lost.
+    try {
+      setWindowPosition(windowName, window.getPosition());
+      setWindowSize(windowName, window.getSize());
+    } catch (error) {
+      logFailedOperation(
+        `Error saving ${windowName} position after reset: ${String(error)}`
+      );
+    }
   }
 }

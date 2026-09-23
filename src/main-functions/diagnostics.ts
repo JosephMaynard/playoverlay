@@ -1,6 +1,11 @@
 import { AppSettings } from '../types';
 import { MatchSettings } from '../zodSchemas';
-import { formatLogLine, LogEntry, MatchEventEntry } from './logger';
+import {
+  formatLogLine,
+  LogEntry,
+  MatchEventEntry,
+  redactHomeDirectory,
+} from './logger';
 
 // Assembles the one-click support bundle: a single human-readable text file
 // the operator can attach to a GitHub issue. Deliberately plain text/Markdown
@@ -91,6 +96,12 @@ export interface DiagnosticsInput {
   recentLog: LogEntry[];
   recentMatchEvents: MatchEventEntry[];
   recentFailedOperations: LogEntry[];
+  // The OS home directory (main.ts passes os.homedir()). Every occurrence in
+  // the finished report is replaced with "~": team logos are file:// URLs
+  // under the user's profile, and an error message can quote any path, so
+  // without this the username would ride along in a file that claims to be
+  // safe to share.
+  homeDirectory?: string;
 }
 
 // Most-recent lines shown last (so a reader scrolls to the bottom for "what
@@ -194,7 +205,9 @@ export function buildDiagnosticsReport(input: DiagnosticsInput): string {
   lines.push('```');
   lines.push('');
 
-  return lines.join('\n');
+  // Applied to the whole report rather than field by field, so a field
+  // added later can't slip past it.
+  return redactHomeDirectory(lines.join('\n'), input.homeDirectory);
 }
 
 // A stable, sortable, filesystem-safe default file name for the save dialog,

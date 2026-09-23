@@ -8,6 +8,7 @@ import {
   initLogger,
   Logger,
   MAX_LOG_FILE_BYTES,
+  redactHomeDirectory,
   resetLoggerForTests,
   RingBuffer,
   sanitizeLogPath,
@@ -91,6 +92,47 @@ describe('RingBuffer', () => {
 
     expect(snapshot).toEqual([1]);
     expect(buffer.toArray()).toEqual([1, 2]);
+  });
+});
+
+describe('redactHomeDirectory', () => {
+  it('replaces a POSIX home directory, including inside a file:// URL', () => {
+    expect(
+      redactHomeDirectory(
+        "ENOENT: open '/Users/jo/Library/a.png' (file:///Users/jo/b.png)",
+        '/Users/jo'
+      )
+    ).toBe("ENOENT: open '~/Library/a.png' (file://~/b.png)");
+  });
+
+  it('matches percent-encoded and differently cased forms', () => {
+    expect(
+      redactHomeDirectory(
+        'file:///Users/Jo%20Bloggs/x.png and /users/jo bloggs/y',
+        '/Users/Jo Bloggs/'
+      )
+    ).toBe('file://~/x.png and ~/y');
+  });
+
+  it('replaces Windows homes in native, forward-slash and JSON-escaped forms', () => {
+    expect(
+      redactHomeDirectory(
+        'C:\\\\Users\\\\jo\\\\a C:\\Users\\jo\\b file:///C:/Users/jo/c',
+        'C:\\Users\\jo'
+      )
+    ).toBe('~\\\\a ~\\b file:///~/c');
+  });
+
+  it('leaves a longer name that merely starts with the username alone', () => {
+    expect(redactHomeDirectory('/Users/joanna/a.png', '/Users/jo')).toBe(
+      '/Users/joanna/a.png'
+    );
+  });
+
+  it('redacts nothing for an empty or root home directory', () => {
+    expect(redactHomeDirectory('/Users/jo/a', '')).toBe('/Users/jo/a');
+    expect(redactHomeDirectory('/Users/jo/a', '/')).toBe('/Users/jo/a');
+    expect(redactHomeDirectory('/Users/jo/a', undefined)).toBe('/Users/jo/a');
   });
 });
 
@@ -226,6 +268,40 @@ describe('Logger', () => {
         source: 'streamDeck',
       }),
     ]);
+  });
+
+  it('redacts the home directory from main.log and the diagnostics buffers', () => {
+    const dir = createTempLogDir();
+    const logger = new Logger({ logDir: dir, homeDirectory: '/home/jo' });
+
+    logger.error("ENOENT: open '/home/jo/images/a.png'");
+    logger.logFailedOperation('Error saving file: /home/jo/b.png');
+
+    const contents = fs.readFileSync(path.join(dir, 'main.log'), 'utf8');
+    expect(contents).not.toContain('/home/jo');
+    expect(contents).toContain("open '~/images/a.png'");
+    expect(logger.getRecentEntries().map((entry) => entry.message)).toEqual([
+      "ENOENT: open '~/images/a.png'",
+      'Error saving file: ~/b.png',
+    ]);
+    expect(logger.getRecentFailedOperations()[0].message).toBe(
+      'Error saving file: ~/b.png'
+    );
+  });
+
+  it('redacts entries it absorbs from the pre-init fallback logger', () => {
+    const previous = new Logger();
+    previous.error('config at /home/jo/config.json is unreadable');
+
+    const next = new Logger({
+      logDir: createTempLogDir(),
+      homeDirectory: '/home/jo',
+    });
+    next.absorb(previous);
+
+    expect(next.getRecentEntries()[0].message).toBe(
+      'config at ~/config.json is unreadable'
+    );
   });
 
   it('absorb() copies buffered entries from another logger into this one', () => {

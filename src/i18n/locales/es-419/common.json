@@ -1,4 +1,13 @@
 {
+  "appMenu": {
+    "about": "Acerca de PlayOverlay",
+    "quit": "Salir de PlayOverlay",
+    "edit": "Edición",
+    "cut": "Cortar",
+    "copy": "Copiar",
+    "paste": "Pegar",
+    "selectAll": "Seleccionar todo"
+  },
   "cancel": "Cancelar",
   "close": "Cerrar",
   "closePanel": "Cerrar panel",

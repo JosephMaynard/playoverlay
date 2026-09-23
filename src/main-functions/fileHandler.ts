@@ -119,6 +119,16 @@ export function isValidImageBuffer(
   }
 }
 
+// "#", "?" and "%" are legal in file names but meaningful in URLs, and the
+// saved file is only ever reached through a URL (the display window's
+// file:// URL, OBS's /images/ route). convertFilePathToUrl encodes them
+// correctly now, but replacing them on the way in means a new upload can
+// never depend on every consumer getting that encoding right. Only the
+// stored name changes; the graphic's title is kept separately.
+export function toUrlSafeFileName(fileName: string): string {
+  return fileName.replace(/[#?%]/g, '-');
+}
+
 export function saveImageFile(
   data: Buffer | Uint8Array,
   fileName: string
@@ -155,7 +165,10 @@ export function saveImageFile(
     return null;
   }
 
-  const uniqueFileName = getUniqueFileName(imagesPath, fileName);
+  const uniqueFileName = getUniqueFileName(
+    imagesPath,
+    toUrlSafeFileName(fileName)
+  );
   const destination = path.join(imagesPath, uniqueFileName);
 
   try {
@@ -197,6 +210,43 @@ export async function handleFileUpload(
   }
 }
 
+function isMissingFileError(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException)?.code === 'ENOENT';
+}
+
+// Resolves symlinks/junctions in `target` like fs.realpathSync, but still
+// works when the file itself is already gone: its parent directory is
+// resolved instead, and failing that the path is only normalised. Deleting a
+// file that no longer exists must still be checked against the images
+// directory, and must still succeed.
+function resolveRealPath(target: string): string {
+  try {
+    return fs.realpathSync(target);
+  } catch (error) {
+    if (!isMissingFileError(error)) throw error;
+  }
+  try {
+    return path.join(
+      fs.realpathSync(path.dirname(target)),
+      path.basename(target)
+    );
+  } catch (error) {
+    if (!isMissingFileError(error)) throw error;
+    return target;
+  }
+}
+
+function removeCustomScreenEntry(filePath: string) {
+  const screens = getCustomScreens() as CustomScreen[];
+  const updatedScreens = screens.filter(
+    (screen: CustomScreen) => screen.filePath !== filePath
+  );
+  setCustomScreens(updatedScreens);
+  BrowserWindow.getAllWindows().forEach((win) => {
+    win.webContents.send('custom-screens-updated', updatedScreens);
+  });
+}
+
 export function handleFileDeletion(filePath: string): boolean {
   // filePath comes from an IPC caller, only delete files that actually
   // live inside the images directory. realpath resolves symlinks/junctions
@@ -206,8 +256,8 @@ export function handleFileDeletion(filePath: string): boolean {
   let realTarget: string;
   let realBase: string;
   try {
-    realTarget = fs.realpathSync(path.resolve(filePath));
-    realBase = fs.realpathSync(imagesPath);
+    realTarget = resolveRealPath(path.resolve(filePath));
+    realBase = resolveRealPath(path.resolve(imagesPath));
   } catch (error) {
     logFailedOperation(
       `Error resolving path for deletion: ${sanitizeLogPath(filePath)} (${String(error)})`
@@ -228,14 +278,18 @@ export function handleFileDeletion(filePath: string): boolean {
 
   try {
     fs.unlinkSync(realTarget);
-    const screens = getCustomScreens() as CustomScreen[];
-    const updatedScreens = screens.filter(
-      (screen: CustomScreen) => screen.filePath !== filePath
-    );
-    setCustomScreens(updatedScreens);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('custom-screens-updated', updatedScreens);
-    });
+  } catch (error) {
+    // Already gone (deleted outside the app, or a second click while the
+    // first delete was in flight) is the outcome the operator asked for, so
+    // it counts as success: the entry is still removed from the list below.
+    if (!isMissingFileError(error)) {
+      logFailedOperation(`Error deleting file: ${String(error)}`);
+      return false;
+    }
+  }
+
+  try {
+    removeCustomScreenEntry(filePath);
     return true;
   } catch (error) {
     logFailedOperation(`Error deleting file: ${String(error)}`);
