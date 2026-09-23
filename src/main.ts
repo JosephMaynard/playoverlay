@@ -377,6 +377,7 @@ function getRemoteControlSnapshot(): RemoteControlSnapshot {
       homeTeamNameFull: cachedMatchSettings.homeTeamNameFull,
       awayTeamNameFull: cachedMatchSettings.awayTeamNameFull,
     },
+    awaitingRestore: isRestoreOfferPending(),
   };
 }
 
@@ -436,6 +437,12 @@ function releaseOutputHold(reason: string) {
 // phone tap and an operator click take exactly the same code path. Commands
 // are intents only; the Dashboard computes the resulting state.
 function routeRemoteCommand(command: RemoteCommand) {
+  if (isRestoreOfferPending()) {
+    logInfo(
+      `Ignored phone command "${command.type}": restore the match on the laptop first`
+    );
+    return;
+  }
   switch (command.type) {
     case 'homeGoal':
       mainWindow?.webContents.send('home-team-scored');
@@ -580,7 +587,25 @@ function writeLiveMatch() {
 // is now the real match (restored, dismissed, or already underway).
 function markLiveMatchResolved(reason: string) {
   liveMatchResolved = true;
+  // The offered snapshot has been restored, dismissed or superseded, so it
+  // must never be offered again: a later dashboard crash offers only the
+  // match that is current then (see protectMatchForControlWindowReload),
+  // not a fixture the operator already discarded.
+  liveMatchAtLaunch = undefined;
   releaseOutputHold(reason);
+  // Phones disable their controls while a restore is pending; tell them it
+  // isn't, even when there was no output hold left to release.
+  broadcastRemoteControlSnapshot();
+}
+
+// A restore offer the operator hasn't answered yet. While it is pending the
+// dashboard holds a blank match that the snapshot will replace, so input
+// that can't see the offer (the phone remote, and the system-wide shortcuts
+// pressed from OBS) is refused: a goal would otherwise turn a recovered 3-1
+// into 1-0, resolve the offer and put that on air. Shortcuts pressed in the
+// control window itself still work, since the offer is on screen there.
+function isRestoreOfferPending() {
+  return !liveMatchResolved && isRestorableLiveMatch(liveMatchAtLaunch);
 }
 
 function persistLiveMatch() {
@@ -1726,6 +1751,14 @@ const registerGlobalKeyboardShortcuts = () => {
     let registered = false;
     try {
       registered = globalShortcut.register(globalAccelerator, () => {
+        // Pressed from another app, where the restore offer can't be seen
+        // (see isRestoreOfferPending).
+        if (isRestoreOfferPending()) {
+          logInfo(
+            'Ignored system-wide shortcut: restore the match on the laptop first'
+          );
+          return;
+        }
         mainWindow?.webContents.send(channel);
       });
     } catch (error) {

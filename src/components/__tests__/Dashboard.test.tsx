@@ -4,6 +4,12 @@ import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import { AppSettings, LiveMatch } from '../../types';
 import { MatchSettings, UpdateStatus } from '../../zodSchemas';
 
+// These tests render the whole dashboard and step the clock through
+// thousands of fake-timer ticks. Alone the slowest takes under a second, but
+// on a loaded machine running every file in parallel one has hit vitest's 5s
+// default and failed the run, so this file gets more headroom.
+vi.setConfig({ testTimeout: 20_000 });
+
 // The Dashboard keeps its clock (seconds/baseSeconds/tickingSince/interval)
 // at module scope, and every zustand store is a module-scope singleton too.
 // vi.resetModules() + a dynamic import per test is the only way to get a

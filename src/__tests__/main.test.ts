@@ -76,6 +76,7 @@ interface LoadOptions {
   liveMatch?: LiveMatch;
   setMatchSettings?: (settings: unknown) => void;
   setAppSettings?: (settings: unknown) => void;
+  appSettings?: unknown;
 }
 
 const laptop = { id: 1, bounds: { x: 0, y: 0, width: 1440, height: 900 } };
@@ -138,6 +139,9 @@ async function loadMain(options: LoadOptions = {}) {
     isStarted: vi.fn((id: number) => startedBlockers.has(id)),
   };
 
+  const shortcutCallbacks: Record<string, () => void> = {};
+  let remoteOnCommand: ((command: unknown) => void) | undefined;
+
   const Menu = {
     buildFromTemplate: vi.fn((template: unknown) => template),
     setApplicationMenu: vi.fn(),
@@ -160,7 +164,10 @@ async function loadMain(options: LoadOptions = {}) {
     Menu,
     shell: { openExternal: vi.fn() },
     globalShortcut: {
-      register: vi.fn(() => true),
+      register: vi.fn((accelerator: string, callback: () => void) => {
+        shortcutCallbacks[accelerator] = callback;
+        return true;
+      }),
       unregister: vi.fn(),
       unregisterAll: vi.fn(),
     },
@@ -175,7 +182,7 @@ async function loadMain(options: LoadOptions = {}) {
   vi.doMock('../main-functions/storage', () => ({
     DISPLAY_WINDOW: 'DISPLAY_WINDOW',
     MAIN_WINDOW: 'MAIN_WINDOW',
-    getAppSettings: vi.fn(() => undefined),
+    getAppSettings: vi.fn(() => options.appSettings),
     getCustomScreens: vi.fn(() => []),
     getLiveMatch: vi.fn(() => options.liveMatch),
     getMatchSettings: vi.fn(() => ({ ...defaultMatchSettings })),
@@ -220,7 +227,12 @@ async function loadMain(options: LoadOptions = {}) {
     getRemoteControlConnectedCount: () => 0,
     getRemoteControlServerPort: () => null,
     isRemoteControlServerRunning: () => true,
-    startRemoteControlServer: vi.fn(),
+    startRemoteControlServer: vi.fn(
+      async (opts: { onCommand: (command: unknown) => void }) => {
+        remoteOnCommand = opts.onCommand;
+        return { ok: true };
+      }
+    ),
     stopRemoteControlServer: vi.fn(() => Promise.resolve()),
   }));
 
@@ -285,6 +297,13 @@ async function loadMain(options: LoadOptions = {}) {
       (screenHandlers[event] ?? []).forEach((handler) => handler()),
     display: () => windows.DISPLAY_WINDOW,
     control: () => windows.MAIN_WINDOW,
+    // A command arriving from a paired phone.
+    phoneCommand: (command: unknown) => remoteOnCommand?.(command),
+    // Presses a registered shortcut; the system-wide set is the one whose
+    // accelerator includes Alt.
+    pressShortcut: (accelerator: string) => shortcutCallbacks[accelerator]?.(),
+    shortcutAccelerators: () => Object.keys(shortcutCallbacks),
+    lastPhoneSnapshot: () => broadcastRemoteControlState.mock.calls.at(-1)?.[0],
   };
 }
 
@@ -442,6 +461,94 @@ describe('main process: pending restore offer', () => {
     expect(lastSent(main.display(), 'match-state-updated')).toMatchObject({
       displayScreen: 'scoreBug',
     });
+  });
+});
+
+describe('main process: input while a restore offer is pending', () => {
+  const withPhoneRemote = {
+    ...defaultAppSettings,
+    remoteControl: { enabled: true, port: 3006 },
+  };
+
+  async function flush() {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  }
+
+  function sentToDashboard(main: Awaited<ReturnType<typeof loadMain>>) {
+    return main
+      .control()
+      .webContents.send.mock.calls.map(([channel]) => channel);
+  }
+
+  it('refuses phone commands and system-wide shortcuts until the offer is resolved', async () => {
+    const main = await loadMain({
+      liveMatch: interruptedMatch,
+      appSettings: withPhoneRemote,
+    });
+    await main.ready();
+    await flush();
+    main.send('update-match-state', { ...defaultMatchState });
+
+    // The phone still shows the recovered 2-1 but must not be able to turn
+    // it into 1-0 on the blank dashboard behind the offer.
+    expect(main.lastPhoneSnapshot()).toMatchObject({ awaitingRestore: true });
+    main.phoneCommand({ type: 'homeGoal' });
+    const systemWide = main
+      .shortcutAccelerators()
+      .find((accelerator) => accelerator.includes('Alt'));
+    expect(systemWide).toBeDefined();
+    main.pressShortcut(systemWide!);
+    expect(sentToDashboard(main)).not.toContain('home-team-scored');
+
+    main.send('resolve-live-match');
+
+    expect(main.lastPhoneSnapshot()).toMatchObject({ awaitingRestore: false });
+    main.phoneCommand({ type: 'homeGoal' });
+    expect(sentToDashboard(main)).toContain('home-team-scored');
+  });
+
+  it('refuses phone commands while a crashed dashboard offers the match back', async () => {
+    const main = await loadMain({ appSettings: withPhoneRemote });
+    await main.ready();
+    await flush();
+    main.send('update-score', { homeTeam: 3, awayTeam: 1, penalties: [] });
+    main.send('update-time', { time: '70:00', matchPhase: 'secondHalf' });
+
+    main
+      .control()
+      .webContents.emit(
+        'render-process-gone',
+        {},
+        { reason: 'oom', exitCode: 0 }
+      );
+    main.send('update-score', { ...defaultScores });
+
+    main.phoneCommand({ type: 'homeGoal' });
+    expect(sentToDashboard(main)).not.toContain('home-team-scored');
+    expect(main.lastPhoneSnapshot()).toMatchObject({
+      awaitingRestore: true,
+      scores: { homeTeam: 3, awayTeam: 1 },
+    });
+  });
+
+  it('never offers a dismissed match again, even after a later crash', async () => {
+    const main = await loadMain({ liveMatch: interruptedMatch });
+    await main.ready();
+    main.send('update-match-state', { ...defaultMatchState });
+
+    main.send('resolve-live-match');
+    expect(await main.invoke('get-live-match')).toBeUndefined();
+
+    // A fresh match that hasn't kicked off yet, then the dashboard crashes.
+    main
+      .control()
+      .webContents.emit(
+        'render-process-gone',
+        {},
+        { reason: 'oom', exitCode: 0 }
+      );
+
+    expect(await main.invoke('get-live-match')).toBeUndefined();
   });
 });
 

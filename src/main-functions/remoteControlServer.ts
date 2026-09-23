@@ -22,6 +22,10 @@ export interface RemoteControlSnapshot {
     homeTeamNameFull: string;
     awayTeamNameFull: string;
   };
+  // True while the laptop shows an unanswered offer to restore a match.
+  // Commands are refused then, so the page disables its controls and says
+  // why.
+  awaitingRestore?: boolean;
 }
 
 // The only command intents a paired phone may send. Commands are intents, not

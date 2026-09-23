@@ -262,6 +262,31 @@ describe('remote control page', () => {
       expect(ws.sent).toContainEqual({ type: 'homeGoal' });
     });
 
+    it('disables every control and explains why while the laptop offers a restore', () => {
+      const ws = loadAndPair();
+      ws.serverSend({
+        type: 'state',
+        payload: { ...RUNNING_STATE, awaitingRestore: true },
+      });
+
+      expect(commandButtons().every((button) => button.disabled)).toBe(true);
+      expect($('restoreNotice').classList.contains('hidden')).toBe(false);
+      document
+        .querySelector<HTMLButtonElement>('[data-cmd="homeGoal"]')!
+        .click();
+      expect(ws.sent.filter((frame) => frame.type === 'homeGoal')).toEqual([]);
+
+      ws.serverSend({
+        type: 'state',
+        payload: { ...RUNNING_STATE, awaitingRestore: false },
+      });
+      expect($('restoreNotice').classList.contains('hidden')).toBe(true);
+      document
+        .querySelector<HTMLButtonElement>('[data-cmd="homeGoal"]')!
+        .click();
+      expect(ws.sent).toContainEqual({ type: 'homeGoal' });
+    });
+
     it('labels the clock button Pause or Resume and disables it with no phase running', () => {
       const ws = loadAndPair();
       const toggle = $('toggleClock') as HTMLButtonElement;

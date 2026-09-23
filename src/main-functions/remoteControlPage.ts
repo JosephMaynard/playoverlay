@@ -108,6 +108,14 @@ export const REMOTE_CONTROL_PAGE = `<!doctype html>
       .hidden {
         display: none !important;
       }
+      .notice {
+        background: var(--panel);
+        border-left: 4px solid var(--danger);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 0 0 16px;
+        font-size: 15px;
+      }
       /* Pairing screen */
       .pin-display {
         letter-spacing: 10px;
@@ -290,6 +298,10 @@ export const REMOTE_CONTROL_PAGE = `<!doctype html>
       </section>
 
       <section id="controlView" class="hidden">
+        <p class="notice hidden" id="restoreNotice">
+          The laptop is offering to restore the match. Restore it there (or
+          dismiss it) to use the remote.
+        </p>
         <div class="scoreboard">
           <div class="team home">
             <div class="abbr" id="homeAbbr">HOME</div>
@@ -419,8 +431,15 @@ export const REMOTE_CONTROL_PAGE = `<!doctype html>
         // something, and labels the clock button with what a tap will do.
         // toggleClock only pauses or resumes a running phase, so with no phase
         // running it is disabled and Next phase is the way to kick off.
+        // While the laptop is offering to restore a match, the server refuses
+        // commands (a goal would replace the recovered score), so the controls
+        // are disabled and the notice says why.
         function updateControls() {
-          var live = paired && ready;
+          var awaitingRestore = !!(lastState && lastState.awaitingRestore);
+          document
+            .getElementById('restoreNotice')
+            .classList.toggle('hidden', !(paired && ready && awaitingRestore));
+          var live = paired && ready && !awaitingRestore;
           var buttons = controlView.querySelectorAll('button');
           for (var i = 0; i < buttons.length; i++) {
             buttons[i].disabled = !live;
