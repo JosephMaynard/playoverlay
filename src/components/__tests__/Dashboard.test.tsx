@@ -4,6 +4,12 @@ import { defaultAppSettings, defaultMatchSettings } from '../../constants';
 import { AppSettings, LiveMatch } from '../../types';
 import { MatchSettings, UpdateStatus } from '../../zodSchemas';
 
+// These tests render the whole dashboard and step the clock through
+// thousands of fake-timer ticks. Alone the slowest takes under a second, but
+// on a loaded machine running every file in parallel one has hit vitest's 5s
+// default and failed the run, so this file gets more headroom.
+vi.setConfig({ testTimeout: 20_000 });
+
 // The Dashboard keeps its clock (seconds/baseSeconds/tickingSince/interval)
 // at module scope, and every zustand store is a module-scope singleton too.
 // vi.resetModules() + a dynamic import per test is the only way to get a
@@ -397,7 +403,12 @@ describe('Dashboard match engine', () => {
       });
       fireEvent.click(restoreButton);
 
-      expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
+      // A snapshot from before the goal log restores with an empty log,
+      // replacing whatever the current session had.
+      expect(stores.scores.getState().scores).toEqual({
+        ...liveMatch.scores,
+        goals: [],
+      });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
       );
@@ -489,7 +500,12 @@ describe('Dashboard match engine', () => {
       expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
         defaultMatchSettings.hasExtraTime
       );
-      expect(stores.scores.getState().scores).toEqual(liveMatch.scores);
+      // A snapshot from before the goal log restores with an empty log,
+      // replacing whatever the current session had.
+      expect(stores.scores.getState().scores).toEqual({
+        ...liveMatch.scores,
+        goals: [],
+      });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
       );
@@ -622,6 +638,408 @@ describe('Dashboard match engine', () => {
       // ...and ticking then continues normally from the re-anchored point
       advance(2000);
       expect(stores.time.getState().time.time).toBe('0:04');
+    });
+  });
+
+  describe('restoring a saved fixture', () => {
+    it('replaces the settings, dropping optional details the fixture omits', async () => {
+      const { electronAPI, stores } = await renderDashboard();
+
+      act(() =>
+        stores.matchSettings.getState().setMatchSettings({
+          homeTeamLogo: 'file:///images/old-home.png',
+          venue: 'Old Ground',
+          kickOffTime: '15:00',
+        })
+      );
+      vi.mocked(electronAPI.getSavedMatchSettings).mockResolvedValue([
+        {
+          ...defaultMatchSettings,
+          homeTeamNameFull: 'Rovers',
+          homeTeamNameAbbreviated: 'ROV',
+          saveTitle: 'Rovers at home',
+          saveId: 'fixture-1',
+          saveDate: '2026-07-01T12:00:00.000Z',
+        },
+      ]);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Team Settings' }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Open Saved Match Settings' })
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+      // The confirmation modal adds its own "Restore" action button.
+      const restoreButtons = screen.getAllByRole('button', {
+        name: 'Restore',
+      });
+      fireEvent.click(restoreButtons[restoreButtons.length - 1]);
+
+      const restored = stores.matchSettings.getState().matchSettings;
+      expect(restored.homeTeamNameFull).toBe('Rovers');
+      expect(restored.homeTeamLogo).toBeUndefined();
+      expect(restored.venue).toBeUndefined();
+      expect(restored.kickOffTime).toBeUndefined();
+      expect(restored.saveId).toBeUndefined();
+    });
+  });
+
+  describe('active overlays follow the graphics library', () => {
+    const sponsor = {
+      title: 'Sponsor',
+      filePath: '/images/sponsor.png',
+      url: 'file:///images/sponsor.png',
+      type: 'overlay',
+      overlayLinks: ['scoreBug'],
+    };
+
+    it('renaming an overlay on air updates it and it can still be taken off', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.customScreensUpdated?.([sponsor]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor' }));
+      expect(stores.matchState.getState().matchState.overlays).toHaveLength(1);
+
+      act(() =>
+        callbacks.customScreensUpdated?.([
+          {
+            ...sponsor,
+            title: 'Main Sponsor',
+            overlayLinks: ['scoreBug', 'matchTitle'],
+          },
+        ])
+      );
+
+      const [active] = stores.matchState.getState().matchState.overlays;
+      expect(active.title).toBe('Main Sponsor');
+      expect(active.overlayLinks).toEqual(['scoreBug', 'matchTitle']);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Main Sponsor' }));
+      expect(stores.matchState.getState().matchState.overlays).toEqual([]);
+    });
+
+    it('takes an overlay off air when it is deleted or made full-screen', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const scorer = {
+        ...sponsor,
+        title: 'Scorer',
+        filePath: '/images/scorer.png',
+        url: 'file:///images/scorer.png',
+      };
+      act(() => callbacks.customScreensUpdated?.([sponsor, scorer]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Scorer' }));
+      expect(stores.matchState.getState().matchState.overlays).toHaveLength(2);
+
+      act(() =>
+        callbacks.customScreensUpdated?.([{ ...scorer, type: 'screen' }])
+      );
+
+      expect(stores.matchState.getState().matchState.overlays).toEqual([]);
+    });
+  });
+
+  describe('stopping', () => {
+    it('a second Stop cannot wipe how far the match got', async () => {
+      const { callbacks, stores } = await renderDashboard();
+
+      act(() => callbacks.nextMatchPhase?.()); // start firstHalf
+      const stop = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stop);
+      expect(stores.matchState.getState().matchState.previousMatchPhase).toBe(
+        'firstHalf'
+      );
+
+      // Stop is disabled with no phase running, and even a stray press (a
+      // Stream Deck double-tap goes straight to the handler) changes nothing.
+      expect(stop).toBeDisabled();
+      fireEvent.click(stop);
+      expect(stores.matchState.getState().matchState.previousMatchPhase).toBe(
+        'firstHalf'
+      );
+
+      act(() => callbacks.nextMatchPhase?.());
+      expect(stores.time.getState().time.matchPhase).toBe('secondHalf');
+    });
+  });
+
+  describe('restoring a crashed match', () => {
+    const liveMatch: LiveMatch = {
+      scores: { homeTeam: 2, awayTeam: 1, penalties: [] },
+      time: { time: '67:12', matchPhase: 'secondHalf', paused: false },
+      matchState: {
+        matchPhase: 'secondHalf',
+        displayScreen: 'scoreBug',
+        penaltiesFirstTeam: 'home',
+        overlays: [],
+      },
+      savedAt: Date.now(),
+    };
+
+    it('drops undo history captured before the restore', async () => {
+      const { callbacks, stores } = await renderDashboard({ liveMatch });
+      const { useUndoStore } = await import('../../store/undo');
+
+      // A screen switch while the restore offer is showing records an entry
+      // against the blank launch state.
+      act(() => callbacks.setDisplayScreen?.('matchTitle'));
+      expect(useUndoStore.getState().undoStack).toHaveLength(1);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+      expect(useUndoStore.getState().undoStack).toHaveLength(0);
+      act(() => useUndoStore.getState().undo());
+
+      expect(stores.time.getState().time.matchPhase).toBe('secondHalf');
+      expect(stores.matchState.getState().matchState.matchPhase).toBe(
+        'secondHalf'
+      );
+    });
+
+    it('keeps the restore offer when a phone minus tap at 0-0 does nothing', async () => {
+      const { callbacks } = await renderDashboard({ liveMatch });
+
+      act(() => callbacks.homeTeamUnscored?.());
+
+      expect(
+        screen.getByRole('button', { name: 'Restore' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('full-screen graphics follow the graphics library', () => {
+    it('takes a deleted full-screen graphic off air', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const board = {
+        title: 'Sponsor Board',
+        filePath: '/images/board.png',
+        url: 'file:///images/board.png',
+      };
+      act(() => callbacks.customScreensUpdated?.([board]));
+      fireEvent.click(screen.getByRole('button', { name: 'Sponsor Board' }));
+      expect(stores.matchState.getState().matchState.displayScreen).toBe(
+        'custom'
+      );
+
+      act(() => callbacks.customScreensUpdated?.([]));
+
+      const { matchState } = stores.matchState.getState();
+      expect(matchState.displayScreen).toBe('scoreBug');
+      expect(matchState.customScreenImageUrl).toBeUndefined();
+    });
+  });
+
+  describe('keyboard shortcut pausing', () => {
+    it('pauses shortcuts only while a text field has focus, not while a menu is open', async () => {
+      const { electronAPI } = await renderDashboard();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Team Settings' }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      advance(250);
+      expect(electronAPI.disableKeyboardShortcuts).not.toHaveBeenCalled();
+
+      const [field] = screen.getAllByRole('textbox');
+      act(() => field.focus());
+      advance(250);
+      expect(electronAPI.disableKeyboardShortcuts).toHaveBeenCalledTimes(1);
+
+      // Switching to OBS with the field still focused must bring the global
+      // shortcuts back.
+      act(() => {
+        window.dispatchEvent(new Event('blur'));
+      });
+      advance(250);
+      expect(electronAPI.enableKeyboardShortcuts).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('new match', () => {
+    it('resets the match to a clean slate but keeps team settings', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+
+      act(() =>
+        stores.matchSettings
+          .getState()
+          .setMatchSettings({ homeTeamNameFull: 'Rovers' })
+      );
+      act(() => callbacks.nextMatchPhase?.()); // kick off
+      act(() => callbacks.homeTeamScored?.());
+      advance(3000);
+      act(() =>
+        stores.matchState.getState().setMatchState({
+          overlays: [
+            {
+              title: 'Sponsor',
+              filePath: '/images/sponsor.png',
+              url: 'file:///images/sponsor.png',
+              type: 'overlay',
+            },
+          ],
+        })
+      );
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'New match' })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Start new match' }));
+
+      expect(stores.scores.getState().scores).toEqual(
+        expect.objectContaining({ homeTeam: 0, awayTeam: 0, penalties: [] })
+      );
+      const time = stores.time.getState().time;
+      expect(time.matchPhase).toBeUndefined();
+      expect(time.time).toBeUndefined();
+      const matchState = stores.matchState.getState().matchState;
+      expect(matchState.previousMatchPhase).toBeUndefined();
+      expect(matchState.overlays).toEqual([]);
+      expect(matchState.displayScreen).toBe('matchTitle');
+      expect(useUndoStore.getState().undoStack).toHaveLength(0);
+      expect(
+        stores.matchSettings.getState().matchSettings.homeTeamNameFull
+      ).toBe('Rovers');
+
+      // The clock stays stopped, and the next-phase shortcut starts the
+      // first half again rather than carrying on from the old match.
+      advance(2000);
+      expect(stores.time.getState().time.time).toBeUndefined();
+      act(() => callbacks.nextMatchPhase?.());
+      expect(stores.time.getState().time.matchPhase).toBe('firstHalf');
+      expect(stores.time.getState().time.time).toBe('0:00');
+    });
+  });
+
+  describe('goal log', () => {
+    // The Goals panel starts collapsed; goals are logged either way.
+    function openGoalsPanel() {
+      fireEvent.click(screen.getByRole('button', { name: 'Goals' }));
+    }
+
+    it('logs each goal with its minute, from any input, and undo removes it', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+
+      // Before kick-off: logged, but with no minute.
+      act(() => callbacks.awayTeamScored?.());
+      act(() => callbacks.nextMatchPhase?.());
+      advance(22 * 60 * 1000 + 10 * 1000);
+      act(() => callbacks.homeTeamScored?.());
+
+      const goals = stores.scores.getState().scores.goals ?? [];
+      expect(goals).toHaveLength(2);
+      expect(goals[0]).toEqual(expect.objectContaining({ team: 'away' }));
+      expect(goals[0].time).toBeUndefined();
+      expect(goals[1]).toEqual(
+        expect.objectContaining({
+          team: 'home',
+          time: '22:10',
+          matchPhase: 'firstHalf',
+        })
+      );
+      openGoalsPanel();
+      expect(
+        screen.getByRole('listitem', { name: "Home Team goal, 23'" })
+      ).toBeInTheDocument();
+
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.homeTeam).toBe(0);
+      expect(stores.scores.getState().scores.goals).toHaveLength(1);
+    });
+
+    it('keeps the log in step when goals come off the score', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      act(() => callbacks.homeTeamScored?.());
+      act(() => callbacks.awayTeamScored?.());
+      act(() => callbacks.homeTeamScored?.());
+
+      // Phone minus: the latest home goal goes.
+      act(() => callbacks.homeTeamUnscored?.());
+      expect(
+        stores.scores.getState().scores.goals?.map((goal) => goal.team)
+      ).toEqual(['home', 'away']);
+
+      // Removing an entry from the log removes the goal from the score.
+      openGoalsPanel();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Remove goal: Away Team goal' })
+      );
+      expect(stores.scores.getState().scores.awayTeam).toBe(0);
+      expect(
+        stores.scores.getState().scores.goals?.map((goal) => goal.team)
+      ).toEqual(['home']);
+    });
+
+    it('records the scorer on blur, as one undoable step', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      const { useUndoStore } = await import('../../store/undo');
+      act(() => callbacks.homeTeamScored?.());
+      openGoalsPanel();
+
+      const scorer = screen.getByRole('textbox', {
+        name: 'Scorer (Home Team goal)',
+      });
+      fireEvent.change(scorer, { target: { value: 'S' } });
+      fireEvent.change(scorer, { target: { value: 'Smith ' } });
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      fireEvent.blur(scorer);
+
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBe('Smith');
+      expect(useUndoStore.getState().undoStack).toHaveLength(2);
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      expect(stores.scores.getState().scores.homeTeam).toBe(1);
+    });
+
+    it('shows the goal banner automatically unless switched off, and on request', async () => {
+      const { callbacks, stores } = await renderDashboard();
+
+      // On by default: no typing needed for a goal graphic.
+      act(() => callbacks.homeTeamScored?.());
+      const [homeGoal] = stores.scores.getState().scores.goals ?? [];
+      expect(stores.matchState.getState().matchState.goalBanner).toEqual({
+        goalId: homeGoal.id,
+        shownAt: Date.now(),
+      });
+
+      openGoalsPanel();
+      fireEvent.click(
+        screen.getByRole('switch', {
+          name: 'Show the goal banner on air as soon as a goal is scored',
+        })
+      );
+      expect(
+        stores.appSettings.getState().appSettings.showGoalBannerAutomatically
+      ).toBe(false);
+      act(() => callbacks.awayTeamScored?.());
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        homeGoal.id
+      );
+
+      // Shown by hand from the log.
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Show on air: Away Team goal' })
+      );
+      const awayGoal = stores.scores.getState().scores.goals?.[1];
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        awayGoal?.id
+      );
+    });
+
+    it('is cleared by New match', async () => {
+      const { callbacks, stores } = await renderDashboard();
+      // The goal puts the banner up automatically.
+      act(() => callbacks.homeTeamScored?.());
+      expect(stores.matchState.getState().matchState.goalBanner).toBeDefined();
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'New match' })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Start new match' }));
+
+      expect(stores.scores.getState().scores.goals).toEqual([]);
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
     });
   });
 });

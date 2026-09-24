@@ -3,9 +3,28 @@
     "overlays": "Sobreposições",
     "title": "Controles de tela"
   },
+  "goalLog": {
+    "empty": "Ainda sem gols. Cada gol aparece aqui com o respectivo minuto assim que é marcado.",
+    "goal": "Gol: {{team}}",
+    "goalWithMinute": "Gol: {{team}}, {{minute}}",
+    "remove": "Remover o gol",
+    "removeAria": "Remover o gol: {{goal}}",
+    "scorerLabel": "Autor do gol ({{goal}})",
+    "scorerPlaceholder": "Autor do gol",
+    "showAutomatically": "Mostrar a faixa de gol no ar assim que um gol for marcado",
+    "showBanner": "Mostrar no ar",
+    "showBannerAria": "Mostrar no ar: {{goal}}",
+    "title": "Gols"
+  },
   "header": {
     "openMenu": "Abrir menu de {{title}}",
     "teamSettings": "Configurações da equipe"
+  },
+  "newMatch": {
+    "button": "Nova partida",
+    "confirm": "Iniciar nova partida",
+    "modalBody": "Placar, pênaltis, gols, cronômetro e gráficos no ar são redefinidos, e o histórico para desfazer é apagado. As configurações das equipes são mantidas.",
+    "modalTitle": "Iniciar uma nova partida?"
   },
   "notifications": {
     "restoreMatch": {

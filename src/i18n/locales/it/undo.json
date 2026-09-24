@@ -4,6 +4,8 @@
     "adjustTime": "la regolazione del tempo",
     "awayGoal": "il gol in trasferta",
     "awayGoalRemoved": "la rimozione del gol in trasferta",
+    "goalRemoved": "la rimozione del gol",
+    "goalScorer": "la modifica del marcatore",
     "homeGoal": "il gol in casa",
     "homeGoalRemoved": "la rimozione del gol in casa",
     "nextPhase": "il cambio di periodo",

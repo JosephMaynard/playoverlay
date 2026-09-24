@@ -14,6 +14,7 @@ import {
   defaultBrowserSourceSettings,
   defaultKeyboardShortcuts,
   defaultRemoteControlSettings,
+  MAX_PERIOD_COUNT,
 } from './constants';
 
 export const timeToString = (timeInSeconds: number) => {
@@ -21,6 +22,24 @@ export const timeToString = (timeInSeconds: number) => {
   const seconds = Math.floor(timeInSeconds % 60);
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 };
+
+// Additional time is whole minutes, at least one. Shared by the operator's
+// input, the Dashboard handler (which also serves Stream Deck and restore
+// paths) and the persisted-state schema, so a value that would render on air
+// as "+ -2" or "+2.5" is rejected everywhere.
+export function isValidAdditionalTime(minutes: unknown): minutes is number {
+  return (
+    typeof minutes === 'number' && Number.isInteger(minutes) && minutes > 0
+  );
+}
+
+// Parses a "MM:SS" clock string (the inverse of timeToString) into whole
+// seconds. Shared by the clock hook's restore paths and undo's running-clock
+// compensation; callers keep their own handling of a missing time value.
+export function parseTimeToSeconds(time: string): number {
+  const [minutes, secs] = time.split(':').map(Number);
+  return (minutes || 0) * 60 + (secs || 0);
+}
 
 function hexToRGB(hex: string): [number, number, number] {
   // Convert hex to RGB
@@ -92,7 +111,7 @@ export function getPhaseList(matchSettings: MatchSettings): MatchPeriod[] {
     const rawPeriodCount = matchSettings.periodCount ?? 4;
     const periodCount =
       Number.isInteger(rawPeriodCount) && rawPeriodCount > 0
-        ? Math.min(rawPeriodCount, 100)
+        ? Math.min(rawPeriodCount, MAX_PERIOD_COUNT)
         : 4;
     const periodLength = matchSettings.periodLength ?? 10;
     // A custom periodName is user-entered text (e.g. "Quarter", "Innings"),
@@ -267,32 +286,108 @@ export function deriveGlobalAccelerator(accelerator: string): string | null {
   return partsWithAlt.join('+');
 }
 
+// Why a keydown couldn't be turned into a shortcut, so the recorder can say
+// something more useful than "invalid":
+// - modifierOnly: just a modifier so far, keep waiting for the real key.
+// - needModifier: no Cmd/Ctrl/Alt, plain keys must stay free for typing.
+// - metaKeyUnsupported: the Windows/Super key on Windows/Linux (see below).
+// - unsupportedKey: a key the recorder doesn't know how to bind.
+// - reservedUndoRedo / reservedEditing / reservedAppWindow: a chord the app
+//   or the OS already uses (see RESERVED_ACCELERATORS).
+export type AcceleratorRejection =
+  | 'modifierOnly'
+  | 'needModifier'
+  | 'metaKeyUnsupported'
+  | 'unsupportedKey'
+  | 'reservedUndoRedo'
+  | 'reservedEditing'
+  | 'reservedAppWindow';
+
+export type KeyboardEventAcceleratorResult =
+  | { accelerator: string }
+  | { rejection: AcceleratorRejection; accelerator?: string };
+
+// Chords a custom shortcut must never take over. Shortcuts are registered
+// with globalShortcut while the control window is focused, which fires
+// before the renderer sees the key, so binding one of these would silently
+// break match undo/redo (the Dashboard's Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z),
+// copy/paste in every text field, or quitting/closing the app. On macOS the
+// Dashboard's undo handler also accepts the Control key, so the Control
+// spellings of undo/redo are reserved there too.
+const RESERVED_ACCELERATORS: Record<string, AcceleratorRejection> = {
+  'CommandOrControl+Z': 'reservedUndoRedo',
+  'CommandOrControl+Shift+Z': 'reservedUndoRedo',
+  'Control+Z': 'reservedUndoRedo',
+  'Control+Shift+Z': 'reservedUndoRedo',
+  'CommandOrControl+C': 'reservedEditing',
+  'CommandOrControl+V': 'reservedEditing',
+  'CommandOrControl+X': 'reservedEditing',
+  'CommandOrControl+A': 'reservedEditing',
+  'CommandOrControl+Q': 'reservedAppWindow',
+  'CommandOrControl+W': 'reservedAppWindow',
+};
+
+// The renderer has no `process`, so the OS comes from navigator.platform
+// ("MacIntel", "Win32", "Linux x86_64", ...). Only macOS and Windows need
+// telling apart here; anything else behaves like Linux.
+function detectAcceleratorPlatform(): string {
+  const platform =
+    typeof navigator === 'undefined' ? '' : navigator.platform.toLowerCase();
+  if (platform.startsWith('mac')) return 'darwin';
+  if (platform.startsWith('win')) return 'win32';
+  return 'linux';
+}
+
 // Builds an Electron accelerator string from a keydown event's modifier
 // flags and physical key. Uses `code` (not `key`) for the main key so a
 // shifted digit/letter (e.g. Shift+2 producing '@' on a US layout) still
-// resolves to the physical "2"/"B" key. Returns null for modifier-only
-// keydowns, unsupported keys, and bindings with no non-Shift modifier
-// (plain letters/space must stay free for normal typing).
-export function keyboardEventToAccelerator({
-  metaKey,
-  ctrlKey,
-  altKey,
-  shiftKey,
-  key,
-  code,
-}: {
-  metaKey: boolean;
-  ctrlKey: boolean;
-  altKey: boolean;
-  shiftKey: boolean;
-  key: string;
-  code: string;
-}): string | null {
-  if (['Control', 'Meta', 'Alt', 'Shift'].includes(key)) return null;
-  if (!metaKey && !ctrlKey && !altKey) return null;
+// resolves to the physical "2"/"B" key. Rejects modifier-only keydowns,
+// unsupported keys, bindings with no non-Shift modifier (plain
+// letters/space must stay free for normal typing) and reserved chords.
+//
+// Modifier mapping depends on `platform` (a Node-style process.platform
+// value; injectable for tests, detected from the renderer otherwise):
+// - macOS: Cmd is `CommandOrControl` (which means Cmd there) and Ctrl is
+//   `Control`, so Ctrl+Shift+H is saved as exactly that rather than
+//   silently becoming Cmd+Shift+H.
+// - Windows/Linux: Ctrl is `CommandOrControl` (which means Ctrl there). The
+//   Windows/Super key is refused rather than mapped: most Win+key chords
+//   belong to the OS shell, globalShortcut can't reliably register them,
+//   and mapping it to Ctrl (as this used to) saved a different chord from
+//   the one pressed.
+export function keyboardEventToAccelerator(
+  {
+    metaKey,
+    ctrlKey,
+    altKey,
+    shiftKey,
+    key,
+    code,
+  }: {
+    metaKey: boolean;
+    ctrlKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+    key: string;
+    code: string;
+  },
+  platform: string = detectAcceleratorPlatform()
+): KeyboardEventAcceleratorResult {
+  if (['Control', 'Meta', 'Alt', 'Shift'].includes(key)) {
+    return { rejection: 'modifierOnly' };
+  }
+
+  const isMac = platform === 'darwin';
+  if (!isMac && metaKey) return { rejection: 'metaKeyUnsupported' };
+  if (!metaKey && !ctrlKey && !altKey) return { rejection: 'needModifier' };
 
   const modifiers: string[] = [];
-  if (metaKey || ctrlKey) modifiers.push('CommandOrControl');
+  if (isMac) {
+    if (metaKey) modifiers.push('CommandOrControl');
+    if (ctrlKey) modifiers.push('Control');
+  } else if (ctrlKey) {
+    modifiers.push('CommandOrControl');
+  }
   if (altKey) modifiers.push('Alt');
   if (shiftKey) modifiers.push('Shift');
 
@@ -307,9 +402,15 @@ export function keyboardEventToAccelerator({
     mainKey = code;
   }
 
-  if (!mainKey) return null;
+  if (!mainKey) return { rejection: 'unsupportedKey' };
 
-  return [...modifiers, mainKey].join('+');
+  const accelerator = [...modifiers, mainKey].join('+');
+  // The Control+ spellings can only come out of the macOS branch above, so
+  // one lookup covers both platforms.
+  const reserved = RESERVED_ACCELERATORS[accelerator];
+  if (reserved) return { rejection: reserved, accelerator };
+
+  return { accelerator };
 }
 
 // The active browser-source settings: user configuration layered over the

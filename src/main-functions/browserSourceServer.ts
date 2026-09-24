@@ -27,6 +27,11 @@ export interface StartBrowserSourceServerOptions {
 // displayTransport.ts, which tolerates one missed beat.
 const HEARTBEAT_INTERVAL_MS = 15000;
 
+// Browser-source clients only ever listen; nothing in the protocol flows from
+// them to the server. Cap inbound frames well below ws's 100 MiB default so a
+// misbehaving local client is disconnected instead of buffered.
+const MAX_INBOUND_PAYLOAD_BYTES = 1024;
+
 export type StartBrowserSourceServerResult =
   { ok: true } | { ok: false; error: string };
 
@@ -81,6 +86,26 @@ function serveStaticFile(
   });
 }
 
+// Image URLs are built with pathToFileURL, so a name like "logo#2 100%.png"
+// arrives correctly encoded ("logo%232%20100%25.png") and decodes as a
+// whole. A URL saved by an older build can still carry a raw "%" (e.g.
+// "100%.png"), on which decodeURIComponent throws; rather than failing that
+// request, each valid %XX run is decoded and a stray "%" is kept literally,
+// which is exactly the name the file has on disk.
+function decodeImageFileName(encoded: string): string {
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return encoded.replace(/(?:%[0-9A-Fa-f]{2})+/g, (escapes) => {
+      try {
+        return decodeURIComponent(escapes);
+      } catch {
+        return escapes;
+      }
+    });
+  }
+}
+
 export interface RequestListenerOptions {
   port: number;
   imagesPath: string;
@@ -112,19 +137,30 @@ function handleRequest(
   res: http.ServerResponse
 ): void {
   let requestUrl: URL;
-  let pathname: string;
   try {
     requestUrl = new URL(req.url ?? '/', 'http://localhost');
-    pathname = decodeURIComponent(requestUrl.pathname);
   } catch {
     res.writeHead(400);
     res.end('Bad request');
     return;
   }
 
-  if (pathname.startsWith('/images/')) {
-    const fileName = path.basename(pathname.slice('/images/'.length));
+  // Routed on the still-encoded path so an image name is decoded on its
+  // own, see decodeImageFileName.
+  if (requestUrl.pathname.startsWith('/images/')) {
+    const fileName = path.basename(
+      decodeImageFileName(requestUrl.pathname.slice('/images/'.length))
+    );
     serveStaticFile(res, options.imagesPath, fileName);
+    return;
+  }
+
+  let pathname: string;
+  try {
+    pathname = decodeURIComponent(requestUrl.pathname);
+  } catch {
+    res.writeHead(400);
+    res.end('Bad request');
     return;
   }
 
@@ -233,10 +269,19 @@ export function startBrowserSourceServer(
     const onListening = () => {
       httpServer.removeListener('error', onError);
       server = httpServer;
-      wss = new WebSocketServer({ server: httpServer });
+      wss = new WebSocketServer({
+        server: httpServer,
+        maxPayload: MAX_INBOUND_PAYLOAD_BYTES,
+      });
       wss.on('connection', (socket) => {
         sockets.add(socket);
         socket.on('close', () => sockets.delete(socket));
+        // Protocol errors (a malformed or oversized frame) arrive as an
+        // 'error' event on the socket; unhandled, it would throw in the main
+        // process. ws closes the connection itself after emitting it.
+        socket.on('error', (error) => {
+          logError(`Browser source socket error: ${String(error)}`);
+        });
 
         try {
           opts.getSnapshot().forEach(({ channel, payload }) => {

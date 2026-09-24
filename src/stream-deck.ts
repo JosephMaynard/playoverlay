@@ -1,4 +1,8 @@
-import { requestStreamDecks } from '@elgato-stream-deck/webhid';
+import {
+  CORSAIR_VENDOR_ID,
+  requestStreamDecks,
+  VENDOR_ID,
+} from '@elgato-stream-deck/webhid';
 
 import logo from './assets/playoverlay-logo.svg';
 
@@ -100,6 +104,47 @@ async function createCanvasWithSVGFromFile(
 
 let connectedStreamDecks: Awaited<ReturnType<typeof requestStreamDecks>> = [];
 
+// Drops the cached device so the next Connect asks the browser for a fresh
+// handle. The cache used to live for the whole session, so after an unplug
+// or a sleep/wake the app kept writing to a dead handle and Connect could
+// never recover. Closing is best effort: an unplugged device can't be closed
+// cleanly and that must not stop the reset.
+async function resetConnectedStreamDecks() {
+  const decks = connectedStreamDecks;
+  connectedStreamDecks = [];
+  await Promise.all(decks.map((deck) => deck.close().catch(() => undefined)));
+}
+
+// WebHID reports an unplug (and a device dropped over sleep) as a
+// 'disconnect' event on navigator.hid. Registered once, lazily, because the
+// module is imported before any Stream Deck is used and some environments
+// (tests, a browser without WebHID) have no navigator.hid at all.
+let listeningForDisconnects = false;
+
+// Told when a connected Stream Deck goes away, so the UI can stop saying
+// "connected" straight away instead of when the next redraw fails.
+const disconnectListeners = new Set<() => void>();
+
+export function onStreamDeckDisconnected(listener: () => void): () => void {
+  disconnectListeners.add(listener);
+  listenForDisconnects();
+  return () => {
+    disconnectListeners.delete(listener);
+  };
+}
+
+function listenForDisconnects() {
+  if (listeningForDisconnects) return;
+  if (typeof navigator === 'undefined' || !navigator.hid) return;
+  listeningForDisconnects = true;
+  navigator.hid.addEventListener('disconnect', (event) => {
+    const vendorId = event.device.vendorId;
+    if (vendorId !== VENDOR_ID && vendorId !== CORSAIR_VENDOR_ID) return;
+    void resetConnectedStreamDecks();
+    disconnectListeners.forEach((listener) => listener());
+  });
+}
+
 // Bumped on every connectToStreamDeck call. A redraw paints keys one at a
 // time with awaits in between, and the caller re-runs the redraw whenever the
 // phase, match settings, or button set changes (potentially before a previous
@@ -125,6 +170,7 @@ export async function connectToStreamDeck(
   nextScreen: () => void
 ) {
   const generation = ++renderGeneration;
+  listenForDisconnects();
 
   if (!connectedStreamDecks[0]) {
     connectedStreamDecks = await requestStreamDecks();
@@ -142,7 +188,33 @@ export async function connectToStreamDeck(
     );
   }
 
-  streamDeck.clearPanel();
+  try {
+    await paintStreamDeck(streamDeck, generation, buttons, nextScreen);
+  } catch (error) {
+    // A write failed, most likely because the device was unplugged or went
+    // away over sleep. Forget it so the caller's next Connect starts from a
+    // fresh request instead of reusing the dead handle, then let the caller
+    // show it as disconnected.
+    await resetConnectedStreamDecks();
+    throw error;
+  }
+}
+
+async function paintStreamDeck(
+  streamDeck: (typeof connectedStreamDecks)[number],
+  generation: number,
+  buttons: {
+    text: string;
+    textColor: string;
+    backgroundColor: string;
+    onPress: () => void;
+  }[],
+  nextScreen: () => void
+) {
+  // Awaited: a failed clear on a dead device otherwise surfaced as an
+  // unhandled promise rejection instead of reaching the catch above.
+  await streamDeck.clearPanel();
+  if (generation !== renderGeneration) return;
   streamDeck.removeAllListeners('down');
   streamDeck.removeAllListeners('error');
 

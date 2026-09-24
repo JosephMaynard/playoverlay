@@ -1,4 +1,15 @@
 {
+  "appMenu": {
+    "about": "Informazioni su PlayOverlay",
+    "quit": "Esci da PlayOverlay",
+    "edit": "Modifica",
+    "cut": "Taglia",
+    "copy": "Copia",
+    "paste": "Incolla",
+    "selectAll": "Seleziona tutto",
+    "exportDiagnosticsTitle": "Esporta diagnostica",
+    "textFiles": "File di testo"
+  },
   "cancel": "Annulla",
   "close": "Chiudi",
   "closePanel": "Chiudi pannello",
@@ -16,5 +27,6 @@
     "alt": "Logo PlayOverlay"
   },
   "logoAlt": "Logo PlayOverlay",
-  "reset": "Reimposta"
+  "reset": "Reimposta",
+  "versionLabel": "Versione: {{version}}"
 }

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultMatchSettings, defaultMatchState } from '../../constants';
 import { CustomScreen, LiveMatch } from '../../types';
@@ -160,6 +161,83 @@ describe('storage', () => {
       ...legacySettings,
     });
     expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
+  });
+
+  it('persists migrated legacy settings so a second read still returns them', async () => {
+    // Startup reads match settings twice: once in the main process, then
+    // again when the dashboard asks over IPC.
+    const legacySettings: MatchSettings = {
+      homeTeamNameFull: 'Reds',
+      homeTeamNameAbbreviated: 'RED',
+      awayTeamNameFull: 'Blues',
+      awayTeamNameAbbreviated: 'BLU',
+      venue: 'The Park',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: legacySettings,
+    });
+    const expected = { ...defaultMatchSettings, ...legacySettings };
+
+    expect(storage.getMatchSettings()).toEqual(expected);
+    expect(storage.getMatchSettings()).toEqual(expected);
+    expect(stores[0].store.MATCH_SETTINGS).toEqual(expected);
+    expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
+  });
+
+  it('keeps the legacy key when persisting the migrated settings fails', async () => {
+    const legacySettings: MatchSettings = {
+      homeTeamNameFull: 'Reds',
+      homeTeamNameAbbreviated: 'RED',
+      awayTeamNameFull: 'Blues',
+      awayTeamNameAbbreviated: 'BLU',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: legacySettings,
+    });
+    stores[0].set = () => {
+      throw new Error('disk full');
+    };
+
+    expect(() => storage.getMatchSettings()).toThrow('disk full');
+    expect(stores[0].store.TEAM_SETTINGS).toEqual(legacySettings);
+  });
+
+  it('ignores corrupt legacy settings and reads the current ones', async () => {
+    const savedSettings: MatchSettings = {
+      homeTeamNameFull: 'Current',
+      homeTeamNameAbbreviated: 'CUR',
+      awayTeamNameFull: 'Visitors',
+      awayTeamNameAbbreviated: 'VIS',
+    };
+    const { storage, stores } = await loadStorage({
+      TEAM_SETTINGS: { homeTeamNameFull: 'Incomplete' },
+      MATCH_SETTINGS: savedSettings,
+    });
+
+    expect(storage.getMatchSettings()).toEqual({
+      ...defaultMatchSettings,
+      ...savedSettings,
+    });
+    expect(stores[0].store.TEAM_SETTINGS).toBeUndefined();
+  });
+
+  it('stores saved clubs and drops a corrupt entry on read', async () => {
+    const club = {
+      id: 'c1',
+      name: 'Rovers',
+      abbreviation: 'ROV',
+      textColour: '#ffffff',
+      backgroundColour: '#aa0000',
+    };
+    const { storage, stores } = await loadStorage({
+      CLUBS: [club, { name: 'no id' }],
+    });
+
+    expect(storage.getClubs()).toEqual([club]);
+
+    storage.setClubs([]);
+    expect(stores[0].store.CLUBS).toEqual([]);
+    expect(storage.getClubs()).toEqual([]);
   });
 
   it('falls back to default match settings when saved data is invalid', async () => {
@@ -440,5 +518,117 @@ describe('storage', () => {
       survivingOverlay,
     ]);
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  describe('image URLs saved by older builds', () => {
+    // What the pre-pathToFileURL converter produced for a path: "#" and "?"
+    // left raw (so they read as a fragment/query) and "%" left unescaped.
+    const legacyUrl = (filePath: string) => new URL(`file://${filePath}`).href;
+
+    it('rebuilds a custom screen URL from its file path and writes it back once', async () => {
+      const filePath = createTemporaryImageFile('graphic#2.png');
+      const legacyScreen: CustomScreen = {
+        title: 'Hash',
+        filePath,
+        url: legacyUrl(filePath),
+        type: 'screen',
+        overlayLinks: [],
+      };
+      const { storage, stores } = await loadStorage({
+        CUSTOM_SCREENS: [legacyScreen],
+      });
+
+      const [screen] = storage.getCustomScreens();
+
+      expect(screen.url).toBe(pathToFileURL(filePath).href);
+      expect(new URL(screen.url!).hash).toBe('');
+      expect(stores[0].store.CUSTOM_SCREENS).toEqual([screen]);
+    });
+
+    it('leaves stored custom screens alone when read through the read-only reconciliation', async () => {
+      const filePath = createTemporaryImageFile('graphic#3.png');
+      const legacyScreen: CustomScreen = {
+        title: 'Hash',
+        filePath,
+        url: legacyUrl(filePath),
+        type: 'screen',
+        overlayLinks: [],
+      };
+      const { storage, stores } = await loadStorage({
+        CUSTOM_SCREENS: [legacyScreen],
+      });
+
+      expect(storage.reconcileCustomScreensReadOnly().kept[0].url).toBe(
+        pathToFileURL(filePath).href
+      );
+      expect(stores[0].store.CUSTOM_SCREENS).toEqual([legacyScreen]);
+    });
+
+    it('repairs team logo URLs in current and saved match settings', async () => {
+      const homeLogo = createTemporaryImageFile('home#1.png');
+      const awayLogo = createTemporaryImageFile('away 100%.png');
+      const settings: MatchSettings = {
+        homeTeamNameFull: 'Tigers',
+        homeTeamNameAbbreviated: 'TIG',
+        awayTeamNameFull: 'Bears',
+        awayTeamNameAbbreviated: 'BEA',
+        homeTeamLogo: legacyUrl(homeLogo),
+        awayTeamLogo: legacyUrl(awayLogo),
+      };
+      const { storage } = await loadStorage({
+        MATCH_SETTINGS: settings,
+        SAVED_MATCH_SETTINGS: [settings],
+      });
+
+      const expected = {
+        homeTeamLogo: pathToFileURL(homeLogo).href,
+        awayTeamLogo: pathToFileURL(awayLogo).href,
+      };
+      expect(storage.getMatchSettings()).toMatchObject(expected);
+      expect(storage.getSavedMatchSettings()[0]).toMatchObject(expected);
+    });
+
+    it('keeps a restored match on its custom screen and overlays after the URLs are rebuilt', async () => {
+      const screenPath = createTemporaryImageFile('half time?.png');
+      const overlayPath = createTemporaryImageFile('sponsor#1.png');
+      const legacyScreen: CustomScreen = {
+        title: 'Half time',
+        filePath: screenPath,
+        url: legacyUrl(screenPath),
+        type: 'screen',
+        overlayLinks: [],
+      };
+      const legacyOverlay: CustomScreen = {
+        title: 'Sponsor',
+        filePath: overlayPath,
+        url: legacyUrl(overlayPath),
+        type: 'overlay',
+        overlayLinks: ['scoreBug'],
+      };
+      const { storage } = await loadStorage({
+        CUSTOM_SCREENS: [legacyScreen, legacyOverlay],
+        LIVE_MATCH: {
+          scores: { homeTeam: 1, awayTeam: 0, penalties: [] },
+          time: {},
+          matchState: {
+            displayScreen: 'custom',
+            penaltiesFirstTeam: 'home',
+            customScreenImageUrl: legacyScreen.url,
+            overlays: [legacyOverlay],
+          },
+          savedAt: 1,
+        },
+      });
+
+      const restored = storage.getLiveMatch();
+
+      expect(restored?.matchState.displayScreen).toBe('custom');
+      expect(restored?.matchState.customScreenImageUrl).toBe(
+        pathToFileURL(screenPath).href
+      );
+      expect(restored?.matchState.overlays[0].url).toBe(
+        pathToFileURL(overlayPath).href
+      );
+    });
   });
 });

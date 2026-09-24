@@ -7,8 +7,16 @@ import {
   defaultScores,
   screens,
   DisplayScreen,
+  MAX_PERIOD_COUNT,
+  MAX_SCORER_LENGTH,
 } from './constants';
-import { CustomScreen, Penalty, supportedLanguageCodes } from './types';
+import {
+  Club,
+  CustomScreen,
+  Goal,
+  Penalty,
+  supportedLanguageCodes,
+} from './types';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -63,7 +71,13 @@ export const matchSetingsSchema = z.object({
     .catch(undefined),
   hasExtraTime: z.optional(z.boolean()),
   hasPenalties: z.optional(z.boolean()),
-  periodCount: z.number().int().positive().max(50).optional().catch(undefined),
+  periodCount: z
+    .number()
+    .int()
+    .positive()
+    .max(MAX_PERIOD_COUNT)
+    .optional()
+    .catch(undefined),
   periodLength: z
     .number()
     .positive()
@@ -92,6 +106,7 @@ export const appSettingsSchema = z.object({
   // first-run language picker, so an invalid stored value degrades to
   // undefined (re-showing the picker) rather than a default language.
   language: z.enum(supportedLanguageCodes).optional().catch(undefined),
+  showGoalBannerAutomatically: z.boolean().optional().catch(undefined),
   browserSource: z
     .object({
       enabled: z.boolean(),
@@ -189,6 +204,34 @@ export const penaltyListSchema = z
     }, [])
   );
 
+// A goal-log entry. The scorer is operator-typed free text, trimmed and
+// bounded so a hand-edited config.json can't push an absurd string on air.
+export const goalSchema = z.object({
+  id: z.string().min(1).max(64),
+  team: homeOrAwaySchema,
+  time: z.string().max(16).optional().catch(undefined),
+  matchPhase: z.string().max(64).optional().catch(undefined),
+  scorer: z
+    .string()
+    .transform((scorer) => scorer.trim().slice(0, MAX_SCORER_LENGTH))
+    .optional()
+    .catch(undefined)
+    .transform((scorer) => (scorer ? scorer : undefined)),
+});
+
+// Like penaltyListSchema: a malformed entry is dropped rather than losing the
+// whole log, and a non-array value is an empty log.
+export const goalListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<Goal[]>((acc, entry) => {
+      const parsed = goalSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
 export const scoresSchema = z.object({
   homeTeam: z
     .number()
@@ -203,12 +246,17 @@ export const scoresSchema = z.object({
     .finite()
     .catch(defaultScores.awayTeam),
   penalties: penaltyListSchema,
+  // Absent in scores saved before the goal log existed; left absent rather
+  // than filled in, matching the optional Scores.goals.
+  goals: goalListSchema.optional(),
 });
 
 export const timeSchema = z.object({
   time: z.string().optional().catch(undefined),
   remainingTime: z.string().optional().catch(undefined),
-  additionalTime: z.number().finite().optional().catch(undefined),
+  // Whole minutes only (see isValidAdditionalTime): a negative or fractional
+  // value would render on air as "+ -2" or "+2.5".
+  additionalTime: z.number().int().positive().optional().catch(undefined),
   paused: z.boolean().optional().catch(undefined),
   showAdditionalTime: z.boolean().optional().catch(undefined),
   // Phase ids are no longer a fixed football-only set (see MatchPhase in
@@ -253,6 +301,10 @@ export const matchStateSchema = z.object({
   ),
   customScreenImageUrl: z.string().optional().catch(undefined),
   overlays: customScreenListSchema,
+  goalBanner: z
+    .object({ goalId: z.string(), shownAt: z.number().finite() })
+    .optional()
+    .catch(undefined),
 });
 
 // Parses a MatchSettings[] entry by entry, the array counterpart of
@@ -274,8 +326,30 @@ export const matchSettingsListSchema = z
 // nested objects above (browserSource, keyboardShortcuts, ...) a totally
 // corrupt nested value degrades to that whole field's own safe default
 // (defaultScores/{}/defaultMatchState) rather than becoming optional.
+export const clubSchema = z.object({
+  id: z.string().min(1).max(64),
+  name: z.string().trim().min(1).max(100),
+  abbreviation: z.string().max(3),
+  textColour: z.string().max(32),
+  backgroundColour: z.string().max(32),
+  logo: z.string().optional().catch(undefined),
+});
+
+// Entry by entry, like the saved fixtures: one corrupt club is dropped
+// rather than losing the whole list.
+export const clubListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<Club[]>((acc, entry) => {
+      const parsed = clubSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
 export const liveMatchSchema = z.object({
-  scores: scoresSchema.catch(defaultScores),
+  scores: scoresSchema.catch({ ...defaultScores, penalties: [], goals: [] }),
   time: timeSchema.catch({}),
   matchState: matchStateSchema.catch(defaultMatchState),
   savedAt: z

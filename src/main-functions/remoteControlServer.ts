@@ -2,7 +2,10 @@ import http from 'http';
 import crypto from 'crypto';
 import os from 'os';
 import { WebSocket, WebSocketServer } from 'ws';
-import { REMOTE_CONTROL_PAGE } from './remoteControlPage';
+import {
+  REMOTE_CONTROL_PAGE,
+  REMOTE_HEARTBEAT_INTERVAL_MS,
+} from './remoteControlPage';
 import { logError } from './logger';
 
 // The compact live-match snapshot pushed to every paired phone: enough for the
@@ -19,6 +22,10 @@ export interface RemoteControlSnapshot {
     homeTeamNameFull: string;
     awayTeamNameFull: string;
   };
+  // True while the laptop shows an unanswered offer to restore a match.
+  // Commands are refused then, so the page disables its controls and says
+  // why.
+  awaitingRestore?: boolean;
 }
 
 // The only command intents a paired phone may send. Commands are intents, not
@@ -76,24 +83,50 @@ export type StartRemoteControlServerResult =
 
 // Phones can't observe protocol-level ping frames from a WebSocket, so the
 // server sends an application-level heartbeat on this interval to feed the
-// page's liveness watchdog while no match data is flowing. Mirrors the browser
-// source's heartbeat; the page tolerates a couple of missed beats before it
-// tears down and reconnects.
-const HEARTBEAT_INTERVAL_MS = 15000;
+// page's liveness watchdog while no match data is flowing. The page gives up
+// on a socket after about two and a half missed beats, so this interval
+// bounds how long a half-open connection can pass for "Connected" (a phone
+// that walked out of Wi-Fi range, a laptop that slept) while the operator's
+// taps are silently lost. The value lives in the page module so the page's
+// watchdog is derived from the same number.
+const HEARTBEAT_INTERVAL_MS = REMOTE_HEARTBEAT_INTERVAL_MS;
 
-// A phone that fails to pair this many times is refused further attempts for
-// PAIRING_COOLDOWN_MS, and any burst of this many failures across all sockets
-// within the same window trips the same global cooldown. A 6-digit PIN has a
-// million combinations; throttling to a handful of guesses per 30 seconds
-// turns a brute-force from seconds into years, while a legitimate operator who
-// simply mistypes once or twice is never meaningfully delayed.
+// The server also pings every socket at the heartbeat interval (browsers
+// answer ws pings automatically) and terminates one that misses this many
+// pongs in a row, so a phone that vanished stops counting towards the
+// settings UI's connected count within a few seconds instead of whenever the
+// OS finally times the TCP connection out.
+const MAX_MISSED_PONGS = 2;
+
+// An address (one device on the LAN) that fails to pair this many times within
+// PAIRING_COOLDOWN_MS is refused further PIN attempts for PAIRING_COOLDOWN_MS.
+// A 6-digit PIN has a million combinations; throttling each device to a
+// handful of guesses per 30 seconds turns a brute-force from seconds into
+// years, while an operator who mistypes once or twice is never delayed. The
+// throttle is per address, not global, so a misbehaving device can only lock
+// itself out, never the operator's phone.
 const MAX_PAIRING_FAILURES = 5;
 const PAIRING_COOLDOWN_MS = 30000;
 
+// Upper bound on the number of addresses the pairing throttle tracks at once,
+// so a stream of connections from many addresses can't grow its map without
+// limit. Far beyond any real venue LAN; see PairingThrottle for eviction.
+const MAX_TRACKED_ADDRESSES = 256;
+
+// Upper bound on live resume tokens per server run (one per successful PIN
+// pairing). Only a handful of phones ever pair, so evicting the oldest past
+// this cap never affects a real operator.
+const MAX_RESUME_TOKENS = 64;
+
+// A resume token is 32 random bytes, base64url-encoded (43 characters).
+// Anything longer on the wire is not a token this server issued.
+const MAX_RESUME_TOKEN_LENGTH = 128;
+
 // Pairing/command frames are tiny JSON objects. Anything larger is not
-// something this protocol ever sends, so it's dropped unread rather than
-// parsed, so a hostile client can't make the main process allocate on a huge
-// buffer.
+// something this protocol ever sends. The WebSocketServer's maxPayload
+// enforces this while frames are still arriving (ws closes the connection),
+// so an unpaired client on the LAN can't make the main process buffer a huge
+// message; handleMessage re-checks it before parsing as a second line.
 const MAX_MESSAGE_BYTES = 4096;
 
 // Constant-time PIN comparison. crypto.timingSafeEqual requires equal-length
@@ -137,31 +170,273 @@ export function parseRemoteCommand(raw: unknown): RemoteCommand | null {
   return { type: type as RemoteCommandType };
 }
 
-// The first non-internal IPv4 address from a set of OS network interfaces,
-// used only to build the http://<ip>:<port> URL shown to the operator (and its
-// QR code). Pure so it's unit-testable against a mocked interface set; the
-// os.networkInterfaces() read happens at the call site in main.ts. Node has
-// reported interface `family` as both the string 'IPv4' and (newer versions)
-// the number 4, so both are accepted.
-export function getLanIPv4(
+// One reachable-looking IPv4 address the phone URL could use, as ranked by
+// getLanIPv4Candidates. `isPrivate` means an RFC 1918 home/office range;
+// `isLikelyVirtual` means the adapter looks like a VM, container, or VPN
+// interface rather than the machine's real Wi-Fi or Ethernet.
+export interface LanAddressCandidate {
+  address: string;
+  interfaceName: string;
+  isPrivate: boolean;
+  isLikelyVirtual: boolean;
+}
+
+// Adapter names that belong to hypervisors, containers, WSL, and VPN/overlay
+// networks rather than the network a phone is on. Short Unix-style names are
+// matched as prefixes (vmnet8, docker0, br-1a2b, utun3, wg0, ztabc123), longer
+// Windows-style friendly names anywhere in the name ("vEthernet (WSL)",
+// "VirtualBox Host-Only Network", "VMware Network Adapter VMnet1").
+const VIRTUAL_INTERFACE_PREFIX =
+  /^(vmnet|vboxnet|docker|br-|veth|virbr|lxc|lxd|cni|flannel|podman|utun|tun|tap|wg|zt|ipsec|ppp|gif|stf|bridge|awdl|llw|anpi)/i;
+const VIRTUAL_INTERFACE_SUBSTRING =
+  /(vethernet|virtualbox|vmware|hyper-v|wsl|docker|tailscale|zerotier|wireguard|openvpn|nordlynx|vpn|virtual|loopback|pseudo|tap-windows)/i;
+
+// MAC address prefixes (OUIs) assigned to virtual NICs. Windows lets a user
+// rename an adapter to "Ethernet 2", but a Hyper-V or VirtualBox adapter
+// keeps its vendor prefix, so this catches renamed virtual adapters too.
+const VIRTUAL_MAC_PREFIXES = [
+  '00:15:5d', // Hyper-V (including WSL's vEthernet)
+  '08:00:27', // VirtualBox guest NICs
+  '0a:00:27', // VirtualBox host-only adapters on the host
+  '00:05:69', // VMware
+  '00:0c:29', // VMware
+  '00:1c:14', // VMware
+  '00:50:56', // VMware
+  '02:42:', // Docker bridges and containers
+];
+
+function parseIPv4(address: string): number[] | null {
+  const parts = address.split('.');
+  if (parts.length !== 4) return null;
+  const octets = parts.map((part) => Number(part));
+  if (octets.some((octet) => !Number.isInteger(octet) || octet < 0)) {
+    return null;
+  }
+  return octets;
+}
+
+function isPrivateIPv4([a, b]: number[]): boolean {
+  return (
+    a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+  );
+}
+
+function isLikelyVirtualInterface(
+  name: string,
+  info: os.NetworkInterfaceInfo,
+  octets: number[]
+): boolean {
+  if (VIRTUAL_INTERFACE_PREFIX.test(name)) return true;
+  if (VIRTUAL_INTERFACE_SUBSTRING.test(name)) return true;
+  const mac = (info.mac ?? '').toLowerCase();
+  if (VIRTUAL_MAC_PREFIXES.some((prefix) => mac.startsWith(prefix))) {
+    return true;
+  }
+  // VirtualBox's default host-only network. A real LAN almost never uses
+  // this exact /24, and ranking it lower is harmless when one does: it is
+  // still offered as a candidate.
+  const [a, b, c] = octets;
+  return a === 192 && b === 168 && c === 56;
+}
+
+// Every IPv4 address a phone could plausibly reach this machine on, best
+// first, for the http://<ip>:<port> URL shown to the operator (and its QR
+// code). Pure so it's unit-testable against a mocked interface set; the
+// os.networkInterfaces() read happens at the call site in main.ts.
+//
+// Picking the first non-internal address is wrong surprisingly often on a
+// streaming PC: Windows lists WSL/Hyper-V "vEthernet", VirtualBox host-only,
+// and VPN adapters alongside (and frequently before) the real Wi-Fi, and a
+// machine whose DHCP failed only has a 169.254.x.x link-local address. So:
+// loopback, link-local, and unspecified addresses are dropped entirely, and
+// the rest are ranked private-on-a-real-adapter first, then public or other
+// ranges on a real adapter (a venue network might use one), then anything on
+// a virtual adapter. Order within a rank follows the OS listing, which puts
+// the primary interface first on every mainstream platform.
+//
+// Node has reported interface `family` as both the string 'IPv4' and (newer
+// versions) the number 4, so both are accepted.
+export function getLanIPv4Candidates(
   interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>
-): string | null {
-  for (const infos of Object.values(interfaces)) {
+): LanAddressCandidate[] {
+  const candidates: (LanAddressCandidate & { rank: number; order: number })[] =
+    [];
+  for (const [interfaceName, infos] of Object.entries(interfaces)) {
     if (!infos) continue;
     for (const info of infos) {
       const isIPv4 =
         info.family === 'IPv4' || (info.family as unknown as number) === 4;
-      if (isIPv4 && !info.internal) {
-        return info.address;
-      }
+      if (!isIPv4 || info.internal) continue;
+      const octets = parseIPv4(info.address);
+      if (!octets) continue;
+      const [a, b] = octets;
+      // Unspecified, loopback (should already be internal), and link-local
+      // (APIPA: DHCP failed, nothing else on the LAN is on this range).
+      if (a === 0 || a === 127 || (a === 169 && b === 254)) continue;
+
+      const isPrivate = isPrivateIPv4(octets);
+      const isLikelyVirtual = isLikelyVirtualInterface(
+        interfaceName,
+        info,
+        octets
+      );
+      const rank = (isLikelyVirtual ? 2 : 0) + (isPrivate ? 0 : 1);
+      candidates.push({
+        address: info.address,
+        interfaceName,
+        isPrivate,
+        isLikelyVirtual,
+        rank,
+        order: candidates.length,
+      });
     }
   }
-  return null;
+  return candidates
+    .sort((left, right) => left.rank - right.rank || left.order - right.order)
+    .map(({ address, interfaceName, isPrivate, isLikelyVirtual }) => ({
+      address,
+      interfaceName,
+      isPrivate,
+      isLikelyVirtual,
+    }));
+}
+
+// The single best LAN IPv4 address (see getLanIPv4Candidates), or null when
+// the machine has no usable external IPv4 address at all.
+export function getLanIPv4(
+  interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>
+): string | null {
+  return getLanIPv4Candidates(interfaces)[0]?.address ?? null;
+}
+
+// Whether a WebSocket upgrade's Origin header is acceptable. The control page
+// is served by this same server, so a real phone's upgrade always carries an
+// Origin whose host:port equals the Host it connected to. Any other web page
+// (on any LAN device, including the streaming PC's own browser) sends its own
+// origin and is refused, so a malicious page can't drive the remote or burn
+// through PIN guesses from inside a victim's browser. A missing Origin means a
+// non-browser client (which could forge the header anyway), so it's allowed
+// through to the PIN check like any other device.
+export function isAllowedOrigin(
+  origin: string | undefined,
+  host: string | undefined
+): boolean {
+  if (origin === undefined) return true;
+  if (!host) return false;
+  try {
+    return new URL(origin).host.toLowerCase() === host.toLowerCase();
+  } catch {
+    // Unparseable, or the literal "null" origin of a sandboxed or file://
+    // page: neither is the served control page.
+    return false;
+  }
+}
+
+// Normalises a socket's remote address for the pairing throttle. A dual-stack
+// socket can report an IPv4 peer as an IPv4-mapped IPv6 address, which must
+// count as the same device as the plain dotted form.
+function normaliseRemoteAddress(address: string | undefined): string {
+  if (!address) return 'unknown';
+  return address.startsWith('::ffff:') ? address.slice(7) : address;
+}
+
+interface AddressPairingState {
+  // Timestamps of this address's recent failures within the window.
+  failures: number[];
+  // The instant until which this address's PIN attempts are refused.
+  cooldownUntil: number;
+}
+
+export interface PairingThrottleOptions {
+  maxFailures: number;
+  windowMs: number;
+  cooldownMs: number;
+  maxTrackedAddresses: number;
+}
+
+// Per-address brute-force throttle for PIN pairing. Exported (and clock-free:
+// every method takes `now`) so the lockout rules are unit-testable with
+// arbitrary addresses, which a loopback-only test can't produce over real
+// sockets.
+//
+// The map is bounded: when a new address arrives at the cap, entries whose
+// failures and cooldown have both expired are pruned first, and if the map is
+// still full the least recently failing address is evicted (Map iteration is
+// insertion order, and every failure re-inserts its address at the end).
+export class PairingThrottle {
+  private readonly states = new Map<string, AddressPairingState>();
+
+  constructor(private readonly options: PairingThrottleOptions) {}
+
+  get trackedAddressCount(): number {
+    return this.states.size;
+  }
+
+  // Milliseconds until `address` may try a PIN again, or 0 if it may now.
+  cooldownRemainingMs(address: string, now: number): number {
+    const state = this.states.get(address);
+    if (!state) return 0;
+    return Math.max(0, state.cooldownUntil - now);
+  }
+
+  // Records a wrong PIN from `address`. Returns the cooldown now in force for
+  // it in milliseconds (0 when the failure didn't trip the threshold).
+  recordFailure(address: string, now: number): number {
+    const existing = this.states.get(address);
+    if (existing) {
+      this.states.delete(address);
+    } else {
+      this.makeRoom(now);
+    }
+    const state = existing ?? { failures: [], cooldownUntil: 0 };
+    state.failures = state.failures.filter(
+      (timestamp) => now - timestamp < this.options.windowMs
+    );
+    state.failures.push(now);
+    if (state.failures.length >= this.options.maxFailures) {
+      state.cooldownUntil = now + this.options.cooldownMs;
+      // The cooldown itself is the penalty; start the next window afresh
+      // so the address gets a full allowance once it expires.
+      state.failures = [];
+    }
+    this.states.set(address, state);
+    return Math.max(0, state.cooldownUntil - now);
+  }
+
+  // Forgets `address` entirely (a successful pairing from it).
+  clear(address: string): void {
+    this.states.delete(address);
+  }
+
+  reset(): void {
+    this.states.clear();
+  }
+
+  private makeRoom(now: number): void {
+    if (this.states.size < this.options.maxTrackedAddresses) return;
+    for (const [address, state] of this.states) {
+      const expired =
+        now >= state.cooldownUntil &&
+        state.failures.every(
+          (timestamp) => now - timestamp >= this.options.windowMs
+        );
+      if (expired) this.states.delete(address);
+    }
+    if (this.states.size >= this.options.maxTrackedAddresses) {
+      const oldest = this.states.keys().next().value;
+      if (oldest !== undefined) this.states.delete(oldest);
+    }
+  }
 }
 
 interface SocketMeta {
   paired: boolean;
-  failedAttempts: number;
+  // The normalised remote address this socket connected from, the key for
+  // the pairing throttle.
+  address: string;
+  // Consecutive server pings this socket hasn't answered; see
+  // MAX_MISSED_PONGS.
+  missedPongs: number;
 }
 
 let server: http.Server | null = null;
@@ -178,11 +453,20 @@ let currentGetSnapshot: (() => RemoteControlSnapshot) | null = null;
 let currentOnCommand: ((command: RemoteCommand) => void) | null = null;
 let currentOnConnectionChange: ((connectedCount: number) => void) | null = null;
 
-// Global pairing-failure bookkeeping (see MAX_PAIRING_FAILURES). Timestamps of
-// recent failures within the cooldown window, plus the instant until which all
-// pairing is refused once the threshold is tripped.
-let pairingFailureTimestamps: number[] = [];
-let pairingCooldownUntil = 0;
+// Per-address pairing-failure bookkeeping (see MAX_PAIRING_FAILURES).
+const pairingThrottle = new PairingThrottle({
+  maxFailures: MAX_PAIRING_FAILURES,
+  windowMs: PAIRING_COOLDOWN_MS,
+  cooldownMs: PAIRING_COOLDOWN_MS,
+  maxTrackedAddresses: MAX_TRACKED_ADDRESSES,
+});
+
+// SHA-256 digests of the resume tokens issued this server run, oldest first
+// (Set iteration is insertion order, which the eviction relies on). Only
+// digests are kept, so the lookup's timing reveals nothing useful about a
+// token's characters, and the set is cleared on every start so a token never
+// outlives the PIN it was earned with.
+const resumeTokenDigests = new Set<string>();
 
 export function isRemoteControlServerRunning(): boolean {
   return server !== null;
@@ -234,11 +518,46 @@ function sendSnapshot(socket: WebSocket): void {
   }
 }
 
-// Handles a {type:'pair', pin} frame. Enforces the cooldown first (so a
-// tripped brute-force lockout skips the comparison entirely), then does a
-// constant-time PIN check. On success the socket is marked paired and gets an
-// immediate state snapshot; on failure the per-socket and global counters are
-// advanced and the cooldown is armed once either threshold is reached.
+function digestResumeToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Mints a resume token for a socket that has just paired with the PIN. The
+// page keeps it and presents it on every reconnect, so a phone recovering
+// from a Wi-Fi blip re-pairs without the PIN (and without a PIN attempt that
+// could count towards the throttle). 256 random bits: unguessable, so resume
+// attempts need no throttling of their own.
+function issueResumeToken(): string {
+  const token = crypto.randomBytes(32).toString('base64url');
+  resumeTokenDigests.add(digestResumeToken(token));
+  if (resumeTokenDigests.size > MAX_RESUME_TOKENS) {
+    const oldest = resumeTokenDigests.values().next().value;
+    if (oldest !== undefined) resumeTokenDigests.delete(oldest);
+  }
+  return token;
+}
+
+// Marks a socket paired and sends it the ack (carrying its resume token)
+// followed by an immediate state snapshot, which the page waits for before
+// enabling its controls.
+function completePairing(
+  socket: WebSocket,
+  meta: SocketMeta,
+  token: string
+): void {
+  const wasPaired = meta.paired;
+  meta.paired = true;
+  safeSend(socket, { type: 'paired', token });
+  sendSnapshot(socket);
+  if (!wasPaired) notifyConnectionChange();
+}
+
+// Handles a {type:'pair', pin} frame. Enforces this address's cooldown first
+// (so a tripped brute-force lockout skips the comparison entirely), then does
+// a constant-time PIN check. On success the socket is paired and issued a
+// resume token; on failure the address's counter is advanced and the reply
+// says whether it is now cooling down, so the page can say "wrong PIN" or
+// "wait N seconds" rather than a vague catch-all.
 function handlePairAttempt(
   socket: WebSocket,
   meta: SocketMeta,
@@ -246,34 +565,56 @@ function handlePairAttempt(
 ): void {
   const now = Date.now();
 
-  if (now < pairingCooldownUntil) {
-    safeSend(socket, { type: 'unauthorized' });
+  const remainingMs = pairingThrottle.cooldownRemainingMs(meta.address, now);
+  if (remainingMs > 0) {
+    safeSend(socket, {
+      type: 'unauthorized',
+      reason: 'cooldown',
+      retryAfterSeconds: Math.ceil(remainingMs / 1000),
+    });
     return;
   }
 
   if (typeof pin === 'string' && constantTimeEqual(pin, currentPin)) {
-    meta.paired = true;
-    meta.failedAttempts = 0;
-    safeSend(socket, { type: 'paired' });
-    sendSnapshot(socket);
-    notifyConnectionChange();
+    pairingThrottle.clear(meta.address);
+    completePairing(socket, meta, issueResumeToken());
     return;
   }
 
-  meta.failedAttempts += 1;
-  pairingFailureTimestamps.push(now);
-  pairingFailureTimestamps = pairingFailureTimestamps.filter(
-    (timestamp) => now - timestamp < PAIRING_COOLDOWN_MS
+  const cooldownMs = pairingThrottle.recordFailure(meta.address, now);
+  safeSend(
+    socket,
+    cooldownMs > 0
+      ? {
+          type: 'unauthorized',
+          reason: 'cooldown',
+          retryAfterSeconds: Math.ceil(cooldownMs / 1000),
+        }
+      : { type: 'unauthorized', reason: 'wrongPin' }
   );
+}
 
+// Handles a {type:'resume', token} frame from a phone that paired earlier.
+// A token from this server run re-pairs the socket (even while its address is
+// cooling down: the token is proof it already knew the PIN). An unknown token,
+// typically one from before the app or the remote server restarted with a new
+// PIN, is not a PIN guess and never counts towards the throttle; the reply
+// just tells the page to ask the operator for the new PIN.
+function handleResumeAttempt(
+  socket: WebSocket,
+  meta: SocketMeta,
+  token: unknown
+): void {
   if (
-    meta.failedAttempts >= MAX_PAIRING_FAILURES ||
-    pairingFailureTimestamps.length >= MAX_PAIRING_FAILURES
+    typeof token === 'string' &&
+    token.length > 0 &&
+    token.length <= MAX_RESUME_TOKEN_LENGTH &&
+    resumeTokenDigests.has(digestResumeToken(token))
   ) {
-    pairingCooldownUntil = now + PAIRING_COOLDOWN_MS;
+    completePairing(socket, meta, token);
+    return;
   }
-
-  safeSend(socket, { type: 'unauthorized' });
+  safeSend(socket, { type: 'unauthorized', reason: 'resumeRejected' });
 }
 
 function handleMessage(
@@ -296,6 +637,11 @@ function handleMessage(
 
   if (type === 'pair') {
     handlePairAttempt(socket, meta, (message as { pin?: unknown }).pin);
+    return;
+  }
+
+  if (type === 'resume') {
+    handleResumeAttempt(socket, meta, (message as { token?: unknown }).token);
     return;
   }
 
@@ -355,16 +701,37 @@ export function startRemoteControlServer(
       currentOnCommand = opts.onCommand;
       currentOnConnectionChange = opts.onConnectionChange ?? null;
       // A fresh server run starts with a clean pairing slate: a cooldown from a
-      // previous run must not carry over into a newly enabled server.
-      pairingFailureTimestamps = [];
-      pairingCooldownUntil = 0;
+      // previous run must not carry over into a newly enabled server, and a
+      // resume token earned with the previous run's PIN must not outlive it.
+      pairingThrottle.reset();
+      resumeTokenDigests.clear();
 
-      wss = new WebSocketServer({ server: httpServer });
-      wss.on('connection', (socket) => {
+      wss = new WebSocketServer({
+        server: httpServer,
+        maxPayload: MAX_MESSAGE_BYTES,
+        // Refuse cross-origin upgrades before a socket even exists (see
+        // isAllowedOrigin). 403 rather than ws's default 401: no credential
+        // would make this request acceptable.
+        verifyClient: (info, callback) => {
+          if (isAllowedOrigin(info.origin, info.req.headers.host)) {
+            callback(true);
+          } else {
+            callback(false, 403, 'Forbidden');
+          }
+        },
+      });
+      wss.on('connection', (socket, req) => {
         // Every socket starts UNPAIRED. It must send a valid {type:'pair', pin}
-        // before any command it sends is honoured.
-        const meta: SocketMeta = { paired: false, failedAttempts: 0 };
+        // or {type:'resume', token} before any command it sends is honoured.
+        const meta: SocketMeta = {
+          paired: false,
+          address: normaliseRemoteAddress(req.socket.remoteAddress),
+          missedPongs: 0,
+        };
         sockets.set(socket, meta);
+        socket.on('pong', () => {
+          meta.missedPongs = 0;
+        });
         socket.on('message', (data) =>
           handleMessage(socket, meta, data as Buffer)
         );
@@ -386,9 +753,21 @@ export function startRemoteControlServer(
       heartbeatInterval = setInterval(() => {
         if (!wss) return;
         const message = JSON.stringify({ type: 'heartbeat' });
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
+        sockets.forEach((meta, socket) => {
+          if (socket.readyState !== WebSocket.OPEN) return;
+          // Unanswered pings mean the phone is gone without a FIN (out of
+          // range, asleep). Terminating fires 'close', which drops it from
+          // the connected count; the page will resume with its token.
+          if (meta.missedPongs >= MAX_MISSED_PONGS) {
+            socket.terminate();
+            return;
+          }
+          meta.missedPongs += 1;
+          try {
+            socket.ping();
+            socket.send(message);
+          } catch (error) {
+            logError(`Remote control heartbeat error: ${String(error)}`);
           }
         });
       }, opts.heartbeatIntervalMs ?? HEARTBEAT_INTERVAL_MS);
@@ -440,6 +819,8 @@ export function stopRemoteControlServer(): Promise<void> {
   currentOnCommand = null;
   currentOnConnectionChange = null;
   currentPin = '';
+  resumeTokenDigests.clear();
+  pairingThrottle.reset();
 
   const serverToClose = server;
   server = null;

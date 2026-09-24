@@ -304,15 +304,62 @@ describe('fileHandler', () => {
     expect(setCustomScreens).not.toHaveBeenCalled();
   });
 
-  it('returns false when deletion fails', async () => {
+  it('treats a file that is already gone as deleted and still removes its entry', async () => {
+    const { fileHandler, imagesPath, setCustomScreens, getScreens } =
+      await loadFileHandler();
+    const missingFilePath = path.join(imagesPath, 'missing.png');
+    const missingScreen: CustomScreen = {
+      title: 'Already gone',
+      filePath: missingFilePath,
+      url: `file://${missingFilePath}`,
+      type: 'screen',
+      overlayLinks: [],
+    };
+    setCustomScreens([missingScreen]);
+    setCustomScreens.mockClear();
+
+    expect(fileHandler.handleFileDeletion(missingFilePath)).toBe(true);
+    expect(getScreens()).toEqual([]);
+    expect(setCustomScreens).toHaveBeenCalledWith([]);
+  });
+
+  it('still refuses a missing file outside the images directory', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { fileHandler, imagesPath, setCustomScreens } =
       await loadFileHandler();
 
     expect(
-      fileHandler.handleFileDeletion(path.join(imagesPath, 'missing.png'))
+      fileHandler.handleFileDeletion(
+        path.join(imagesPath, '..', 'missing-config.json')
+      )
     ).toBe(false);
     expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('returns false when deletion fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { fileHandler, imagesPath, setCustomScreens } =
+      await loadFileHandler();
+    // unlink refuses a directory (EISDIR/EPERM), a genuine failure unlike
+    // a file that is already gone.
+    const directoryPath = path.join(imagesPath, 'not-a-file.png');
+    fs.mkdirSync(directoryPath);
+
+    expect(fileHandler.handleFileDeletion(directoryPath)).toBe(false);
+    expect(setCustomScreens).not.toHaveBeenCalled();
+  });
+
+  it('saveImageFile replaces URL-significant characters in the stored file name', async () => {
+    const { fileHandler, imagesPath } = await loadFileHandler();
+
+    const saved = fileHandler.saveImageFile(
+      validPngBuffer('logo'),
+      'club #2 100%?.png'
+    );
+
+    expect(saved?.filePath).toBe(path.join(imagesPath, 'club -2 100--.png'));
+    expect(saved?.url).toBe(convertFilePathToUrl(saved!.filePath));
+    expect(saved?.url).not.toMatch(/[#?]/);
   });
 
   it('refuses to delete a file outside the images directory', async () => {

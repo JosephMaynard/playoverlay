@@ -4,6 +4,7 @@ import { Scores } from 'src/types';
 import './EndScreenLayout.css';
 import { calculatePenalties } from '../../../utils';
 import { MatchSettings } from 'src/zodSchemas';
+import { ScorerLine, goalsByScorer } from '../../../goalLog';
 
 export interface Props {
   scores: Scores;
@@ -11,10 +12,26 @@ export interface Props {
   active: boolean;
 }
 
+// The full-time scorer list under a team's name: "Smith 23', 67'" per
+// scorer, and a line of bare minutes for goals whose scorer wasn't entered.
+function ScorerLines({ lines }: { lines: ScorerLine[] }) {
+  if (lines.length === 0) return null;
+  return (
+    <div className="EndScreenLayout_goals">
+      {lines.map((line, index) => (
+        <div key={`${line.scorer ?? ''}-${index}`}>
+          {[line.scorer, line.minutes.join(', ')].filter(Boolean).join(' ')}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function EndScreenLayout({ scores, settings, active }: Props) {
   const { t } = useTranslation();
   const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
     calculatePenalties(scores.penalties);
+  const goals = scores.goals ?? [];
   // The hidden animation starts from the fully-shown position, so it must
   // not play on first mount (display window load / OBS browser-source
   // reload would flash the layout on screen); only animate out after the
@@ -42,6 +59,7 @@ export default function EndScreenLayout({ scores, settings, active }: Props) {
             className="EndScreenLayout_teamColour"
             style={{ backgroundColor: settings.homeTeamBackgroundColour }}
           />
+          <ScorerLines lines={goalsByScorer(goals, 'home', settings)} />
         </div>
       </div>
       <div className="EndScreenLayout_score z-10 bg-white text-center font-bold tabular-nums text-black">
@@ -66,6 +84,7 @@ export default function EndScreenLayout({ scores, settings, active }: Props) {
             className="EndScreenLayout_teamColour"
             style={{ backgroundColor: settings.awayTeamBackgroundColour }}
           />
+          <ScorerLines lines={goalsByScorer(goals, 'away', settings)} />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 // Durable logging for the main process. Before this, console.error/warn went
@@ -85,6 +86,45 @@ export function sanitizeLogPath(input: string): string {
   return withoutControlCharacters.slice(0, MAX_SANITIZED_LOG_PATH_LENGTH);
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// sanitizeLogPath only helps where a call site knows it is logging a path.
+// Plenty of text carries one without the caller knowing: a raw fs error
+// ("ENOENT: no such file or directory, open '/Users/jo/...'"), a team logo's
+// file:// URL in the match settings, a path the operator picked in a save
+// dialog. This replaces the home directory (and with it the OS username)
+// with "~" wherever it appears, in each form a path takes on its way into a
+// log line or the diagnostics report: native, with forward slashes (Windows
+// paths inside file:// URLs), with JSON-escaped backslashes (settings
+// serialised into the report), and percent-encoded (a username with a space
+// or an accent, inside a URL). Matching ignores case because Windows and
+// macOS paths do, and stops at a name boundary so "/Users/jo" leaves
+// "/Users/joanna" alone. A home directory of "/" or nothing redacts nothing
+// rather than everything.
+export function redactHomeDirectory(
+  text: string,
+  homeDirectory: string | undefined
+): string {
+  const home = homeDirectory?.replace(/[\\/]+$/, '');
+  if (!home) return text;
+
+  const forwardSlashed = home.replace(/\\/g, '/');
+  const variants = new Set([
+    home,
+    forwardSlashed,
+    home.replace(/\\/g, '\\\\'),
+    encodeURI(forwardSlashed),
+  ]);
+  const alternatives = [...variants]
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp)
+    .join('|');
+  const pattern = new RegExp(`(?:${alternatives})(?![\\w.-])`, 'gi');
+  return text.replace(pattern, '~');
+}
+
 // A fixed-capacity FIFO, oldest entries dropped first once `capacity` is
 // exceeded. Pure and framework-free so it's directly unit-testable; Logger
 // below owns three instances of it (the log tail, match events, and failed
@@ -117,12 +157,18 @@ export interface LoggerOptions {
   // touches the real filesystem unless a test explicitly asks it to.
   logDir?: string;
   maxFileBytes?: number;
+  // Redacted from every recorded message (see redactHomeDirectory), so
+  // neither main.log nor the in-memory buffers a diagnostics export reads
+  // from ever hold the OS username. Console output is left as it is: it
+  // never leaves the machine.
+  homeDirectory?: string;
 }
 
 export class Logger {
   private readonly logFilePath: string | null;
   private readonly rotatedFilePath: string | null;
   private readonly maxFileBytes: number;
+  private readonly homeDirectory: string | undefined;
   private readonly ring = new RingBuffer<LogEntry>(LOG_RING_BUFFER_CAPACITY);
   private readonly matchEvents = new RingBuffer<MatchEventEntry>(
     MATCH_EVENT_RING_BUFFER_CAPACITY
@@ -133,6 +179,7 @@ export class Logger {
 
   constructor(options: LoggerOptions = {}) {
     this.maxFileBytes = options.maxFileBytes ?? MAX_LOG_FILE_BYTES;
+    this.homeDirectory = options.homeDirectory;
 
     if (options.logDir) {
       this.logFilePath = path.join(options.logDir, 'main.log');
@@ -186,11 +233,15 @@ export class Logger {
     }
   }
 
+  private redact(message: string): string {
+    return redactHomeDirectory(message, this.homeDirectory);
+  }
+
   private record(level: LogLevel, message: string): void {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
-      message,
+      message: this.redact(message),
     };
     this.ring.push(entry);
     this.appendLine(entry);
@@ -220,7 +271,7 @@ export class Logger {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: 'error',
-      message,
+      message: this.redact(message),
     };
     this.ring.push(entry);
     this.failedOperations.push(entry);
@@ -266,15 +317,21 @@ export class Logger {
   // re-logged through info/warn/error, so they aren't printed to console a
   // second time.
   absorb(previous: Logger): void {
+    // The fallback logger had no home directory to redact, so its entries
+    // are redacted on the way in.
+    const redacted = (entry: LogEntry): LogEntry => ({
+      ...entry,
+      message: this.redact(entry.message),
+    });
     previous.getRecentEntries().forEach((entry) => {
-      this.ring.push(entry);
-      this.appendLine(entry);
+      this.ring.push(redacted(entry));
+      this.appendLine(redacted(entry));
     });
     previous.getRecentMatchEvents().forEach((entry) => {
       this.matchEvents.push(entry);
     });
     previous.getRecentFailedOperations().forEach((entry) => {
-      this.failedOperations.push(entry);
+      this.failedOperations.push(redacted(entry));
     });
   }
 }
@@ -288,8 +345,14 @@ export class Logger {
 let activeLogger: Logger | null = null;
 let fallbackLogger: Logger | null = null;
 
-export function initLogger(userDataPath: string): Logger {
-  const logger = new Logger({ logDir: path.join(userDataPath, 'logs') });
+export function initLogger(
+  userDataPath: string,
+  homeDirectory: string = os.homedir()
+): Logger {
+  const logger = new Logger({
+    logDir: path.join(userDataPath, 'logs'),
+    homeDirectory,
+  });
   // Carry over anything the pre-init fallback logger already buffered (see
   // getLogger below) so it isn't lost the moment the durable logger takes
   // over.

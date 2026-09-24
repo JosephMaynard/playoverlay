@@ -1,19 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MatchPhase, Time } from '../../types';
-import { getPhaseById, timeToString } from '../../utils';
+import { getPhaseById, parseTimeToSeconds, timeToString } from '../../utils';
 import { useTimeStore } from '../../store/time';
 import { useMatchStateStore } from '../../store/matchState';
 import { useMatchSettingsStore } from '../../store/matchSettings';
 import { useAppSettingsStore } from '../../store/appSettings';
-
-// Parses a "MM:SS" clock string into whole seconds. Shared by restoreClock
-// and resyncToTime below, the two places that re-seed the internal second
-// counter from a persisted/restored time string; each keeps its own handling
-// of a missing/empty time value, only the conversion itself is shared here.
-function parseTimeToSeconds(time: string): number {
-  const [minutes, secs] = time.split(':').map(Number);
-  return (minutes || 0) * 60 + (secs || 0);
-}
 
 export interface StopTimeOptions {
   // Whether stopping should apply the auto-switch-screens behaviour (jump
@@ -32,6 +23,7 @@ export interface UseMatchClock {
   adjustTime: (difference: number) => void;
   restoreClock: (time: Time | undefined) => void;
   resyncToTime: (time: Time | undefined) => void;
+  resetClock: () => void;
 }
 
 // Owns the match clock (seconds/baseSeconds/tickingSince/interval) plus the
@@ -145,7 +137,14 @@ export default function useMatchClock(): UseMatchClock {
         matchPhase
       );
 
-      applyTime((phase?.start ?? 0) * 60, { matchPhase, paused: false });
+      // Additional time belongs to the phase it was set in; starting a phase
+      // directly (without stopping the previous one first) must not carry
+      // the old +N over.
+      applyTime((phase?.start ?? 0) * 60, {
+        matchPhase,
+        paused: false,
+        additionalTime: undefined,
+      });
 
       setMatchState({ matchPhase });
 
@@ -264,13 +263,35 @@ export default function useMatchClock(): UseMatchClock {
 
       // startTicking re-anchors baseSeconds/tickingSince to "now" from the
       // freshly seeded secondsRef, so the first tick continues from the
-      // restored value instead of leaping.
+      // restored value instead of leaping. A running clock restored by undo
+      // may have been carried forward past its snapshot (see undo.ts), so
+      // re-derive remainingTime from the seeded value rather than trusting
+      // the snapshot's.
       if (phaseActive && !shouldPause) {
+        applyTime(secondsRef.current);
         startTicking();
       }
     },
-    [startTicking, stopTicking]
+    [applyTime, startTicking, stopTicking]
   );
+
+  // Back to a fresh, stopped clock for a new match: no phase, no time, no
+  // additional time. Unlike stopTime it records nothing as the previous
+  // phase (there is no match in progress to remember) and never switches
+  // the display screen; the caller decides what goes on air.
+  const resetClock = useCallback(() => {
+    stopTicking();
+    secondsRef.current = 0;
+    baseSecondsRef.current = 0;
+    setPaused(false);
+    setTime({
+      time: undefined,
+      remainingTime: undefined,
+      additionalTime: undefined,
+      matchPhase: undefined,
+      paused: false,
+    });
+  }, [setTime, stopTicking]);
 
   return {
     paused,
@@ -281,5 +302,6 @@ export default function useMatchClock(): UseMatchClock {
     adjustTime,
     restoreClock,
     resyncToTime,
+    resetClock,
   };
 }

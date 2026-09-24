@@ -12,6 +12,9 @@ export interface Props {
   actionButtonColor?: 'red' | 'green' | 'indigo' | 'blue';
   actionButtonLabel?: string;
   action?: () => void;
+  // Disables the action button, e.g. while the action's IPC call is in
+  // flight so a double-click can't run it twice.
+  actionDisabled?: boolean;
   icon?: Icon;
 }
 
@@ -23,6 +26,7 @@ export default function Modal({
   actionButtonLabel,
   actionButtonColor = 'red',
   action,
+  actionDisabled = false,
   icon,
 }: Props) {
   const { t } = useTranslation();
@@ -79,7 +83,8 @@ export default function Modal({
                   {action && actionButtonLabel && (
                     <button
                       type="button"
-                      className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ${actionButtonColor === 'red' ? 'bg-red-600 hover:bg-red-500' : ''}${actionButtonColor === 'green' ? 'bg-green-600 hover:bg-green-500' : ''}${actionButtonColor === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-500' : ''}${actionButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : ''} sm:w-auto`}
+                      disabled={actionDisabled}
+                      className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${actionButtonColor === 'red' ? 'bg-red-600 hover:bg-red-500' : ''}${actionButtonColor === 'green' ? 'bg-green-600 hover:bg-green-500' : ''}${actionButtonColor === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-500' : ''}${actionButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : ''} sm:w-auto`}
                       onClick={action}
                     >
                       {actionButtonLabel}

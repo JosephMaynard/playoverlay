@@ -35,9 +35,13 @@
     "keyboardShortcutRow": {
       "change": "Alterar",
       "invalidKey": "Essa tecla não pode ser usada em um atalho.",
+      "metaKey": "Não é possível usar a tecla Windows/Super. Use Ctrl ou Alt.",
       "needModifier": "Inclua Cmd/Ctrl ou Alt no atalho.",
       "pressKeys": "Pressione as teclas…",
-      "pressKeysFor": "Pressione as teclas para {{label}}"
+      "pressKeysFor": "Pressione as teclas para {{label}}",
+      "reservedAppWindow": "{{shortcut}} sai do app ou fecha o app. Escolha outro atalho.",
+      "reservedEditing": "{{shortcut}} é usado para copiar, recortar, colar ou selecionar tudo. Escolha outro atalho.",
+      "reservedUndoRedo": "{{shortcut}} é usado para desfazer e refazer. Escolha outro atalho."
     },
     "keyboardShortcuts": {
       "awayTeamScored": "Gol da equipe visitante",
@@ -87,16 +91,20 @@
     "deleteConfirmAction": "Excluir tela personalizada",
     "deleteConfirmBody": "Tem certeza de que deseja excluir a tela personalizada \"{{title}}\"?",
     "deleteConfirmTitle": "Excluir a tela personalizada?",
+    "deleteError": "Não foi possível excluir o gráfico. Tente novamente.",
+    "deleteOnAirWarning": "Este gráfico está no ar agora. Excluí-lo vai tirá-lo do ar.",
     "edit": "Editar",
     "editModal": {
       "allScreens": "Todas as telas",
       "overlayScreens": "Mostrar sobreposição nas telas",
       "saveChanges": "Salvar alterações",
+      "saveError": "Não foi possível salvar as alterações. Tente novamente.",
       "title": "Editar gráfico personalizado",
       "type": "Tipo"
     },
     "emptyDescription": "Clique no botão \"{{action}}\" para adicionar gráficos personalizados",
     "emptyTitle": "Nenhum gráfico personalizado",
+    "onAir": "No ar",
     "title": "Gráficos personalizados",
     "typeLine": "Tipo: {{type}}",
     "typeOverlay": "Sobreposição",
@@ -108,10 +116,14 @@
       "dropHere": "Solte o arquivo aqui…",
       "image": "Imagem",
       "missingFields": "Informe um arquivo e um título.",
+      "notSaved": "Não foi possível salvar a imagem. Confira se é mesmo um arquivo PNG, JPEG, WebP ou SVG e tente novamente.",
       "selectFile": "Clique para selecionar um",
       "titleLabel": "Título",
+      "tooLarge": "\"{{name}}\" tem {{size}} MB. As imagens podem ter no máximo {{max}} MB.",
+      "unsupportedType": "\"{{name}}\" não é uma imagem compatível. Use um arquivo PNG, JPEG, WebP ou SVG.",
       "uploadFailed": "Não foi possível enviar a imagem. Tente novamente.",
-      "uploadedImage": "Imagem enviada:"
+      "uploadedImage": "Imagem enviada:",
+      "uploading": "Enviando…"
     }
   },
   "language": {
@@ -132,8 +144,10 @@
       "generic": "Genérico",
       "halfLength": "Duração do tempo",
       "kickOffTime": "Hora do pontapé inicial",
+      "lengthError": "Digite um número de minutos maior que 0 e no máximo 300.",
       "penalties": "Pênaltis",
       "periodCount": "Número de períodos",
+      "periodCountError": "Digite um número inteiro de 1 a 50.",
       "periodLength": "Duração do período",
       "periodNameLabel": "Nome do período",
       "periodNamePlaceholder": "Período",
@@ -143,7 +157,9 @@
     },
     "homeTeam": "Equipe da casa",
     "saved": {
+      "defaultName": "{{home}} x {{away}}",
       "deleteConfirmBody": "Tem certeza de que deseja excluir as configurações de partida salvas \"{{title}}\"?",
+      "deleteError": "Não foi possível excluir as configurações de partida salvas. Tente novamente.",
       "deleteModalTitle": "Excluir configurações de partida salvas?",
       "emptyDescription": "Clique no botão \"{{action}}\" para salvar as configurações da partida",
       "emptyTitle": "Nenhuma configuração de partida salva",
@@ -153,6 +169,7 @@
       "restoreConfirmBody": "Tem certeza de que deseja restaurar as configurações de partida salvas? As configurações de partida atuais serão substituídas se continuar.",
       "restoreModalTitle": "Restaurar configurações de partida salvas?",
       "saveCurrent": "Salvar configurações de partida atuais",
+      "saveError": "Não foi possível salvar as configurações de partida. Tente novamente.",
       "saveModalTitle": "Salvar configurações de partida?",
       "savedAt": "Salvo: {{date}}",
       "title": "Salvar/restaurar configurações de partida"
@@ -167,7 +184,22 @@
       "textColourLabel": "Cor do texto de {{team}}",
       "upload": "Enviar"
     },
-    "title": "Configurações da partida"
+    "title": "Configurações da partida",
+    "clubs": {
+      "title": "Clubes salvos",
+      "loadLabel": "Carregar um clube salvo",
+      "placeholder": "Escolher um clube",
+      "noneSaved": "Ainda sem clubes salvos",
+      "saveAsClub": "Salvar como clube",
+      "saved": "Salvo nos clubes.",
+      "saveError": "Não foi possível salvar o clube. Tente novamente.",
+      "loadError": "Não foi possível carregar os clubes salvos.",
+      "empty": "Ainda sem clubes salvos. Use \"{{action}}\" nas configurações de uma equipe para manter o nome, as cores e o logotipo para as próximas partidas.",
+      "deleteAria": "Excluir {{club}}",
+      "deleteModalTitle": "Excluir o clube salvo?",
+      "deleteConfirmBody": "Tem certeza de que deseja excluir o clube salvo \"{{club}}\"? As equipes que já o usam não são alteradas.",
+      "deleteError": "Não foi possível excluir o clube. Tente novamente."
+    }
   },
   "system": {
     "about": "Sobre",

@@ -1,3 +1,6 @@
+// Must stay the first import: it can redirect userData, which the modules
+// below read while they load. See userDataOverride.ts.
+import './main-functions/userDataOverride';
 import {
   app,
   BrowserWindow,
@@ -38,6 +41,7 @@ import {
   MatchSettings,
   matchSetingsSchema,
   matchSettingsListSchema,
+  clubListSchema,
   matchStateSchema,
   scoresSchema,
   timeSchema,
@@ -47,6 +51,7 @@ import {
   getBrowserSourceSettings,
   getKeyboardShortcuts,
   getRemoteControlSettings,
+  nearestSupportedLanguage,
 } from './utils';
 import {
   DISPLAY_WINDOW,
@@ -57,12 +62,14 @@ import {
   getLiveMatch,
   getMatchSettings,
   getSavedMatchSettings,
+  getClubs,
   reconcileCustomScreensReadOnly,
   setAppSettings,
   setLiveMatch,
   setCustomScreens,
   setMatchSettings,
   setSavedMatchSettings,
+  setClubs,
 } from './main-functions/storage';
 import createAppWindow from './main-functions/createAppWindow';
 import resetWindow from './main-functions/resetWindow';
@@ -100,6 +107,7 @@ import {
   logFailedOperation,
   logInfo,
   logMatchEvent,
+  sanitizeLogPath,
 } from './main-functions/logger';
 import {
   buildDiagnosticsReport,
@@ -113,6 +121,22 @@ import {
   findMissingTeamLogos,
   PreflightResult,
 } from './main-functions/preflight';
+import {
+  buildAppMenuTemplate,
+  getAppMenuLabels,
+} from './main-functions/appMenu';
+import {
+  isRestorableLiveMatch,
+  launchHoldState,
+  OutputHold,
+  OutputState,
+} from './main-functions/outputHold';
+import {
+  decideRendererReload,
+  isWindowVisibleOnDisplays,
+  moveWindowToDisplay,
+  shouldPreventDisplaySleep,
+} from './main-functions/windowManagement';
 
 const SHOW_DEV_TOOLS = false;
 
@@ -132,20 +156,45 @@ export const showDevTools = isDev && SHOW_DEV_TOOLS;
 // still prints to the console, just not durably.
 initLogger(app.getPath('userData'));
 
+// Set before every quit (and again in 'before-quit') so window teardown
+// during quit isn't mistaken for a user closing the display window (which we
+// recreate in production).
+let isQuitting = false;
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // Imported (not require'd) so it is bundled into main.js: the packaged app
 // ships no node_modules, so a runtime require would fail to resolve.
-if (squirrelStartup) {
+//
+// Prevent more than one instance of the app running. The lock isn't
+// requested during a Squirrel install/update run, which quits regardless.
+const additionalData = { playOverlay: 'PlayOverlay' };
+const gotTheLock =
+  !squirrelStartup && app.requestSingleInstanceLock(additionalData);
+
+// app.quit() before 'ready' does not stop 'ready' from firing, so a second
+// launch (or a Squirrel run) used to go on to open both windows (one of them
+// fullscreen on the HDMI screen), bind the server ports, register global
+// shortcuts and write to the shared log, all while shutting down. Every
+// lifecycle handler below checks this flag and does nothing when it is set.
+// Dev builds keep running without the lock so a second `npm start` works.
+const quittingAtLaunch = Boolean(squirrelStartup) || (!gotTheLock && !isDev);
+
+if (quittingAtLaunch) {
+  isQuitting = true;
   app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
 }
 
 let mainWindow: BrowserWindow | null;
 let displayWindow: BrowserWindow | null;
 let powerSaveBlockerId: number | null = null;
 let isLocked = false; // Track lock status
-// Set in 'before-quit' so window teardown during quit isn't mistaken for a
-// user closing the display window (which we recreate in production).
-let isQuitting = false;
 // True while the renderer has shortcuts disabled (e.g. a text field is open),
 // so window focus events don't re-register them behind its back
 let keyboardShortcutsDisabled = false;
@@ -154,13 +203,34 @@ let keyboardShortcutsDisabled = false;
 let cachedScores: Scores = { ...defaultScores };
 let cachedTime: Time = {};
 let cachedAppSettings: AppSettings = { ...defaultAppSettings };
-let cachedMatchSettings = { ...defaultMatchSettings };
+let cachedMatchSettings: MatchSettings = { ...defaultMatchSettings };
 let cachedMatchState: MatchState = { ...defaultMatchState };
 
 // Snapshot of the persisted live match taken at launch, before the
 // renderer's initial state pushes overwrite it. Offered to the dashboard
-// so an interrupted match can be restored.
+// so an interrupted match can be restored. Replaced with the current match
+// if the control window's renderer crashes and is reloaded, since the
+// reloaded dashboard starts blank and needs the same offer.
 let liveMatchAtLaunch: LiveMatch | undefined;
+
+// Holds what the outputs show while the dashboard's state can't be trusted
+// (a restore offer pending at launch, or the control window reloading after
+// a crash). See outputHold.ts; released by markLiveMatchResolved.
+const outputHold = new OutputHold();
+
+// Where the operator last put the output window, so it can go back there
+// (fullscreen again if it was) when an unplugged HDMI screen returns.
+let outputPlacement: { displayId: number; fullscreen: boolean } | null = null;
+
+// Recent renderer crash times per window, for the reload loop guard in
+// windowManagement.ts's decideRendererReload.
+let displayRendererCrashes: number[] = [];
+let mainRendererCrashes: number[] = [];
+
+// A hung control window gets this long to recover by itself (a long
+// garbage-collection pause, a slow disk) before its renderer is restarted.
+const MAIN_WINDOW_HANG_GRACE_MS = 5000;
+let mainWindowHangTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Set when the browser source server most recently failed to start (e.g.
 // EADDRINUSE), so the settings UI can surface it. Cleared on a successful
@@ -206,9 +276,24 @@ function broadcastToBrowserSourcesRewritten(channel: string, payload: unknown) {
   broadcastToBrowserSources(channel, toBrowserSourcePayload(payload));
 }
 
+function getLiveOutputState(): OutputState {
+  return {
+    scores: cachedScores,
+    time: cachedTime,
+    matchState: cachedMatchState,
+  };
+}
+
+// What every output (display window, browser sources, phones) is sent: the
+// live state, or the held stand-in while outputHold is active.
+function getOutputState(): OutputState {
+  return outputHold.view(getLiveOutputState());
+}
+
 // Matches the order display-ready sends in: settings first, then
 // state/scores/time. Keep this in sync with that handler below.
 function getBrowserSourceSnapshot() {
+  const { scores, time, matchState } = getOutputState();
   return [
     {
       channel: 'match-settings-updated',
@@ -220,10 +305,10 @@ function getBrowserSourceSnapshot() {
     },
     {
       channel: 'match-state-updated',
-      payload: toBrowserSourcePayload(cachedMatchState),
+      payload: toBrowserSourcePayload(matchState),
     },
-    { channel: 'score-updated', payload: toBrowserSourcePayload(cachedScores) },
-    { channel: 'time-updated', payload: toBrowserSourcePayload(cachedTime) },
+    { channel: 'score-updated', payload: toBrowserSourcePayload(scores) },
+    { channel: 'time-updated', payload: toBrowserSourcePayload(time) },
   ];
 }
 
@@ -271,19 +356,20 @@ function queueBrowserSourceSettings(settings: BrowserSourceSettings) {
 // on every state change and to each phone as it pairs, so two phones stay in
 // sync with each other and with the operator.
 function getRemoteControlSnapshot(): RemoteControlSnapshot {
+  const { scores, time, matchState } = getOutputState();
   return {
     scores: {
-      homeTeam: cachedScores.homeTeam,
-      awayTeam: cachedScores.awayTeam,
+      homeTeam: scores.homeTeam,
+      awayTeam: scores.awayTeam,
     },
     time: {
-      time: cachedTime.time,
-      paused: cachedTime.paused,
-      matchPhase: cachedTime.matchPhase,
+      time: time.time,
+      paused: time.paused,
+      matchPhase: time.matchPhase,
     },
     matchState: {
-      displayScreen: cachedMatchState.displayScreen,
-      matchPhase: cachedMatchState.matchPhase,
+      displayScreen: matchState.displayScreen,
+      matchPhase: matchState.matchPhase,
     },
     matchSettings: {
       homeTeamNameAbbreviated: cachedMatchSettings.homeTeamNameAbbreviated,
@@ -291,6 +377,7 @@ function getRemoteControlSnapshot(): RemoteControlSnapshot {
       homeTeamNameFull: cachedMatchSettings.homeTeamNameFull,
       awayTeamNameFull: cachedMatchSettings.awayTeamNameFull,
     },
+    awaitingRestore: isRestoreOfferPending(),
   };
 }
 
@@ -301,12 +388,61 @@ function broadcastRemoteControlSnapshot() {
   broadcastRemoteControlState(getRemoteControlSnapshot());
 }
 
+// Per-channel pushes to the display window and browser sources, always of
+// the output view (see getOutputState), followed by a phone snapshot.
+function sendScoresToOutputs() {
+  const { scores } = getOutputState();
+  displayWindow?.webContents.send('score-updated', scores);
+  broadcastToBrowserSourcesRewritten('score-updated', scores);
+  broadcastRemoteControlSnapshot();
+}
+
+function sendTimeToOutputs() {
+  const { time } = getOutputState();
+  displayWindow?.webContents.send('time-updated', time);
+  broadcastToBrowserSourcesRewritten('time-updated', time);
+  broadcastRemoteControlSnapshot();
+}
+
+function sendMatchStateToOutputs() {
+  const { matchState } = getOutputState();
+  displayWindow?.webContents.send('match-state-updated', matchState);
+  broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
+  broadcastRemoteControlSnapshot();
+}
+
+// Resends everything once a hold is lifted, in the display-ready order
+// (state, then scores, then time), with a single phone snapshot.
+function sendAllStateToOutputs() {
+  const { scores, time, matchState } = getOutputState();
+  displayWindow?.webContents.send('match-state-updated', matchState);
+  displayWindow?.webContents.send('score-updated', scores);
+  displayWindow?.webContents.send('time-updated', time);
+  broadcastToBrowserSourcesRewritten('match-state-updated', matchState);
+  broadcastToBrowserSourcesRewritten('score-updated', scores);
+  broadcastToBrowserSourcesRewritten('time-updated', time);
+  broadcastRemoteControlSnapshot();
+}
+
+function releaseOutputHold(reason: string) {
+  if (!outputHold.release()) return;
+  logInfo(`Outputs showing the live match again (${reason})`);
+  sendAllStateToOutputs();
+  updatePowerSaveBlocker();
+}
+
 // Routes a validated remote command to the control window using the same
 // reverse-IPC channel pattern as the keyboard/Stream Deck shortcuts: the
 // Dashboard receives the channel and applies it to its zustand store, so a
 // phone tap and an operator click take exactly the same code path. Commands
 // are intents only; the Dashboard computes the resulting state.
 function routeRemoteCommand(command: RemoteCommand) {
+  if (isRestoreOfferPending()) {
+    logInfo(
+      `Ignored phone command "${command.type}": restore the match on the laptop first`
+    );
+    return;
+  }
   switch (command.type) {
     case 'homeGoal':
       mainWindow?.webContents.send('home-team-scored');
@@ -447,13 +583,38 @@ function writeLiveMatch() {
   }
 }
 
+// Resolving the snapshot also lifts the output hold: the dashboard's state
+// is now the real match (restored, dismissed, or already underway).
+function markLiveMatchResolved(reason: string) {
+  liveMatchResolved = true;
+  // The offered snapshot has been restored, dismissed or superseded, so it
+  // must never be offered again: a later dashboard crash offers only the
+  // match that is current then (see protectMatchForControlWindowReload),
+  // not a fixture the operator already discarded.
+  liveMatchAtLaunch = undefined;
+  releaseOutputHold(reason);
+  // Phones disable their controls while a restore is pending; tell them it
+  // isn't, even when there was no output hold left to release.
+  broadcastRemoteControlSnapshot();
+}
+
+// A restore offer the operator hasn't answered yet. While it is pending the
+// dashboard holds a blank match that the snapshot will replace, so input
+// that can't see the offer (the phone remote, and the system-wide shortcuts
+// pressed from OBS) is refused: a goal would otherwise turn a recovered 3-1
+// into 1-0, resolve the offer and put that on air. Shortcuts pressed in the
+// control window itself still work, since the offer is on screen there.
+function isRestoreOfferPending() {
+  return !liveMatchResolved && isRestorableLiveMatch(liveMatchAtLaunch);
+}
+
 function persistLiveMatch() {
   // Protect an unresolved launch snapshot from being overwritten by blank
   // startup state. Any meaningful state means the operator is underway, so
   // resolve and persist normally from here on.
   if (!liveMatchResolved) {
     if (!isMeaningfulLiveState()) return;
-    liveMatchResolved = true;
+    markLiveMatchResolved('match underway');
   }
   if (persistLiveMatchTimer) return;
   persistLiveMatchTimer = setTimeout(() => {
@@ -470,19 +631,68 @@ function flushLiveMatch() {
   }
 }
 
-// Prevent more than one instance of the app running
-const additionalData = { playOverlay: 'PlayOverlay' };
-const gotTheLock = app.requestSingleInstanceLock(additionalData);
+// The control window's renderer died (or was restarted after hanging) and is
+// about to reload. Its fresh dashboard will seed a blank 0-0 match, which
+// would go straight to air and, once persisted, overwrite the only copy of
+// the real one. So the current match is written to disk now, offered for
+// restore exactly like a crash at launch, and the outputs are frozen on
+// what they were showing until the operator restores it.
+function protectMatchForControlWindowReload() {
+  const snapshot: LiveMatch = {
+    scores: cachedScores,
+    time: cachedTime,
+    matchState: cachedMatchState,
+    savedAt: Date.now(),
+    matchSettings: cachedMatchSettings,
+  };
+  // Still unresolved means the launch offer (and its hold) is pending and
+  // the cached state is the blank seed, not a match worth protecting.
+  if (!liveMatchResolved || !isRestorableLiveMatch(snapshot)) return;
 
-if (!gotTheLock && !isDev) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-    }
-  });
+  if (persistLiveMatchTimer) {
+    clearTimeout(persistLiveMatchTimer);
+    persistLiveMatchTimer = null;
+  }
+  writeLiveMatch();
+  liveMatchAtLaunch = snapshot;
+  liveMatchResolved = false;
+  outputHold.hold(getLiveOutputState());
+  // The caches now stand for the reloading dashboard, which starts blank,
+  // exactly as at launch. Left holding the old match, the first seed
+  // message would find the other two still "meaningful" and resolve the
+  // offer (and release the hold) before the operator saw it.
+  cachedScores = { ...defaultScores };
+  cachedTime = {};
+  cachedMatchState = { ...defaultMatchState };
+  logInfo(
+    'Holding the outputs until the reloaded dashboard restores the match'
+  );
+}
+
+// Reloads a window whose renderer is gone, unless it keeps crashing (see
+// decideRendererReload), in which case it is left for the operator.
+function reloadCrashedRenderer(
+  window: BrowserWindow,
+  label: string,
+  crashes: number[]
+): number[] {
+  const decision = decideRendererReload(crashes, Date.now());
+  if (decision.reload) {
+    logInfo(`Reloading the ${label}`);
+    window.webContents.reload();
+  } else {
+    logError(
+      `The ${label} keeps crashing; not reloading it again automatically. Use Reset windows or restart PlayOverlay.`
+    );
+  }
+  return decision.crashes;
+}
+
+function clearMainWindowHangTimer() {
+  if (mainWindowHangTimer) {
+    clearTimeout(mainWindowHangTimer);
+    mainWindowHangTimer = null;
+  }
 }
 
 // Creates (or recreates) the display window, loads its URL, and wires it
@@ -509,11 +719,51 @@ const createDisplayWindow = () => {
     window.webContents.openDevTools();
   }
 
+  // A crashed output renderer leaves a frozen or blank picture on air with
+  // nothing in the UI to say so. It holds no state of its own, so it is
+  // simply reloaded: the display-ready handshake resends everything. Until
+  // then it isn't ready, so the preflight check can't report it as fine.
+  window.webContents.on('render-process-gone', (_event, details) => {
+    if (displayWindow === window) displayWindowReady = false;
+    logError(
+      `Display window renderer stopped (${details.reason}, exit code ${details.exitCode})`
+    );
+    if (isQuitting || window.isDestroyed() || details.reason === 'clean-exit') {
+      return;
+    }
+    displayRendererCrashes = reloadCrashedRenderer(
+      window,
+      'display window',
+      displayRendererCrashes
+    );
+  });
+
+  // A hung output can't recover by itself in any way that helps a live
+  // stream, so its renderer is restarted straight away. Electron documents
+  // forcefullyCrashRenderer as the way to recover from 'unresponsive'; the
+  // 'render-process-gone' handler above then reloads it.
+  window.on('unresponsive', () => {
+    if (displayWindow === window) displayWindowReady = false;
+    logError('Display window stopped responding; restarting its renderer');
+    if (!window.isDestroyed()) window.webContents.forcefullyCrashRenderer();
+  });
+
+  window.on('moved', () => recordOutputPlacement());
+  window.on('enter-full-screen', () => {
+    recordOutputPlacement();
+    updatePowerSaveBlocker();
+  });
+  window.on('leave-full-screen', () => {
+    recordOutputPlacement();
+    updatePowerSaveBlocker();
+  });
+
   window.on('closed', () => {
     if (displayWindow === window) {
       displayWindow = null;
       displayWindowReady = false;
     }
+    updatePowerSaveBlocker();
     // In production a closed display window would silently swallow every
     // update with no way to get output back, recreate it unless the app
     // is quitting. The display-ready handshake resends the current state.
@@ -592,11 +842,61 @@ const createWindows = () => {
     (details) => details.deviceType === 'hid'
   );
 
+  // Crash recovery for the control window: the match is protected first
+  // (see protectMatchForControlWindowReload), then the page reloads.
+  const controlWindow = mainWindow;
+  controlWindow.webContents.on('render-process-gone', (_event, details) => {
+    clearMainWindowHangTimer();
+    logError(
+      `Control window renderer stopped (${details.reason}, exit code ${details.exitCode})`
+    );
+    if (
+      isQuitting ||
+      controlWindow.isDestroyed() ||
+      details.reason === 'clean-exit'
+    ) {
+      return;
+    }
+    protectMatchForControlWindowReload();
+    // The dead renderer may have had shortcuts switched off (a text field
+    // or side menu was open); nothing would ever switch them back on.
+    keyboardShortcutsDisabled = false;
+    registerGlobalKeyboardShortcuts();
+    if (controlWindow.isFocused()) registerKeyboardShortcuts();
+    mainRendererCrashes = reloadCrashedRenderer(
+      controlWindow,
+      'control window',
+      mainRendererCrashes
+    );
+  });
+
+  // Unlike the output, the dashboard gets a short grace period: restarting
+  // it costs the operator a Restore click, so a hang that clears by itself
+  // is left alone.
+  controlWindow.on('unresponsive', () => {
+    logError('Control window stopped responding');
+    if (mainWindowHangTimer) return;
+    mainWindowHangTimer = setTimeout(() => {
+      mainWindowHangTimer = null;
+      if (controlWindow.isDestroyed()) return;
+      logError('Control window still not responding; restarting its renderer');
+      controlWindow.webContents.forcefullyCrashRenderer();
+    }, MAIN_WINDOW_HANG_GRACE_MS);
+  });
+
+  controlWindow.on('responsive', () => {
+    if (!mainWindowHangTimer) return;
+    clearMainWindowHangTimer();
+    logInfo('Control window is responding again');
+  });
+
   // Window closed event
   mainWindow.on('closed', () => {
     mainWindow = null;
+    clearMainWindowHangTimer();
     if (!isDev) {
       console.log('mainWindow closed');
+      isQuitting = true;
       app.quit();
     }
   });
@@ -615,9 +915,7 @@ function setupIPCHandlers() {
       return;
     }
     cachedScores = parsed.data;
-    displayWindow?.webContents.send('score-updated', cachedScores);
-    broadcastToBrowserSourcesRewritten('score-updated', cachedScores);
-    broadcastRemoteControlSnapshot();
+    sendScoresToOutputs();
     persistLiveMatch();
   });
 
@@ -628,29 +926,61 @@ function setupIPCHandlers() {
       return;
     }
     cachedTime = parsed.data;
-    displayWindow?.webContents.send('time-updated', cachedTime);
-    broadcastToBrowserSourcesRewritten('time-updated', cachedTime);
-    broadcastRemoteControlSnapshot();
+    sendTimeToOutputs();
     persistLiveMatch();
+    updatePowerSaveBlocker();
   });
 
-  ipcMain.on('update-match-settings', (_, teamSettings: MatchSettings) => {
-    setMatchSettings(teamSettings);
-    cachedMatchSettings = teamSettings;
-    displayWindow?.webContents.send('match-settings-updated', teamSettings);
-    broadcastToBrowserSourcesRewritten('match-settings-updated', teamSettings);
+  // Same order as the score/time/state handlers: validate, cache, send to
+  // the outputs, and only then persist. The write can throw (EACCES, a full
+  // disk), and it used to run first, so a failed save also stopped a team
+  // name or colour change from ever reaching the display and OBS. A failed
+  // save is logged instead; the change is live and the next one retries.
+  // A payload the schema rejects outright never reaches the outputs or disk.
+  ipcMain.on('update-match-settings', (_, matchSettings: unknown) => {
+    const parsed = matchSetingsSchema.safeParse(matchSettings);
+    if (!parsed.success) {
+      logError(
+        `Rejected invalid match settings update: ${parsed.error.message}`
+      );
+      return;
+    }
+    cachedMatchSettings = parsed.data;
+    displayWindow?.webContents.send(
+      'match-settings-updated',
+      cachedMatchSettings
+    );
+    broadcastToBrowserSourcesRewritten(
+      'match-settings-updated',
+      cachedMatchSettings
+    );
     broadcastRemoteControlSnapshot();
+
+    try {
+      setMatchSettings(cachedMatchSettings);
+    } catch (error) {
+      logFailedOperation(`Error saving match settings: ${String(error)}`);
+    }
   });
 
-  ipcMain.on('update-app-settings', (_, appSettings: AppSettings) => {
+  ipcMain.on('update-app-settings', (_, appSettings: unknown) => {
+    const parsed = appSettingsSchema.safeParse(appSettings);
+    if (!parsed.success) {
+      logError(`Rejected invalid app settings update: ${parsed.error.message}`);
+      return;
+    }
+
     const previousShortcuts = getKeyboardShortcuts(cachedAppSettings);
     const previousBrowserSource = getBrowserSourceSettings(cachedAppSettings);
     const previousRemoteControl = getRemoteControlSettings(cachedAppSettings);
+    const previousLanguage = cachedAppSettings.language;
 
-    setAppSettings(appSettings);
-    cachedAppSettings = appSettings;
-    displayWindow?.webContents.send('app-settings-updated', appSettings);
-    broadcastToBrowserSourcesRewritten('app-settings-updated', appSettings);
+    cachedAppSettings = parsed.data;
+    displayWindow?.webContents.send('app-settings-updated', cachedAppSettings);
+    broadcastToBrowserSourcesRewritten(
+      'app-settings-updated',
+      cachedAppSettings
+    );
 
     const nextShortcuts = getKeyboardShortcuts(cachedAppSettings);
     const shortcutsChanged =
@@ -659,9 +989,10 @@ function setupIPCHandlers() {
       previousShortcuts.awayTeamScored !== nextShortcuts.awayTeamScored;
 
     // Re-register with the new bindings. If shortcuts are currently
-    // disabled (a side menu is open) both sets are already unregistered -
-    // leave them alone and let enable-keyboard-shortcuts pick up the new
-    // bindings when the menu closes. The global Alt set is always on while
+    // disabled (the operator is typing in a text field or recording a
+    // shortcut) both sets are already unregistered: leave them alone and let
+    // enable-keyboard-shortcuts pick up the new bindings when focus leaves
+    // the field. The global Alt set is always on while
     // enabled; the focus set only registers while the main window has
     // focus.
     if (shortcutsChanged && !keyboardShortcutsDisabled) {
@@ -692,6 +1023,17 @@ function setupIPCHandlers() {
     ) {
       void queueRemoteControlSettings(nextRemoteControl);
     }
+
+    if (previousLanguage !== cachedAppSettings.language) {
+      applyAppMenu();
+    }
+
+    // Persisted last, for the same reason as update-match-settings.
+    try {
+      setAppSettings(cachedAppSettings);
+    } catch (error) {
+      logFailedOperation(`Error saving app settings: ${String(error)}`);
+    }
   });
 
   ipcMain.on('update-match-state', (_, matchState: MatchState) => {
@@ -701,9 +1043,16 @@ function setupIPCHandlers() {
       return;
     }
     cachedMatchState = parsed.data;
-    displayWindow?.webContents.send('match-state-updated', cachedMatchState);
-    broadcastToBrowserSourcesRewritten('match-state-updated', cachedMatchState);
-    broadcastRemoteControlSnapshot();
+    // The operator putting a different screen on air while a restore offer
+    // is pending takes the output back from the hold (see
+    // OutputHold.noteMatchState); everything is resent in that case.
+    if (outputHold.noteMatchState(cachedMatchState)) {
+      logInfo('Outputs showing the live match again (operator changed screen)');
+      sendAllStateToOutputs();
+      updatePowerSaveBlocker();
+    } else {
+      sendMatchStateToOutputs();
+    }
     persistLiveMatch();
   });
 
@@ -715,7 +1064,7 @@ function setupIPCHandlers() {
   // protecting the old snapshot so the current (blank) state can replace it,
   // and it isn't re-offered on the next launch.
   ipcMain.on('resolve-live-match', () => {
-    liveMatchResolved = true;
+    markLiveMatchResolved('restore offer dismissed');
     persistLiveMatch();
   });
 
@@ -736,17 +1085,20 @@ function setupIPCHandlers() {
   ipcMain.on('display-ready', () => {
     if (!displayWindow) return;
     displayWindowReady = true;
+    const { scores, time, matchState } = getOutputState();
     // Send settings first, then state/scores/time
     displayWindow.webContents.send(
       'match-settings-updated',
       cachedMatchSettings
     );
     displayWindow.webContents.send('app-settings-updated', cachedAppSettings);
-    displayWindow.webContents.send('match-state-updated', cachedMatchState);
-    displayWindow.webContents.send('score-updated', cachedScores);
-    displayWindow.webContents.send('time-updated', cachedTime);
+    displayWindow.webContents.send('match-state-updated', matchState);
+    displayWindow.webContents.send('score-updated', scores);
+    displayWindow.webContents.send('time-updated', time);
   });
 
+  // The display window's enter/leave-full-screen events record the new
+  // placement and update the sleep blocker.
   ipcMain.on('toggle-fullscreen', () => {
     const isFullScreen = displayWindow?.isFullScreen();
     displayWindow?.setFullScreen(!isFullScreen);
@@ -782,17 +1134,11 @@ function setupIPCHandlers() {
     event.reply('screens-info', screen.getAllDisplays());
   });
 
-  ipcMain.handle('move-window-to-screen', (event, screenId) => {
+  ipcMain.handle('move-window-to-screen', async (_event, screenId) => {
     const displays = screen.getAllDisplays();
     const display = displays.find((d) => d.id === screenId);
     if (display && displayWindow) {
-      displayWindow.setBounds({
-        x: display.bounds.x,
-        y: display.bounds.y,
-        width: displayWindow.getBounds().width,
-        height: displayWindow.getBounds().height,
-      });
-      displayWindow.setFullScreen(true);
+      await queueDisplayWindowMove(display, true);
     }
   });
 
@@ -895,6 +1241,31 @@ function setupIPCHandlers() {
     }
   );
 
+  ipcMain.handle('get-clubs', () => {
+    return getClubs();
+  });
+
+  // Same reject-if-not-an-array, drop-only-the-bad-entries handling as the
+  // saved fixtures below.
+  ipcMain.handle('set-clubs', (_event, clubs: unknown) => {
+    if (!Array.isArray(clubs)) {
+      logError(`Rejected set-clubs: expected an array, got ${typeof clubs}`);
+      return { success: false, error: 'Invalid clubs payload' };
+    }
+    const validClubs = clubListSchema.parse(clubs);
+    const droppedCount = clubs.length - validClubs.length;
+    if (droppedCount > 0) {
+      logError(`Dropped malformed club entries on write: ${droppedCount}`);
+    }
+    try {
+      setClubs(validClubs);
+      return { success: true };
+    } catch (error) {
+      logFailedOperation(`Error setting clubs: ${String(error)}`);
+      return { success: false, error: String(error) };
+    }
+  });
+
   ipcMain.handle('get-saved-match-settings', () => {
     return getSavedMatchSettings();
   });
@@ -971,7 +1342,13 @@ function setupIPCHandlers() {
   // so no shortcut fires while the user is typing in a text field
   ipcMain.on('enable-keyboard-shortcuts', () => {
     keyboardShortcutsDisabled = false;
-    registerKeyboardShortcuts();
+    // The renderer also re-enables when the control window loses focus (so
+    // the global set works from OBS even if a text field kept focus). The
+    // focus set must then stay unregistered, or its plain keys would be
+    // grabbed system-wide; mainWindow's focus handler registers it later.
+    if (mainWindow?.isFocused()) {
+      registerKeyboardShortcuts();
+    }
     registerGlobalKeyboardShortcuts();
   });
 
@@ -1032,12 +1409,14 @@ function setupIPCHandlers() {
           recentLog: getLogger().getRecentEntries(),
           recentMatchEvents: getLogger().getRecentMatchEvents(),
           recentFailedOperations: getLogger().getRecentFailedOperations(),
+          homeDirectory: os.homedir(),
         });
 
+        const labels = getAppMenuLabels(operatorLanguage());
         const dialogOptions = {
-          title: 'Export diagnostics',
+          title: labels.exportDiagnosticsTitle,
           defaultPath: suggestedDiagnosticsFileName(now),
-          filters: [{ name: 'Text', extensions: ['txt'] }],
+          filters: [{ name: labels.textFiles, extensions: ['txt'] }],
         };
         const dialogResult = mainWindow
           ? await dialog.showSaveDialog(mainWindow, dialogOptions)
@@ -1048,7 +1427,11 @@ function setupIPCHandlers() {
         }
 
         fs.writeFileSync(dialogResult.filePath, report, 'utf8');
-        logInfo(`Exported diagnostics to ${dialogResult.filePath}`);
+        // Only the file name: the chosen folder is usually under the home
+        // directory, and this line lands in the next export's log tail.
+        logInfo(
+          `Exported diagnostics to ${sanitizeLogPath(dialogResult.filePath)}`
+        );
         return { cancelled: false, path: dialogResult.filePath };
       } catch (error) {
         logFailedOperation(`Failed to export diagnostics: ${String(error)}`);
@@ -1128,7 +1511,13 @@ function setupIPCHandlers() {
       },
       displayWindowExists:
         displayWindow !== null && !displayWindow.isDestroyed(),
-      displayWindowReady,
+      // A crashed renderer clears displayWindowReady as it goes, but the
+      // live check guards the moment between the crash and that event.
+      displayWindowReady:
+        displayWindowReady &&
+        displayWindow !== null &&
+        !displayWindow.isDestroyed() &&
+        !displayWindow.webContents.isCrashed(),
       browserSource: {
         enabled: browserSourceSettings.enabled,
         running: isBrowserSourceServerRunning(),
@@ -1160,17 +1549,133 @@ function setupIPCHandlers() {
   });
 }
 
+// Screen hot-plug handling. Wrapped because these run from Electron event
+// listeners, where a throw would be an uncaught main-process exception in
+// the middle of a match.
+function handleDisplayChange(added: boolean) {
+  try {
+    // A returning HDMI screen gets the output back before the visibility
+    // check runs, so the check sees the window where it is headed.
+    if (added) restoreOutputToRememberedDisplay();
+    ensureWindowsAreVisible();
+  } catch (error) {
+    logError(`Error handling a display change: ${String(error)}`);
+  }
+  mainWindow?.webContents.send('display-change', screen.getAllDisplays());
+}
+
 // Setup display listeners
 function setupDisplayListeners() {
-  screen.on('display-added', () => {
-    ensureWindowsAreVisible(); // Ensure windows are visible when a display is added
-    mainWindow?.webContents.send('display-change', screen.getAllDisplays());
-  });
+  screen.on('display-added', () => handleDisplayChange(true));
+  screen.on('display-removed', () => handleDisplayChange(false));
+}
 
-  screen.on('display-removed', () => {
-    ensureWindowsAreVisible(); // Ensure windows are visible when a display is removed
-    mainWindow?.webContents.send('display-change', screen.getAllDisplays());
+// Remembers which screen the output is on, and whether it is fullscreen
+// there. Moves that happen while the remembered screen is missing are the
+// OS (or ensureWindowsAreVisible) displacing the window after an unplug, not
+// the operator choosing a new home for it, so they don't overwrite it.
+function recordOutputPlacement() {
+  if (!displayWindow || displayWindow.isDestroyed()) return;
+  const displays = screen.getAllDisplays();
+  if (
+    outputPlacement &&
+    !displays.some((display) => display.id === outputPlacement?.displayId)
+  ) {
+    return;
+  }
+  outputPlacement = {
+    displayId: screen.getDisplayMatching(displayWindow.getBounds()).id,
+    fullscreen: displayWindow.isFullScreen(),
+  };
+}
+
+function restoreOutputToRememberedDisplay() {
+  if (!outputPlacement || !displayWindow || displayWindow.isDestroyed()) {
+    return;
+  }
+  const { displayId, fullscreen } = outputPlacement;
+  const display = screen
+    .getAllDisplays()
+    .find((candidate) => candidate.id === displayId);
+  if (!display) return;
+  const currentDisplayId = screen.getDisplayMatching(
+    displayWindow.getBounds()
+  ).id;
+  if (
+    currentDisplayId === displayId &&
+    displayWindow.isFullScreen() === fullscreen
+  ) {
+    return;
+  }
+  logInfo('Output screen reconnected; moving the output back to it');
+  void queueDisplayWindowMove(display, fullscreen);
+}
+
+// Serialises output moves (an operator's screen pick racing a hot-plug
+// restore) so two fullscreen exit/enter sequences never interleave.
+let displayWindowMoveTransition = Promise.resolve();
+
+function queueDisplayWindowMove(
+  display: Electron.Display,
+  fullscreen: boolean
+) {
+  displayWindowMoveTransition = displayWindowMoveTransition
+    .then(async () => {
+      const window = displayWindow;
+      if (!window || window.isDestroyed()) return;
+      await moveWindowToDisplay(window, display, { fullscreen });
+      outputPlacement = { displayId: display.id, fullscreen };
+    })
+    .catch((error) => {
+      logError(`Error moving the output window: ${String(error)}`);
+    });
+  return displayWindowMoveTransition;
+}
+
+// Holds the display awake whenever anything is live (see
+// shouldPreventDisplaySleep) and releases it as soon as nothing is.
+// Previously only locking the windows held it. Cheap enough to call on
+// every clock tick: it only touches powerSaveBlocker on a change.
+function updatePowerSaveBlocker() {
+  const displayFullscreen =
+    displayWindow !== null &&
+    !displayWindow.isDestroyed() &&
+    displayWindow.isFullScreen();
+  const shouldBlock = shouldPreventDisplaySleep({
+    // The on-air clock: while a crashed dashboard reloads, its blank seed
+    // must not let the display sleep under a held, mid-match picture.
+    phaseRunning: getOutputState().time.matchPhase !== undefined,
+    displayFullscreen,
+    windowsLocked: isLocked,
   });
+  const active =
+    powerSaveBlockerId !== null &&
+    powerSaveBlocker.isStarted(powerSaveBlockerId);
+
+  if (shouldBlock && !active) {
+    powerSaveBlockerId = powerSaveBlocker.start('prevent-display-sleep');
+    logInfo('Keeping the display awake while the match is live');
+  } else if (!shouldBlock && powerSaveBlockerId !== null) {
+    if (active) powerSaveBlocker.stop(powerSaveBlockerId);
+    powerSaveBlockerId = null;
+    logInfo('Display may sleep again');
+  }
+}
+
+// The operator's language, or the OS locale before one has been chosen (the
+// same fallback the renderers use), for the few strings the main process
+// shows itself: the native menu and file dialogs.
+function operatorLanguage() {
+  return (
+    cachedAppSettings.language ?? nearestSupportedLanguage(app.getLocale())
+  );
+}
+
+function applyAppMenu() {
+  const language = operatorLanguage();
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate(buildAppMenuTemplate(language))
+  );
 }
 
 // Keyboard shortcuts
@@ -1246,6 +1751,14 @@ const registerGlobalKeyboardShortcuts = () => {
     let registered = false;
     try {
       registered = globalShortcut.register(globalAccelerator, () => {
+        // Pressed from another app, where the restore offer can't be seen
+        // (see isRestoreOfferPending).
+        if (isRestoreOfferPending()) {
+          logInfo(
+            'Ignored system-wide shortcut: restore the match on the laptop first'
+          );
+          return;
+        }
         mainWindow?.webContents.send(channel);
       });
     } catch (error) {
@@ -1277,6 +1790,9 @@ const unregisterGlobalKeyboardShortcuts = () => {
 
 // App ready event
 app.on('ready', async () => {
+  // A second instance or a Squirrel run is already quitting; see
+  // quittingAtLaunch.
+  if (quittingAtLaunch) return;
   // A single lifecycle marker per launch, so a diagnostics export's log tail
   // makes it obvious where one session ended and the next began.
   logInfo(`PlayOverlay v${app.getVersion()} starting up`);
@@ -1303,6 +1819,13 @@ app.on('ready', async () => {
   if (liveMatchAtLaunch) {
     liveMatchResolved = false;
   }
+  // Only a snapshot the dashboard will actually offer for restore holds the
+  // outputs; otherwise nothing would ever resolve the hold. Set before the
+  // servers start below so their first snapshot is already the held one.
+  if (liveMatchAtLaunch && isRestorableLiveMatch(liveMatchAtLaunch)) {
+    outputHold.hold(launchHoldState(liveMatchAtLaunch));
+    logInfo('Restore offer pending: outputs blank until it is resolved');
+  }
   // Off by default; only binds a 127.0.0.1 server if explicitly enabled in
   // settings. Startup errors (e.g. a busy port) are caught inside and never
   // reach here.
@@ -1314,28 +1837,20 @@ app.on('ready', async () => {
   void queueRemoteControlSettings(getRemoteControlSettings(cachedAppSettings));
   createWindows();
   setupDisplayListeners();
-  ensureWindowsAreVisible();
-  const menu = Menu.buildFromTemplate([
-    {
-      label: 'PlayOverlay',
-      submenu: [{ role: 'quit' }, { role: 'about' }],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy' },
-        { label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste' },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectAll' },
-      ],
-    },
-  ]);
-  Menu.setApplicationMenu(menu);
+  try {
+    ensureWindowsAreVisible();
+  } catch (error) {
+    logError(`Error checking window visibility: ${String(error)}`);
+  }
+  recordOutputPlacement();
+  applyAppMenu();
 });
 
 // All windows closed event
 app.on('window-all-closed', () => {
   if (!isDev && quitWhenAllWindowsClose) {
     console.log('window-all-closed');
+    isQuitting = true;
     app.quit();
   }
 });
@@ -1366,10 +1881,9 @@ function lockWindows() {
     displayWindow.focus();
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
     displayWindow.setAlwaysOnTop(true, 'screen-saver');
-    if (powerSaveBlockerId === null) {
-      powerSaveBlockerId = powerSaveBlocker.start('prevent-display-sleep');
-    }
     isLocked = true;
+    updatePowerSaveBlocker();
+    notifyLockStatus();
   }
 }
 
@@ -1377,14 +1891,9 @@ function unlockWindows() {
   if (mainWindow && displayWindow) {
     mainWindow.setAlwaysOnTop(false);
     displayWindow.setAlwaysOnTop(false);
-    if (
-      powerSaveBlockerId !== null &&
-      powerSaveBlocker.isStarted(powerSaveBlockerId)
-    ) {
-      powerSaveBlocker.stop(powerSaveBlockerId);
-      powerSaveBlockerId = null;
-    }
     isLocked = false;
+    updatePowerSaveBlocker();
+    notifyLockStatus();
   }
 }
 
@@ -1392,35 +1901,25 @@ function getLockStatus() {
   return isLocked;
 }
 
+// Pushed after every lock change, including the ones the main process makes
+// by itself (a screen unplugged mid-match unlocks the windows): the settings
+// UI only asks for the lock state when it opens, so without this it kept
+// showing "locked" after an automatic unlock.
+function notifyLockStatus() {
+  mainWindow?.webContents.send('lock-status-info', isLocked);
+}
+
 function ensureWindowsAreVisible() {
   const displays = screen.getAllDisplays();
-  const visibleBounds = displays.reduce(
-    (acc, display) => {
-      return {
-        x: Math.min(acc.x, display.bounds.x),
-        y: Math.min(acc.y, display.bounds.y),
-        width: Math.max(acc.width, display.bounds.x + display.bounds.width),
-        height: Math.max(acc.height, display.bounds.y + display.bounds.height),
-      };
-    },
-    { x: Infinity, y: Infinity, width: -Infinity, height: -Infinity }
-  );
 
   const checkAndMoveWindow = (
     window: BrowserWindow | null,
     windowName: WindowName
   ) => {
-    if (window) {
-      const [windowX, windowY] = window.getPosition();
-      const windowBounds = window.getBounds();
-
-      const isVisible =
-        windowX >= visibleBounds.x &&
-        windowY >= visibleBounds.y &&
-        windowX + windowBounds.width <= visibleBounds.width &&
-        windowY + windowBounds.height <= visibleBounds.height;
-
-      if (!isVisible) {
+    if (window && !window.isDestroyed()) {
+      // Checked against each display rather than one bounding box around
+      // all of them; see isWindowVisibleOnDisplays.
+      if (!isWindowVisibleOnDisplays(window.getBounds(), displays)) {
         resetWindow(window, windowName);
         unlockWindows(); // Unlock windows if they are moved
       }
@@ -1436,6 +1935,9 @@ app.on('before-quit', () => {
 });
 
 app.on('will-quit', () => {
+  // Nothing was started by an instance that quit at launch, and its
+  // shutdown line would only confuse the running instance's log.
+  if (quittingAtLaunch) return;
   logInfo('PlayOverlay shutting down');
   flushLiveMatch();
   globalShortcut.unregisterAll();

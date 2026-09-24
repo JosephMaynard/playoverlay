@@ -3,9 +3,28 @@
     "overlays": "Overlays",
     "title": "Display Controls"
   },
+  "goalLog": {
+    "empty": "No goals yet. Each goal is listed here with its minute as it is scored.",
+    "goal": "{{team}} goal",
+    "goalWithMinute": "{{team}} goal, {{minute}}",
+    "remove": "Remove goal",
+    "removeAria": "Remove goal: {{goal}}",
+    "scorerLabel": "Scorer ({{goal}})",
+    "scorerPlaceholder": "Scorer",
+    "showAutomatically": "Show the goal banner on air as soon as a goal is scored",
+    "showBanner": "Show on air",
+    "showBannerAria": "Show on air: {{goal}}",
+    "title": "Goals"
+  },
   "header": {
     "openMenu": "Open {{title}} Menu",
     "teamSettings": "Team Settings"
+  },
+  "newMatch": {
+    "button": "New match",
+    "confirm": "Start new match",
+    "modalBody": "Scores, penalties, goals, the clock and on-air graphics are reset, and the undo history is cleared. Team settings are kept.",
+    "modalTitle": "Start a new match?"
   },
   "notifications": {
     "restoreMatch": {

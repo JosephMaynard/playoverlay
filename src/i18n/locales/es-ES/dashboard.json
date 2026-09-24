@@ -3,9 +3,28 @@
     "overlays": "Superposiciones",
     "title": "Controles de pantalla"
   },
+  "goalLog": {
+    "empty": "Aún no hay goles. Cada gol aparece aquí con su minuto en cuanto se marca.",
+    "goal": "Gol: {{team}}",
+    "goalWithMinute": "Gol: {{team}}, {{minute}}",
+    "remove": "Quitar el gol",
+    "removeAria": "Quitar el gol: {{goal}}",
+    "scorerLabel": "Goleador ({{goal}})",
+    "scorerPlaceholder": "Goleador",
+    "showAutomatically": "Mostrar el rótulo de gol en pantalla en cuanto se marque un gol",
+    "showBanner": "Mostrar en pantalla",
+    "showBannerAria": "Mostrar en pantalla: {{goal}}",
+    "title": "Goles"
+  },
   "header": {
     "openMenu": "Abrir menú de {{title}}",
     "teamSettings": "Configuración del equipo"
+  },
+  "newMatch": {
+    "button": "Nuevo partido",
+    "confirm": "Empezar nuevo partido",
+    "modalBody": "Se restablecen los marcadores, los penaltis, los goles, el reloj y los gráficos en pantalla, y se borra el historial para deshacer. Se mantiene la configuración de los equipos.",
+    "modalTitle": "¿Empezar un nuevo partido?"
   },
   "notifications": {
     "restoreMatch": {

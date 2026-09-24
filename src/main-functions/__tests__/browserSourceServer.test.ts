@@ -311,6 +311,69 @@ describe('browser source server lifecycle', () => {
     expect(() => stopBrowserSourceServer()).not.toThrow();
   });
 
+  it('survives a malformed frame from a client and keeps serving others', async () => {
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: '/tmp/does-not-matter',
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort()!;
+
+    // Complete a real WebSocket handshake over a raw TCP socket, then send an
+    // UNMASKED text frame, which the protocol forbids from clients. ws
+    // reports it as an 'error' on the server-side socket; unhandled, that
+    // throws in the main process.
+    const raw = net.connect(port, '127.0.0.1');
+    await new Promise<void>((resolve, reject) => {
+      raw.on('error', reject);
+      raw.once('connect', () => {
+        raw.write(
+          'GET / HTTP/1.1\r\n' +
+            `Host: 127.0.0.1:${port}\r\n` +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n' +
+            'Sec-WebSocket-Version: 13\r\n\r\n'
+        );
+      });
+      raw.once('data', (data) => {
+        expect(data.toString()).toContain('101');
+        resolve();
+      });
+    });
+    const closed = new Promise<void>((resolve) => raw.on('close', resolve));
+    raw.write(Buffer.from([0x81, 0x02, 0x68, 0x69]));
+    await closed;
+
+    expect(isBrowserSourceServerRunning()).toBe(true);
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    await new Promise<void>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('open', () => resolve());
+    });
+    client.close();
+  });
+
+  it('disconnects a client that sends an oversized message', async () => {
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: '/tmp/does-not-matter',
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort()!;
+
+    const client = new WebSocket(`ws://127.0.0.1:${port}`);
+    const closeCode = await new Promise<number>((resolve, reject) => {
+      client.on('error', reject);
+      client.on('close', (code) => resolve(code));
+      client.on('open', () => client.send('x'.repeat(64 * 1024)));
+    });
+
+    // 1009: message too big.
+    expect(closeCode).toBe(1009);
+    expect(isBrowserSourceServerRunning()).toBe(true);
+  });
+
   it('binds only to 127.0.0.1, not all interfaces', async () => {
     await startBrowserSourceServer({
       port: 0,
@@ -365,6 +428,66 @@ describe('browser source server lifecycle', () => {
     expect(response.status).toBe(404);
 
     fs.rmSync(secretPath, { force: true });
+    fs.rmSync(dir, { force: true, recursive: true });
+  });
+
+  it('serves image names containing "#", "?" and "%" when correctly encoded', async () => {
+    const fs = await import('fs');
+    const os = await import('os');
+    const path = await import('path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'playoverlay-images-'));
+    fs.writeFileSync(path.join(dir, 'logo#2 what? 100%.png'), 'encoded');
+
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: dir,
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort();
+
+    const response = await fetch(
+      `http://127.0.0.1:${port}/images/logo%232%20what%3F%20100%25.png`
+    );
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('encoded');
+
+    fs.rmSync(dir, { force: true, recursive: true });
+  });
+
+  it('answers a stray "%" in an image name without throwing, serving the literal name when it exists', async () => {
+    const fs = await import('fs');
+    const os = await import('os');
+    const path = await import('path');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'playoverlay-images-'));
+    fs.writeFileSync(path.join(dir, '100%.png'), 'legacy');
+
+    await startBrowserSourceServer({
+      port: 0,
+      imagesPath: dir,
+      getSnapshot: () => [],
+    });
+    const port = getBrowserSourceServerPort();
+
+    // http.get sends the path byte for byte, the way an old saved URL with
+    // an unescaped "%" reaches the server.
+    const get = (requestPath: string) =>
+      new Promise<{ status?: number; body: string }>((resolve, reject) => {
+        http
+          .get({ host: '127.0.0.1', port, path: requestPath }, (res) => {
+            let body = '';
+            res.on('data', (chunk) => (body += chunk));
+            res.on('end', () => resolve({ status: res.statusCode, body }));
+          })
+          .on('error', reject);
+      });
+
+    expect(await get('/images/100%.png')).toEqual({
+      status: 200,
+      body: 'legacy',
+    });
+    expect((await get('/images/missing%zz.png')).status).toBe(404);
+    expect(isBrowserSourceServerRunning()).toBe(true);
+
     fs.rmSync(dir, { force: true, recursive: true });
   });
 });

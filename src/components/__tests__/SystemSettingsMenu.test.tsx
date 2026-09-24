@@ -15,9 +15,21 @@ const connectToStreamDeck = vi.hoisted(() =>
   >()
 );
 
+// Captures the menu's disconnect subscription so a test can simulate an
+// unplug.
+const streamDeckDisconnect = vi.hoisted(() => ({
+  listener: undefined as (() => void) | undefined,
+}));
+
 vi.mock('../../stream-deck', () => ({
   connectToStreamDeck,
   NEXT_SET_KEY_INDEX: 5,
+  onStreamDeckDisconnected: (listener: () => void) => {
+    streamDeckDisconnect.listener = listener;
+    return () => {
+      streamDeckDisconnect.listener = undefined;
+    };
+  },
 }));
 
 // The browser-source panel now lives in SystemSettingsMenu; it calls
@@ -114,6 +126,16 @@ describe('SystemSettingsMenu stream deck pagination', () => {
     await act(async () => lastCall()[1]());
     // Wrapped back to the scoring set
     expect(lastCall()[0].map((b) => b.text)).toContain('Stop');
+  });
+
+  it('shows the deck as disconnected as soon as it is unplugged', async () => {
+    renderMenu();
+    await connectDeck();
+    expect(screen.getByText('Stream Deck connected')).toBeInTheDocument();
+
+    act(() => streamDeckDisconnect.listener?.());
+
+    expect(screen.queryByText('Stream Deck connected')).not.toBeInTheDocument();
   });
 
   it('clamps a stale page index when the set count shrinks (penalties toggled off)', async () => {

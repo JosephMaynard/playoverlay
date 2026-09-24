@@ -65,16 +65,20 @@ export default function DocsPage() {
                   Set team names, abbreviations, colours, and logos, plus the venue, kick-off time,
                   and half lengths. This is also where you choose between the football timer and
                   generic periods (for sports that aren&rsquo;t halves-based, e.g. 4 &times;
-                  12-minute quarters), and toggle extra time and penalties for the match. Saved
-                  match settings can be reloaded per fixture, so you don&rsquo;t have to re-enter
-                  the same line-up every week.
+                  12-minute quarters), and toggle extra time and penalties for the match.{" "}
+                  <strong>Save as club</strong> keeps a team&rsquo;s name, colours, and logo, and{" "}
+                  <strong>Load a saved club</strong> fills the home or away slot in one step, so
+                  you don&rsquo;t have to re-enter the same club every week. Whole fixtures can be
+                  saved and reloaded too.
                 </p>
               </li>
               <li>
                 <h3 className="font-semibold text-slate-900 dark:text-white">2. Window Settings</h3>
                 <p className="mt-1 text-slate-600 dark:text-slate-400">
-                  Pick your key colour and whether screens auto-switch on phase changes. This is
-                  also where the OBS browser source and keyboard shortcuts live, see below.
+                  Pick your key colour. Whether screens switch automatically when the clock starts
+                  and stops is a toggle next to the clock controls on the dashboard. The OBS
+                  browser source, keyboard shortcuts, and phone remote live in System Settings,
+                  see below.
                 </p>
               </li>
               <li>
@@ -91,8 +95,12 @@ export default function DocsPage() {
                 <h3 className="font-semibold text-slate-900 dark:text-white">4. Kick off</h3>
                 <p className="mt-1 text-slate-600 dark:text-slate-400">
                   Start the first half, add goals as they happen, add stoppage time, and advance
-                  phases. If the app closes mid-match, the score, clock, and match state are saved
-                  continuously, so you can restore where you left off.
+                  phases. Each goal puts a banner on air automatically and is logged with its
+                  minute. At half-time or full-time, open the Goals panel to add scorers (the end
+                  screen lists them) or show a banner again; the automatic banner can be switched
+                  off there too. If the app closes mid-match, the score, clock, and match state are
+                  saved continuously, so you can restore where you left off. Between fixtures,{" "}
+                  <strong>New match</strong> clears the match and keeps your team settings.
                 </p>
               </li>
             </ol>
@@ -118,13 +126,14 @@ export default function DocsPage() {
               <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
                 <h3 className="font-semibold text-slate-900 dark:text-white">OBS browser source</h3>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                  Off by default. Open <strong>Window Settings &rarr; OBS Browser Source</strong> and
+                  Off by default. Open <strong>System Settings &rarr; OBS Browser Source</strong> and
                   switch it on (default port <code>4750</code>). In OBS, add a Browser Source
                   pointed at <code>http://127.0.0.1:&lt;port&gt;/</code>, sized to your canvas
                   resolution. The background is transparent, so no chroma key is needed. The
-                  server only listens on <code>127.0.0.1</code> (never reachable from the network)
-                  and stays off unless you enable it, and it reconnects automatically if OBS or the
-                  app restarts mid-stream.
+                  server only listens on <code>127.0.0.1</code>, so it serves OBS on the same
+                  computer as PlayOverlay (other devices can&rsquo;t connect to it). It stays off
+                  unless you enable it, and it reconnects automatically if OBS or the app restarts
+                  mid-stream.
                 </p>
               </div>
             </div>
@@ -137,7 +146,9 @@ export default function DocsPage() {
                 spectator scoreboard, from the same running app. Valid values are{" "}
                 <code>matchTitle</code>, <code>scoreBug</code>, <code>penalties</code>,{" "}
                 <code>endScreen</code>, and <code>scoreboard</code>; leaving it out follows the
-                operator. Window Settings shows a ready-made copyable URL for the scoreboard view.
+                operator. Because the server is loopback-only, a venue TV has to be driven by a
+                browser on the PlayOverlay computer itself (for example a window on a second
+                display). System Settings shows a ready-made copyable URL for the scoreboard view.
               </p>
             </div>
           </section>
@@ -174,9 +185,11 @@ export default function DocsPage() {
               with <code>Alt</code> added, for example <code>Cmd/Ctrl+Alt+Shift+H</code>, unless
               the shortcut you&rsquo;ve bound already includes <code>Alt</code>, in which case
               there&rsquo;s no separate system-wide variant. Shortcuts are rebindable: open{" "}
-              <strong>Window Settings &rarr; Keyboard Shortcuts</strong>, click <strong>Change</strong>{" "}
+              <strong>System Settings &rarr; Keyboard Shortcuts</strong>, click <strong>Change</strong>{" "}
               next to an action, then press the new key combination (a modifier other than Shift is
-              required). <strong>Reset</strong> restores that action&rsquo;s default.
+              required). Combinations the app already uses, such as <code>Cmd/Ctrl+Z</code> for
+              undo or <code>Cmd/Ctrl+C</code> for copy, are refused. <strong>Reset</strong>{" "}
+              restores that action&rsquo;s default.
             </p>
           </section>
 
@@ -217,18 +230,26 @@ export default function DocsPage() {
               </li>
             </ol>
             <p className="mt-4 text-slate-600 dark:text-slate-400">
-              From the phone you can add or remove a goal for either team, start or stop the match
-              clock, advance to the next match phase, and switch which graphic is on air. It
+              From the phone you can add or remove a goal for either team, pause or resume the
+              running clock, advance to the next match phase (which starts each half), and switch
+              which graphic is on air. It
               mirrors the live match state, so it stays in sync with the operator and any other
-              paired phone: a phone tap and an on-screen click behave identically.
+              paired phone: a phone tap and an on-screen click behave identically. While the
+              laptop is offering to restore a match after a crash, the phone&rsquo;s controls
+              pause until the offer is answered there, so a tap can&rsquo;t overwrite the
+              recovered score.
             </p>
             <p className="mt-4 text-slate-600 dark:text-slate-400">
-              <strong>Security</strong>: the remote server binds to the local network only and is
-              never reachable from the internet. Pairing is gated by a 6-digit PIN that&rsquo;s
+              <strong>Security</strong>: while it&rsquo;s on, the remote server listens on all of
+              the laptop&rsquo;s network interfaces, so any device that can reach the laptop on
+              your local network can open the page. It isn&rsquo;t exposed to the internet unless
+              the network forwards that port to the laptop, which venue and home networks
+              don&rsquo;t do by default. Pairing is gated by a 6-digit PIN that&rsquo;s
               regenerated every time you enable the feature (and again on every app restart), and
-              repeated wrong guesses are rate-limited. It&rsquo;s built for a trusted venue
-              network, not a hostile public one, so leave it off when you don&rsquo;t need it and
-              treat the PIN like any other password.
+              repeated wrong guesses are rate-limited per device, so a misbehaving device can only
+              lock itself out. A paired phone that drops off the wifi reconnects by itself.
+              It&rsquo;s built for a trusted venue network, not a hostile public one, so leave it
+              off when you don&rsquo;t need it and treat the PIN like any other password.
             </p>
             <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
               Note: the phone remote interface is English-only, regardless of which language

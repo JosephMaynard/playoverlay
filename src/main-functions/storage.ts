@@ -2,11 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import Store from 'electron-store';
-import { AppSettings, CustomScreen, LiveMatch } from '../types';
+import { AppSettings, Club, CustomScreen, LiveMatch } from '../types';
 import { defaultMatchSettings } from '../constants';
 import { logError, sanitizeLogPath } from './logger';
+import convertFilePathToUrl, {
+  repairLegacyFileUrl,
+} from './convertFilePathToUrl';
 import {
   appSettingsSchema,
+  clubListSchema,
   customScreenListSchema,
   liveMatchSchema,
   matchSetingsSchema,
@@ -87,6 +91,7 @@ export const DISPLAY_WINDOW = 'DISPLAY_WINDOW';
 const APP_SETTINGS = 'APP_SETTINGS';
 const MATCH_SETTINGS = 'MATCH_SETTINGS';
 const SAVED_MATCH_SETTINGS = 'SAVED_MATCH_SETTINGS';
+const CLUBS = 'CLUBS';
 const TEAM_SETTINGS = 'TEAM_SETTINGS'; // Legacy now renamed to MATCH_SETTINGS
 const CUSTOM_SCREENS = 'CUSTOM_SCREENS';
 const LIVE_MATCH = 'LIVE_MATCH';
@@ -147,22 +152,61 @@ export function setMatchSettings(matchSettings: MatchSettings) {
   storage.set(MATCH_SETTINGS, matchSettings);
 }
 
-function getVerifiedMatchSettings(): MatchSettings {
-  const matchSettings = storage.get(MATCH_SETTINGS, defaultMatchSettings);
+// Custom screens store a file path and a URL derived from it. Builds before
+// the pathToFileURL fix derived that URL with a converter that mangled "#",
+// "?" and "%" in file names (see convertFilePathToUrl.ts), so the URL is
+// rebuilt from the path on every read rather than trusted as stored.
+function withDerivedUrl(screen: CustomScreen): CustomScreen {
+  if (!screen.filePath) return screen;
+  const url = convertFilePathToUrl(screen.filePath);
+  return url === screen.url ? screen : { ...screen, url };
+}
 
+// Team logos are stored as a URL only (no separate path), so a logo saved by
+// an older build is repaired from its URL text instead; see
+// repairLegacyFileUrl. The same object comes back when nothing changed.
+function withRepairedLogos(matchSettings: MatchSettings): MatchSettings {
+  const repair = (url: string | undefined) =>
+    url ? repairLegacyFileUrl(url, fs.existsSync) : url;
+  const homeTeamLogo = repair(matchSettings.homeTeamLogo);
+  const awayTeamLogo = repair(matchSettings.awayTeamLogo);
+  if (
+    homeTeamLogo === matchSettings.homeTeamLogo &&
+    awayTeamLogo === matchSettings.awayTeamLogo
+  ) {
+    return matchSettings;
+  }
+  return { ...matchSettings, homeTeamLogo, awayTeamLogo };
+}
+
+function getVerifiedMatchSettings(): MatchSettings {
   // Handle Legacy TEAM_SETTINGS
   const legacyMatchSetting = storage.get(TEAM_SETTINGS);
-  const verifiedMatchSettings = legacyMatchSetting
-    ? matchSetingsSchema.safeParse(legacyMatchSetting)
-    : matchSetingsSchema.safeParse(matchSettings);
-
   if (legacyMatchSetting) {
+    const verifiedLegacy = matchSetingsSchema.safeParse(legacyMatchSetting);
+    if (verifiedLegacy.success === true) {
+      const migrated = { ...defaultMatchSettings, ...verifiedLegacy.data };
+      // Persist the migrated value BEFORE dropping the legacy key: startup
+      // reads match settings twice (main process, then the dashboard), and
+      // the second read must find the migrated club details, not defaults.
+      // If the write throws, the legacy key survives for the next launch.
+      storage.set(MATCH_SETTINGS, migrated);
+      storage.delete(TEAM_SETTINGS);
+      return withRepairedLogos(migrated);
+    }
+    // A corrupt legacy value has nothing worth migrating.
     storage.delete(TEAM_SETTINGS);
   }
 
+  const matchSettings = storage.get(MATCH_SETTINGS, defaultMatchSettings);
+  const verifiedMatchSettings = matchSetingsSchema.safeParse(matchSettings);
+
   if (verifiedMatchSettings.success === true) {
     // Always include spread defaultMatchSettings to cover datashape updates
-    return { ...defaultMatchSettings, ...verifiedMatchSettings.data };
+    return withRepairedLogos({
+      ...defaultMatchSettings,
+      ...verifiedMatchSettings.data,
+    });
   }
 
   // Fallback to default data if data corrupted
@@ -183,7 +227,7 @@ export function getMatchSettings() {
 // vanished, e.g. the preflight check, can report on them without
 // re-implementing this same read+reconcile+persist sequence.
 export function getCustomScreensReconciliation(): ReconcileCustomScreensResult {
-  const { kept, dropped } = reconcileStoredCustomScreens();
+  const { kept, dropped, urlsRepaired } = reconcileStoredCustomScreens();
 
   if (dropped.length > 0) {
     logError(
@@ -191,6 +235,9 @@ export function getCustomScreensReconciliation(): ReconcileCustomScreensResult {
         .map((screen) => sanitizeLogPath(screen.filePath ?? ''))
         .join(', ')}`
     );
+  }
+  // Rebuilt URLs are written back too, so the repair happens once.
+  if (dropped.length > 0 || urlsRepaired) {
     storage.set(CUSTOM_SCREENS, kept);
   }
 
@@ -204,12 +251,26 @@ export function getCustomScreensReconciliation(): ReconcileCustomScreensResult {
 // persisting variant above stays in place for the normal load path
 // (getCustomScreens), where cleaning up a stale entry on read is the point.
 export function reconcileCustomScreensReadOnly(): ReconcileCustomScreensResult {
-  return reconcileStoredCustomScreens();
+  const { kept, dropped } = reconcileStoredCustomScreens();
+  return { kept, dropped };
 }
 
-function reconcileStoredCustomScreens(): ReconcileCustomScreensResult {
-  const parsed = customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
-  return reconcileCustomScreens(parsed, fs.existsSync);
+function readStoredCustomScreens(): CustomScreen[] {
+  return customScreenListSchema.parse(storage.get(CUSTOM_SCREENS));
+}
+
+function reconcileStoredCustomScreens(): ReconcileCustomScreensResult & {
+  urlsRepaired: boolean;
+} {
+  const stored = readStoredCustomScreens();
+  const derived = stored.map(withDerivedUrl);
+  const urlsRepaired = derived.some(
+    (screen, index) => screen !== stored[index]
+  );
+  return {
+    ...reconcileCustomScreens(derived, fs.existsSync),
+    urlsRepaired,
+  };
 }
 
 export function getCustomScreens(): CustomScreen[] {
@@ -225,11 +286,28 @@ export function setCustomScreens(customScreens: CustomScreen[]) {
 // missing a required team name) is dropped rather than losing every other
 // saved match in the list.
 export function getSavedMatchSettings(): MatchSettings[] {
-  return matchSettingsListSchema.parse(storage.get(SAVED_MATCH_SETTINGS));
+  return matchSettingsListSchema
+    .parse(storage.get(SAVED_MATCH_SETTINGS))
+    .map(withRepairedLogos);
 }
 
 export function setSavedMatchSettings(savedMatchSettings: MatchSettings[]) {
   storage.set(SAVED_MATCH_SETTINGS, savedMatchSettings);
+}
+
+// Saved clubs (Club presets), validated entry by entry like the saved
+// fixtures, with the same legacy logo URL repair.
+export function getClubs(): Club[] {
+  return clubListSchema.parse(storage.get(CLUBS)).map((club) => {
+    const logo = club.logo
+      ? repairLegacyFileUrl(club.logo, fs.existsSync)
+      : club.logo;
+    return logo === club.logo ? club : { ...club, logo };
+  });
+}
+
+export function setClubs(clubs: Club[]) {
+  storage.set(CLUBS, clubs);
 }
 
 export function setLiveMatch(liveMatch: LiveMatch) {
@@ -251,9 +329,26 @@ export function getLiveMatch(): LiveMatch | undefined {
   if (!verified.success) return undefined;
 
   const liveMatch = verified.data;
+
+  // The snapshot may predate the URL fix too. Its on-air custom screen is
+  // matched to the stored screens by URL, so map each stored screen's old
+  // URL to the rebuilt one before getCustomScreens() below writes the
+  // rebuilt URLs back and the old ones are gone.
+  const repairedScreenUrls = new Map<string, string>();
+  readStoredCustomScreens().forEach((screen) => {
+    const derived = withDerivedUrl(screen);
+    if (screen.url && derived.url && derived !== screen) {
+      repairedScreenUrls.set(screen.url, derived.url);
+    }
+  });
+  const customScreenImageUrl = liveMatch.matchState.customScreenImageUrl;
+
   const survivingCustomScreens = getCustomScreens();
   const { kept: survivingOverlays, dropped: droppedOverlays } =
-    reconcileCustomScreens(liveMatch.matchState.overlays, fs.existsSync);
+    reconcileCustomScreens(
+      liveMatch.matchState.overlays.map(withDerivedUrl),
+      fs.existsSync
+    );
 
   if (droppedOverlays.length > 0) {
     logError(
@@ -264,9 +359,21 @@ export function getLiveMatch(): LiveMatch | undefined {
   }
 
   const reconciledMatchState = reconcileMatchStateScreen(
-    { ...liveMatch.matchState, overlays: survivingOverlays },
+    {
+      ...liveMatch.matchState,
+      overlays: survivingOverlays,
+      customScreenImageUrl: customScreenImageUrl
+        ? (repairedScreenUrls.get(customScreenImageUrl) ?? customScreenImageUrl)
+        : customScreenImageUrl,
+    },
     survivingCustomScreens
   );
 
-  return { ...liveMatch, matchState: reconciledMatchState };
+  return {
+    ...liveMatch,
+    matchState: reconciledMatchState,
+    matchSettings: liveMatch.matchSettings
+      ? withRepairedLogos(liveMatch.matchSettings)
+      : liveMatch.matchSettings,
+  };
 }

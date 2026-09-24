@@ -4,7 +4,7 @@
 
 **PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams, built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
 
-It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (green screen by default). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
+It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (blue by default, and you can pick any colour your mixer keys well). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
 
 ![The score bug rendered on the chroma-key display output](docs/screenshots/score-bug.png)
 
@@ -29,7 +29,9 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 - **Score bug** with team abbreviations, optional team logos, live scores, match clock, and stoppage time
 - **Match clock** driven by the system clock (no drift over a half), with pause/resume and quick time adjustments
-- **Crash recovery**: the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off
+- **Goal log**: every goal is logged with its minute (`23'`, or `45+2'` in stoppage time) and a goal banner goes on air automatically (team and minute, no typing needed). Scorers can be added later, e.g. at half-time, and the end screen lists each team's scorers
+- **Undo and redo**: step back through goals, clock and phase changes, screen switches and penalties, without ever rewinding the running clock
+- **Crash recovery**: the score, clock, and match state are saved continuously; if the app closes mid-match you can restore where you left off, and the outputs stay blank rather than showing a false 0-0 until you do
 - **Match phases**: first/second half with configurable half lengths, and extra time that can be toggled off per match
 - **Generic timer mode**: for sports that aren't halves-based, switch the timer to a configurable number of named periods (e.g. 4 × 12-minute quarters)
 - **Penalty shootout tracker**: alternates teams automatically, records scored/missed, supports undo, and can be toggled off for matches that don't need it
@@ -38,7 +40,9 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 - **OBS browser source output**: an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
 - **Phone remote (LAN)**: an optional PIN-gated server that lets a phone on the same wifi control goals, the clock, match phases, and the on-air screen from the touchline
 - **Keyboard shortcuts** and **Elgato Stream Deck** support for goals, phase changes, and screen switching
-- **Saved match settings**: store team line-ups/colours and reload them per fixture
+- **Club presets**: save each club's name, abbreviation, colours and logo once, then load any club into the home or away slot for the next fixture
+- **Saved match settings**: store whole fixtures and reload them
+- **New match**: one button resets the score, clock, penalties, goals and on-air graphics between fixtures, keeping your team settings
 - Multi-monitor aware: move the display window between screens, lock windows always-on-top, keep the machine awake while live
 
 ## Download
@@ -68,10 +72,11 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 
 ## Using it
 
-1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
-2. In **Window Settings**, pick your key colour and whether screens auto-switch on phase changes.
+1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. **Save as club** keeps a team's details for next time, and **Load a saved club** fills a team in one step. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
+2. In **Window Settings**, pick your key colour. Whether screens switch automatically when the clock starts and stops is a toggle next to the clock controls on the dashboard.
 3. Move the display window to the output monitor and make it fullscreen.
-4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases.
+4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. Each goal puts a banner on air automatically and is logged with its minute. At half-time or full-time, open the **Goals** panel to add scorers (the end screen lists them) or show a banner again; the automatic banner can be switched off there too.
+5. Between fixtures, **New match** (next to undo and redo) clears the match and puts the match title on air, ready for the next kick-off.
 
 ### Keyboard shortcuts
 
@@ -85,7 +90,7 @@ While PlayOverlay is focused, by default:
 
 The same actions are also available system-wide (they work while OBS or your mixer software is focused) with `Alt` added, e.g. `Cmd/Ctrl+Alt+Shift+H`, unless the shortcut you've bound already includes `Alt`, in which case there's no separate system-wide variant.
 
-These are rebindable: open **Window Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). **Reset** restores that action's default.
+These are rebindable: open **System Settings → Keyboard Shortcuts**, click **Change** next to an action, then press the new key combination (a modifier other than Shift is required). Combinations the app already uses, such as `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z` for undo and redo or `Cmd/Ctrl+C`/`V`/`X`/`A` for editing, are refused. On macOS, `Cmd` and `Ctrl` are recorded as the separate keys you pressed; on Windows and Linux, use `Ctrl` or `Alt` (the Windows/Super key can't be used). **Reset** restores that action's default.
 
 ### Stream Deck
 
@@ -95,15 +100,15 @@ Connect an Elgato Stream Deck from **System Settings → Connect to Stream Deck*
 
 Off by default. If you'd rather not manage a second display and chroma key, PlayOverlay can serve the display graphics directly as an OBS Browser Source, with a transparent background instead of a key colour:
 
-1. Open **Window Settings → OBS Browser Source** and switch it on (default port `4750`).
+1. Open **System Settings → OBS Browser Source** and switch it on (default port `4750`).
 2. In OBS, add a **Browser Source** pointed at the URL shown there (`http://127.0.0.1:<port>/`), sized to your canvas resolution.
 3. That's it, no chroma key needed, since the page background is transparent.
 
-The server only listens on `127.0.0.1` (never reachable from the network) and stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
+The server only listens on `127.0.0.1` (loopback), so it serves OBS running on the same computer as PlayOverlay; other devices on the network can't connect to it, and OBS on a different machine can't use it. It stays off unless you enable it, so nothing changes for anyone who doesn't use it. It updates live over a local WebSocket connection and reconnects automatically if OBS is closed or the app restarts mid-stream.
 
 #### Pinned views
 
-Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server.
+Add `?screen=<name>` to the browser source URL to pin that page to a specific screen, regardless of what the operator currently has selected on the display. This lets you run the normal feed into OBS while a venue TV (or a second OBS scene) shows something else, e.g. the spectator scoreboard, from the same running app, both fed by the same local server. Because the server is loopback-only, a venue TV has to be driven by a browser on the PlayOverlay computer itself (for example a window on a second display).
 
 | `?screen=` value | Shows                          |
 | ---------------- | ------------------------------ |
@@ -114,7 +119,7 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 | `endScreen`      | End screen                     |
 | `scoreboard`     | Spectator scoreboard           |
 
-**Window Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
+**System Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
 
 ## Phone remote (LAN)
 
@@ -127,13 +132,13 @@ Off by default. When you want to run the match from the touchline instead of the
 From the phone you can:
 
 - Add or remove a goal for either team
-- Start or stop the match clock
+- Pause or resume the running clock (**Next phase** starts each half)
 - Advance to the next match phase
 - Switch which graphic is on air (score bug, match title, scoreboard, penalties, end screen, or blank)
 
-The phone mirrors the live match state, so it stays in sync with the operator and with any other paired phone. Everything it does goes through exactly the same controls as the dashboard, so a phone tap and an on-screen click behave identically.
+The phone mirrors the live match state, so it stays in sync with the operator and with any other paired phone. If the laptop is offering to restore a match after a crash, the phone's controls pause (and say why) until the offer is answered on the laptop, so a tap can't overwrite the recovered score; the system-wide shortcuts wait too. Everything it does goes through exactly the same controls as the dashboard, so a phone tap and an on-screen click behave identically.
 
-**Security**: the remote server binds to the local network only and is **never reachable from the internet**. Pairing is gated by a 6-digit PIN that is regenerated every time you enable the feature, and repeated wrong guesses are rate-limited to defeat brute forcing. It's intended for a trusted venue network, not a hostile public one; leave it off when you don't need it, and treat the PIN like any other password. A new PIN is issued whenever you toggle it back on or restart the app, so paired phones will need to re-enter it.
+**Security**: while it's on, the remote server listens on all of the laptop's network interfaces (`0.0.0.0`), so any device that can reach the laptop on your local network can open the page. It isn't exposed to the internet unless the network forwards that port to the laptop (a router port-forward, a DMZ setting, or a laptop with a public IP address), which venue and home networks don't do by default. Pairing is gated by a 6-digit PIN that is regenerated every time you enable the feature, and repeated wrong guesses are rate-limited per device to defeat brute forcing, so a misbehaving device can only lock itself out, never your phone. The server also refuses connections from other web pages, so a page open in a browser on the network can't drive it. It's intended for a trusted venue network, not a hostile public one; leave it off when you don't need it, and treat the PIN like any other password. A paired phone that drops off the wifi reconnects by itself without the PIN. A new PIN is issued whenever you toggle the remote back on or restart the app, so paired phones will need to re-enter it then.
 
 ## Languages
 

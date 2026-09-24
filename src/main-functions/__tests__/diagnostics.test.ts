@@ -187,6 +187,64 @@ describe('buildDiagnosticsReport', () => {
     expect(report).toContain('line 249');
   });
 
+  it('redacts the home directory from logo URLs, log lines and failed operations', () => {
+    const report = buildDiagnosticsReport(
+      baseInput({
+        homeDirectory: '/Users/Jo Bloggs',
+        matchSettings: {
+          ...baseInput().matchSettings,
+          homeTeamLogo:
+            'file:///Users/Jo%20Bloggs/Library/Application%20Support/PlayOverlay/images/home.png',
+        },
+        recentLog: [
+          {
+            timestamp: '2026-07-20T12:00:00.000Z',
+            level: 'error',
+            message:
+              "Error saving file: ENOENT: no such file or directory, open '/Users/Jo Bloggs/x.png'",
+          },
+        ],
+        recentFailedOperations: [
+          {
+            timestamp: '2026-07-20T12:00:00.000Z',
+            level: 'error',
+            message: 'Failed in /users/jo bloggs/Desktop',
+          },
+        ],
+      })
+    );
+
+    expect(report).not.toMatch(/Jo( |%20)Bloggs/i);
+    expect(report).toContain(
+      'file://~/Library/Application%20Support/PlayOverlay/images/home.png'
+    );
+    expect(report).toContain("open '~/x.png'");
+    expect(report).toContain('Failed in ~/Desktop');
+  });
+
+  it('redacts a Windows home directory in native, URL and JSON-escaped forms', () => {
+    const report = buildDiagnosticsReport(
+      baseInput({
+        homeDirectory: 'C:\\Users\\jo',
+        matchSettings: {
+          ...baseInput().matchSettings,
+          homeTeamLogo: 'file:///C:/Users/jo/AppData/Roaming/images/home.png',
+          venue: 'C:\\Users\\jo\\venue.txt',
+        },
+        recentLog: [
+          {
+            timestamp: '2026-07-20T12:00:00.000Z',
+            level: 'error',
+            message: "EPERM: operation not permitted, 'C:\\Users\\jo\\a.png'",
+          },
+        ],
+      })
+    );
+
+    expect(report).not.toMatch(/Users[\\/]+jo\b/i);
+    expect(report).toContain('file:///~/AppData/Roaming/images/home.png');
+  });
+
   it('states plainly that the file is safe to share', () => {
     const report = buildDiagnosticsReport(baseInput());
 

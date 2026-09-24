@@ -1,5 +1,6 @@
 import {
   AppSettings,
+  Club,
   CustomScreen,
   LiveMatch,
   Scores,
@@ -58,6 +59,10 @@ declare global {
       getCustomScreens: () => Promise<CustomScreen[]>;
       setCustomScreens: (
         customScreens: CustomScreen[]
+      ) => Promise<{ success: boolean; error?: string }>;
+      getClubs: () => Promise<Club[]>;
+      setClubs: (
+        clubs: Club[]
       ) => Promise<{ success: boolean; error?: string }>;
       getSavedMatchSettings: () => Promise<MatchSettings[]>;
       setSavedMatchSettings: (

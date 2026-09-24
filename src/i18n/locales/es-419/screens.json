@@ -1,4 +1,7 @@
 {
+  "goalBanner": {
+    "goal": "Gol"
+  },
   "matchTitle": {
     "kickOff": "Inicio {{time}}",
     "startsIn": "Comienza en {{countdown}}"

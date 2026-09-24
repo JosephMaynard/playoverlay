@@ -7,6 +7,7 @@ import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
 import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
 import ScoreboardLayout from './ScoreboardLayout/ScoreboardLayout';
+import GoalBannerLayout from './GoalBannerLayout/GoalBannerLayout';
 
 export interface Props {
   matchSettings: MatchSettings;
@@ -61,6 +62,11 @@ export default function Screens({
         time={time}
         active={matchState.displayScreen === 'scoreboard'}
         clockFormat={clockFormat}
+      />
+      <GoalBannerLayout
+        goals={scores.goals ?? []}
+        matchState={matchState}
+        matchSettings={matchSettings}
       />
     </>
   );
