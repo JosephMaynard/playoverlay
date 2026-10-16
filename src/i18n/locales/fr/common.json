@@ -8,7 +8,10 @@
     "paste": "Coller",
     "selectAll": "Tout sélectionner",
     "exportDiagnosticsTitle": "Exporter les diagnostics",
-    "textFiles": "Fichiers texte"
+    "textFiles": "Fichiers texte",
+    "help": "Aide",
+    "support": "Soutenir PlayOverlay",
+    "website": "Site web de PlayOverlay"
   },
   "cancel": "Annuler",
   "close": "Fermer",
@@ -28,5 +31,6 @@
   },
   "logoAlt": "Logo PlayOverlay",
   "reset": "Réinitialiser",
+  "support": "Soutenir PlayOverlay",
   "versionLabel": "Version : {{version}}"
 }

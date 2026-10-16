@@ -104,6 +104,11 @@ export const MAX_SCORER_LENGTH = 40;
 // How long the on-air goal banner stays up after it is shown.
 export const GOAL_BANNER_DURATION_MS = 10000;
 
+// Where "Support PlayOverlay" points: the project's Ko-fi page. Opened in
+// the system browser from the dashboard rail and the Help menu.
+export const SUPPORT_URL = 'https://ko-fi.com/magiczebra';
+export const WEBSITE_URL = 'https://playoverlay.com';
+
 export const screens = {
   none: 'None',
   matchTitle: 'Match Title',

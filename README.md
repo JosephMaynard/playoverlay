@@ -1,12 +1,15 @@
 # PlayOverlay
 
 [![CI](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml/badge.svg)](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml)
+[![Support PlayOverlay on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20PlayOverlay-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/magiczebra)
 
 **PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams, built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
 
 It renders a broadcast-style score bug, match clock, penalty shootout tracker, and custom graphics on a solid-colour background (blue by default, and you can pick any colour your mixer keys well). Feed that output into a vision mixer or capture device, for example a Blackmagic ATEM Mini, key out the background, and composite it over your camera feed before streaming.
 
 ![The score bug rendered on the chroma-key display output](docs/screenshots/score-bug.png)
+
+PlayOverlay is free to use and always will be. If it earns a place in your kit bag, you can [support its development on Ko-fi](https://ko-fi.com/magiczebra).
 
 ## Spectator scoreboard
 

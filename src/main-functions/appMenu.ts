@@ -1,5 +1,6 @@
-import type { MenuItemConstructorOptions } from 'electron';
+import { shell, type MenuItemConstructorOptions } from 'electron';
 import { LanguageCode } from '../types';
+import { SUPPORT_URL, WEBSITE_URL } from '../constants';
 import en from '../i18n/locales/en/common.json';
 import fr from '../i18n/locales/fr/common.json';
 import de from '../i18n/locales/de/common.json';
@@ -63,6 +64,24 @@ export function buildAppMenuTemplate(
           role: 'selectAll',
           label: labels.selectAll,
           accelerator: 'CmdOrCtrl+A',
+        },
+      ],
+    },
+    {
+      role: 'help',
+      label: labels.help,
+      submenu: [
+        {
+          label: labels.support,
+          click: () => {
+            shell.openExternal(SUPPORT_URL);
+          },
+        },
+        {
+          label: labels.website,
+          click: () => {
+            shell.openExternal(WEBSITE_URL);
+          },
         },
       ],
     },

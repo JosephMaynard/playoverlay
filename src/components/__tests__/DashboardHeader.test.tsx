@@ -96,4 +96,15 @@ describe('DashboardHeader undo/redo controls', () => {
     fireEvent.click(newMatchButtons[1]);
     expect(onNewMatch).toHaveBeenCalledTimes(1);
   });
+
+  it('opens the Ko-fi page in the browser from the Support PlayOverlay button', () => {
+    const openUrlInBrowser = vi.fn();
+    window.electronAPI = { openUrlInBrowser } as unknown as typeof window.electronAPI;
+    render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
+
+    const supportButtons = buttons('Support PlayOverlay');
+    expect(supportButtons).toHaveLength(2);
+    fireEvent.click(supportButtons[0]);
+    expect(openUrlInBrowser).toHaveBeenCalledWith('https://ko-fi.com/magiczebra');
+  });
 });
