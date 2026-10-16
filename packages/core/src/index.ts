@@ -18,6 +18,7 @@ export * from './liveMatch';
 export * from './clubs';
 export * from './customScreens';
 export * from './lineup';
+export * from './screenRotation';
 
 export * from './store/appSettings';
 export * from './store/customGraphics';
@@ -27,9 +28,11 @@ export * from './store/scores';
 export * from './store/time';
 export * from './store/undo';
 export * from './store/mirror';
+export * from './store/screenRotation';
 
 export { default as useMatchClock } from './useMatchClock';
 export type { StopTimeOptions, UseMatchClock } from './useMatchClock';
+export { default as useScreenRotation } from './useScreenRotation';
 export * from './matchActions';
 
 export { defaultNS, namespaces, resources } from './i18n';

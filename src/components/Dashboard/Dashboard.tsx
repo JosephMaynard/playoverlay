@@ -24,6 +24,9 @@ import {
   reconcileActiveOverlays,
   reconcileActiveScreen,
   reconcileLineupScreen,
+  getScreenRotationSettings,
+  useScreenRotation,
+  useScreenRotationStore,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
 import { connectStoresToElectron } from '../../electronBridge';
@@ -35,6 +38,7 @@ import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import GoalLogPanel from './GoalLogPanel';
+import ScreenRotationPanel from './ScreenRotationPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
@@ -56,6 +60,10 @@ export default function Dashboard() {
   const [newMatchOpen, setNewMatchOpen] = useState(false);
 
   const clock = useMatchClock();
+  // Cycles the display through the operator's chosen screens while a
+  // rotation is running (see the Rotate screens panel).
+  useScreenRotation();
+  const rotating = useScreenRotationStore((state) => state.active);
 
   const scores = useScoresStore((state) => state.scores);
   const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
@@ -477,6 +485,17 @@ export default function Dashboard() {
                 matchState={matchState}
                 customGraphics={customGraphics}
                 matchSettings={matchSettings}
+              />
+              <ScreenRotationPanel
+                settings={getScreenRotationSettings(appSettings)}
+                updateSettings={(screenRotation) =>
+                  updateAppSettings({ screenRotation })
+                }
+                matchSettings={matchSettings}
+                customGraphics={customGraphics}
+                rotating={rotating}
+                start={() => useScreenRotationStore.getState().start()}
+                stop={() => useScreenRotationStore.getState().stop()}
               />
             </div>
           </div>

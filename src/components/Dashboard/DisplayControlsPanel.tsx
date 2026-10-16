@@ -16,8 +16,9 @@ import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 // Local i18n key map (rather than translating the `screens` constant
 // directly): the same approach as SystemSettingsMenu's Stream Deck screen
 // buttons and EditCustomScreen's overlay-screen checkboxes, so all three
-// surfaces show the same translated label for a given screen.
-const screenLabelKeys: Record<DisplayScreen, string> = {
+// surfaces show the same translated label for a given screen. The dashboard's
+// screen rotation panel shares this one.
+export const screenLabelKeys: Record<DisplayScreen, string> = {
   none: 'settings:system.screens.none',
   matchTitle: 'settings:system.screens.matchTitle',
   scoreBug: 'settings:system.screens.scoreBug',
