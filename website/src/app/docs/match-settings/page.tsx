@@ -23,7 +23,7 @@ export default function MatchSettingsPage() {
         Everything here feeds the on-air graphics, so it is worth setting up properly once. After
         that, club presets and saved match settings mean you rarely type a team name twice.
       </p>
-      <Figure>
+      <Figure caption="Match Settings opens beside the dashboard. Here the home team's line-up is being filled in.">
         <ImageSlot name="match-settings" sizes="(min-width: 1024px) 768px, 100vw" />
       </Figure>
 
@@ -45,6 +45,11 @@ export default function MatchSettingsPage() {
         <li>
           <strong>Logo</strong>, optional. Upload a PNG, JPEG, WebP or SVG. A square image with a
           transparent background looks best.
+        </li>
+        <li>
+          <strong>Line-up</strong>, optional. Up to 30 players with shirt numbers, typed in one at
+          a time or pasted as a list. It gives the team a line-up screen and a list to pick goal
+          scorers from. See <Link href="/docs/line-ups">Line-ups</Link>.
         </li>
       </ul>
       <Callout tone="warning" title="Watch out for the key colour">
@@ -88,7 +93,7 @@ export default function MatchSettingsPage() {
       <h2 id="club-presets">Club presets</h2>
       <p>
         If you film the same club every week, save it once. In a team&apos;s settings, press{" "}
-        <strong>Save as club</strong> to keep its name, abbreviation, colours and logo. Next time,
+        <strong>Save as club</strong> to keep its name, abbreviation, colours, logo and line-up. Next time,
         choose it from <strong>Load a saved club</strong> to fill the home or away slot in one
         step.
       </p>
@@ -99,8 +104,8 @@ export default function MatchSettingsPage() {
 
       <h2 id="saved-match-settings">Saved match settings</h2>
       <p>
-        <strong>Save / Restore Match Settings</strong> stores a whole fixture: both teams, the
-        venue, kick-off time and the timer setup. This is handy for a cup run or a fixture you
+        <strong>Save / Restore Match Settings</strong> stores a whole fixture: both teams with
+        their line-ups, the venue, kick-off time and the timer setup. This is handy for a cup run or a fixture you
         stream every season. Restoring replaces the current match settings, so PlayOverlay asks you
         to confirm first.
       </p>

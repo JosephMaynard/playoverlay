@@ -78,7 +78,7 @@ const MORE_FEATURES = [
   {
     icon: BookmarkIcon,
     title: "Club presets",
-    body: "Save a club's name, abbreviation, colours and logo once, then load it into the home or away slot for the next fixture.",
+    body: "Save a club's name, abbreviation, colours, logo and squad once, then load it into the home or away slot for the next fixture.",
   },
   {
     icon: TargetIcon,
@@ -174,7 +174,7 @@ export function Features() {
             label="Goals"
             title="Every goal logged, with a banner on air"
             media={<ImageSlot name="screen-goal-banner" sizes="(min-width: 1216px) 660px, (min-width: 1024px) 55vw, 100vw" />}
-            caption="The goal banner goes on air by itself when you press the goal button."
+            caption="The goal banner goes on air by itself when a goal is scored. Here it is shown again with the scorer added."
             link={{ href: "/docs/running-a-match#goals", label: "Goals, scorers and the banner" }}
           >
             <p>
@@ -185,6 +185,47 @@ export function Features() {
             <p>
               Add the scorers&apos; names at half-time and the end screen lists who scored and
               when.
+            </p>
+          </FeatureRow>
+
+          <FeatureRow
+            reverse
+            label="Line-ups"
+            title="Line-ups and scorers from the team sheet"
+            media={
+              <ImageSlot
+                name="screen-home-lineup"
+                sizes="(min-width: 1216px) 660px, (min-width: 1024px) 55vw, 100vw"
+              />
+            }
+            caption="The Home Line-up screen, in the club's colours."
+            link={{ href: "/docs/line-ups", label: "Line-ups and rotating screens" }}
+          >
+            <p>
+              Paste each team sheet into Match Settings and each team gets a line-up screen. When
+              you add the scorers, pick them from the squad and the banner shows their number and
+              name.
+            </p>
+            <p>
+              At half-time the display can cycle through the line-ups, the scoreboard and your own
+              graphics by itself, and it stops when you kick off again.
+            </p>
+          </FeatureRow>
+
+          <FeatureRow
+            narrowMedia
+            label="Phone remote"
+            title="Run it from the touchline"
+            media={<ImageSlot name="phone-remote" sizes="(min-width: 1024px) 384px, 100vw" />}
+            link={{ href: "/docs/phone-remote", label: "Setting up the phone remote" }}
+          >
+            <p>
+              Turn on the phone remote, scan the QR code and enter the PIN. Your phone can then add
+              goals, pause the clock, start the next half and change what&apos;s on air.
+            </p>
+            <p>
+              It works over the venue&apos;s wifi with no internet connection and no app to
+              install, and it stays in step with the laptop.
             </p>
           </FeatureRow>
 
@@ -207,23 +248,6 @@ export function Features() {
               needed.
             </p>
             <p>You can stream the score bug and show the scoreboard at the same time.</p>
-          </FeatureRow>
-
-          <FeatureRow
-            narrowMedia
-            label="Phone remote"
-            title="Run it from the touchline"
-            media={<ImageSlot name="phone-remote" sizes="(min-width: 1024px) 384px, 100vw" />}
-            link={{ href: "/docs/phone-remote", label: "Setting up the phone remote" }}
-          >
-            <p>
-              Turn on the phone remote, scan the QR code and enter the PIN. Your phone can then add
-              goals, pause the clock, start the next half and change what&apos;s on air.
-            </p>
-            <p>
-              It works over the venue&apos;s wifi with no internet connection and no app to
-              install, and it stays in step with the laptop.
-            </p>
           </FeatureRow>
         </div>
 

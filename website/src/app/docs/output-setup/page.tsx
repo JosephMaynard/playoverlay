@@ -220,6 +220,18 @@ export default function OutputSetupPage() {
             </td>
             <td>Spectator scoreboard</td>
           </tr>
+          <tr>
+            <td>
+              <code>homeLineup</code>
+            </td>
+            <td>Home team line-up</td>
+          </tr>
+          <tr>
+            <td>
+              <code>awayLineup</code>
+            </td>
+            <td>Away team line-up</td>
+          </tr>
         </tbody>
       </table>
       <p>

@@ -26,7 +26,7 @@ keeps that door open.
 | `/` | Home: hero, how it works, features with screenshots, output options, FAQ, download call to action |
 | `/download` | Fetches the latest GitHub release at request time (hourly ISR) and links straight to each platform's asset, falling back to the releases page if the API or an asset is missing. Also covers first launch of the unsigned builds |
 | `/docs` | Guide overview, linking to every topic |
-| `/docs/<slug>` | One page per guide topic: `getting-started`, `match-settings`, `running-a-match`, `screens`, `output-setup`, `phone-remote`, `shortcuts-and-stream-deck`, `languages`, `troubleshooting` |
+| `/docs/<slug>` | One page per guide topic: `getting-started`, `match-settings`, `running-a-match`, `line-ups`, `screens`, `output-setup`, `phone-remote`, `shortcuts-and-stream-deck`, `languages`, `troubleshooting` |
 | `/opengraph-image` | The social sharing image, generated with `ImageResponse` |
 | `/sitemap.xml`, `/robots.txt` | Generated from `src/app/sitemap.ts` and `src/app/robots.ts` |
 

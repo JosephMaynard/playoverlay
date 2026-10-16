@@ -43,6 +43,12 @@ export const DOC_GROUPS: DocGroup[] = [
           "The clock, match phases, stoppage time, goals and scorers, the goal banner, undo and redo, starting a new match, and what happens if the app closes mid-match.",
       },
       {
+        slug: "line-ups",
+        title: "Line-ups",
+        description:
+          "Enter or paste each team's players, pick goal scorers from the squad, put a line-up on air, and let the display rotate through screens by itself before kick-off and at half-time.",
+      },
+      {
         slug: "screens",
         title: "Screens and graphics",
         description:

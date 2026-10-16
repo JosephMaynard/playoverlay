@@ -63,6 +63,12 @@ export default function RunningAMatchPage() {
         the on-air graphic for you: starting a phase puts the score bug on air, and pressing Stop
         brings back the match title. Turn it off if you&apos;d rather choose every screen yourself.
       </p>
+      <p>
+        To keep the display busy during the break, the <strong>Rotate screens</strong> panel can
+        cycle through the match title, line-ups and other screens, and can start by itself when
+        you stop the clock at half-time. See{" "}
+        <Link href="/docs/line-ups#rotating">rotating screens</Link>.
+      </p>
 
       <h2 id="stoppage-time">Stoppage time</h2>
       <p>
@@ -86,15 +92,22 @@ export default function RunningAMatchPage() {
         &quot;Smith 23&apos;, 67&apos;&quot;. Goals without a name still appear, as bare minutes.
         You can also remove a goal from the log there.
       </p>
+      <p>
+        If you have entered the team&apos;s line-up, the scorer field offers its players as you
+        type, by name or shirt number, and you can still type any other name. See{" "}
+        <Link href="/docs/line-ups#scorers">picking the scorer</Link>.
+      </p>
 
       <h2 id="goal-banner">The goal banner</h2>
-      <Figure caption="The goal banner, with the scoring team and the minute.">
+      <Figure caption="The goal banner, with the scoring team, the scorer picked from the line-up and the minute.">
         <ImageSlot name="screen-goal-banner" sizes="(min-width: 1024px) 768px, 100vw" />
       </Figure>
       <p>
         Every goal puts a banner on air straight away, with the team and the minute and no typing.
         To show a banner again later, for a replay or a highlight, press{" "}
-        <strong>Show on air</strong> next to that goal in the Goals panel.
+        <strong>Show on air</strong> next to that goal in the Goals panel. Once you have added
+        the scorer, the banner includes their name, with the shirt number if you picked them from
+        the line-up.
       </p>
       <p>
         If you&apos;d rather not show banners automatically, turn off{" "}

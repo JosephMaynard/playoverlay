@@ -4,7 +4,7 @@ import { eyebrow, sectionTitle, textLink } from "@/lib/ui";
 const STEPS = [
   {
     title: "Set up the teams",
-    body: "Enter both clubs' names, three-letter abbreviations, colours and logos, plus the venue, kick-off time and half length. Save a club once and load it next week in one click.",
+    body: "Enter both clubs' names, three-letter abbreviations, colours and logos, plus the venue, kick-off time and half length, and the line-ups if you have them. Save a club once and load it next week in one click.",
     href: "/docs/match-settings",
     linkLabel: "Match settings",
   },

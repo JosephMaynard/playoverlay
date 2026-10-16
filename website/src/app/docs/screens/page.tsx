@@ -15,6 +15,7 @@ const SECTIONS = [
   { id: "scoreboard", title: "Scoreboard" },
   { id: "penalties", title: "Penalties" },
   { id: "end-screen", title: "End screen" },
+  { id: "line-ups", title: "Home and away line-ups" },
   { id: "custom-graphics", title: "Custom graphics and overlays" },
   { id: "key-colour", title: "Choosing a key colour" },
 ];
@@ -27,9 +28,15 @@ export default function ScreensPage() {
         The <strong>Display Controls</strong> panel on the dashboard has a button for each screen:{" "}
         <strong>None</strong>, <strong>Match Title</strong>, <strong>Score Bug</strong>,{" "}
         <strong>Penalties</strong>, <strong>End Screen</strong> and <strong>Scoreboard</strong>,
-        plus any custom screens you have added. The highlighted button is what is on air, and the
-        preview above it shows the output exactly. Screens animate in and out, so switching looks
-        deliberate on the stream.
+        plus <strong>Home Line-up</strong> and <strong>Away Line-up</strong> once a team has
+        players, and any custom screens you have added. The highlighted button is what is on air,
+        and the preview above it shows the output exactly. Screens animate in and out, so
+        switching looks deliberate on the stream.
+      </p>
+      <p>
+        To leave the display cycling through several screens before kick-off or at half-time, use
+        the <strong>Rotate screens</strong> panel under Display Controls. See{" "}
+        <Link href="/docs/line-ups#rotating">rotating screens</Link>.
       </p>
       <p>
         <strong>None</strong> clears the graphics and leaves only the key colour, so the camera
@@ -86,6 +93,17 @@ export default function ScreensPage() {
       <p>
         For full time: the final score, the shootout result if there was one, and each team&apos;s
         scorers with their minutes. Add scorer names in the Goals panel before you put it on air.
+      </p>
+
+      <h2 id="line-ups">Home and away line-ups</h2>
+      <Figure caption="The Away Line-up screen, in the away team's colours.">
+        <ImageSlot name="screen-away-lineup" sizes="(min-width: 1024px) 768px, 100vw" />
+      </Figure>
+      <p>
+        <strong>Home Line-up</strong> and <strong>Away Line-up</strong> show a team&apos;s name,
+        logo and colours above its players and their shirt numbers, in two columns for more than
+        eleven players. Each button appears once that team has players in Match Settings. See{" "}
+        <Link href="/docs/line-ups">Line-ups</Link> for entering a squad.
       </p>
 
       <h2 id="custom-graphics">Custom graphics and overlays</h2>
