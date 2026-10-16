@@ -6,6 +6,16 @@ until a file with its name exists in `public/images/`, then shows that file
 instead. The check happens when the page is built, so add the file and rebuild
 (or restart `npm run dev`).
 
+## Where the photos came from
+
+The five photo slots were generated with an AI image tool on 16 October 2026
+from the prompts kept below, then the real score bug, dashboard, scoreboard
+and phone remote captures were composited onto the screens. The hardware is
+illustrative and unbranded. `obs-browser-source.png` is a real capture of
+OBS Studio 32 with the PlayOverlay browser source at `http://127.0.0.1:4750/`,
+with the main window and the Browser Properties dialog assembled into one
+1920 × 1200 frame. No app interface in any image was AI-generated.
+
 ## How to add an image
 
 1. Make the image at the size listed below (or larger, at the same aspect
@@ -40,12 +50,12 @@ blue) so the site stays consistent.
 
 | # | Slot (file name) | Size | Ratio | Kind | Used on | Status |
 | - | ---------------- | ---- | ----- | ---- | ------- | ------ |
-| 1 | `hero-match` | 2400 × 1350 | 16:9 | Photo + composite | Home hero | Needed |
-| 2 | `setup-atem` | 1600 × 1200 | 4:3 | Photo + composite | Home output options (cropped to 16:10), Output setup | Needed |
-| 3 | `phone-remote` | 1200 × 1500 | 4:5 | Photo + composite | Home features, Phone remote | Needed |
-| 4 | `venue-scoreboard` | 1920 × 1080 | 16:9 | Photo + composite | Home output options (cropped to 16:10), Output setup | Needed |
-| 5 | `stream-deck` | 1600 × 1200 | 4:3 | Photo + composite | Keyboard shortcuts and Stream Deck | Needed |
-| 6 | `obs-browser-source` | 1920 × 1200 | 16:10 | Screenshot | Home output options, Output setup | Needed |
+| 1 | `hero-match` | 2400 × 1350 | 16:9 | Photo + composite | Home hero | Done: `hero-match.webp` |
+| 2 | `setup-atem` | 1600 × 1200 | 4:3 | Photo + composite | Home output options (cropped to 16:10), Output setup | Done: `setup-atem.webp` |
+| 3 | `phone-remote` | 1200 × 1500 | 4:5 | Photo + composite | Home features, Phone remote | Done: `phone-remote.webp` |
+| 4 | `venue-scoreboard` | 1920 × 1080 | 16:9 | Photo + composite | Home output options (cropped to 16:10), Output setup | Done: `venue-scoreboard.webp` |
+| 5 | `stream-deck` | 1600 × 1200 | 4:3 | Photo + composite | Keyboard shortcuts and Stream Deck | Done: `stream-deck.webp` |
+| 6 | `obs-browser-source` | 1920 × 1200 | 16:10 | Screenshot | Home output options, Output setup | Done: `obs-browser-source.png` |
 | 7 | `match-settings` | 1600 × 1000 | 16:10 | Screenshot | Match settings, Line-ups | Done: `match-settings.png` |
 | 8 | `screen-match-title` | 2560 × 1440 | 16:9 | Screenshot | Screens | Done: `screen-match-title.png` |
 | 9 | `screen-goal-banner` | 2560 × 1440 | 16:9 | Screenshot | Home features, Running a match | Done: `screen-goal-banner.png` |

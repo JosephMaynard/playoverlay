@@ -27,7 +27,7 @@ export const IMAGE_SLOTS = {
     width: 1600,
     height: 1200,
     ratio: "4:3",
-    alt: "A laptop running PlayOverlay connected by HDMI to a Blackmagic ATEM Mini, with a camera on a tripod beside the pitch",
+    alt: "A laptop running PlayOverlay beside a compact HDMI video switcher, with a camera on a tripod beside the pitch",
     summary: "Laptop, ATEM Mini and camera on a pitchside table",
   },
   "phone-remote": {
@@ -48,14 +48,14 @@ export const IMAGE_SLOTS = {
     width: 1600,
     height: 1200,
     ratio: "4:3",
-    alt: "An Elgato Stream Deck next to a laptop running PlayOverlay, with scoring and screen buttons lit",
+    alt: "A fifteen-key control pad with coloured keys next to a laptop running PlayOverlay on a pitchside table",
     summary: "Stream Deck beside the laptop on the operator's table",
   },
   "obs-browser-source": {
     width: 1920,
     height: 1200,
     ratio: "16:10",
-    alt: "OBS Studio with a Browser Source pointed at PlayOverlay, the score bug showing over the camera scene",
+    alt: "OBS Studio with a Browser Source pointed at PlayOverlay, the score bug showing over a demo match image",
     summary: "Screenshot: OBS with the PlayOverlay browser source added",
   },
   "match-settings": {
