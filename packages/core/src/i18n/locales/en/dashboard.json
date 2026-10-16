@@ -7,6 +7,7 @@
     "empty": "No goals yet. Each goal is listed here with its minute as it is scored.",
     "goal": "{{team}} goal",
     "goalWithMinute": "{{team}} goal, {{minute}}",
+    "pickScorer": "Not in the line-up? Just type a name.",
     "remove": "Remove goal",
     "removeAria": "Remove goal: {{goal}}",
     "scorerLabel": "Scorer ({{goal}})",

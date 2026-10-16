@@ -83,6 +83,16 @@ describe('GoalBannerLayout', () => {
     expect(container.firstChild).not.toHaveClass('GoalBannerLayout_active');
   });
 
+  it('shows the shirt number before a scorer picked from the line-up', () => {
+    render(
+      banner({ goalBanner: { goalId: 'g1', shownAt: Date.now() } }, [
+        { ...goal, scorerNumber: '9' },
+      ])
+    );
+
+    expect(screen.getByText('9 Smith')).toBeInTheDocument();
+  });
+
   it('stays off a blank output and a full-screen graphic', () => {
     const goalBanner = { goalId: 'g1', shownAt: Date.now() };
     const { container, rerender } = render(

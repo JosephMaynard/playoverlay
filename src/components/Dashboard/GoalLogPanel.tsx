@@ -1,6 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Switch } from '@headlessui/react';
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+  Switch,
+} from '@headlessui/react';
 import { MegaphoneIcon, TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import { ScoresTeamName } from '@playoverlay/screens';
@@ -8,19 +14,32 @@ import {
   Goal,
   MatchSettings,
   MAX_SCORER_LENGTH,
+  Player,
   formatGoalMinute,
   classNames,
+  teamPlayers,
 } from '@playoverlay/core';
+
+// Records a goal's scorer. A player picked from the line-up passes their
+// shirt number ('' for a player without one); typed text passes none.
+type SetScorer = (
+  goalId: string,
+  scorer: string,
+  scorerNumber?: string
+) => void;
 
 export interface Props {
   goals: Goal[];
   matchSettings: MatchSettings;
   showBannerAutomatically: boolean;
   setShowBannerAutomatically: (showBannerAutomatically: boolean) => void;
-  setScorer: (goalId: string, scorer: string) => void;
+  setScorer: SetScorer;
   showBanner: (goalId: string) => void;
   removeGoal: (goalId: string) => void;
 }
+
+const scorerInputClassName =
+  'block w-full min-w-0 rounded-md border-0 px-2 py-1.5 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600';
 
 // The scorer field for one goal. Like the score editor, it commits on blur or
 // Enter rather than per keystroke, so a half-typed name never reaches the
@@ -34,7 +53,7 @@ function ScorerInput({
   goal: Goal;
   label: string;
   placeholder: string;
-  setScorer: (goalId: string, scorer: string) => void;
+  setScorer: SetScorer;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const commit = () => {
@@ -48,7 +67,7 @@ function ScorerInput({
       aria-label={label}
       placeholder={placeholder}
       maxLength={MAX_SCORER_LENGTH}
-      className="block w-full min-w-0 rounded-md border-0 px-2 py-1.5 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+      className={scorerInputClassName}
       value={draft ?? goal.scorer ?? ''}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={commit}
@@ -56,6 +75,134 @@ function ScorerInput({
         if (event.key === 'Enter') commit();
       }}
     />
+  );
+}
+
+// The scorer field for a goal by a team with a line-up: the same field,
+// offering the team's players as the operator types (matching name or shirt
+// number). Picking one records the name and number together; anything else
+// typed is committed on Enter or blur exactly as ScorerInput does, so a
+// scorer outside the line-up (a late addition, an own goal) is never a
+// problem.
+function ScorerPicker({
+  goal,
+  players,
+  label,
+  placeholder,
+  setScorer,
+}: {
+  goal: Goal;
+  players: Player[];
+  label: string;
+  placeholder: string;
+  setScorer: SetScorer;
+}) {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState('');
+  // The typed text, or null when nothing has been typed since the last
+  // commit. Kept in a ref as well as rendered: a Tab can pick an option and
+  // blur the field within one keystroke, and the blur must see the pick.
+  const draftRef = useRef<string | null>(null);
+  const optionsRef = useRef<HTMLDivElement | null>(null);
+
+  const search = query.trim().toLocaleLowerCase();
+  const matches = search
+    ? players.filter(
+        (player) =>
+          player.name.toLocaleLowerCase().includes(search) ||
+          player.number?.toLocaleLowerCase().startsWith(search)
+      )
+    : players;
+
+  const commitTyped = () => {
+    if (draftRef.current === null) return;
+    const typed = draftRef.current;
+    draftRef.current = null;
+    setQuery('');
+    setScorer(goal.id, typed);
+  };
+
+  const pick = (player: Player | null) => {
+    // Headless UI reports null when the field is cleared; clearing is typed
+    // text like any other and is committed on blur.
+    if (!player) return;
+    draftRef.current = null;
+    setQuery('');
+    setScorer(goal.id, player.name, player.number ?? '');
+  };
+
+  const selected =
+    players.find(
+      (player) =>
+        player.name === goal.scorer && player.number === goal.scorerNumber
+    ) ?? null;
+
+  return (
+    <Combobox
+      value={selected}
+      onChange={pick}
+      by={(left, right) =>
+        left?.name === right?.name && left?.number === right?.number
+      }
+      immediate
+    >
+      {({ open, activeOption }) => (
+        <div className="relative">
+          <ComboboxInput
+            aria-label={label}
+            placeholder={placeholder}
+            maxLength={MAX_SCORER_LENGTH}
+            className={scorerInputClassName}
+            displayValue={() => goal.scorer ?? ''}
+            onChange={(event) => {
+              draftRef.current = event.target.value;
+              setQuery(event.target.value);
+            }}
+            onKeyDown={(event) => {
+              // With a player highlighted, Enter picks them (Headless UI
+              // handles it); otherwise it commits what was typed.
+              if (event.key === 'Enter' && !(open && activeOption)) {
+                commitTyped();
+              }
+              // Escape closes the list and puts the field back to the
+              // recorded scorer, so the typing is abandoned too.
+              if (event.key === 'Escape') {
+                draftRef.current = null;
+                setQuery('');
+              }
+            }}
+            onBlur={(event) => {
+              if (optionsRef.current?.contains(event.relatedTarget as Node)) {
+                return;
+              }
+              commitTyped();
+            }}
+          />
+          <ComboboxOptions
+            ref={optionsRef}
+            anchor="bottom start"
+            modal={false}
+            className="z-50 w-[var(--input-width)] min-w-56 rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 [--anchor-gap:4px]"
+          >
+            {matches.map((player, index) => (
+              <ComboboxOption
+                key={`${player.number ?? ''}-${player.name}-${index}`}
+                value={player}
+                className="flex cursor-default select-none items-center gap-x-3 px-3 py-1.5 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+              >
+                <span className="w-8 flex-shrink-0 text-right tabular-nums opacity-60">
+                  {player.number}
+                </span>
+                <span className="truncate">{player.name}</span>
+              </ComboboxOption>
+            ))}
+            <p className="px-3 py-1.5 text-xs text-gray-500">
+              {t('dashboard:goalLog.pickScorer')}
+            </p>
+          </ComboboxOptions>
+        </div>
+      )}
+    </Combobox>
   );
 }
 
@@ -113,6 +260,10 @@ export default function GoalLogPanel({
                   minute,
                 })
               : t('dashboard:goalLog.goal', { team: teamName });
+            const scorerLabel = t('dashboard:goalLog.scorerLabel', {
+              goal: description,
+            });
+            const players = teamPlayers(matchSettings, goal.team);
             return (
               <li
                 key={goal.id}
@@ -141,15 +292,28 @@ export default function GoalLogPanel({
                 <span className="w-14 flex-shrink-0 text-sm font-semibold tabular-nums text-gray-900">
                   {minute}
                 </span>
-                <div className="min-w-0 flex-grow">
-                  <ScorerInput
-                    goal={goal}
-                    label={t('dashboard:goalLog.scorerLabel', {
-                      goal: description,
-                    })}
-                    placeholder={t('dashboard:goalLog.scorerPlaceholder')}
-                    setScorer={setScorer}
-                  />
+                <div className="flex min-w-0 flex-grow items-center gap-x-2">
+                  {goal.scorerNumber && (
+                    <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-gray-500">
+                      {goal.scorerNumber}
+                    </span>
+                  )}
+                  {players.length > 0 ? (
+                    <ScorerPicker
+                      goal={goal}
+                      players={players}
+                      label={scorerLabel}
+                      placeholder={t('dashboard:goalLog.scorerPlaceholder')}
+                      setScorer={setScorer}
+                    />
+                  ) : (
+                    <ScorerInput
+                      goal={goal}
+                      label={scorerLabel}
+                      placeholder={t('dashboard:goalLog.scorerPlaceholder')}
+                      setScorer={setScorer}
+                    />
+                  )}
                 </div>
                 <button
                   type="button"
