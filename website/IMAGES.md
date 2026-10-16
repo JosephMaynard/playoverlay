@@ -27,7 +27,7 @@ instead. The check happens when the page is built, so add the file and rebuild
   paste a real PlayOverlay screenshot onto any screen in the picture. The
   prompts tell the generator to leave screens blank because AI image tools
   invent fake, unreadable interfaces.
-- **Screenshot slots** (6 to 10) show the app itself. These must be real
+- **Screenshot slots** (6 to 14) show the app itself. These must be real
   screenshots: a generated picture of the interface would be wrong in the
   details people use to follow the guide. Each has capture instructions
   instead of a prompt.
@@ -38,18 +38,31 @@ blue) so the site stays consistent.
 
 ## Summary
 
-| # | Slot (file name) | Size | Ratio | Kind | Used on |
-| - | ---------------- | ---- | ----- | ---- | ------- |
-| 1 | `hero-match` | 2400 × 1350 | 16:9 | Photo + composite | Home hero |
-| 2 | `setup-atem` | 1600 × 1200 | 4:3 | Photo + composite | Home output options (cropped to 16:10), Output setup |
-| 3 | `phone-remote` | 1200 × 1500 | 4:5 | Photo + composite | Home features, Phone remote |
-| 4 | `venue-scoreboard` | 1920 × 1080 | 16:9 | Photo + composite | Home output options (cropped to 16:10), Output setup |
-| 5 | `stream-deck` | 1600 × 1200 | 4:3 | Photo + composite | Keyboard shortcuts and Stream Deck |
-| 6 | `obs-browser-source` | 1920 × 1200 | 16:10 | Screenshot | Home output options, Output setup |
-| 7 | `match-settings` | 1600 × 1200 | 4:3 | Screenshot | Match settings |
-| 8 | `screen-match-title` | 2560 × 1440 | 16:9 | Screenshot | Screens |
-| 9 | `screen-goal-banner` | 2560 × 1440 | 16:9 | Screenshot | Home features, Running a match |
-| 10 | `screen-end-screen` | 2560 × 1440 | 16:9 | Screenshot | Screens |
+| # | Slot (file name) | Size | Ratio | Kind | Used on | Status |
+| - | ---------------- | ---- | ----- | ---- | ------- | ------ |
+| 1 | `hero-match` | 2400 × 1350 | 16:9 | Photo + composite | Home hero | Needed |
+| 2 | `setup-atem` | 1600 × 1200 | 4:3 | Photo + composite | Home output options (cropped to 16:10), Output setup | Needed |
+| 3 | `phone-remote` | 1200 × 1500 | 4:5 | Photo + composite | Home features, Phone remote | Needed |
+| 4 | `venue-scoreboard` | 1920 × 1080 | 16:9 | Photo + composite | Home output options (cropped to 16:10), Output setup | Needed |
+| 5 | `stream-deck` | 1600 × 1200 | 4:3 | Photo + composite | Keyboard shortcuts and Stream Deck | Needed |
+| 6 | `obs-browser-source` | 1920 × 1200 | 16:10 | Screenshot | Home output options, Output setup | Needed |
+| 7 | `match-settings` | 1600 × 1000 | 16:10 | Screenshot | Match settings, Line-ups | Done: `match-settings.png` |
+| 8 | `screen-match-title` | 2560 × 1440 | 16:9 | Screenshot | Screens | Done: `screen-match-title.png` |
+| 9 | `screen-goal-banner` | 2560 × 1440 | 16:9 | Screenshot | Home features, Running a match | Done: `screen-goal-banner.png` |
+| 10 | `screen-end-screen` | 2560 × 1440 | 16:9 | Screenshot | Screens | Done: `screen-end-screen.png` |
+| 11 | `screen-home-lineup` | 2560 × 1440 | 16:9 | Screenshot | Home features, Line-ups | Done: `screen-home-lineup.png` |
+| 12 | `screen-away-lineup` | 2560 × 1440 | 16:9 | Screenshot | Screens | Done: `screen-away-lineup.png` |
+| 13 | `scorer-picker` | 1600 × 1000 | 16:10 | Screenshot | Line-ups | Done: `scorer-picker.png` |
+| 14 | `rotation-panel` | 1600 × 1000 | 16:10 | Screenshot | Line-ups | Done: `rotation-panel.png` |
+
+The three files in `public/screenshots/` (`dashboard.png` at 1600 × 1000,
+`score-bug.png` and `scoreboard.png` at 2560 × 1440) were recaptured with the
+line-ups feature: the dashboard shows the Home Line-up and Away Line-up
+buttons and the Rotate screens panel. All the captured screenshots show
+Winchester F.C. 2-1 Romsey United in the second half.
+
+To replace a finished screenshot, recapture it the same way and save it over
+the existing file. The capture instructions below are kept for that.
 
 ---
 
@@ -161,19 +174,19 @@ A photorealistic close-up of a compact USB control pad with fifteen square backl
   4. Open the browser source's Properties so the URL is visible, and take a
      screenshot of the OBS window at 1920 × 1200 (or crop to 16:10).
 
-## 7. `match-settings` (screenshot)
+## 7. `match-settings` (screenshot, done)
 
-- **Size:** 1600 × 1200 px, 4:3
-- **Used on:** the Match settings guide, at the top.
-- **Should show:** the Match Settings panel open, filled in: Winchester F.C.
-  (WIN, red) and Romsey United (ROM, blue) with logos, a venue, kick-off time
-  and half length. Ideally the **Save as club** and **Load a saved club**
-  controls are visible.
+- **Size:** 1600 × 1000 px, 16:10 (the dashboard window size)
+- **Used on:** the Match settings guide, at the top, and the Line-ups guide.
+- **Shows:** the Match Settings panel open over the dimmed dashboard, with
+  Winchester F.C.'s line-up of 14 numbered players, the **Add player** and
+  **Paste a list** buttons, and **Load a saved club** and **Save as club** for
+  the away team below.
 - **How to capture:** open Match Settings from the people icon on the
-  dashboard, fill it in, and screenshot the panel (on a Mac,
-  Cmd+Shift+4 then Space, and click the window). Crop to 4:3 around the panel.
+  dashboard, fill in the home team's line-up, scroll so the Line-up section
+  is in view, and screenshot the whole dashboard window at 1600 × 1000.
 
-## 8. `screen-match-title` (screenshot)
+## 8. `screen-match-title` (screenshot, done)
 
 - **Size:** 2560 × 1440 px, 16:9 (the same as the existing screenshots)
 - **Used on:** the Screens guide.
@@ -184,19 +197,20 @@ A photorealistic close-up of a compact USB control pad with fifteen square backl
   **Match Title** on air, and screenshot the display window full screen. Take
   it the same way as `public/screenshots/score-bug.png` so they match.
 
-## 9. `screen-goal-banner` (screenshot)
+## 9. `screen-goal-banner` (screenshot, done)
 
 - **Size:** 2560 × 1440 px, 16:9
 - **Used on:** the home page features ("Every goal logged") and the Running a
   match guide.
-- **Should show:** the display window with the score bug and the goal banner
-  on air after a goal, showing the team and minute.
+- **Shows:** the display window with the score bug and the goal banner on
+  air, reading "GOAL Winchester F.C. 9 Ali Smith 23'". The scorer was picked
+  from the line-up and the banner brought back with **Show on air**.
 - **How to capture:** start the first half, let the clock run a minute or two,
   press **Home Team Scored**, and screenshot the display window while the
   banner is showing. If it disappears too quickly, use **Show on air** next to
   the goal in the Goals panel to bring it back.
 
-## 10. `screen-end-screen` (screenshot)
+## 10. `screen-end-screen` (screenshot, done)
 
 - **Size:** 2560 × 1440 px, 16:9
 - **Used on:** the Screens guide.
@@ -205,3 +219,47 @@ A photorealistic close-up of a compact USB control pad with fifteen square backl
 - **How to capture:** in a test match, log a few goals with the clock
   running, add scorer names in the Goals panel, stop the clock, put **End
   Screen** on air, and screenshot the display window.
+
+## 11. `screen-home-lineup` (screenshot, done)
+
+- **Size:** 2560 × 1440 px, 16:9
+- **Used on:** the home page features ("Line-ups and scorers from the team
+  sheet") and the Line-ups guide.
+- **Shows:** the Home Line-up screen for Winchester F.C., 14 players in two
+  columns with the shirt numbers in the club's red, on the blue key colour.
+- **How to capture:** enter more than eleven players for the home team in
+  Match Settings, put **Home Line-up** on air, and screenshot the display
+  window full screen, the same way as `public/screenshots/score-bug.png`.
+
+## 12. `screen-away-lineup` (screenshot, done)
+
+- **Size:** 2560 × 1440 px, 16:9
+- **Used on:** the Screens guide.
+- **Shows:** the Away Line-up screen for Romsey United, eleven players in a
+  single column with the shirt numbers in the club's blue.
+- **How to capture:** as for `screen-home-lineup`, with eleven or fewer away
+  players so the single-column layout is shown.
+
+## 13. `scorer-picker` (screenshot, done)
+
+- **Size:** 1600 × 1000 px, 16:10
+- **Used on:** the Line-ups guide ("Picking the scorer").
+- **Shows:** the dashboard with the Goals panel in view, a scorer being typed
+  next to a goal and the hint "Not in the line-up? Just type a name." under
+  the field. The preview shows the goal banner with "9 Ali Smith 23'".
+- **How to capture:** with both line-ups entered and a few goals logged,
+  scroll the dashboard to the Goals panel, click into a scorer field, type a
+  couple of letters that match no player, and screenshot the dashboard window.
+
+## 14. `rotation-panel` (screenshot, done)
+
+- **Size:** 1600 × 1000 px, 16:10
+- **Used on:** the Line-ups guide ("Rotating screens").
+- **Shows:** the dashboard with the **Rotate screens** panel opened under
+  Display Controls and its description in view. The screen ticks, **Seconds
+  per screen** and **Start automatically at half-time** are below the bottom
+  edge of this capture.
+- **Better version:** scroll the left column so the whole panel is in view,
+  with a few screens ticked, the seconds set and the automatic start switched
+  on, and screenshot the dashboard window at 1600 × 1000. Save it over
+  `public/images/rotation-panel.png`.

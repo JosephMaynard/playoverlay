@@ -8,11 +8,11 @@ import scoreboard from "../../public/screenshots/scoreboard.png";
 export const SCREENSHOTS = {
   dashboard: {
     src: dashboard,
-    alt: "The PlayOverlay dashboard: a preview of the output, screen buttons, the match clock with phase buttons, both teams' scores and the penalties panel",
+    alt: "The PlayOverlay dashboard: a preview of the output, the screen buttons including Home Line-up and Away Line-up, the Rotate screens panel, the match clock with phase buttons, both teams' scores and the penalties panel",
   },
   scoreBug: {
     src: scoreBug,
-    alt: "The display output: a score bug reading WIN 2-1 ROM with the clock at 2:42, in the top-left of a solid blue key-colour background",
+    alt: "The display output: a score bug reading WIN 2-1 ROM with the clock at 63:12, in the top-left of a solid blue key-colour background",
   },
   scoreboard: {
     src: scoreboard,
