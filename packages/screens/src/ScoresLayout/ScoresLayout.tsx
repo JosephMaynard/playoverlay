@@ -9,7 +9,12 @@ export interface Props {
   active: boolean;
 }
 
-export default function Scores({ scores, matchSettings, time, active }: Props) {
+export default function ScoresLayout({
+  scores,
+  matchSettings,
+  time,
+  active,
+}: Props) {
   // The reveal works by transitioning max-width with content-driven sizing
   // (see ScoresLayout.css), so logos and extra chips need no per-count
   // width modifier classes.

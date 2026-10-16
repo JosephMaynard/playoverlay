@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
-import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
+import { ScoresTeamName } from '@playoverlay/screens';
 import { Club } from '@playoverlay/core';
 
 export interface Props {

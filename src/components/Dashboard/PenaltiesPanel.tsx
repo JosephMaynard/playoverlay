@@ -4,7 +4,7 @@ import { Penalty, homeOrAway, MatchSettings } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
-import PenaltiesBoard from '../Screens/PenaltiesLayout/PenaltiesBoard';
+import { PenaltiesBoard } from '@playoverlay/screens';
 
 export interface Props {
   penalties: Penalty[];

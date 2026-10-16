@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { defaultMatchSettings } from '@playoverlay/core';
-import ScoreboardLayout from '../Screens/ScoreboardLayout/ScoreboardLayout';
+import ScoreboardLayout from '../ScoreboardLayout/ScoreboardLayout';
 
 describe('ScoreboardLayout', () => {
   it('renders team names, scores, both clocks, and team colours', () => {

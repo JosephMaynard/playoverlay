@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Switch } from '@headlessui/react';
 import { MegaphoneIcon, TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
+import { ScoresTeamName } from '@playoverlay/screens';
 import {
   Goal,
   MatchSettings,

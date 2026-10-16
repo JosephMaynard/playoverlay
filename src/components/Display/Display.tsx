@@ -15,7 +15,7 @@ import {
   detectLanguage,
 } from '@playoverlay/core';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
-import Screens from '../Screens/Screens';
+import Screens from '@playoverlay/screens';
 import { createDisplayTransport } from '../../displayTransport';
 
 // Lets a browser-source URL pin a specific screen regardless of what the

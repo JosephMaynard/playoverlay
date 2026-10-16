@@ -43,7 +43,7 @@ import {
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
-import Screens from '../Screens/Screens';
+import Screens from '@playoverlay/screens';
 import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';

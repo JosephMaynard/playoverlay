@@ -4,7 +4,7 @@ import {
   MatchSettings,
   calculatePenalties,
 } from '@playoverlay/core';
-import ScoresTeamName from '../../Screens/ScoresLayout/ScoresTeamName';
+import ScoresTeamName from '../ScoresLayout/ScoresTeamName';
 import PenaltyRow from './PenaltyRow';
 
 import './PenaltiesBoard.css';

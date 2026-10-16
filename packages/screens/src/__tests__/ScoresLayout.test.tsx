@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { defaultMatchSettings } from '@playoverlay/core';
-import ScoresLayout from '../Screens/ScoresLayout/ScoresLayout';
+import ScoresLayout from '../ScoresLayout/ScoresLayout';
 
 describe('ScoresLayout', () => {
   it('renders team abbreviations, score, running time, and additional time', () => {

@@ -7,8 +7,8 @@ import {
   Goal,
   MatchState,
 } from '@playoverlay/core';
-import GoalBannerLayout from '../Screens/GoalBannerLayout/GoalBannerLayout';
-import EndScreenLayout from '../Screens/EndScreenLayout/EndScreenLayout';
+import GoalBannerLayout from '../GoalBannerLayout/GoalBannerLayout';
+import EndScreenLayout from '../EndScreenLayout/EndScreenLayout';
 
 const settings = {
   ...defaultMatchSettings,
