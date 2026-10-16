@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   appSettingsSchema,
+  clubListSchema,
   customScreenListSchema,
   customScreenSchema,
   githubReleaseSchema,
@@ -9,6 +10,7 @@ import {
   matchSetingsSchema,
   matchSettingsListSchema,
   matchStateSchema,
+  playerListSchema,
   scoresSchema,
   timeSchema,
   updatesSchema,
@@ -20,6 +22,8 @@ import {
   defaultMatchState,
   defaultRemoteControlSettings,
   defaultScores,
+  defaultScreenRotationSettings,
+  MAX_PLAYERS_PER_TEAM,
 } from '../constants';
 
 describe('zod schemas', () => {
@@ -479,5 +483,144 @@ describe('matchEventLogSchema', () => {
     if (result.success) {
       expect(result.data.source).toBe('unknown');
     }
+  });
+});
+
+describe('line-up schemas', () => {
+  it('keeps a normal line-up unchanged', () => {
+    const players = [{ name: 'Ali Smith', number: '9' }, { name: 'Jo Bloggs' }];
+    expect(playerListSchema.parse(players)).toEqual(players);
+  });
+
+  it('tidies each player and drops the ones that cannot be repaired', () => {
+    expect(
+      playerListSchema.parse([
+        { name: '  Ali Smith ', number: ' 9 ' },
+        { name: '   ' },
+        { number: '4' },
+        'nonsense',
+        { name: 'Kim Lee', number: 1234 },
+        { name: 'Pat Jones', number: '1234' },
+        { name: 'x'.repeat(60) },
+      ])
+    ).toEqual([
+      { name: 'Ali Smith', number: '9' },
+      { name: 'Kim Lee' },
+      { name: 'Pat Jones' },
+      { name: 'x'.repeat(40) },
+    ]);
+  });
+
+  it('caps a line-up at the most players a team can have', () => {
+    const players = Array.from(
+      { length: MAX_PLAYERS_PER_TEAM + 3 },
+      (_, i) => ({
+        name: `Player ${i + 1}`,
+      })
+    );
+    expect(playerListSchema.parse(players)).toHaveLength(MAX_PLAYERS_PER_TEAM);
+  });
+
+  it('carries line-ups in match settings, degrading a non-array to none', () => {
+    const parsed = matchSetingsSchema.parse({
+      ...defaultMatchSettings,
+      homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+      awayTeamPlayers: 'eleven of them',
+    });
+    expect(parsed.homeTeamPlayers).toEqual([
+      { name: 'Ali Smith', number: '9' },
+    ]);
+    expect(parsed.awayTeamPlayers).toBeUndefined();
+    expect(
+      'awayTeamPlayers' in matchSetingsSchema.parse(defaultMatchSettings)
+    ).toBe(false);
+  });
+
+  it("keeps a saved club's players, and a club saved before line-ups loads unchanged", () => {
+    const club = {
+      id: 'c1',
+      name: 'Rovers',
+      abbreviation: 'ROV',
+      textColour: '#ffffff',
+      backgroundColour: '#aa0000',
+    };
+    expect(clubListSchema.parse([club])).toEqual([club]);
+    expect(
+      clubListSchema.parse([{ ...club, players: [{ name: 'Ali Smith' }] }])
+    ).toEqual([{ ...club, players: [{ name: 'Ali Smith' }] }]);
+    expect(clubListSchema.parse([{ ...club, players: 7 }])).toEqual([club]);
+  });
+
+  it("keeps a goal's scorer number only beside a scorer", () => {
+    const parsed = scoresSchema.parse({
+      homeTeam: 2,
+      awayTeam: 0,
+      penalties: [],
+      goals: [
+        { id: 'g1', team: 'home', scorer: 'Smith', scorerNumber: ' 9 ' },
+        { id: 'g2', team: 'home', scorerNumber: '9' },
+        { id: 'g3', team: 'home', scorer: 'Jones', scorerNumber: 'TOOLONG' },
+      ],
+    });
+    expect(parsed.goals).toEqual([
+      { id: 'g1', team: 'home', scorer: 'Smith', scorerNumber: '9' },
+      { id: 'g2', team: 'home' },
+      { id: 'g3', team: 'home', scorer: 'Jones' },
+    ]);
+  });
+});
+
+describe('screen rotation schema', () => {
+  const base = { keyColour: '#0000FF', autoSwitchScreens: true };
+
+  it('keeps a normal rotation unchanged', () => {
+    const screenRotation = {
+      screens: [
+        { screen: 'matchTitle' },
+        { screen: 'custom', customScreenImageUrl: 'file:///sponsor.png' },
+      ],
+      intervalSeconds: 15,
+      autoStartAtHalfTime: true,
+    };
+    expect(
+      appSettingsSchema.parse({ ...base, screenRotation }).screenRotation
+    ).toEqual(screenRotation);
+  });
+
+  it('is absent until set, so older settings load unchanged', () => {
+    expect('screenRotation' in appSettingsSchema.parse(base)).toBe(false);
+    expect(
+      appSettingsSchema.parse({ ...base, screenRotation: 'on' }).screenRotation
+    ).toBeUndefined();
+  });
+
+  it('degrades each field on its own and drops entries that cannot be shown', () => {
+    const parsed = appSettingsSchema.parse({
+      ...base,
+      screenRotation: {
+        screens: [
+          { screen: 'scoreBug' },
+          { screen: 'none' },
+          { screen: 'notAScreen' },
+          { screen: 'custom' },
+          { screen: 'scoreboard', customScreenImageUrl: 'file:///stray.png' },
+          'nonsense',
+        ],
+        intervalSeconds: 1,
+        autoStartAtHalfTime: 'yes',
+      },
+    }).screenRotation;
+    expect(parsed).toEqual({
+      screens: [{ screen: 'scoreBug' }, { screen: 'scoreboard' }],
+      intervalSeconds: defaultScreenRotationSettings.intervalSeconds,
+      autoStartAtHalfTime: false,
+    });
+
+    expect(
+      appSettingsSchema.parse({
+        ...base,
+        screenRotation: { screens: 'all', intervalSeconds: 600.5 },
+      }).screenRotation
+    ).toEqual(defaultScreenRotationSettings);
   });
 });
