@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 
 import {
+  Goal,
   LiveMatch,
   MatchPhase,
   MatchState,
@@ -18,6 +19,7 @@ import {
 } from './constants';
 import { getNextPhaseId, getPhaseList, isValidAdditionalTime } from './utils';
 import { createGoal, removeLatestGoal, trimGoalsToScore } from './goalLog';
+import { normalisePlayerNumber } from './lineup';
 import { useScoresStore } from './store/scores';
 import { useMatchSettingsStore } from './store/matchSettings';
 import { useMatchStateStore } from './store/matchState';
@@ -168,17 +170,39 @@ export function createMatchActions(
   // Goal log edits. Both are score-slice undo entries, like the goals
   // themselves. Removing an entry removes the goal (the log IS the goals
   // that were scored), so the team's score goes down with it.
-  const setGoalScorer = (goalId: string, scorer: string) => {
+  //
+  // A scorer picked from the line-up passes the player's shirt number ('' for
+  // a player without one) and sets both in one undo entry. Typed text passes
+  // none: the same name as before is no edit at all (a picked number stays),
+  // and any other name clears the number, so it never sits beside the wrong
+  // name on air.
+  const setGoalScorer = (
+    goalId: string,
+    scorer: string,
+    scorerNumber?: string
+  ) => {
     const prevScores = useScoresStore.getState().scores;
     const goals = prevScores.goals ?? [];
     const trimmed = scorer.trim().slice(0, MAX_SCORER_LENGTH) || undefined;
     const goal = goals.find((entry) => entry.id === goalId);
-    if (!goal || goal.scorer === trimmed) return;
+    if (!goal) return;
+    const keptNumber =
+      scorerNumber === undefined && trimmed === goal.scorer
+        ? goal.scorerNumber
+        : normalisePlayerNumber(scorerNumber);
+    const nextNumber = trimmed ? keptNumber : undefined;
+    if (goal.scorer === trimmed && goal.scorerNumber === nextNumber) return;
     captureUndo('undo:actions.goalScorer', ['scores']);
     setScores({
-      goals: goals.map((entry) =>
-        entry.id === goalId ? { ...entry, scorer: trimmed } : entry
-      ),
+      goals: goals.map((entry) => {
+        if (entry.id !== goalId) return entry;
+        const updated: Goal = { ...entry, scorer: trimmed };
+        // Deleted rather than set to undefined, so an entry that never had a
+        // number keeps exactly the shape it had before line-ups existed.
+        if (nextNumber) updated.scorerNumber = nextNumber;
+        else delete updated.scorerNumber;
+        return updated;
+      }),
     });
   };
 

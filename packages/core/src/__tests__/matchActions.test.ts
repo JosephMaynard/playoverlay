@@ -120,3 +120,58 @@ describe('createMatchActions', () => {
     expect(onOperatorAction).not.toHaveBeenCalled();
   });
 });
+
+describe('setGoalScorer', () => {
+  const goal = { id: 'g1', team: 'home' as const, time: '12:00' };
+
+  beforeEach(() => {
+    useScoresStore.setState({
+      scores: { homeTeam: 1, awayTeam: 0, penalties: [], goals: [goal] },
+    });
+    useUndoStore.setState({ undoStack: [], redoStack: [], clockResync: null });
+  });
+
+  const recorded = () => useScoresStore.getState().scores.goals?.[0];
+
+  it('records a player picked from the line-up, name and number, as one undo step', () => {
+    const actions = createMatchActions(fakeClock());
+
+    actions.setGoalScorer('g1', 'Smith', '9');
+
+    expect(recorded()).toEqual({ ...goal, scorer: 'Smith', scorerNumber: '9' });
+    const { undoStack } = useUndoStore.getState();
+    expect(undoStack).toHaveLength(1);
+    expect(undoStack[0].label).toBe('undo:actions.goalScorer');
+    expect(undoStack[0].slices).toEqual(['scores']);
+
+    useUndoStore.getState().undo();
+    expect(recorded()).toEqual(goal);
+  });
+
+  it('keeps the number when the same name is typed again, and clears it for any other name', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.setGoalScorer('g1', 'Smith', '9');
+
+    actions.setGoalScorer('g1', ' Smith ');
+    expect(recorded()?.scorerNumber).toBe('9');
+    expect(useUndoStore.getState().undoStack).toHaveLength(1);
+
+    actions.setGoalScorer('g1', 'Smyth');
+    expect(recorded()).toEqual({ ...goal, scorer: 'Smyth' });
+    expect(recorded()).not.toHaveProperty('scorerNumber');
+    expect(useUndoStore.getState().undoStack).toHaveLength(2);
+  });
+
+  it('clears the number along with the scorer, and records a numberless player without one', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.setGoalScorer('g1', 'Smith', '9');
+
+    actions.setGoalScorer('g1', '');
+    expect(recorded()).toEqual({ ...goal, scorer: undefined });
+    expect(recorded()).not.toHaveProperty('scorerNumber');
+
+    actions.setGoalScorer('g1', 'Smith', '9');
+    actions.setGoalScorer('g1', 'Smith', '');
+    expect(recorded()).toEqual({ ...goal, scorer: 'Smith' });
+  });
+});

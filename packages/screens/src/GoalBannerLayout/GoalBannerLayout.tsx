@@ -6,6 +6,7 @@ import {
   MatchSettings,
   GOAL_BANNER_DURATION_MS,
   formatGoalMinute,
+  formatScorer,
 } from '@playoverlay/core';
 import './GoalBannerLayout.css';
 
@@ -15,7 +16,8 @@ export interface Props {
   matchSettings: MatchSettings;
 }
 
-// The on-air goal banner: "GOAL | Rovers | Smith | 23'". Shown for
+// The on-air goal banner: "GOAL | Rovers | 9 Smith | 23'" (the shirt number
+// only when the scorer was picked from the line-up). Shown for
 // GOAL_BANNER_DURATION_MS from matchState.goalBanner.shownAt, measured on
 // this output's own clock, so a browser source that connects (or an app
 // that restarts) after that has passed doesn't replay an old banner. It sits
@@ -91,7 +93,7 @@ export default function GoalBannerLayout({
           </div>
           {content.scorer && (
             <div className="GoalBannerLayout_item bg-black text-white">
-              {content.scorer}
+              {formatScorer(content)}
             </div>
           )}
           {minute && (
