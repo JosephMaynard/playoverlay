@@ -198,7 +198,27 @@
       "deleteAria": "Elimina {{club}}",
       "deleteModalTitle": "Eliminare il club salvato?",
       "deleteConfirmBody": "Vuoi davvero eliminare il club salvato \"{{club}}\"? Le squadre che lo usano già non vengono modificate.",
-      "deleteError": "Impossibile eliminare il club. Riprova."
+      "deleteError": "Impossibile eliminare il club. Riprova.",
+      "playerCount_one": "{{count}} giocatore",
+      "playerCount_other": "{{count}} giocatori"
+    },
+    "lineup": {
+      "addPlayer": "Aggiungi giocatore",
+      "cap": "fino a {{max}}",
+      "count_one": "{{count}} giocatore",
+      "count_other": "{{count}} giocatori",
+      "empty": "Aggiungi la rosa per mostrare una formazione in onda e scegliere i marcatori dall'elenco.",
+      "nameLabel": "{{team}}, giocatore {{n}}: nome",
+      "namePlaceholder": "Nome del giocatore",
+      "numberLabel": "{{team}}, giocatore {{n}}: numero di maglia",
+      "numberPlaceholder": "N.",
+      "pasteAction": "Aggiungi giocatori",
+      "pasteHint": "Un giocatore per riga. Metti prima il numero di maglia, se lo hai, ad es. 9 Ali Smith.",
+      "pasteList": "Incolla un elenco",
+      "pasteModalTitle": "Incolla la formazione: {{team}}",
+      "removeAria": "Rimuovi {{player}}",
+      "title": "Formazione",
+      "unnamedPlayer": "{{team}}, giocatore {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Connetti a Stream Deck",
     "screens": {
+      "awayLineup": "Formazione ospite",
       "custom": "Schermate personalizzate",
       "endScreen": "Schermata finale",
+      "homeLineup": "Formazione di casa",
       "matchTitle": "Titolo partita",
       "none": "Nessuno",
       "penalties": "Calci di rigore",

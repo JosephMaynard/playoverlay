@@ -7,6 +7,7 @@
     "empty": "Ancora nessun gol. Ogni gol compare qui con il suo minuto appena viene segnato.",
     "goal": "Gol: {{team}}",
     "goalWithMinute": "Gol: {{team}}, {{minute}}",
+    "pickScorer": "Non è in formazione? Scrivi semplicemente un nome.",
     "remove": "Rimuovi il gol",
     "removeAria": "Rimuovi il gol: {{goal}}",
     "scorerLabel": "Marcatore ({{goal}})",
@@ -48,6 +49,19 @@
     "score": "Segnato",
     "teamFirst": "{{team}} per primo",
     "undoLastAction": "Annulla ultima azione"
+  },
+  "rotation": {
+    "autoStart": "Avvia automaticamente all'intervallo",
+    "autoStartHint": "Parte quando il cronometro viene fermato per una pausa con altro ancora da giocare, mai a fine partita.",
+    "description": "Lo schermo mostra a turno ogni schermata scelta, nell'ordine dell'elenco, così puoi allontanarti prima del calcio d'inizio o all'intervallo. Si ferma quando scegli tu una schermata o avvii il cronometro.",
+    "needTwo": "Scegli almeno due schermate da alternare.",
+    "rotating": "In rotazione",
+    "screens": "Schermate da mostrare",
+    "seconds": "Secondi per schermata",
+    "secondsError": "Inserisci un numero intero di secondi da {{min}} a {{max}}.",
+    "start": "Avvia la rotazione",
+    "stop": "Ferma la rotazione",
+    "title": "Rotazione schermate"
   },
   "scoreInput": {
     "decreaseScoreAria": "Diminuisci il punteggio di {{team}}",

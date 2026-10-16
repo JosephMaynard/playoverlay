@@ -198,7 +198,27 @@
       "deleteAria": "Eliminar {{club}}",
       "deleteModalTitle": "¿Eliminar el club guardado?",
       "deleteConfirmBody": "¿Seguro que quieres eliminar el club guardado «{{club}}»? Los equipos que ya lo usan no cambian.",
-      "deleteError": "No se ha podido eliminar el club. Inténtalo de nuevo."
+      "deleteError": "No se ha podido eliminar el club. Inténtalo de nuevo.",
+      "playerCount_one": "{{count}} jugador",
+      "playerCount_other": "{{count}} jugadores"
+    },
+    "lineup": {
+      "addPlayer": "Añadir jugador",
+      "cap": "hasta {{max}}",
+      "count_one": "{{count}} jugador",
+      "count_other": "{{count}} jugadores",
+      "empty": "Añade la plantilla para mostrar una alineación en pantalla y elegir a los goleadores de la lista.",
+      "nameLabel": "{{team}}, jugador {{n}}: nombre",
+      "namePlaceholder": "Nombre del jugador",
+      "numberLabel": "{{team}}, jugador {{n}}: dorsal",
+      "numberPlaceholder": "N.º",
+      "pasteAction": "Añadir jugadores",
+      "pasteHint": "Un jugador por línea. Pon primero el dorsal si lo tienes, p. ej. 9 Ali Smith.",
+      "pasteList": "Pegar una lista",
+      "pasteModalTitle": "Pegar la alineación: {{team}}",
+      "removeAria": "Quitar a {{player}}",
+      "title": "Alineación",
+      "unnamedPlayer": "{{team}}, jugador {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Conectar con Stream Deck",
     "screens": {
+      "awayLineup": "Alineación visitante",
       "custom": "Pantallas personalizadas",
       "endScreen": "Pantalla final",
+      "homeLineup": "Alineación local",
       "matchTitle": "Título del partido",
       "none": "Ninguna",
       "penalties": "Penaltis",

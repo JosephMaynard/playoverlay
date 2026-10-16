@@ -198,7 +198,27 @@
       "deleteAria": "{{club}} löschen",
       "deleteModalTitle": "Gespeicherten Verein löschen?",
       "deleteConfirmBody": "Möchten Sie den gespeicherten Verein „{{club}}“ wirklich löschen? Mannschaften, die ihn bereits verwenden, bleiben unverändert.",
-      "deleteError": "Der Verein konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+      "deleteError": "Der Verein konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      "playerCount_one": "{{count}} Spieler",
+      "playerCount_other": "{{count}} Spieler"
+    },
+    "lineup": {
+      "addPlayer": "Spieler hinzufügen",
+      "cap": "bis zu {{max}}",
+      "count_one": "{{count}} Spieler",
+      "count_other": "{{count}} Spieler",
+      "empty": "Fügen Sie den Kader hinzu, um eine Aufstellung einzublenden und Torschützen aus der Liste auszuwählen.",
+      "nameLabel": "{{team}}, Spieler {{n}}: Name",
+      "namePlaceholder": "Spielername",
+      "numberLabel": "{{team}}, Spieler {{n}}: Rückennummer",
+      "numberPlaceholder": "Nr.",
+      "pasteAction": "Spieler hinzufügen",
+      "pasteHint": "Ein Spieler pro Zeile. Setzen Sie die Rückennummer an den Anfang, wenn Sie sie haben, z. B. 9 Ali Smith.",
+      "pasteList": "Liste einfügen",
+      "pasteModalTitle": "Aufstellung einfügen: {{team}}",
+      "removeAria": "{{player}} entfernen",
+      "title": "Aufstellung",
+      "unnamedPlayer": "{{team}}, Spieler {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Mit Stream Deck verbinden",
     "screens": {
+      "awayLineup": "Aufstellung Gast",
       "custom": "Eigene Bildschirme",
       "endScreen": "Abschlussbildschirm",
+      "homeLineup": "Aufstellung Heim",
       "matchTitle": "Spieltitel",
       "none": "Keine",
       "penalties": "Elfmeterschießen",
