@@ -198,7 +198,27 @@
       "deleteAria": "Excluir {{club}}",
       "deleteModalTitle": "Excluir o clube salvo?",
       "deleteConfirmBody": "Tem certeza de que deseja excluir o clube salvo \"{{club}}\"? As equipes que já o usam não são alteradas.",
-      "deleteError": "Não foi possível excluir o clube. Tente novamente."
+      "deleteError": "Não foi possível excluir o clube. Tente novamente.",
+      "playerCount_one": "{{count}} jogador",
+      "playerCount_other": "{{count}} jogadores"
+    },
+    "lineup": {
+      "addPlayer": "Adicionar jogador",
+      "cap": "até {{max}}",
+      "count_one": "{{count}} jogador",
+      "count_other": "{{count}} jogadores",
+      "empty": "Adicione o elenco para mostrar uma escalação no ar e escolher os autores dos gols na lista.",
+      "nameLabel": "{{team}}, jogador {{n}}: nome",
+      "namePlaceholder": "Nome do jogador",
+      "numberLabel": "{{team}}, jogador {{n}}: número da camisa",
+      "numberPlaceholder": "Nº",
+      "pasteAction": "Adicionar jogadores",
+      "pasteHint": "Um jogador por linha. Coloque o número da camisa primeiro, se tiver, por ex. 9 Ali Smith.",
+      "pasteList": "Colar uma lista",
+      "pasteModalTitle": "Colar a escalação: {{team}}",
+      "removeAria": "Remover {{player}}",
+      "title": "Escalação",
+      "unnamedPlayer": "{{team}}, jogador {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Conectar ao Stream Deck",
     "screens": {
+      "awayLineup": "Escalação visitante",
       "custom": "Telas personalizadas",
       "endScreen": "Tela final",
+      "homeLineup": "Escalação da casa",
       "matchTitle": "Título da partida",
       "none": "Nenhum",
       "penalties": "Pênaltis",

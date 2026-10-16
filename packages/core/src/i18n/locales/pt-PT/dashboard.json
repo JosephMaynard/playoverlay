@@ -7,6 +7,7 @@
     "empty": "Ainda sem golos. Cada golo aparece aqui com o respetivo minuto assim que é marcado.",
     "goal": "Golo: {{team}}",
     "goalWithMinute": "Golo: {{team}}, {{minute}}",
+    "pickScorer": "Não está nos convocados? Basta escrever um nome.",
     "remove": "Remover o golo",
     "removeAria": "Remover o golo: {{goal}}",
     "scorerLabel": "Marcador ({{goal}})",
@@ -48,6 +49,19 @@
     "score": "Golo",
     "teamFirst": "{{team}} primeiro",
     "undoLastAction": "Anular última ação"
+  },
+  "rotation": {
+    "autoStart": "Iniciar automaticamente ao intervalo",
+    "autoStartHint": "Começa quando o cronómetro é parado para uma pausa e ainda há jogo pela frente, nunca no fim do jogo.",
+    "description": "O ecrã mostra à vez cada ecrã escolhido, pela ordem da lista, para que se possa afastar antes do pontapé de saída ou ao intervalo. Para quando escolhe um ecrã ou inicia o cronómetro.",
+    "needTwo": "Escolha pelo menos dois ecrãs para alternar.",
+    "rotating": "A rodar",
+    "screens": "Ecrãs a mostrar",
+    "seconds": "Segundos por ecrã",
+    "secondsError": "Introduza um número inteiro de segundos de {{min}} a {{max}}.",
+    "start": "Iniciar rotação",
+    "stop": "Parar rotação",
+    "title": "Rodar ecrãs"
   },
   "scoreInput": {
     "decreaseScoreAria": "Reduzir o marcador de {{team}}",

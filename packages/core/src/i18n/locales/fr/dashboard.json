@@ -7,6 +7,7 @@
     "empty": "Aucun but pour l'instant. Chaque but apparaît ici avec sa minute dès qu'il est marqué.",
     "goal": "But : {{team}}",
     "goalWithMinute": "But : {{team}}, {{minute}}",
+    "pickScorer": "Pas dans la composition ? Saisissez simplement un nom.",
     "remove": "Supprimer le but",
     "removeAria": "Supprimer le but : {{goal}}",
     "scorerLabel": "Buteur ({{goal}})",
@@ -48,6 +49,19 @@
     "score": "Marqué",
     "teamFirst": "{{team}} en premier",
     "undoLastAction": "Annuler la dernière action"
+  },
+  "rotation": {
+    "autoStart": "Démarrer automatiquement à la mi-temps",
+    "autoStartHint": "Démarre quand le chrono est arrêté pour une pause avant la suite du match, jamais à la fin du match.",
+    "description": "L'affichage montre tour à tour chaque écran choisi, dans l'ordre de la liste, pour que vous puissiez vous éloigner avant le coup d'envoi ou à la mi-temps. Choisir vous-même un écran ou démarrer le chrono l'arrête.",
+    "needTwo": "Choisissez au moins deux écrans à faire tourner.",
+    "rotating": "En rotation",
+    "screens": "Écrans à afficher",
+    "seconds": "Secondes par écran",
+    "secondsError": "Saisissez un nombre entier de secondes compris entre {{min}} et {{max}}.",
+    "start": "Lancer la rotation",
+    "stop": "Arrêter la rotation",
+    "title": "Rotation des écrans"
   },
   "scoreInput": {
     "decreaseScoreAria": "Diminuer le score de {{team}}",
