@@ -114,6 +114,22 @@ function formatMatchEventLine(entry: MatchEventEntry): string {
   return `${entry.timestamp} ${entry.action} (${entry.source})`;
 }
 
+// Line-ups are players' names, often children's in community football, and
+// nothing a support request needs, so the report keeps only how many were
+// entered.
+function withPlayerCounts(matchSettings: MatchSettings) {
+  const { homeTeamPlayers, awayTeamPlayers, ...rest } = matchSettings;
+  return {
+    ...rest,
+    ...(homeTeamPlayers
+      ? { homeTeamPlayers: `${homeTeamPlayers.length} players` }
+      : {}),
+    ...(awayTeamPlayers
+      ? { awayTeamPlayers: `${awayTeamPlayers.length} players` }
+      : {}),
+  };
+}
+
 // Pure: builds the whole report from already-gathered, already-sanitized
 // input. No Electron API, no filesystem, so it's fully unit-testable by
 // feeding it fixed input and asserting on the returned string.
@@ -168,7 +184,7 @@ export function buildDiagnosticsReport(input: DiagnosticsInput): string {
 
   lines.push('## Match settings');
   lines.push('```json');
-  lines.push(JSON.stringify(input.matchSettings, null, 2));
+  lines.push(JSON.stringify(withPlayerCounts(input.matchSettings), null, 2));
   lines.push('```');
   lines.push('');
 

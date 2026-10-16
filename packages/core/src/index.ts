@@ -17,6 +17,7 @@ export * from './goalLog';
 export * from './liveMatch';
 export * from './clubs';
 export * from './customScreens';
+export * from './lineup';
 
 export * from './store/appSettings';
 export * from './store/customGraphics';
