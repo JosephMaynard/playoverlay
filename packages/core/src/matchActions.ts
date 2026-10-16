@@ -26,6 +26,8 @@ import { useMatchStateStore } from './store/matchState';
 import { useAppSettingsStore } from './store/appSettings';
 import { useTimeStore } from './store/time';
 import { UndoSlice, useUndoStore } from './store/undo';
+import { useScreenRotationStore } from './store/screenRotation';
+import { getScreenRotationSettings } from './screenRotation';
 import type { UseMatchClock } from './useMatchClock';
 
 // The clock operations the match actions drive. useMatchClock provides them;
@@ -78,6 +80,25 @@ export function createMatchActions(
     useMatchStateStore.getState().setMatchState(update);
   const setTime = (update: Partial<Time>) =>
     useTimeStore.getState().setTime(update);
+  const stopRotation = () => useScreenRotationStore.getState().stop();
+
+  // Called after the clock stops a phase from an operator's Stop or
+  // next-phase control (keyboard, Stream Deck and phone included). The
+  // rotation starts only when the operator asked for that, and only at a
+  // break, a phase still to come: never at full time. A stop caused by a
+  // settings change never comes through here. The clock has already applied
+  // its own switch to the match title; the rotation's first screen follows.
+  const startRotationAtBreak = (endedPhase: MatchPhase | undefined) => {
+    const { autoStartAtHalfTime } = getScreenRotationSettings(
+      useAppSettingsStore.getState().appSettings
+    );
+    if (!autoStartAtHalfTime || endedPhase === undefined) return;
+    const phaseList = getPhaseList(
+      useMatchSettingsStore.getState().matchSettings
+    );
+    if (getNextPhaseId(phaseList, undefined, endedPhase) === undefined) return;
+    useScreenRotationStore.getState().start();
+  };
 
   // Settings changes that remove the running phase, timer mode switch,
   // extra time off, fewer periods, stop the clock instead of leaving it
@@ -124,10 +145,14 @@ export function createMatchActions(
   // the hook has no notion of.
   const startTime = (matchPhase: MatchPhase) => {
     onOperatorAction();
+    // Kick-off ends the break the rotation was filling.
+    stopRotation();
     clock.startTime(matchPhase);
   };
 
   const restoreMatch = (liveMatch: LiveMatch) => {
+    // The restored match brings its own on-air screen.
+    stopRotation();
     // Applied first (full replace, so no stray field from whatever's
     // currently loaded survives) so the clock and phase list below
     // reinterpret the snapshot's scores/state/time against the settings
@@ -245,6 +270,9 @@ export function createMatchActions(
   // goes to the match title, ready for the next kick-off. What happens to a
   // pending restore offer is up to the host, after this returns.
   const startNewMatch = () => {
+    // New match puts the match title on air; a rotation from the last
+    // fixture must not take it off again.
+    stopRotation();
     clock.resetClock();
     setScores({ ...defaultScores, penalties: [], goals: [] });
     setMatchState({
@@ -372,6 +400,9 @@ export function createMatchActions(
   // funnel through here). A screen switch only changes matchState, so it is
   // matchState-only: undoing it never touches the clock or the score.
   const switchDisplayScreen = (update: Partial<MatchState>) => {
+    // The operator choosing a screen takes over from the rotation, from
+    // whichever control they used.
+    stopRotation();
     captureUndo('undo:actions.switchScreen', ['matchState']);
     setMatchState(update);
   };
@@ -403,9 +434,11 @@ export function createMatchActions(
     // undefined, so the next-phase shortcut would restart the match from the
     // first phase (a Stream Deck double-tap is enough). Same guard as
     // nextMatchPhase's full-time branch; it records no undo entry either.
-    if (useTimeStore.getState().time.matchPhase === undefined) return;
+    const endedPhase = useTimeStore.getState().time.matchPhase;
+    if (endedPhase === undefined) return;
     captureUndo('undo:actions.stopClock', ['time', 'matchState']);
     clock.stopTime();
+    startRotationAtBreak(endedPhase);
   };
 
   const handlePauseClock = () => {
@@ -464,6 +497,9 @@ export function createMatchActions(
       // the first phase.
       captureUndo('undo:actions.nextPhase', ['time', 'matchState']);
       clock.stopTime();
+      // With a phase running there is never a next phase to start, so this
+      // branch ends every phase, half-time included, not only the last.
+      startRotationAtBreak(matchPhase);
     }
   };
 

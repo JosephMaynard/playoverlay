@@ -1081,3 +1081,54 @@ describe('Dashboard line-ups', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe('Dashboard screen rotation', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: [
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'Date',
+      ],
+    });
+    vi.setSystemTime(new Date('2026-07-18T12:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('cycles the display once started, and a screen button stops it', async () => {
+    const { stores } = await renderDashboard({
+      appSettings: {
+        ...defaultAppSettings,
+        screenRotation: {
+          screens: [{ screen: 'matchTitle' }, { screen: 'scoreboard' }],
+          intervalSeconds: 5,
+          autoStartAtHalfTime: false,
+        },
+      },
+    });
+    const displayed = () =>
+      stores.matchState.getState().matchState.displayScreen;
+
+    fireEvent.click(screen.getByRole('button', { name: /Rotate screens/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start rotating' }));
+    expect(displayed()).toBe('matchTitle');
+    advance(5000);
+    expect(displayed()).toBe('scoreboard');
+    advance(5000);
+    expect(displayed()).toBe('matchTitle');
+    expect(screen.getByText('Rotating')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Score Bug' }));
+    expect(displayed()).toBe('scoreBug');
+    expect(
+      screen.getByRole('button', { name: 'Start rotating' })
+    ).toBeInTheDocument();
+    advance(20_000);
+    expect(displayed()).toBe('scoreBug');
+  });
+});
