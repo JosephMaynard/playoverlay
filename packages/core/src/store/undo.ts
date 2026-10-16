@@ -59,6 +59,26 @@ export interface UndoEntry {
 // slice is part of the restore.
 export type ClockResync = (time: Time) => void;
 
+// Receives every recorded operator action, for the host's durable log (the
+// Electron app forwards it to its main process's log and diagnostics ring
+// buffer). Optional: with none set, actions are simply not logged.
+export type MatchEventLogger = (label: string, source: string) => void;
+
+let matchEventLogger: MatchEventLogger | null = null;
+
+// Sets the logger captureUndo reports to. Returns a function that clears it
+// again (only if it is still the one set), for an effect cleanup.
+export function setMatchEventLogger(
+  logger: MatchEventLogger | null
+): () => void {
+  matchEventLogger = logger;
+  return () => {
+    if (matchEventLogger === logger) {
+      matchEventLogger = null;
+    }
+  };
+}
+
 // Cap the history so a long match can't grow the stack without bound. When the
 // cap is exceeded the oldest entry is dropped (standard bounded-undo history).
 export const UNDO_STACK_CAP = 50;
@@ -177,9 +197,10 @@ function fullMatchState(matchState: MatchState, live: MatchState): MatchState {
 
 // Apply an entry's slices to the live stores via the REAL store setters.
 // Routing the restore through setScores/setTime/setMatchState is deliberate:
-// those setters are the single pipeline that mirrors state out to the display
-// window, the OBS browser source, and any paired phone, so a restore reaches
-// every output the same way an ordinary edit does. It also means the restore
+// every setter write is what the host's store mirror (see mirror.ts) carries
+// out to the display window, the OBS browser source, and any paired phone,
+// so a restore reaches every output the same way an ordinary edit does. It
+// also means the restore
 // must never go through the wrapped action handlers (incrementHomeTeamScore
 // and friends), which is exactly why undo()/redo() call these setters directly
 // and never re-enter captureUndo.
@@ -244,12 +265,12 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
     // A fresh action invalidates any pending redo.
     set({ undoStack: bounded, redoStack: [] });
 
-    // Mirror every recorded operator action to the main process's durable
-    // log / diagnostics ring buffer (see main-functions/logger.ts). This is
-    // a pure observability side-channel alongside the snapshot above: it
-    // changes nothing about what gets captured or how undo/redo restore
-    // state. Absent in any test that doesn't stub window.electronAPI.
-    window?.electronAPI?.logMatchEvent?.(label, source ?? 'laptop');
+    // Report every recorded operator action to the host's durable log (see
+    // setMatchEventLogger above). This is a pure observability side-channel
+    // alongside the snapshot above: it changes nothing about what gets
+    // captured or how undo/redo restore state. Absent in any test that
+    // doesn't set a logger.
+    matchEventLogger?.(label, source ?? 'laptop');
   },
 
   undo: () => {
@@ -332,6 +353,9 @@ const NON_TEXT_INPUT_TYPES = new Set([
 ]);
 
 export function isTextEntryTarget(target: EventTarget | null): boolean {
+  // Outside a DOM (React Native) there is no HTMLElement, and nothing is a
+  // text field in the sense meant here.
+  if (typeof HTMLElement === 'undefined') return false;
   if (!(target instanceof HTMLElement)) return false;
 
   const tagName = target.tagName;

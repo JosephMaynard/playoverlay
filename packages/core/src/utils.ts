@@ -329,10 +329,13 @@ const RESERVED_ACCELERATORS: Record<string, AcceleratorRejection> = {
 
 // The renderer has no `process`, so the OS comes from navigator.platform
 // ("MacIntel", "Win32", "Linux x86_64", ...). Only macOS and Windows need
-// telling apart here; anything else behaves like Linux.
+// telling apart here; anything else behaves like Linux. React Native has a
+// navigator but no navigator.platform, hence the optional chaining.
 function detectAcceleratorPlatform(): string {
   const platform =
-    typeof navigator === 'undefined' ? '' : navigator.platform.toLowerCase();
+    typeof navigator === 'undefined'
+      ? ''
+      : (navigator.platform?.toLowerCase() ?? '');
   if (platform.startsWith('mac')) return 'darwin';
   if (platform.startsWith('win')) return 'win32';
   return 'linux';

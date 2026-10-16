@@ -14,7 +14,6 @@ export const useTimeStore = create<TimeStore>((set) => ({
         ...state.time,
         ...timeUpdates,
       };
-      window?.electronAPI?.updateTime(time);
       return {
         ...state,
         time,

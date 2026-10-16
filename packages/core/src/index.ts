@@ -25,6 +25,7 @@ export * from './store/matchState';
 export * from './store/scores';
 export * from './store/time';
 export * from './store/undo';
+export * from './store/mirror';
 
 export { default as useMatchClock } from './useMatchClock';
 export type { StopTimeOptions, UseMatchClock } from './useMatchClock';

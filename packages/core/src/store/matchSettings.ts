@@ -18,7 +18,6 @@ export const useMatchSettingsStore = create<MatchSettingsStore>((set) => ({
   setMatchSettings: (matchSettingsUpdates: Partial<MatchSettings>) =>
     set((state) => {
       const matchSettings = { ...state.matchSettings, ...matchSettingsUpdates };
-      window?.electronAPI?.updateMatchSettings(matchSettings);
       return {
         ...state,
         matchSettings,
@@ -26,7 +25,6 @@ export const useMatchSettingsStore = create<MatchSettingsStore>((set) => ({
     }),
   replaceMatchSettings: (matchSettings: MatchSettings) =>
     set((state) => {
-      window?.electronAPI?.updateMatchSettings(matchSettings);
       return {
         ...state,
         matchSettings,

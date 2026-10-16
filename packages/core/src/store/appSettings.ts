@@ -21,7 +21,6 @@ export const useAppSettingsStore = create<AppSettingsStore>((set) => ({
         ...state.appSettings,
         ...appSettingsUppdates,
       };
-      window?.electronAPI?.updateAppSettings(appSettings);
       return {
         ...state,
         appSettings,

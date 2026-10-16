@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   defaultAppSettings,
   defaultMatchSettings,
@@ -8,29 +8,32 @@ import { useAppSettingsStore } from '../appSettings';
 import { useCustomGraphicsStore } from '../customGraphics';
 import { useMatchSettingsStore } from '../matchSettings';
 import { useMatchStateStore } from '../matchState';
+import { mirrorStores } from '../mirror';
 import { useScoresStore } from '../scores';
 import { useTimeStore } from '../time';
 
-function installElectronAPI() {
-  const electronAPI = {
-    updateScores: vi.fn(),
-    updateTime: vi.fn(),
-    updateMatchSettings: vi.fn(),
-    updateAppSettings: vi.fn(),
-    updateMatchState: vi.fn(),
-  } as unknown as Window['electronAPI'];
+// The stores no longer talk to Electron themselves: a host connects them to
+// its outputs with mirrorStores. These tests connect a fake bridge in its
+// place and assert the same notifications the setters used to send.
+let stopMirroring: (() => void) | undefined;
 
-  Object.defineProperty(window, 'electronAPI', {
-    configurable: true,
-    value: electronAPI,
-  });
-
-  return electronAPI;
+function installBridge() {
+  stopMirroring?.();
+  const bridge = {
+    onScores: vi.fn(),
+    onTime: vi.fn(),
+    onMatchSettings: vi.fn(),
+    onAppSettings: vi.fn(),
+    onMatchState: vi.fn(),
+  };
+  stopMirroring = mirrorStores(bridge);
+  return bridge;
 }
 
 describe('Zustand stores', () => {
   beforeEach(() => {
-    installElectronAPI();
+    stopMirroring?.();
+    stopMirroring = undefined;
     useScoresStore.setState({
       scores: { homeTeam: 0, awayTeam: 0, penalties: [] },
     });
@@ -43,8 +46,13 @@ describe('Zustand stores', () => {
     useCustomGraphicsStore.setState({ customGraphics: [] });
   });
 
-  it('merges score updates and notifies Electron', () => {
-    const api = installElectronAPI();
+  afterEach(() => {
+    stopMirroring?.();
+    stopMirroring = undefined;
+  });
+
+  it('merges score updates and notifies the bridge', () => {
+    const api = installBridge();
 
     useScoresStore.getState().setScores({
       homeTeam: 2,
@@ -57,11 +65,11 @@ describe('Zustand stores', () => {
       penalties: [{ team: 'home', result: 'scored' }],
     };
     expect(useScoresStore.getState().scores).toEqual(expectedScores);
-    expect(api.updateScores).toHaveBeenCalledWith(expectedScores);
+    expect(api.onScores).toHaveBeenCalledWith(expectedScores);
   });
 
-  it('merges time updates and notifies Electron', () => {
-    const api = installElectronAPI();
+  it('merges time updates and notifies the bridge', () => {
+    const api = installBridge();
 
     useTimeStore.getState().setTime({
       time: '12:34',
@@ -76,11 +84,11 @@ describe('Zustand stores', () => {
       matchPhase: 'firstHalf',
     };
     expect(useTimeStore.getState().time).toEqual(expectedTime);
-    expect(api.updateTime).toHaveBeenCalledWith(expectedTime);
+    expect(api.onTime).toHaveBeenCalledWith(expectedTime);
   });
 
   it('merges match settings updates and keeps existing defaults', () => {
-    const api = installElectronAPI();
+    const api = installBridge();
 
     useMatchSettingsStore.getState().setMatchSettings({
       homeTeamNameFull: 'Tigers',
@@ -97,11 +105,11 @@ describe('Zustand stores', () => {
     expect(useMatchSettingsStore.getState().matchSettings).toEqual(
       expectedSettings
     );
-    expect(api.updateMatchSettings).toHaveBeenCalledWith(expectedSettings);
+    expect(api.onMatchSettings).toHaveBeenCalledWith(expectedSettings);
   });
 
   it('replaces match settings wholesale, dropping omitted optional fields', () => {
-    const api = installElectronAPI();
+    const api = installBridge();
     useMatchSettingsStore.getState().setMatchSettings({
       homeTeamLogo: 'file:///images/old-home.png',
       venue: 'Old Ground',
@@ -111,11 +119,11 @@ describe('Zustand stores', () => {
     useMatchSettingsStore.getState().replaceMatchSettings(replacement);
 
     expect(useMatchSettingsStore.getState().matchSettings).toEqual(replacement);
-    expect(api.updateMatchSettings).toHaveBeenLastCalledWith(replacement);
+    expect(api.onMatchSettings).toHaveBeenLastCalledWith(replacement);
   });
 
-  it('merges match state updates and notifies Electron', () => {
-    const api = installElectronAPI();
+  it('merges match state updates and notifies the bridge', () => {
+    const api = installBridge();
 
     useMatchStateStore.getState().setMatchState({
       displayScreen: 'penalties',
@@ -128,11 +136,11 @@ describe('Zustand stores', () => {
       matchPhase: 'secondHalf',
     };
     expect(useMatchStateStore.getState().matchState).toEqual(expectedState);
-    expect(api.updateMatchState).toHaveBeenCalledWith(expectedState);
+    expect(api.onMatchState).toHaveBeenCalledWith(expectedState);
   });
 
-  it('merges app settings updates and notifies Electron', () => {
-    const api = installElectronAPI();
+  it('merges app settings updates and notifies the bridge', () => {
+    const api = installBridge();
 
     useAppSettingsStore.getState().setAppSettings({
       keyColour: '#00ff00',
@@ -145,11 +153,11 @@ describe('Zustand stores', () => {
     expect(useAppSettingsStore.getState().appSettings).toEqual(
       expectedSettings
     );
-    expect(api.updateAppSettings).toHaveBeenCalledWith(expectedSettings);
+    expect(api.onAppSettings).toHaveBeenCalledWith(expectedSettings);
   });
 
   it('tracks whether persisted settings have loaded (gates the first-run picker)', () => {
-    installElectronAPI();
+    installBridge();
 
     // Defaults to false so the picker stays hidden until the async load runs.
     expect(useAppSettingsStore.getInitialState().settingsLoaded).toBe(false);
@@ -158,7 +166,27 @@ describe('Zustand stores', () => {
     expect(useAppSettingsStore.getState().settingsLoaded).toBe(true);
   });
 
-  it('stores custom graphics without notifying Electron directly', () => {
+  it('only notifies the bridge for the slice that changed', () => {
+    const api = installBridge();
+
+    // Same store, different field: the app settings themselves are unchanged,
+    // so they are not resent.
+    useAppSettingsStore.getState().markSettingsLoaded();
+    expect(api.onAppSettings).not.toHaveBeenCalled();
+  });
+
+  it('stops notifying the bridge once disconnected', () => {
+    const api = installBridge();
+    stopMirroring?.();
+    stopMirroring = undefined;
+
+    useScoresStore.getState().setScores({ homeTeam: 3 });
+
+    expect(useScoresStore.getState().scores.homeTeam).toBe(3);
+    expect(api.onScores).not.toHaveBeenCalled();
+  });
+
+  it('stores custom graphics without notifying the bridge', () => {
     const customGraphics = [
       {
         title: 'Sponsor board',
@@ -176,9 +204,7 @@ describe('Zustand stores', () => {
     );
   });
 
-  it('does not throw when Electron API is unavailable', () => {
-    delete (window as Partial<Window>).electronAPI;
-
+  it('does not throw when no bridge is connected', () => {
     expect(() =>
       useScoresStore.getState().setScores({ awayTeam: 1 })
     ).not.toThrow();

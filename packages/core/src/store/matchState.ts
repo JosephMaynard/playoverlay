@@ -15,7 +15,6 @@ export const useMatchStateStore = create<MatchStateStore>((set) => ({
         ...state.matchState,
         ...matchStateUpdates,
       };
-      window?.electronAPI?.updateMatchState(matchState);
       return { ...state, matchState };
     }),
 }));

@@ -17,7 +17,6 @@ export const useScoresStore = create<ScoresStore>((set) => ({
   setScores: (scoreUpdates: Partial<Scores>) =>
     set((state) => {
       const scores = { ...state.scores, ...scoreUpdates };
-      window?.electronAPI?.updateScores(scores);
       return {
         ...state,
         scores,

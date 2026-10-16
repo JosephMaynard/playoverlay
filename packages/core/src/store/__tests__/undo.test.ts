@@ -12,15 +12,15 @@ import {
   selectCanUndo,
   selectNextRedoLabel,
   selectNextUndoLabel,
+  setMatchEventLogger,
   useUndoStore,
 } from '../undo';
 
 // These tests exercise the per-slice undo/redo stack in isolation from React
 // and Electron: they drive the three underlying stores directly and assert
 // that a captured slice round-trips through undo/redo while the untouched
-// slices are left exactly as they were. The store setters mirror to
-// window.electronAPI via optional chaining, which is simply absent here, so
-// nothing Electron is required.
+// slices are left exactly as they were. No store mirror or match-event
+// logger is connected here, so nothing Electron is required.
 
 function scores(
   homeTeam: number,
@@ -407,22 +407,18 @@ describe('undo store', () => {
 });
 
 describe('captureUndo match-event emission', () => {
-  // captureUndo mirrors every recorded action to window.electronAPI.
-  // logMatchEvent (see main-functions/logger.ts), a pure observability
-  // side-channel that must never change what gets captured or how undo/redo
-  // restore state, that's covered by the "undo store" tests above with no
-  // electronAPI installed at all. These tests only assert the mirror itself.
-  function installElectronAPI() {
-    const electronAPI = {
-      logMatchEvent: vi.fn(),
-    } as unknown as Window['electronAPI'];
+  // captureUndo reports every recorded action to the host's match-event
+  // logger (the Electron app forwards it to the main process's log), a pure
+  // observability side-channel that must never change what gets captured or
+  // how undo/redo restore state, that's covered by the "undo store" tests
+  // above with no logger set at all. These tests only assert the logging
+  // itself.
+  let clearLogger: (() => void) | undefined;
 
-    Object.defineProperty(window, 'electronAPI', {
-      configurable: true,
-      value: electronAPI,
-    });
-
-    return electronAPI;
+  function installLogger() {
+    const logger = vi.fn();
+    clearLogger = setMatchEventLogger(logger);
+    return logger;
   }
 
   beforeEach(() => {
@@ -430,31 +426,26 @@ describe('captureUndo match-event emission', () => {
   });
 
   afterEach(() => {
-    delete (window as Partial<Window>).electronAPI;
+    clearLogger?.();
+    clearLogger = undefined;
   });
 
   it('emits the label with source defaulted to laptop when none is given', () => {
-    const electronAPI = installElectronAPI();
+    const logger = installLogger();
 
     useUndoStore.getState().captureUndo('undo:actions.homeGoal', ['scores']);
 
-    expect(electronAPI.logMatchEvent).toHaveBeenCalledWith(
-      'undo:actions.homeGoal',
-      'laptop'
-    );
+    expect(logger).toHaveBeenCalledWith('undo:actions.homeGoal', 'laptop');
   });
 
   it('emits the explicit source when one is passed', () => {
-    const electronAPI = installElectronAPI();
+    const logger = installLogger();
 
     useUndoStore
       .getState()
       .captureUndo('undo:actions.switchScreen', ['matchState'], 'phone');
 
-    expect(electronAPI.logMatchEvent).toHaveBeenCalledWith(
-      'undo:actions.switchScreen',
-      'phone'
-    );
+    expect(logger).toHaveBeenCalledWith('undo:actions.switchScreen', 'phone');
   });
 });
 

@@ -25,6 +25,7 @@ import {
   reconcileActiveScreen,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
+import { connectStoresToElectron } from '../../electronBridge';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
@@ -92,6 +93,12 @@ export default function Dashboard() {
     (state) => state.registerClockResync
   );
   const canUndo = useUndoStore(selectCanUndo);
+
+  // Mirror the match stores to the main process and log operator actions
+  // there, for as long as the dashboard is mounted. Declared before the
+  // dashboard's other effects so it is connected before the mount effect
+  // below loads state through the store setters.
+  useEffect(() => connectStoresToElectron(), []);
 
   // Check for updates on launch
   useEffect(() => {
@@ -216,8 +223,8 @@ export default function Dashboard() {
       unsubscribeSetScreen();
     };
     // Mount-only: seeds the main process with the initial scores/matchState/
-    // time (ongoing changes are mirrored to IPC by each store's setter, per
-    // house style), fetches settings once, and registers shortcut/update
+    // time (ongoing changes are mirrored to IPC by the store mirror connected
+    // above), fetches settings once, and registers shortcut/update
     // listeners for the component's lifetime. The listener callbacks
     // (nextMatchPhase, incrementHomeTeamScore, etc.) read fresh state via
     // each zustand store's getState() rather than closing over this scope,
