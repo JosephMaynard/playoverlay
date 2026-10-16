@@ -1,6 +1,6 @@
 # PlayOverlay
 
-[![CI](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml/badge.svg)](https://github.com/JosephMaynard/playoverlay/actions/workflows/ci.yml)
+[![CI](https://github.com/MagicZebraLtd/playoverlay/actions/workflows/ci.yml/badge.svg)](https://github.com/MagicZebraLtd/playoverlay/actions/workflows/ci.yml)
 [![Support PlayOverlay on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20PlayOverlay-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/magiczebra)
 
 **PlayOverlay** is a free desktop app for adding live score and match-clock graphics to sports video streams, built for streaming community football (soccer) matches to YouTube, and usable for any stream where you key graphics over a live feed.
@@ -51,7 +51,7 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 
 ## Download
 
-Grab the latest release from the [Releases page](https://github.com/JosephMaynard/playoverlay/releases):
+Grab the latest release from the [Releases page](https://github.com/MagicZebraLtd/playoverlay/releases):
 
 | Platform              | File                             |
 | --------------------- | -------------------------------- |
@@ -169,7 +169,7 @@ The phone mirrors the live match state, so it stays in sync with the operator an
 
 The interface and the on-screen graphics are available in English, French, German, Italian, Spanish (Spain and Latin America), and Portuguese (Portugal and Brazil). On first launch PlayOverlay suggests a language based on your system and asks you to confirm it or pick another; if you dismiss the prompt without choosing, it stays unset and asks again next time. You can change the language whenever you like under **System Settings → Language**, and it applies to both the operator dashboard and the on-air graphics. The [phone remote](#phone-remote-lan) control page is in English only for now. Text you type yourself is never translated: team names, abbreviations, venues, and the titles of saved match settings and custom screens are always shown exactly as you enter them.
 
-The translations are **machine-generated and have not been reviewed by native speakers**, so some wording, especially the on-air football terms, may read a little off. If you spot a mistake, please [open an issue](https://github.com/JosephMaynard/playoverlay/issues) and it'll get fixed.
+The translations are **machine-generated and have not been reviewed by native speakers**, so some wording, especially the on-air football terms, may read a little off. If you spot a mistake, please [open an issue](https://github.com/MagicZebraLtd/playoverlay/issues) and it'll get fixed.
 
 ## Updates
 
@@ -180,7 +180,7 @@ On launch the app checks this repository's GitHub Releases for a newer version a
 Prerequisites: [Node.js](https://nodejs.org) 22.13+ (or 24+) and npm.
 
 ```bash
-git clone https://github.com/JosephMaynard/playoverlay.git
+git clone https://github.com/MagicZebraLtd/playoverlay.git
 cd playoverlay
 npm install
 npm start          # run in development
