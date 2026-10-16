@@ -28,6 +28,7 @@ export * from './store/undo';
 
 export { default as useMatchClock } from './useMatchClock';
 export type { StopTimeOptions, UseMatchClock } from './useMatchClock';
+export * from './matchActions';
 
 export { defaultNS, namespaces, resources } from './i18n';
 export { initI18n } from './i18n/init';
