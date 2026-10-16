@@ -198,7 +198,27 @@
       "deleteAria": "Delete {{club}}",
       "deleteModalTitle": "Delete saved club?",
       "deleteConfirmBody": "Are you sure you want to delete the saved club \"{{club}}\"? Teams already using it are not changed.",
-      "deleteError": "The club could not be deleted. Please try again."
+      "deleteError": "The club could not be deleted. Please try again.",
+      "playerCount_one": "{{count}} player",
+      "playerCount_other": "{{count}} players"
+    },
+    "lineup": {
+      "addPlayer": "Add player",
+      "cap": "up to {{max}}",
+      "count_one": "{{count}} player",
+      "count_other": "{{count}} players",
+      "empty": "Add the squad to show a line-up on air and pick goal scorers from it.",
+      "nameLabel": "{{team}} player {{n}}: name",
+      "namePlaceholder": "Player name",
+      "numberLabel": "{{team}} player {{n}}: shirt number",
+      "numberPlaceholder": "No.",
+      "pasteAction": "Add players",
+      "pasteHint": "One player per line. Put the shirt number first if you have it, e.g. 9 Ali Smith.",
+      "pasteList": "Paste a list",
+      "pasteModalTitle": "Paste the {{team}} line-up",
+      "removeAria": "Remove {{player}}",
+      "title": "Line-up",
+      "unnamedPlayer": "{{team}} player {{n}}"
     }
   },
   "system": {

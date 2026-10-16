@@ -70,6 +70,13 @@ export default function SavedClubs({ clubs, loadError, deleteClub }: Props) {
               <span className="min-w-0 flex-grow truncate text-sm font-medium text-gray-900">
                 {club.name}
               </span>
+              {club.players && club.players.length > 0 && (
+                <span className="flex-shrink-0 text-sm text-gray-500">
+                  {t('settings:matchMenu.clubs.playerCount', {
+                    count: club.players.length,
+                  })}
+                </span>
+              )}
               <button
                 type="button"
                 className="flex-shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-600"

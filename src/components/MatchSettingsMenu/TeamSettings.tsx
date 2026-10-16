@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings } from '@playoverlay/core';
+import { AppSettings, Player } from '@playoverlay/core';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
+import LineupEditor from './LineupEditor';
 import { ScoresTeamName } from '@playoverlay/screens';
 
 export interface Props {
@@ -17,6 +18,9 @@ export interface Props {
   setBackgroundColour: (backgroundColour: string) => void;
   teamLogo?: string;
   setTeamLogo: (teamLogo: string | undefined) => void;
+  // The team's line-up. The section is only shown when setPlayers is given.
+  players?: Player[];
+  setPlayers?: (players: Player[] | undefined) => void;
   appSettings: AppSettings;
   disabled?: boolean;
   // Club presets controls (load/save a saved club), shown above the fields.
@@ -35,6 +39,8 @@ export default function TeamSettings({
   setBackgroundColour,
   teamLogo,
   setTeamLogo,
+  players,
+  setPlayers,
   appSettings,
   disabled,
   clubPicker,
@@ -185,6 +191,15 @@ export default function TeamSettings({
           <p className="mt-2 text-xs text-red-600">{logoUploadError}</p>
         )}
       </div>
+      {setPlayers && (
+        <LineupEditor
+          idPrefix={idPrefix}
+          team={title}
+          players={players ?? []}
+          setPlayers={setPlayers}
+          disabled={disabled}
+        />
+      )}
       <ColourPicker
         label={t('settings:matchMenu.team.textColourLabel', { team: title })}
         onChange={setTextColour}
