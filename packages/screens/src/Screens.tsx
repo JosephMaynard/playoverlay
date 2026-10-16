@@ -13,6 +13,7 @@ import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
 import ScoreboardLayout from './ScoreboardLayout/ScoreboardLayout';
 import GoalBannerLayout from './GoalBannerLayout/GoalBannerLayout';
+import LineupLayout from './LineupLayout/LineupLayout';
 
 export interface Props {
   matchSettings: MatchSettings;
@@ -67,6 +68,16 @@ export default function Screens({
         time={time}
         active={matchState.displayScreen === 'scoreboard'}
         clockFormat={clockFormat}
+      />
+      <LineupLayout
+        team="home"
+        matchSettings={matchSettings}
+        active={matchState.displayScreen === 'homeLineup'}
+      />
+      <LineupLayout
+        team="away"
+        matchSettings={matchSettings}
+        active={matchState.displayScreen === 'awayLineup'}
       />
       <GoalBannerLayout
         goals={scores.goals ?? []}

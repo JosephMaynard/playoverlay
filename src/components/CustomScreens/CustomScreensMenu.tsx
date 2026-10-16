@@ -6,6 +6,7 @@ import DragAndDropUploader from './DragAndDropUploader';
 import {
   CustomScreen,
   MatchState,
+  useMatchSettingsStore,
   useMatchStateStore,
 } from '@playoverlay/core';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -48,6 +49,7 @@ export default function CustomScreensMenu({
 }: Props) {
   const { t } = useTranslation();
   const matchState = useMatchStateStore((state) => state.matchState);
+  const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
   const [showAddCustomScreenModal, setShowAddCustomScreenModal] =
     useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
@@ -255,6 +257,7 @@ export default function CustomScreensMenu({
         keyColour={keyColour}
         saveError={editError}
         isSaving={isWriting}
+        matchSettings={matchSettings}
       />
 
       <Modal

@@ -1050,3 +1050,34 @@ describe('Dashboard match engine', () => {
     });
   });
 });
+
+describe('Dashboard line-ups', () => {
+  it("offers a team's line-up screen once it has players, and takes it off air when the last one goes", async () => {
+    const { stores } = await renderDashboard({
+      matchSettings: {
+        ...defaultMatchSettings,
+        homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Home Line-up' }));
+    expect(stores.matchState.getState().matchState.displayScreen).toBe(
+      'homeLineup'
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Away Line-up' })
+    ).not.toBeInTheDocument();
+
+    act(() =>
+      stores.matchSettings
+        .getState()
+        .setMatchSettings({ homeTeamPlayers: undefined })
+    );
+    expect(stores.matchState.getState().matchState.displayScreen).toBe(
+      'scoreBug'
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Home Line-up' })
+    ).not.toBeInTheDocument();
+  });
+});

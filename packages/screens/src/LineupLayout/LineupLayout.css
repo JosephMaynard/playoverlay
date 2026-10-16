@@ -1,0 +1,112 @@
+.LineupLayout {
+  --base-size: 2.5cqw;
+  --animation-duration: 1.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--base-size);
+  /* Hidden until first activated; the active/hidden animations take over
+     from here (see the hasBeenActive guard in the component). */
+  visibility: hidden;
+}
+
+.LineupLayout_active {
+  animation: lineup_layout_active var(--animation-duration) forwards;
+}
+
+.LineupLayout_hidden {
+  animation: lineup_layout_hidden var(--animation-duration) forwards;
+}
+
+.LineupLayout_board {
+  width: calc(var(--base-size) * 20);
+  max-width: 90%;
+}
+
+.LineupLayout_board_twoColumns {
+  width: calc(var(--base-size) * 34);
+}
+
+.LineupLayout_header {
+  gap: calc(var(--base-size) * 0.5);
+  padding: calc(var(--base-size) * 0.25) calc(var(--base-size) * 0.75);
+}
+
+.LineupLayout_logo {
+  width: calc(var(--base-size) * 1.5);
+  height: calc(var(--base-size) * 1.5);
+  flex-shrink: 0;
+}
+
+.LineupLayout_teamName {
+  min-width: 0;
+}
+
+.LineupLayout_teamColour {
+  height: calc(var(--base-size) * 0.25);
+  margin-bottom: calc(var(--base-size) * 0.25);
+}
+
+.LineupLayout_columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: calc(var(--base-size) * 0.5);
+}
+
+.LineupLayout_board_twoColumns .LineupLayout_columns {
+  grid-template-columns: 1fr 1fr;
+}
+
+.LineupLayout_column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Sized so eleven rows plus the header fit a 16:9 screen; a column of
+   twelve or more (a squad over 22 in two columns) steps down a size. */
+.LineupLayout_row {
+  font-size: calc(var(--base-size) * 0.8);
+  line-height: 1.2;
+}
+
+.LineupLayout_dense .LineupLayout_row {
+  font-size: calc(var(--base-size) * 0.6);
+}
+
+.LineupLayout_number {
+  width: 2.5em;
+  flex-shrink: 0;
+  padding: 0.15em 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.LineupLayout_name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.15em 0.5em;
+}
+
+@keyframes lineup_layout_active {
+  0% {
+    transform: translateY(50%) translateZ(0);
+    visibility: visible;
+  }
+  40%,
+  100% {
+    transform: translateY(0) translateZ(0);
+    visibility: visible;
+  }
+}
+
+@keyframes lineup_layout_hidden {
+  0%,
+  60% {
+    transform: translateY(0) translateZ(0);
+    visibility: visible;
+  }
+  100% {
+    transform: translateY(50%) translateZ(0);
+    visibility: hidden;
+  }
+}

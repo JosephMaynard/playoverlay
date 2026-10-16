@@ -8,6 +8,7 @@ import {
   customScreenKey,
   addCustomScreen,
   removeCustomScreen,
+  isScreenOffered,
 } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
@@ -24,6 +25,8 @@ const screenLabelKeys: Record<DisplayScreen, string> = {
   custom: 'settings:system.screens.custom',
   endScreen: 'settings:system.screens.endScreen',
   scoreboard: 'settings:system.screens.scoreboard',
+  homeLineup: 'settings:system.screens.homeLineup',
+  awayLineup: 'settings:system.screens.awayLineup',
 };
 
 export interface Props {
@@ -55,12 +58,9 @@ export default function DisplayControlsPanel({
     <CollapsiblePanel title={t('dashboard:displayControls.title')}>
       <ButtonGrid
         buttons={[
-          ...Object.keys(screens)
+          ...(Object.keys(screens) as DisplayScreen[])
             .filter((screen) => screen !== 'custom')
-            .filter(
-              (screen) =>
-                matchSettings.hasPenalties !== false || screen !== 'penalties'
-            )
+            .filter((screen) => isScreenOffered(screen, matchSettings))
             .map((screen) => ({
               label: t(screenLabelKeys[screen as DisplayScreen]),
               onClick: () =>
