@@ -8,7 +8,7 @@ import { logError } from './logger';
 // Update checks use the public GitHub Releases API; release tags are
 // expected to be semver, optionally prefixed with a "v" (e.g. v0.14.0).
 const GITHUB_RELEASES_API_URL =
-  'https://api.github.com/repos/JosephMaynard/playoverlay/releases/latest';
+  'https://api.github.com/repos/MagicZebraLtd/playoverlay/releases/latest';
 
 export async function checkInternetConnection(): Promise<boolean> {
   try {

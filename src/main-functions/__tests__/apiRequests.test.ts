@@ -56,17 +56,17 @@ describe('apiRequests', () => {
       const fetchMock = mockSuccessfulFetch({
         tag_name: 'v0.15.0',
         html_url:
-          'https://github.com/JosephMaynard/playoverlay/releases/tag/v0.15.0',
+          'https://github.com/MagicZebraLtd/playoverlay/releases/tag/v0.15.0',
       });
 
       await expect(checkForUpdates()).resolves.toEqual({
         latestVersion: '0.15.0',
         downloadUrl:
-          'https://github.com/JosephMaynard/playoverlay/releases/tag/v0.15.0',
+          'https://github.com/MagicZebraLtd/playoverlay/releases/tag/v0.15.0',
         newVersionAvailable: true,
       });
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://api.github.com/repos/JosephMaynard/playoverlay/releases/latest',
+        'https://api.github.com/repos/MagicZebraLtd/playoverlay/releases/latest',
         {
           method: 'GET',
           headers: { Accept: 'application/vnd.github+json' },
@@ -78,7 +78,7 @@ describe('apiRequests', () => {
       mockSuccessfulFetch({
         tag_name: '0.14.0',
         html_url:
-          'https://github.com/JosephMaynard/playoverlay/releases/tag/v0.14.0',
+          'https://github.com/MagicZebraLtd/playoverlay/releases/tag/v0.14.0',
       });
 
       await expect(checkForUpdates()).resolves.toMatchObject({
