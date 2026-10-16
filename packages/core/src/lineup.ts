@@ -1,6 +1,7 @@
 import { Goal, homeOrAway, Player } from './types';
 import type { MatchSettings } from './zodSchemas';
 import {
+  DisplayScreen,
   MAX_PLAYER_NAME_LENGTH,
   MAX_PLAYER_NUMBER_LENGTH,
   MAX_PLAYERS_PER_TEAM,
@@ -103,4 +104,46 @@ export function formatScorer(goal: Pick<Goal, 'scorer' | 'scorerNumber'>) {
   return goal.scorerNumber
     ? `${goal.scorerNumber} ${goal.scorer}`
     : goal.scorer;
+}
+
+// Each team's line-up screen.
+export const lineupScreens = {
+  home: 'homeLineup',
+  away: 'awayLineup',
+} as const satisfies Record<homeOrAway, DisplayScreen>;
+
+// The team whose line-up a screen shows, or undefined for any other screen.
+export function lineupScreenTeam(
+  screen: DisplayScreen
+): homeOrAway | undefined {
+  if (screen === lineupScreens.home) return 'home';
+  if (screen === lineupScreens.away) return 'away';
+  return undefined;
+}
+
+// Whether a built-in screen is offered to the operator for this match: the
+// penalties screen only while penalties are on, and a line-up screen only
+// for a team that has players. The dashboard's screen buttons, the Stream
+// Deck and the screen rotation all follow this, so a match without line-ups
+// offers exactly the screens it always did.
+export function isScreenOffered(
+  screen: DisplayScreen,
+  matchSettings: MatchSettings
+): boolean {
+  if (screen === 'penalties') return matchSettings.hasPenalties !== false;
+  const team = lineupScreenTeam(screen);
+  return team === undefined || hasLineup(matchSettings, team);
+}
+
+// A line-up screen on air for a team whose last player has just been
+// removed would show nothing at all, so it comes off air (back to the score
+// bug), the same way a deleted custom screen does. Returns the matchState
+// update to apply, or null when nothing needs to change.
+export function reconcileLineupScreen(
+  displayScreen: DisplayScreen,
+  matchSettings: MatchSettings
+): { displayScreen: DisplayScreen } | null {
+  const team = lineupScreenTeam(displayScreen);
+  if (team === undefined || hasLineup(matchSettings, team)) return null;
+  return { displayScreen: 'scoreBug' };
 }

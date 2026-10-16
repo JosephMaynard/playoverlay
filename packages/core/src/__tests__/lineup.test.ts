@@ -7,8 +7,10 @@ import {
 import {
   formatScorer,
   hasLineup,
+  isScreenOffered,
   normalisePlayers,
   parsePlayerList,
+  reconcileLineupScreen,
   scorerFromPlayer,
   teamPlayers,
 } from '../lineup';
@@ -137,5 +139,35 @@ describe('scorerFromPlayer and formatScorer', () => {
     expect(formatScorer({ scorer: 'Jones' })).toBe('Jones');
     expect(formatScorer({})).toBe('');
     expect(formatScorer({ scorerNumber: '9' })).toBe('');
+  });
+});
+
+describe('isScreenOffered and reconcileLineupScreen', () => {
+  const withHome = {
+    ...defaultMatchSettings,
+    homeTeamPlayers: [{ name: 'Ali Smith' }],
+  };
+
+  it("offers a line-up screen only for a team with players, and penalties only while they're on", () => {
+    expect(isScreenOffered('homeLineup', withHome)).toBe(true);
+    expect(isScreenOffered('awayLineup', withHome)).toBe(false);
+    expect(isScreenOffered('scoreBug', defaultMatchSettings)).toBe(true);
+    expect(isScreenOffered('penalties', defaultMatchSettings)).toBe(true);
+    expect(
+      isScreenOffered('penalties', {
+        ...defaultMatchSettings,
+        hasPenalties: false,
+      })
+    ).toBe(false);
+  });
+
+  it('takes a line-up screen off air once its team has no players', () => {
+    expect(reconcileLineupScreen('homeLineup', withHome)).toBeNull();
+    expect(reconcileLineupScreen('awayLineup', withHome)).toEqual({
+      displayScreen: 'scoreBug',
+    });
+    expect(
+      reconcileLineupScreen('matchTitle', defaultMatchSettings)
+    ).toBeNull();
   });
 });

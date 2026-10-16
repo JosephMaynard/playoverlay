@@ -23,6 +23,7 @@ import {
   isTextEntryTarget,
   reconcileActiveOverlays,
   reconcileActiveScreen,
+  reconcileLineupScreen,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
 import { connectStoresToElectron } from '../../electronBridge';
@@ -265,6 +266,18 @@ export default function Dashboard() {
       });
     }
   }, [customGraphicsLoaded, customGraphics, matchState, setMatchState]);
+
+  // The same for a line-up screen: removing a team's last player while its
+  // line-up is on air (or an undo bringing back a line-up screen for a team
+  // that no longer has one) takes it off air instead of leaving an empty
+  // output. Not an undo step either: it follows the settings.
+  useEffect(() => {
+    const reconciled = reconcileLineupScreen(
+      matchState.displayScreen,
+      matchSettings
+    );
+    if (reconciled) setMatchState(reconciled);
+  }, [matchState.displayScreen, matchSettings, setMatchState]);
 
   // Match shortcuts (both the focused-window set and the system-wide Alt set)
   // are paused only while the operator is typing: focus in a text field

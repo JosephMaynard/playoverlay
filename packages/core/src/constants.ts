@@ -138,6 +138,8 @@ export const screens = {
   custom: 'Custom Screens',
   endScreen: 'End Screen',
   scoreboard: 'Scoreboard',
+  homeLineup: 'Home Line-up',
+  awayLineup: 'Away Line-up',
 } as const;
 
 export type DisplayScreen = keyof typeof screens;

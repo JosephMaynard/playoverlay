@@ -16,6 +16,7 @@ import {
   getPhaseList,
   getPhaseTitle,
   getRemoteControlSettings,
+  isScreenOffered,
   MatchSettings,
   AppSettings,
   KeyboardShortcuts,
@@ -458,13 +459,13 @@ export default function SystemSettingsMenu({
     custom: 'settings:system.screens.custom',
     endScreen: 'settings:system.screens.endScreen',
     scoreboard: 'settings:system.screens.scoreboard',
+    homeLineup: 'settings:system.screens.homeLineup',
+    awayLineup: 'settings:system.screens.awayLineup',
   };
 
-  const screenButtons = Object.keys(screens)
+  const screenButtons = (Object.keys(screens) as DisplayScreen[])
     .filter((screen) => screen !== 'custom')
-    .filter(
-      (screen) => matchSettings.hasPenalties !== false || screen !== 'penalties'
-    )
+    .filter((screen) => isScreenOffered(screen, matchSettings))
     .map((screen) => ({
       text: t(screenLabelKeys[screen as DisplayScreen]),
       textColor: 'black',

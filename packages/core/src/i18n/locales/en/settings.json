@@ -230,8 +230,10 @@
     },
     "connectStreamDeck": "Connect to Stream Deck",
     "screens": {
+      "awayLineup": "Away Line-up",
       "custom": "Custom Screens",
       "endScreen": "End Screen",
+      "homeLineup": "Home Line-up",
       "matchTitle": "Match Title",
       "none": "None",
       "penalties": "Penalties",
