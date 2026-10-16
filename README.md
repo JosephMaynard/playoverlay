@@ -176,6 +176,14 @@ Cross-build for Intel from an Apple Silicon Mac (or vice versa):
 npm run make -- --arch=x64    # or --arch=arm64
 ```
 
+The repo is an npm workspace: the Electron app is at the root, and the
+platform-independent code it shares with PlayOverlay's other apps lives in
+`packages/`. `packages/core` holds the match logic (types, schemas, stores,
+undo, the match clock and actions, translations) and `packages/screens` the
+on-air graphics. Both ship TypeScript source with no build step, so a plain
+`npm install` at the root is all the setup they need. See
+[CONTRIBUTING.md](CONTRIBUTING.md#project-layout) for what goes where.
+
 Type-check with `npm run ts-check`, lint with `npm run lint`, run the test
 suite with `npm test`, and generate coverage with `npm run test:coverage`.
 The CI-only package sanity check is `npm run build:ci`; use `npm run make` to

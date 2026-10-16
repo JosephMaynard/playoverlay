@@ -13,7 +13,11 @@
     "outDir": "dist",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    // Every file must compile on its own, as Babel (Metro, for the mobile
+    // app that consumes packages/) and esbuild (Vite) compile them, e.g. a
+    // type must be re-exported with `export type`.
+    "isolatedModules": true
   },
   "exclude": ["node_modules", "dist", "website"]
 }
