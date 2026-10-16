@@ -11,7 +11,7 @@
 // moving the repository (e.g. to the MagicZebraLtd organisation) is a
 // one-line change here.
 
-export const REPO_OWNER = "JosephMaynard";
+export const REPO_OWNER = "MagicZebraLtd";
 export const REPO_NAME = "playoverlay";
 export const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 export const RELEASES_PAGE_URL = `${REPO_URL}/releases`;

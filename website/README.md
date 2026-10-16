@@ -1,6 +1,6 @@
 # PlayOverlay website
 
-The marketing and docs site for [PlayOverlay](https://github.com/JosephMaynard/playoverlay), built
+The marketing and docs site for [PlayOverlay](https://github.com/MagicZebraLtd/playoverlay), built
 with Next.js (App Router) and Tailwind CSS. This is a standalone project living in a `website/`
 subdirectory of the main PlayOverlay repo: it has its own `package.json`, its own dependencies,
 and no code shared with (or imported from) the Electron app at the repo root.
