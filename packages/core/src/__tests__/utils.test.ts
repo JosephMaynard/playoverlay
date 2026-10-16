@@ -29,7 +29,12 @@ import {
   defaultMatchSettings,
 } from '../constants';
 import { MatchSettings } from '../zodSchemas';
-import i18n from '../i18n';
+import { initI18n } from '../i18n/init';
+
+// getPhaseTitle takes a translate function; the English catalogue gives the
+// labels asserted below. initI18n is a no-op if the test setup already
+// initialised i18next.
+const i18n = initI18n();
 
 describe('utils', () => {
   describe('timeToString', () => {

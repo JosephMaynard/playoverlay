@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Scores } from 'src/types';
+import {
+  Scores,
+  calculatePenalties,
+  MatchSettings,
+  ScorerLine,
+  goalsByScorer,
+} from '@playoverlay/core';
 import './EndScreenLayout.css';
-import { calculatePenalties } from '../../../utils';
-import { MatchSettings } from 'src/zodSchemas';
-import { ScorerLine, goalsByScorer } from '../../../goalLog';
 
 export interface Props {
   scores: Scores;

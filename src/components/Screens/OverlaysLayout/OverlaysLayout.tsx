@@ -1,5 +1,4 @@
-import { DisplayScreen } from '../../../constants';
-import { CustomScreen } from '../../../types';
+import { DisplayScreen, CustomScreen } from '@playoverlay/core';
 
 export interface Props {
   overlays: CustomScreen[];

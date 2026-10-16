@@ -1,7 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { DisplayScreen, screens } from '../../constants';
-import { CustomScreen } from '../../types';
-import { insertValue, removeValue } from '../../utils';
+import {
+  DisplayScreen,
+  screens,
+  CustomScreen,
+  insertValue,
+  removeValue,
+} from '@playoverlay/core';
 import Modal from '../Modal/Modal';
 
 // Same local i18n key map as SystemSettingsMenu's Stream Deck screen buttons

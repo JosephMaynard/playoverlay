@@ -3,12 +3,15 @@ import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import SideMenu from '../SideMenu/SideMenu';
 import DragAndDropUploader from './DragAndDropUploader';
-import { CustomScreen, MatchState } from '../../types';
+import {
+  CustomScreen,
+  MatchState,
+  useMatchStateStore,
+} from '@playoverlay/core';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Modal from '../Modal/Modal';
 import EditCustomScreen from './EditCustomScreen';
 import Empty from '../MatchSettingsMenu/Empty';
-import { useMatchStateStore } from '../../store/matchState';
 
 export interface Props {
   open: boolean;

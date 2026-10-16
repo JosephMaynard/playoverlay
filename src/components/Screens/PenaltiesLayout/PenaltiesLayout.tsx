@@ -1,5 +1,4 @@
-import { MatchSettings } from 'src/zodSchemas';
-import { Penalty, homeOrAway } from '../../../types';
+import { MatchSettings, Penalty, homeOrAway } from '@playoverlay/core';
 import PenaltiesBoard from './PenaltiesBoard';
 
 import './PenaltiesLayout.css';

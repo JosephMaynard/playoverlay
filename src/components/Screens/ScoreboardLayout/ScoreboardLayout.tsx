@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Scores, Time, ClockFormat } from 'src/types';
-import { MatchSettings } from 'src/zodSchemas';
-import { formatTimeOfDay } from '../../../utils';
+import {
+  Scores,
+  Time,
+  ClockFormat,
+  MatchSettings,
+  formatTimeOfDay,
+} from '@playoverlay/core';
 import './ScoreboardLayout.css';
 
 export interface Props {

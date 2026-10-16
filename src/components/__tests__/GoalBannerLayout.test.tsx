@@ -4,8 +4,9 @@ import {
   GOAL_BANNER_DURATION_MS,
   defaultMatchSettings,
   defaultMatchState,
-} from '../../constants';
-import { Goal, MatchState } from '../../types';
+  Goal,
+  MatchState,
+} from '@playoverlay/core';
 import GoalBannerLayout from '../Screens/GoalBannerLayout/GoalBannerLayout';
 import EndScreenLayout from '../Screens/EndScreenLayout/EndScreenLayout';
 

@@ -28,10 +28,37 @@
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-require-imports": "off",
     "@typescript-eslint/no-unused-vars": "warn",
+    // The workspace packages' subpaths (@playoverlay/core/utils and so on)
+    // are declared in their package.json "exports" maps, which the node
+    // resolver used here does not read. tsc resolves and checks them.
+    "import/no-unresolved": ["error", { "ignore": ["^@playoverlay/core/"] }],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn"
   },
   "overrides": [
+    {
+      // The main process and preload are bundled for Node and must stay free
+      // of React and the zustand stores, which the package entry points bring
+      // in. They import the pure modules by subpath instead.
+      "files": ["src/main.ts", "src/preload.ts", "src/main-functions/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@playoverlay/core",
+                "message": "Import the pure module's subpath instead (e.g. @playoverlay/core/utils), so the main bundle does not pull in React or the stores."
+              },
+              {
+                "name": "@playoverlay/screens",
+                "message": "The output screens are React components for the renderers only."
+              }
+            ]
+          }
+        ]
+      }
+    },
     {
       "files": ["src/test/**/*.{ts,tsx}"],
       "rules": {

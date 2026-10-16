@@ -7,9 +7,12 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchState } from '../../constants';
-import { useMatchStateStore } from '../../store/matchState';
-import { CustomScreen, MatchState } from '../../types';
+import {
+  defaultMatchState,
+  useMatchStateStore,
+  CustomScreen,
+  MatchState,
+} from '@playoverlay/core';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 
 const fullScreenGraphic: CustomScreen = {

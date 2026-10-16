@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { keyboardEventToAccelerator } from '../../utils';
+import { keyboardEventToAccelerator } from '@playoverlay/core';
 
 export interface Props {
   label: string;

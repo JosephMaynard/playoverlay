@@ -1,21 +1,22 @@
 import { shell, type MenuItemConstructorOptions } from 'electron';
-import { LanguageCode } from '../types';
-import { SUPPORT_URL, WEBSITE_URL } from '../constants';
+import { LanguageCode } from '@playoverlay/core/types';
+import { SUPPORT_URL, WEBSITE_URL } from '@playoverlay/core/constants';
 import { logError } from './logger';
-import en from '../i18n/locales/en/common.json';
-import fr from '../i18n/locales/fr/common.json';
-import de from '../i18n/locales/de/common.json';
-import it from '../i18n/locales/it/common.json';
-import esES from '../i18n/locales/es-ES/common.json';
-import es419 from '../i18n/locales/es-419/common.json';
-import ptPT from '../i18n/locales/pt-PT/common.json';
-import ptBR from '../i18n/locales/pt-BR/common.json';
+import en from '@playoverlay/core/i18n/locales/en/common.json';
+import fr from '@playoverlay/core/i18n/locales/fr/common.json';
+import de from '@playoverlay/core/i18n/locales/de/common.json';
+import it from '@playoverlay/core/i18n/locales/it/common.json';
+import esES from '@playoverlay/core/i18n/locales/es-ES/common.json';
+import es419 from '@playoverlay/core/i18n/locales/es-419/common.json';
+import ptPT from '@playoverlay/core/i18n/locales/pt-PT/common.json';
+import ptBR from '@playoverlay/core/i18n/locales/pt-BR/common.json';
 
 // The native app menu is built in the main process, which has no i18next
-// instance (src/i18n/index.ts relies on Vite's import.meta.glob and React
-// bindings meant for the renderers). Only the small common.json catalogues
-// are imported here, statically, so the main bundle carries the handful of
-// menu labels and nothing else from the renderer's translations.
+// instance (that is started in the renderers, with React bindings the main
+// bundle must not carry). Only the small common.json catalogues are imported
+// here, straight from @playoverlay/core's locale files, so the main bundle
+// carries the handful of menu labels and nothing else from the renderers'
+// translations.
 type AppMenuLabels = typeof en.appMenu;
 
 const catalogues: Record<LanguageCode, { appMenu?: Partial<AppMenuLabels> }> = {

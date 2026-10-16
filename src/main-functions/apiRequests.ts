@@ -2,7 +2,7 @@ import dns from 'dns/promises';
 
 import compareSemver from './compareSemver';
 import { app } from 'electron';
-import { githubReleaseSchema } from '../zodSchemas';
+import { githubReleaseSchema } from '@playoverlay/core/zodSchemas';
 import { logError } from './logger';
 
 // Update checks use the public GitHub Releases API; release tags are

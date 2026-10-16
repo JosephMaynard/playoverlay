@@ -4,7 +4,7 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
-import { Club } from '../../types';
+import { Club } from '@playoverlay/core';
 
 export interface Props {
   clubs: Club[];

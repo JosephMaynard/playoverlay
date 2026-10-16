@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, Club, homeOrAway } from 'src/types';
+import {
+  AppSettings,
+  Club,
+  homeOrAway,
+  MatchSettings,
+  clubFromTeam,
+  teamFieldsFromClub,
+  upsertClub,
+  classNames,
+  MAX_PERIOD_COUNT,
+} from '@playoverlay/core';
 import SideMenu from '../SideMenu/SideMenu';
 import TeamSettings from './TeamSettings';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-import { MatchSettings } from 'src/zodSchemas';
 import SavedMatchSettings from './SavedMatchSettings';
 import SavedClubs from './SavedClubs';
 import ClubPicker from './ClubPicker';
-import { clubFromTeam, teamFieldsFromClub, upsertClub } from '../../clubs';
 import { nanoid } from 'nanoid';
-import { classNames } from '../../utils';
-import { MAX_PERIOD_COUNT } from '../../constants';
 
 // Upper bounds matching the persistence schema (zodSchemas.ts): a value the
 // schema rejects is silently reset to the default on the next reload, so the

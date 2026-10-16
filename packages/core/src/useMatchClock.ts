@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MatchPhase, Time } from '../../types';
-import { getPhaseById, parseTimeToSeconds, timeToString } from '../../utils';
-import { useTimeStore } from '../../store/time';
-import { useMatchStateStore } from '../../store/matchState';
-import { useMatchSettingsStore } from '../../store/matchSettings';
-import { useAppSettingsStore } from '../../store/appSettings';
+import { MatchPhase, Time } from './types';
+import { getPhaseById, parseTimeToSeconds, timeToString } from './utils';
+import { useTimeStore } from './store/time';
+import { useMatchStateStore } from './store/matchState';
+import { useMatchSettingsStore } from './store/matchSettings';
+import { useAppSettingsStore } from './store/appSettings';
 
 export interface StopTimeOptions {
   // Whether stopping should apply the auto-switch-screens behaviour (jump

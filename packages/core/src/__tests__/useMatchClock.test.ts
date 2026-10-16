@@ -1,11 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings, defaultMatchState } from '../../../constants';
-import { timeToString } from '../../../utils';
-import { useMatchSettingsStore } from '../../../store/matchSettings';
-import { useMatchStateStore } from '../../../store/matchState';
-import { useTimeStore } from '../../../store/time';
-import { useUndoStore } from '../../../store/undo';
+import { defaultMatchSettings, defaultMatchState } from '../constants';
+import { timeToString } from '../utils';
+import { useMatchSettingsStore } from '../store/matchSettings';
+import { useMatchStateStore } from '../store/matchState';
+import { useTimeStore } from '../store/time';
+import { useUndoStore } from '../store/undo';
 import useMatchClock from '../useMatchClock';
 
 // resyncToTime is the hook's undo/redo re-anchoring path (see Dashboard.tsx's

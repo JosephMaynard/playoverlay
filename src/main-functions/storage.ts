@@ -2,8 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import Store from 'electron-store';
-import { AppSettings, Club, CustomScreen, LiveMatch } from '../types';
-import { defaultMatchSettings } from '../constants';
+import {
+  AppSettings,
+  Club,
+  CustomScreen,
+  LiveMatch,
+} from '@playoverlay/core/types';
+import { defaultMatchSettings } from '@playoverlay/core/constants';
 import { logError, sanitizeLogPath } from './logger';
 import convertFilePathToUrl, {
   repairLegacyFileUrl,
@@ -16,7 +21,7 @@ import {
   matchSetingsSchema,
   matchSettingsListSchema,
   MatchSettings,
-} from '../zodSchemas';
+} from '@playoverlay/core/zodSchemas';
 import {
   reconcileCustomScreens,
   reconcileMatchStateScreen,

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Goal, MatchState } from 'src/types';
-import { MatchSettings } from 'src/zodSchemas';
-import { GOAL_BANNER_DURATION_MS } from '../../../constants';
-import { formatGoalMinute } from '../../../goalLog';
+import {
+  Goal,
+  MatchState,
+  MatchSettings,
+  GOAL_BANNER_DURATION_MS,
+  formatGoalMinute,
+} from '@playoverlay/core';
 import './GoalBannerLayout.css';
 
 export interface Props {

@@ -1,5 +1,5 @@
-import { CustomScreen, MatchState } from '../types';
-import { defaultMatchState } from '../constants';
+import { CustomScreen, MatchState } from '@playoverlay/core/types';
+import { defaultMatchState } from '@playoverlay/core/constants';
 
 export interface ReconcileCustomScreensResult {
   kept: CustomScreen[];

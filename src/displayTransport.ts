@@ -3,8 +3,13 @@
 // plain web page loaded as an OBS browser source (via WebSocket). Electron
 // mode delegates 1:1 to window.electronAPI, nothing about its behavior
 // changes.
-import { AppSettings, MatchState, Scores, Time } from './types';
-import { MatchSettings } from './zodSchemas';
+import {
+  AppSettings,
+  MatchState,
+  Scores,
+  Time,
+  MatchSettings,
+} from '@playoverlay/core';
 
 type Unsubscribe = () => void;
 

@@ -11,22 +11,41 @@ import {
   MatchPhase,
   MatchState,
   SideMenuType,
-} from '../../types';
-import {
   MatchSettings,
   matchSetingsSchema,
   UpdateStatus,
-} from '../../zodSchemas';
+  useMatchClock,
+  getPhaseList,
+  getNextPhaseId,
+  isValidAdditionalTime,
+  DisplayScreen,
+  MAX_SCORER_LENGTH,
+  defaultMatchSettings,
+  defaultMatchState,
+  defaultScores,
+  createGoal,
+  removeLatestGoal,
+  trimGoalsToScore,
+  isRestorableLiveMatch,
+  useScoresStore,
+  useMatchSettingsStore,
+  useMatchStateStore,
+  useAppSettingsStore,
+  useTimeStore,
+  useCustomGraphicsStore,
+  useUndoStore,
+  selectCanUndo,
+  isTextEntryTarget,
+  reconcileActiveOverlays,
+  reconcileActiveScreen,
+} from '@playoverlay/core';
 
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
 import Screens from '../Screens/Screens';
 import ScoresPanel from '../ScoresPanel/ScoresPanel';
-import DisplayControlsPanel, {
-  reconcileActiveOverlays,
-  reconcileActiveScreen,
-} from './DisplayControlsPanel';
+import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import GoalLogPanel from './GoalLogPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
@@ -36,34 +55,8 @@ import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import PreflightModal from '../Preflight/PreflightModal';
 import Modal from '../Modal/Modal';
 import DashboardHeader from './DashboardHeader';
-import useMatchClock from './useMatchClock';
 
-import {
-  getPhaseList,
-  getNextPhaseId,
-  isValidAdditionalTime,
-} from '../../utils';
-import {
-  DisplayScreen,
-  MAX_SCORER_LENGTH,
-  defaultMatchSettings,
-  defaultMatchState,
-  defaultScores,
-} from '../../constants';
-import { createGoal, removeLatestGoal, trimGoalsToScore } from '../../goalLog';
-import { isRestorableLiveMatch } from '../../liveMatch';
 import { nanoid } from 'nanoid';
-import { useScoresStore } from '../../store/scores';
-import { useMatchSettingsStore } from '../../store/matchSettings';
-import { useMatchStateStore } from '../../store/matchState';
-import { useAppSettingsStore } from '../../store/appSettings';
-import { useTimeStore } from '../../store/time';
-import { useCustomGraphicsStore } from '../../store/customGraphics';
-import {
-  useUndoStore,
-  selectCanUndo,
-  isTextEntryTarget,
-} from '../../store/undo';
 import logo from '../../assets/playoverlay-logo.svg';
 
 export default function Dashboard() {

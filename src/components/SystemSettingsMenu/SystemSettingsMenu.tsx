@@ -16,28 +16,24 @@ import {
   getPhaseList,
   getPhaseTitle,
   getRemoteControlSettings,
-} from '../../utils';
-import Modal from '../Modal/Modal';
-import { MatchSettings } from '../../zodSchemas';
-import {
-  connectToStreamDeck,
-  NEXT_SET_KEY_INDEX,
-  onStreamDeckDisconnected,
-} from '../../stream-deck';
-import {
+  MatchSettings,
   AppSettings,
   KeyboardShortcuts,
   MatchPhase,
   MatchState,
   RemoteControlStatus,
   Time,
-} from '../../types';
-import {
   DisplayScreen,
   defaultKeyboardShortcuts,
   screens,
   supportedLanguages,
-} from '../../constants';
+} from '@playoverlay/core';
+import Modal from '../Modal/Modal';
+import {
+  connectToStreamDeck,
+  NEXT_SET_KEY_INDEX,
+  onStreamDeckDisconnected,
+} from '../../stream-deck';
 import StreamDeckIcon from '../Icons/StreamDeckIcon';
 import { Switch } from '@headlessui/react';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';

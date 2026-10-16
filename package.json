@@ -5,6 +5,9 @@
   "version": "0.21.0",
   "description": "PlayOverlay, sports video overlay",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -96,5 +99,10 @@
     "tar": "^7.5.22",
     "tmp": "^0.2.7"
   },
-  "packageManager": "npm@10.7.0"
+  "packageManager": "npm@10.7.0",
+  "generate-license-file": {
+    "exclude": [
+      "/^@playoverlay\\//"
+    ]
+  }
 }

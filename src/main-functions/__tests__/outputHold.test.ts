@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defaultMatchState, defaultScores } from '../../constants';
-import { LiveMatch, MatchState } from '../../types';
+import { defaultMatchState, defaultScores } from '@playoverlay/core/constants';
+import { LiveMatch, MatchState } from '@playoverlay/core/types';
 import {
   isRestorableLiveMatch,
   launchHoldState,

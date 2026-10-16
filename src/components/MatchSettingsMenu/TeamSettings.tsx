@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings } from 'src/types';
+import { AppSettings } from '@playoverlay/core';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';

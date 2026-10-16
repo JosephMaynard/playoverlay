@@ -1,5 +1,13 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Time, MatchPhase } from '../../types';
+import {
+  Time,
+  MatchPhase,
+  classNames,
+  getPhaseList,
+  getPhaseTitle,
+  isValidAdditionalTime,
+  MatchSettings,
+} from '@playoverlay/core';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { useState } from 'react';
@@ -7,13 +15,6 @@ import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import { Switch } from '@headlessui/react';
-import {
-  classNames,
-  getPhaseList,
-  getPhaseTitle,
-  isValidAdditionalTime,
-} from '../../utils';
-import { MatchSettings } from '../../zodSchemas';
 
 export interface Props {
   time: Time;

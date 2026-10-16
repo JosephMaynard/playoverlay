@@ -1,8 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings } from '../../constants';
+import { defaultMatchSettings, Scores } from '@playoverlay/core';
 import MatchTitleLayout from '../Screens/MatchTitleLayout/MatchTitleLayout';
-import { Scores } from '../../types';
 
 const scores: Scores = { homeTeam: 0, awayTeam: 0, penalties: [] };
 

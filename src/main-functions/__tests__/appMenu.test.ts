@@ -5,7 +5,7 @@ const openExternal = vi.hoisted(() => vi.fn(() => Promise.resolve()));
 const logError = vi.hoisted(() => vi.fn());
 vi.mock('electron', () => ({ shell: { openExternal } }));
 vi.mock('../logger', () => ({ logError }));
-import { supportedLanguageCodes } from '../../types';
+import { supportedLanguageCodes } from '@playoverlay/core/types';
 import { buildAppMenuTemplate, getAppMenuLabels } from '../appMenu';
 
 function editItems(template: MenuItemConstructorOptions[]) {

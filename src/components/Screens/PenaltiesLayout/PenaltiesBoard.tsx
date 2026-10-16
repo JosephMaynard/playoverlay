@@ -1,8 +1,11 @@
-import { Penalty, homeOrAway } from '../../../types';
+import {
+  Penalty,
+  homeOrAway,
+  MatchSettings,
+  calculatePenalties,
+} from '@playoverlay/core';
 import ScoresTeamName from '../../Screens/ScoresLayout/ScoresTeamName';
-import { MatchSettings } from 'src/zodSchemas';
 import PenaltyRow from './PenaltyRow';
-import { calculatePenalties } from '../../../utils';
 
 import './PenaltiesBoard.css';
 

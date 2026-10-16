@@ -1,6 +1,6 @@
-import { DisplayScreen, defaultMatchState } from '../constants';
-import { LiveMatch, MatchState, Scores, Time } from '../types';
-import { isRestorableLiveMatch } from '../liveMatch';
+import { DisplayScreen, defaultMatchState } from '@playoverlay/core/constants';
+import { LiveMatch, MatchState, Scores, Time } from '@playoverlay/core/types';
+import { isRestorableLiveMatch } from '@playoverlay/core/liveMatch';
 
 // Re-exported for the main process, which imports the output-hold pieces
 // from here; the rule itself lives in liveMatch.ts, shared with the

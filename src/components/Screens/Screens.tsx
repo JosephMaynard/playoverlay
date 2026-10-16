@@ -1,5 +1,10 @@
-import { ClockFormat, MatchState, Scores, Time } from '../../types';
-import { MatchSettings } from 'src/zodSchemas';
+import {
+  ClockFormat,
+  MatchState,
+  Scores,
+  Time,
+  MatchSettings,
+} from '@playoverlay/core';
 import ScoresLayout from './ScoresLayout/ScoresLayout';
 import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
 import EndScreenLayout from './EndScreenLayout/EndScreenLayout';

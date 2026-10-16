@@ -1,5 +1,4 @@
-import { Time, Scores } from 'src/types';
-import { MatchSettings } from 'src/zodSchemas';
+import { Time, Scores, MatchSettings } from '@playoverlay/core';
 import ScoresTeamName from './ScoresTeamName';
 import './ScoresLayout.css';
 

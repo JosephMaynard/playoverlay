@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CustomScreen } from '../../types';
+import { CustomScreen } from '@playoverlay/core/types';
 import convertFilePathToUrl from '../convertFilePathToUrl';
 
 // A real PNG magic-byte header, so tests exercising saveImageFile's happy

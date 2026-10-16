@@ -1,8 +1,14 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings, defaultMatchState } from '../../constants';
-import { AppSettings, MatchState, Scores, Time } from '../../types';
+import {
+  defaultMatchSettings,
+  defaultMatchState,
+  AppSettings,
+  MatchState,
+  Scores,
+  Time,
+} from '@playoverlay/core';
 import Display from '../Display/Display';
 import i18n from '../../i18n';
 

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { defaultMatchSettings } from '../../constants';
+import { defaultMatchSettings } from '@playoverlay/core';
 import ScoreboardLayout from '../Screens/ScoreboardLayout/ScoreboardLayout';
 
 describe('ScoreboardLayout', () => {

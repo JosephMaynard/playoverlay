@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Penalty, homeOrAway } from '../../types';
+import { Penalty, homeOrAway, MatchSettings } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import PenaltiesBoard from '../Screens/PenaltiesLayout/PenaltiesBoard';
-import { MatchSettings } from 'src/zodSchemas';
 
 export interface Props {
   penalties: Penalty[];

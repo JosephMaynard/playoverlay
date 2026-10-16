@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, Display } from '../../types';
+import { AppSettings, Display } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
