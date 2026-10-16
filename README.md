@@ -91,6 +91,8 @@ Once a team has players:
 - The scorer field in the **Goals** panel offers that team's players as you type, matching the name or the number. Pick one and the goal banner shows the number with the name, e.g. `9 Smith`. You can still type in a scorer who isn't in the line-up.
 - **Home Line-up** and **Away Line-up** appear among the screens in Display Controls and on the Stream Deck. Each shows the team's name, logo and colours over its players, in two columns for more than eleven.
 
+![The home line-up screen on the display output](docs/screenshots/lineup.png)
+
 None of this appears until a team has players. If you never enter one, the app works exactly as before.
 
 #### Rotating screens
