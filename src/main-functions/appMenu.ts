@@ -1,6 +1,7 @@
 import { shell, type MenuItemConstructorOptions } from 'electron';
 import { LanguageCode } from '../types';
 import { SUPPORT_URL, WEBSITE_URL } from '../constants';
+import { logError } from './logger';
 import en from '../i18n/locales/en/common.json';
 import fr from '../i18n/locales/fr/common.json';
 import de from '../i18n/locales/de/common.json';
@@ -30,6 +31,14 @@ const catalogues: Record<LanguageCode, { appMenu?: Partial<AppMenuLabels> }> = {
 
 // English fills any label a catalogue is missing, the same fallback the
 // renderers get from i18next's fallbackLng.
+// shell.openExternal rejects when no browser is available; a menu click has
+// nowhere to surface that, so it goes to the log like the IPC handler's does.
+function openInBrowser(url: string): void {
+  shell.openExternal(url).catch((error) => {
+    logError(`Failed to open URL in browser: ${String(error)}`);
+  });
+}
+
 export function getAppMenuLabels(language: LanguageCode): AppMenuLabels {
   return { ...en.appMenu, ...catalogues[language]?.appMenu };
 }
@@ -71,18 +80,8 @@ export function buildAppMenuTemplate(
       role: 'help',
       label: labels.help,
       submenu: [
-        {
-          label: labels.support,
-          click: () => {
-            shell.openExternal(SUPPORT_URL);
-          },
-        },
-        {
-          label: labels.website,
-          click: () => {
-            shell.openExternal(WEBSITE_URL);
-          },
-        },
+        { label: labels.support, click: () => openInBrowser(SUPPORT_URL) },
+        { label: labels.website, click: () => openInBrowser(WEBSITE_URL) },
       ],
     },
   ];
