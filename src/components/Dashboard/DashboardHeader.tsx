@@ -4,6 +4,7 @@ import {
   Cog6ToothIcon,
   ComputerDesktopIcon,
   DocumentPlusIcon,
+  HeartIcon,
   PhotoIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
@@ -11,6 +12,7 @@ import { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logo from '../../assets/playoverlay-logo.svg';
+import { SUPPORT_URL } from '../../constants';
 import { SideMenuType } from '../../types';
 import {
   selectCanRedo,
@@ -90,6 +92,29 @@ function MatchActionButton({
             : 'text-gray-400 hover:text-indigo-500'
         }`}
         aria-hidden={true}
+      />
+    </button>
+  );
+}
+
+// The one "Support PlayOverlay" link in the app: a heart that opens the
+// Ko-fi page in the system browser. Sits with the settings navigation, at
+// the same size and weight, so it is there for anyone looking but never
+// shouts during a match.
+function SupportButton({ iconClassName }: { iconClassName: string }) {
+  const { t } = useTranslation();
+  const label = t('common:support');
+  return (
+    <button
+      type="button"
+      className="-m-2.5 p-2.5"
+      onClick={() => window?.electronAPI?.openUrlInBrowser(SUPPORT_URL)}
+      title={label}
+      aria-label={label}
+    >
+      <HeartIcon
+        className={`${iconClassName} text-gray-400 hover:text-rose-500`}
+        aria-hidden="true"
       />
     </button>
   );
@@ -181,6 +206,12 @@ export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
               </button>
             </li>
           ))}
+          <li aria-hidden="true">
+            <span className="block h-6 w-px bg-gray-200" />
+          </li>
+          <li>
+            <SupportButton iconClassName="h-6 w-6" />
+          </li>
         </ul>
       </div>
       <div className="hidden shadow lg:fixed lg:inset-y-0 lg:right-0 lg:z-50 lg:flex lg:w-20 lg:flex-col lg:overflow-y-auto lg:bg-white lg:pb-4">
@@ -220,6 +251,12 @@ export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
                 </li>
               ))}
             </ul>
+            <span
+              className="h-px w-8 bg-gray-200"
+              aria-hidden="true"
+              role="presentation"
+            />
+            <SupportButton iconClassName="h-7 w-7" />
           </div>
         </nav>
       </div>

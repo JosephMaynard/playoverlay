@@ -1,5 +1,10 @@
 import type { MenuItemConstructorOptions } from 'electron';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const openExternal = vi.hoisted(() => vi.fn(() => Promise.resolve()));
+const logError = vi.hoisted(() => vi.fn());
+vi.mock('electron', () => ({ shell: { openExternal } }));
+vi.mock('../logger', () => ({ logError }));
 import { supportedLanguageCodes } from '../../types';
 import { buildAppMenuTemplate, getAppMenuLabels } from '../appMenu';
 
@@ -45,6 +50,40 @@ describe('buildAppMenuTemplate', () => {
     );
     expect(roles).not.toContain('undo');
     expect(roles).not.toContain('redo');
+  });
+});
+
+describe('Help menu', () => {
+  it('offers Support PlayOverlay and the website, opened in the system browser', () => {
+    const help = buildAppMenuTemplate('en')[2];
+    expect(help.role).toBe('help');
+    expect(help.label).toBe('Help');
+    const items = help.submenu as MenuItemConstructorOptions[];
+    expect(items.map((item) => item.label)).toEqual([
+      'Support PlayOverlay',
+      'PlayOverlay website',
+    ]);
+
+    (items[0].click as () => void)();
+    expect(openExternal).toHaveBeenCalledWith('https://ko-fi.com/magiczebra');
+    (items[1].click as () => void)();
+    expect(openExternal).toHaveBeenCalledWith('https://playoverlay.com');
+  });
+
+  it('logs instead of leaving a rejection when no browser opens', async () => {
+    openExternal.mockRejectedValueOnce(new Error('no handler'));
+    const items = buildAppMenuTemplate('en')[2]
+      .submenu as MenuItemConstructorOptions[];
+    (items[0].click as () => void)();
+    await vi.waitFor(() =>
+      expect(logError).toHaveBeenCalledWith(
+        expect.stringContaining('no handler')
+      )
+    );
+  });
+
+  it('is translated like the rest of the menu', () => {
+    expect(buildAppMenuTemplate('de')[2].label).toBe('Hilfe');
   });
 });
 
