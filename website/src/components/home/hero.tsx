@@ -14,15 +14,11 @@ export function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(39,170,225,0.22),transparent_70%)]"
       />
-      <div className="page-container relative">
+      <div className="page-container relative lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-center lg:gap-14">
         <div className="max-w-3xl">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/85">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-            Free and open source for Windows, macOS and Linux
-          </p>
           <h1
             id="hero-title"
-            className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl"
+            className="text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl xl:text-6xl"
           >
             Live score graphics for grassroots football streams
           </h1>
@@ -41,16 +37,20 @@ export function Hero() {
             </Link>
           </div>
           <p className="mt-5 text-sm text-white/65">
-            No account, no subscription, no watermark. MIT licensed.
+            Free and open source for Windows, macOS and Linux. No account, no subscription, no
+            watermark.
           </p>
         </div>
 
-        <figure className="mt-12 sm:mt-16">
+        {/* On wide screens the picture sits beside the copy and bleeds a
+            little past the container so the hero reads as one composition
+            rather than text with an empty right half. */}
+        <figure className="mt-12 sm:mt-16 lg:mt-0 lg:-mr-4 xl:-mr-12">
           <div className="overflow-hidden rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/15">
             <ImageSlot
               name="hero-match"
               priority
-              sizes="(min-width: 1216px) 1152px, (min-width: 640px) calc(100vw - 4rem), calc(100vw - 2rem)"
+              sizes="(min-width: 1216px) 700px, (min-width: 1024px) 55vw, (min-width: 640px) calc(100vw - 4rem), calc(100vw - 2rem)"
             />
           </div>
           <figcaption className="mt-3 text-sm text-white/60">
