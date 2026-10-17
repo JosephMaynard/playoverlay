@@ -7,9 +7,10 @@ export function Origin() {
             Why it exists
           </h2>
           <p className="mt-4 text-xl leading-relaxed text-fg sm:text-2xl sm:leading-relaxed">
-            Joseph Maynard built PlayOverlay for his dad, who films and streams local community
-            football. It does what those matches need: a score and clock that stay right for ninety
-            minutes, and controls one person can run from the touchline.
+            PlayOverlay was made for the people who film and stream local community football:
+            usually one person, one camera and no crew. It does what those matches need: a score
+            and clock that stay right for ninety minutes, and controls one person can run from the
+            touchline.
           </p>
         </div>
       </div>

@@ -41,18 +41,33 @@ export default function TroubleshootingPage() {
         SmartScreen shows this for apps it doesn&apos;t recognise. Click{" "}
         <strong>More info</strong>, then <strong>Run anyway</strong>.
       </p>
-      <h3>macOS: &quot;PlayOverlay is damaged&quot; or &quot;unidentified developer&quot;</h3>
+      <h3>macOS: &quot;unidentified developer&quot; or &quot;could not verify&quot;</h3>
       <p>
-        The app isn&apos;t damaged. macOS adds a quarantine flag to downloaded apps and refuses to
-        open unsigned ones that have it. Move <code>PlayOverlay.app</code> to your Applications
-        folder, open Terminal, and run:
+        Gatekeeper shows this for apps that aren&apos;t signed. Click <strong>Done</strong>, open{" "}
+        <strong>System Settings &rarr; Privacy &amp; Security</strong>, scroll down to the Security
+        section and click <strong>Open Anyway</strong> next to PlayOverlay. Confirm, and it opens
+        normally from then on.
       </p>
-      <CodeBlock code="xattr -cr /Applications/PlayOverlay.app" />
+      <h3>macOS: &quot;PlayOverlay is damaged and can&apos;t be opened&quot;</h3>
+      <p>
+        This is macOS&apos;s wording for an unsigned app that still carries the quarantine flag
+        from the download, and it happens mostly on Apple silicon. The file isn&apos;t corrupt, and
+        downloading it again won&apos;t change the message. You have two options:
+      </p>
+      <ul>
+        <li>
+          <strong>Build PlayOverlay from source</strong> (see the{" "}
+          <Link href="/download#first-launch">download page</Link>). An app you built yourself
+          isn&apos;t quarantined.
+        </li>
+        <li>
+          <strong>Clear the quarantine flag yourself.</strong> Only do this for a copy you downloaded
+          from the official releases page, because it tells macOS to skip its check for this app.
+          With <code>PlayOverlay.app</code> in your Applications folder, open Terminal and run:
+        </li>
+      </ul>
+      <CodeBlock code="xattr -d com.apple.quarantine /Applications/PlayOverlay.app" />
       <p>Then open PlayOverlay again.</p>
-      <p>
-        If you&apos;d rather not run an unsigned build, you can build PlayOverlay from source. See
-        the <Link href="/download#first-launch">download page</Link>.
-      </p>
 
       <h2 id="display">Graphics not showing on the mixer</h2>
       <ul>

@@ -10,7 +10,6 @@ import {
   type PlatformDefinition,
 } from "@/lib/github";
 import { DownloadButton } from "@/components/download-button";
-import { CodeBlock } from "@/components/code-block";
 import { ArrowRightIcon, DownloadIcon } from "@/components/icons";
 import { textLink } from "@/lib/ui";
 
@@ -198,13 +197,20 @@ export default async function DownloadPage() {
               <h3 className="font-semibold text-fg">macOS</h3>
               <p className="mt-2 leading-relaxed text-muted">
                 Unzip the download and move <code className="rounded bg-code px-1 py-0.5 font-mono text-sm text-fg">PlayOverlay.app</code>{" "}
-                to your Applications folder. If macOS says the app is damaged or from an
-                unidentified developer, open Terminal, run this once to clear the quarantine flag,
-                then open the app again:
+                to your Applications folder. The first time you open it, macOS will say it
+                couldn&apos;t verify the app or that it&apos;s from an unidentified developer. Click{" "}
+                <strong className="text-fg">Done</strong>, open{" "}
+                <strong className="text-fg">System Settings &rarr; Privacy &amp; Security</strong>,
+                scroll to the Security section and click{" "}
+                <strong className="text-fg">Open Anyway</strong> next to PlayOverlay.
               </p>
-              <div className="mt-4">
-                <CodeBlock code="xattr -cr /Applications/PlayOverlay.app" />
-              </div>
+              <p className="mt-2 leading-relaxed text-muted">
+                If macOS says the app is &quot;damaged&quot; instead, see{" "}
+                <Link href="/docs/troubleshooting#first-launch" className={textLink}>
+                  the troubleshooting guide
+                </Link>
+                . It isn&apos;t a bad download.
+              </p>
             </div>
             <div className="rounded-2xl border border-line bg-surface p-6">
               <h3 className="font-semibold text-fg">Linux</h3>
