@@ -1,8 +1,10 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { classNames } from '@playoverlay/core';
 
-export interface Props
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'children'> {
+export interface Props extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'type' | 'children'
+> {
   // Icon-only controls must always have an accessible name; title is set to
   // the same text so a mouse user gets the tooltip.
   label: string;
@@ -11,7 +13,7 @@ export interface Props
   // icon is a guess for a new operator.
   caption?: string;
   size?: 'md' | 'lg';
-  tone?: 'default' | 'danger' | 'support';
+  tone?: 'default' | 'danger';
 }
 
 const sizeClasses = {
@@ -22,7 +24,6 @@ const sizeClasses = {
 const toneClasses = {
   default: 'text-muted hover:bg-surface-2 hover:text-fg',
   danger: 'text-muted hover:bg-danger-soft hover:text-danger-ink',
-  support: 'text-muted hover:bg-danger-soft hover:text-danger',
 };
 
 // A 48px-or-larger icon target. The negative-margin trick the old rail used
@@ -42,7 +43,7 @@ export default function IconButton({
     <button
       type="button"
       className={classNames(
-        'inline-flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 transition-colors',
+        'inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted',
         sizeClasses[size],
@@ -55,7 +56,10 @@ export default function IconButton({
     >
       {icon}
       {caption && (
-        <span aria-hidden="true" className="text-[11px] font-medium leading-none">
+        <span
+          aria-hidden="true"
+          className="text-[11px] font-medium leading-none"
+        >
           {caption}
         </span>
       )}

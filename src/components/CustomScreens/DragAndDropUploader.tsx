@@ -180,7 +180,7 @@ const DragAndDropUploader: React.FC<Props> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={classNames(
-              'relative flex w-full flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 text-center text-base text-fg transition-colors',
+              'relative flex w-full flex-col items-center gap-4 rounded-xl border-2 border-dashed p-8 text-center text-base text-fg transition-colors',
               isDragging
                 ? 'border-accent bg-accent-soft'
                 : 'border-line-strong hover:border-accent'

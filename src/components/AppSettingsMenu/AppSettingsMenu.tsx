@@ -120,8 +120,11 @@ export default function AppSettingsMenu({
             {t('settings:appMenu.displays.none')}
           </p>
         )}
+        {/* Stacked: three labels this long wrap badly side by side in a
+            drawer. */}
         <ButtonGrid
           className="mt-4"
+          columns={1}
           buttons={[
             {
               label: t('settings:appMenu.windowControls.toggleFullscreen'),

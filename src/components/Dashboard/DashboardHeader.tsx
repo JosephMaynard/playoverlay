@@ -4,7 +4,6 @@ import {
   Cog6ToothIcon,
   ComputerDesktopIcon,
   DocumentPlusIcon,
-  HeartIcon,
   PhotoIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
@@ -13,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 
 import logo from '../../assets/playoverlay-logo.svg';
 import {
-  SUPPORT_URL,
   SideMenuType,
   selectCanRedo,
   selectCanUndo,
@@ -123,9 +121,6 @@ export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
     },
   ];
 
-  const supportLabel = t('common:support');
-  const openSupport = () => window?.electronAPI?.openUrlInBrowser(SUPPORT_URL);
-
   return (
     <>
       {/* Narrow windows: a sticky top bar with the same controls, no
@@ -164,17 +159,6 @@ export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
               />
             </li>
           ))}
-          <li aria-hidden="true">
-            <span className="mx-1 block h-6 w-px bg-line" />
-          </li>
-          <li>
-            <IconButton
-              label={supportLabel}
-              tone="support"
-              icon={<HeartIcon className="h-6 w-6" aria-hidden="true" />}
-              onClick={openSupport}
-            />
-          </li>
         </ul>
       </div>
 
@@ -219,17 +203,6 @@ export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
                 </li>
               ))}
             </ul>
-            <span className="my-1 h-px w-10 bg-line" aria-hidden="true" />
-            {/* The one "Support PlayOverlay" link in the app: a heart that
-                opens the Ko-fi page in the system browser, at the same
-                weight as the settings icons so it never shouts. */}
-            <IconButton
-              size="lg"
-              label={supportLabel}
-              tone="support"
-              icon={<HeartIcon className={iconClassName} aria-hidden="true" />}
-              onClick={openSupport}
-            />
           </div>
         </nav>
       </div>

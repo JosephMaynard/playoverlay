@@ -57,7 +57,7 @@ export default function ScoreInput({
   };
   return (
     <>
-      <div className="flex flex-col overflow-hidden rounded-2xl ring-1 ring-line">
+      <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-line">
         {/* Team strip in the team's own colours, so the two cards are told
             apart at a glance and not by reading. */}
         <div

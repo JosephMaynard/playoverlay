@@ -1,6 +1,7 @@
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  MinusCircleIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
@@ -13,12 +14,14 @@ export interface Props {
 
 const STATUS_ICON = {
   ok: CheckCircleIcon,
+  info: MinusCircleIcon,
   warning: ExclamationTriangleIcon,
   error: XCircleIcon,
 } as const;
 
 const STATUS_ICON_CLASS = {
   ok: 'text-live',
+  info: 'text-faint',
   warning: 'text-warn',
   error: 'text-danger',
 } as const;

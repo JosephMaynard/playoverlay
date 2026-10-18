@@ -18,8 +18,10 @@ const sizeClasses: Record<ActionButtonSize, string> = {
 };
 
 const variantClasses: Record<ActionButtonVariant, string> = {
+  // Filled rather than outlined: a hairline on the dark navy was near
+  // invisible, and a tinted fill is what native buttons do on both platforms.
   secondary:
-    'bg-surface text-fg ring-1 ring-inset ring-line hover:bg-surface-2 hover:ring-line-strong',
+    'bg-surface-2 text-fg ring-1 ring-inset ring-line hover:bg-line/60 hover:ring-line-strong',
   primary: 'bg-accent text-accent-fg hover:bg-accent-hover',
   live: 'bg-live text-live-fg hover:bg-live-hover',
   danger: 'bg-danger text-danger-fg hover:bg-danger-hover',
@@ -49,9 +51,9 @@ export function actionButtonClasses({
   block = false,
 }: ActionButtonStyle = {}): string {
   return classNames(
-    'inline-flex select-none items-center justify-center gap-2 rounded-xl font-semibold leading-tight transition-colors',
+    'inline-flex select-none items-center justify-center gap-2 rounded-lg font-semibold leading-tight transition-colors',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
-    'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface',
+    'disabled:cursor-not-allowed disabled:opacity-40',
     sizeClasses[size],
     selected ? selectedClasses : variantClasses[variant],
     block ? 'w-full' : ''

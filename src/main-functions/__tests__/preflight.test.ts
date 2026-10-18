@@ -50,7 +50,12 @@ describe('evaluatePreflightChecks', () => {
   it('is all clear when every signal is healthy', () => {
     const result = evaluatePreflightChecks(baseSignals());
 
-    expect(result.checks.every((check) => check.status === 'ok')).toBe(true);
+    // Services left off report 'info': not a problem, so still all clear.
+    expect(
+      result.checks.every(
+        (check) => check.status === 'ok' || check.status === 'info'
+      )
+    ).toBe(true);
     expect(result.summary).toEqual({
       status: 'ok',
       errorCount: 0,
@@ -120,7 +125,7 @@ describe('evaluatePreflightChecks', () => {
     expect(result.summary.status).toBe('error');
   });
 
-  it('is ok when the browser source is off (skipped, informational)', () => {
+  it('is informational when the browser source is off', () => {
     const result = evaluatePreflightChecks(
       baseSignals({
         browserSource: { enabled: false, running: false, port: 4750 },
@@ -128,7 +133,7 @@ describe('evaluatePreflightChecks', () => {
     );
 
     const check = checkFor(result, 'browserSource');
-    expect(check.status).toBe('ok');
+    expect(check.status).toBe('info');
     expect(check.detailKey).toBe('preflight:checks.browserSource.off');
   });
 

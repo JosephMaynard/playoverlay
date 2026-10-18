@@ -214,11 +214,12 @@ export default function ScreenRotationPanel({
         }
         label={t('dashboard:rotation.autoStart')}
         description={t('dashboard:rotation.autoStartHint')}
-      />{' '}
-      <div className="flex flex-wrap items-center gap-3">
+      />
+      <div className="mt-5">
         <ActionButton
           variant={rotating ? 'danger' : 'live'}
           size="lg"
+          block
           disabled={!rotating && !canStart}
           aria-describedby={
             !rotating && !canStart ? 'rotation-need-two' : undefined
@@ -230,7 +231,7 @@ export default function ScreenRotationPanel({
             : t('dashboard:rotation.start')}
         </ActionButton>
         {!rotating && !canStart && (
-          <p id="rotation-need-two" className="text-sm text-muted">
+          <p id="rotation-need-two" className="mt-2 text-sm text-muted">
             {t('dashboard:rotation.needTwo')}
           </p>
         )}

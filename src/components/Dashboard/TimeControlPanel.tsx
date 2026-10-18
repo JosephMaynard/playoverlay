@@ -163,7 +163,7 @@ export default function TimeControlPanel({
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
             {t('dashboard:timeControl.allPhases')}
           </p>
-          <ButtonGrid buttons={phaseButtons} columns={4} size="sm" />
+          <ButtonGrid buttons={phaseButtons} columns={2} size="sm" />
         </div>
         <Toggle
           checked={autoSwitchScreens}

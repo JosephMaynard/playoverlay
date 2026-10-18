@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { SUPPORT_URL } from '@playoverlay/core';
 import { Dialog, Transition } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import IconButton from '../ui/IconButton';
@@ -74,13 +75,28 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">{children}</div>
                     </div>
-                    {version && (
-                      <div>
+                    {/* The only "Support PlayOverlay" link in the app sits
+                        down here, under the settings and well away from the
+                        live controls: it opens a browser, which is never
+                        something an operator should hit by accident during
+                        a match. */}
+                    <div className="mt-6 flex flex-col items-center gap-2 px-6">
+                      <button
+                        type="button"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        onClick={() =>
+                          window?.electronAPI?.openUrlInBrowser(SUPPORT_URL)
+                        }
+                      >
+                        <HeartIcon className="h-5 w-5" aria-hidden="true" />
+                        {t('common:support')}
+                      </button>
+                      {version && (
                         <p className="text-center text-xs text-faint">
                           {t('common:versionLabel', { version })}
                         </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

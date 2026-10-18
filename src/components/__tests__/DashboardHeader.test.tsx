@@ -97,14 +97,12 @@ describe('DashboardHeader undo/redo controls', () => {
     expect(onNewMatch).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the Ko-fi page in the browser from the Support PlayOverlay button', () => {
-    const openUrlInBrowser = vi.fn();
-    window.electronAPI = { openUrlInBrowser } as unknown as typeof window.electronAPI;
+  it('keeps the browser-opening support link out of the live controls', () => {
     render(<DashboardHeader setSideMenu={vi.fn()} onNewMatch={vi.fn()} />);
 
-    const supportButtons = buttons('Support PlayOverlay');
-    expect(supportButtons).toHaveLength(2);
-    fireEvent.click(supportButtons[0]);
-    expect(openUrlInBrowser).toHaveBeenCalledWith('https://ko-fi.com/magiczebra');
+    // It lives in the settings drawer footer instead (see SideMenu.test).
+    expect(
+      screen.queryByRole('button', { name: 'Support PlayOverlay' })
+    ).toBeNull();
   });
 });

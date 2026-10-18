@@ -8,12 +8,13 @@ export interface Props {
   compact?: boolean;
   // Column count from md up (2 below it). compact is the older spelling
   // of columns={2}.
-  columns?: 2 | 3 | 4;
+  columns?: 1 | 2 | 3 | 4;
   // Applied to every button unless the button sets its own.
   size?: ActionButtonSize;
 }
 
 const columnClasses = {
+  1: 'grid-cols-1',
   2: 'grid-cols-2',
   3: 'grid-cols-2 md:grid-cols-3',
   4: 'grid-cols-2 md:grid-cols-4',

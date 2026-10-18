@@ -473,7 +473,7 @@ export default function Dashboard() {
           {/* Left: what is on air and the screen switches. Right: the clock
               and scores. On a landscape tablet both columns fit without
               scrolling past the live controls. */}
-          <div className="lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto lg:p-4">
+          <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
             <Preview keyColour={appSettings.keyColour}>
               <Screens
                 matchSettings={matchSettings}
