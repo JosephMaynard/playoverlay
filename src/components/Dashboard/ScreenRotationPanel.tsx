@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Switch } from '@headlessui/react';
 import {
   CustomScreen,
   MatchSettings,
@@ -15,6 +14,15 @@ import {
   setRotationEntry,
 } from '@playoverlay/core';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import ActionButton from '../ui/ActionButton';
+import Toggle from '../ui/Toggle';
+import {
+  checkboxClassName,
+  errorTextClassName,
+  helpTextClassName,
+  inputClassName,
+  labelClassName,
+} from '../ui/fields';
 import { screenLabelKeys } from './DisplayControlsPanel';
 
 export interface Props {
@@ -69,33 +77,34 @@ function SecondsInput({
 
   return (
     <div className="mb-4">
-      <label
-        htmlFor="rotation-seconds"
-        className="block text-sm font-medium leading-6 text-gray-900"
-      >
+      <label htmlFor="rotation-seconds" className={labelClassName}>
         {t('dashboard:rotation.seconds')}
       </label>
-      <input
-        type="number"
-        id="rotation-seconds"
-        min={MIN_ROTATION_INTERVAL_SECONDS}
-        max={MAX_ROTATION_INTERVAL_SECONDS}
-        step={1}
-        aria-invalid={invalid || undefined}
-        aria-describedby={invalid ? 'rotation-seconds-error' : undefined}
-        className="mt-2 block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        value={draft ?? String(value)}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={handleCommit}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            handleCommit();
-          }
-        }}
-      />
+      {/* The width lives on a wrapper: inputClassName carries w-full,
+          which would override a w-28 on the field itself. */}
+      <div className="mt-2 w-28">
+        <input
+          type="number"
+          id="rotation-seconds"
+          min={MIN_ROTATION_INTERVAL_SECONDS}
+          max={MAX_ROTATION_INTERVAL_SECONDS}
+          step={1}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? 'rotation-seconds-error' : undefined}
+          className={inputClassName}
+          value={draft ?? String(value)}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={handleCommit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              handleCommit();
+            }
+          }}
+        />
+      </div>
       {invalid && (
-        <p id="rotation-seconds-error" className="mt-1 text-xs text-red-600">
+        <p id="rotation-seconds-error" className={errorTextClassName}>
           {t('dashboard:rotation.secondsError', {
             min: MIN_ROTATION_INTERVAL_SECONDS,
             max: MAX_ROTATION_INTERVAL_SECONDS,
@@ -139,17 +148,17 @@ export default function ScreenRotationPanel({
       defaultOpen={false}
       badge={
         rotating ? (
-          <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <span className="inline-flex items-center rounded-md bg-live-soft px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-ink">
             {t('dashboard:rotation.rotating')}
           </span>
         ) : undefined
       }
     >
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted">
         {t('dashboard:rotation.description')}
       </p>
       <fieldset className="mb-4">
-        <legend className="text-sm font-medium leading-6 text-gray-900">
+        <legend className={labelClassName}>
           {t('dashboard:rotation.screens')}
         </legend>
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -159,35 +168,36 @@ export default function ScreenRotationPanel({
                 ? `rotation-custom-${index}`
                 : `rotation-${entry.screen}`;
             return (
-              <div className="relative flex items-start" key={id}>
-                <div className="flex h-6 items-center">
-                  <input
-                    id={id}
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                    checked={settings.screens.some((chosen) =>
-                      sameRotationEntry(chosen, entry)
-                    )}
-                    onChange={(event) =>
-                      updateSettings({
-                        ...settings,
-                        screens: setRotationEntry(
-                          settings.screens,
-                          entry,
-                          event.target.checked,
-                          customGraphics
-                        ),
-                      })
-                    }
-                  />
-                </div>
-                <label
-                  htmlFor={id}
-                  className="ml-3 min-w-0 truncate text-sm leading-6 text-gray-900"
-                >
+              // The whole row is the label, so a tap anywhere on it ticks
+              // the box rather than only the 24px square.
+              <label
+                key={id}
+                htmlFor={id}
+                className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3 ring-1 ring-inset ring-line hover:bg-surface-2"
+              >
+                <input
+                  id={id}
+                  type="checkbox"
+                  className={classNames(checkboxClassName, 'flex-shrink-0')}
+                  checked={settings.screens.some((chosen) =>
+                    sameRotationEntry(chosen, entry)
+                  )}
+                  onChange={(event) =>
+                    updateSettings({
+                      ...settings,
+                      screens: setRotationEntry(
+                        settings.screens,
+                        entry,
+                        event.target.checked,
+                        customGraphics
+                      ),
+                    })
+                  }
+                />
+                <span className="min-w-0 truncate text-base text-fg">
                   {label(entry)}
-                </label>
-              </div>
+                </span>
+              </label>
             );
           })}
         </div>
@@ -198,38 +208,23 @@ export default function ScreenRotationPanel({
           updateSettings({ ...settings, intervalSeconds })
         }
       />
-      <Switch.Group as="div" className="mb-1 flex items-center">
-        <Switch
-          checked={settings.autoStartAtHalfTime}
-          onChange={(autoStartAtHalfTime: boolean) =>
-            updateSettings({ ...settings, autoStartAtHalfTime })
-          }
-          className={classNames(
-            settings.autoStartAtHalfTime ? 'bg-indigo-600' : 'bg-gray-200',
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={classNames(
-              settings.autoStartAtHalfTime ? 'translate-x-5' : 'translate-x-0',
-              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-            )}
-          />
-        </Switch>
-        <Switch.Label as="span" className="ml-3 text-sm">
-          <span className="font-medium text-gray-900">
-            {t('dashboard:rotation.autoStart')}
-          </span>
-        </Switch.Label>
-      </Switch.Group>
-      <p className="mb-4 text-sm text-gray-500">
+      <Toggle
+        checked={settings.autoStartAtHalfTime}
+        onChange={(autoStartAtHalfTime: boolean) =>
+          updateSettings({ ...settings, autoStartAtHalfTime })
+        }
+        label={t('dashboard:rotation.autoStart')}
+      />
+      {/* Not Toggle's description: that renders inside the switch's label,
+          which would fold the hint into the switch's accessible name. The
+          indent lines it up with the label beside the 56px track. */}
+      <p className={classNames(helpTextClassName, 'mb-4 pl-[4.25rem]')}>
         {t('dashboard:rotation.autoStartHint')}
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+        <ActionButton
+          variant={rotating ? 'danger' : 'live'}
+          size="lg"
           disabled={!rotating && !canStart}
           aria-describedby={
             !rotating && !canStart ? 'rotation-need-two' : undefined
@@ -239,9 +234,9 @@ export default function ScreenRotationPanel({
           {rotating
             ? t('dashboard:rotation.stop')
             : t('dashboard:rotation.start')}
-        </button>
+        </ActionButton>
         {!rotating && !canStart && (
-          <p id="rotation-need-two" className="text-sm text-gray-500">
+          <p id="rotation-need-two" className="text-sm text-muted">
             {t('dashboard:rotation.needTwo')}
           </p>
         )}

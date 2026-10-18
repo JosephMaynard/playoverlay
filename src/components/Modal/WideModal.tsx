@@ -2,6 +2,8 @@ import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
 
 export interface Props {
   open: boolean;
@@ -24,7 +26,7 @@ export default function WideModal({ open, setOpen, title, children }: Props) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 z-50 bg-overlay/60 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-50 w-screen overflow-y-auto">
@@ -38,33 +40,30 @@ export default function WideModal({ open, setOpen, title, children }: Props) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              <Dialog.Panel className="relative w-full transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left text-fg shadow-xl ring-1 ring-line transition-all sm:my-8 sm:max-w-2xl sm:p-6">
+                <div className="absolute right-0 top-0 hidden pr-2 pt-2 sm:block">
+                  <IconButton
+                    label={t('close')}
+                    icon={<XMarkIcon className="h-6 w-6" aria-hidden="true" />}
                     onClick={() => setOpen(false)}
-                  >
-                    <span className="sr-only">{t('close')}</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
+                  />
                 </div>
                 <Dialog.Title
                   as="h3"
-                  className="text-base font-semibold leading-6 text-gray-900"
+                  className="text-lg font-semibold leading-7 text-fg sm:mr-10"
                 >
                   {title}
                 </Dialog.Title>
                 <div className="py-2">{children}</div>
 
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="button"
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                <div className="mt-6 flex flex-col sm:flex-row-reverse">
+                  <ActionButton
+                    size="lg"
+                    className="w-full sm:w-auto"
                     onClick={() => setOpen(false)}
                   >
                     {t('close')}
-                  </button>
+                  </ActionButton>
                 </div>
               </Dialog.Panel>
             </Transition.Child>

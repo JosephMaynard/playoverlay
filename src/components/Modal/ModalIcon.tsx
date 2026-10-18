@@ -6,6 +6,7 @@ import {
   RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import { classNames } from '@playoverlay/core';
 import logo from '../../assets/playoverlay-logo.svg';
 
 export type Icon =
@@ -15,47 +16,25 @@ export interface Props {
   icon: Icon;
 }
 
+const circleClassName =
+  'mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full';
+
+const iconClassName = 'h-6 w-6';
+
+const accentIcons = {
+  clock: ClockIcon,
+  adjust: AdjustmentsHorizontalIcon,
+  edit: PencilIcon,
+  rocket: RocketLaunchIcon,
+} as const;
+
 export default function ModalIcon({ icon }: Props) {
   const { t } = useTranslation();
   if (icon === 'warning') {
     return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+      <div className={classNames(circleClassName, 'bg-danger-soft sm:mx-0')}>
         <ExclamationTriangleIcon
-          className="h-6 w-6 text-red-600"
-          aria-hidden="true"
-        />
-      </div>
-    );
-  }
-  if (icon === 'clock') {
-    return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-        <ClockIcon className="h-6 w-6 text-indigo-600" aria-hidden="true" />
-      </div>
-    );
-  }
-  if (icon === 'adjust') {
-    return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-        <AdjustmentsHorizontalIcon
-          className="h-6 w-6 text-indigo-600"
-          aria-hidden="true"
-        />
-      </div>
-    );
-  }
-  if (icon === 'edit') {
-    return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-        <PencilIcon className="h-6 w-6 text-indigo-600" aria-hidden="true" />
-      </div>
-    );
-  }
-  if (icon === 'rocket') {
-    return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-        <RocketLaunchIcon
-          className="h-6 w-6 text-indigo-600"
+          className={classNames(iconClassName, 'text-danger')}
           aria-hidden="true"
         />
       </div>
@@ -63,12 +42,22 @@ export default function ModalIcon({ icon }: Props) {
   }
   if (icon === 'playoverlay-logo') {
     return (
-      <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-        <img className="h-6 w-6" src={logo} alt={t('common:logoAlt')} />
+      <div className={classNames(circleClassName, 'sm:mx-0')}>
+        <img className="h-8 w-8" src={logo} alt={t('common:logoAlt')} />
       </div>
     );
   }
-  return (
-    <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100"></div>
-  );
+  // Every other icon is a neutral prompt, so they share the accent circle.
+  const AccentIcon = accentIcons[icon];
+  if (AccentIcon) {
+    return (
+      <div className={classNames(circleClassName, 'bg-accent-soft sm:mx-0')}>
+        <AccentIcon
+          className={classNames(iconClassName, 'text-accent')}
+          aria-hidden="true"
+        />
+      </div>
+    );
+  }
+  return <div className={classNames(circleClassName, 'bg-accent-soft')} />;
 }
