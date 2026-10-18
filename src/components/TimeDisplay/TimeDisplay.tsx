@@ -17,6 +17,9 @@ export interface Props {
 // The clock as the operator sees it: large enough to read from arm's
 // length with a camera in the other hand. Always on the ink block, in both
 // themes, so it looks like the on-air clock and not like a form field.
+// The digits scale with the panel's own width (container units) rather
+// than the viewport, because on a 1024px tablet the panel is barely half
+// the screen and viewport-based sizes ran the two clocks into each other.
 export default function TimeDisplay({
   time,
   matchSettings,
@@ -27,10 +30,10 @@ export default function TimeDisplay({
     ? getPhaseById(matchSettings, time.matchPhase)
     : undefined;
   return (
-    <div className="relative flex min-h-32 flex-col items-center justify-center bg-ink px-4 py-3 text-ink-fg">
+    <div className="relative flex min-h-32 flex-col items-center justify-center bg-ink px-4 py-3 text-ink-fg [container-type:inline-size]">
       {time.time ? (
-        <div className="grid w-full grid-cols-2 items-center gap-4">
-          <p className="text-center font-semibold tabular-nums leading-none [font-size:clamp(3.5rem,9vw,5.5rem)]">
+        <div className="grid w-full grid-cols-[minmax(0,6fr)_minmax(0,5fr)] items-center gap-4">
+          <p className="min-w-0 text-center font-semibold tabular-nums leading-none [font-size:clamp(3rem,15cqw,5.5rem)]">
             {time.time}
           </p>
           <div className="flex flex-col items-center justify-center">
@@ -40,7 +43,7 @@ export default function TimeDisplay({
               </p>
             )}
             {time.remainingTime && (
-              <p className="text-center font-normal tabular-nums leading-none [font-size:clamp(2.25rem,6vw,3.5rem)]">
+              <p className="min-w-0 text-center font-normal tabular-nums leading-none [font-size:clamp(1.75rem,9cqw,3.5rem)]">
                 {time.remainingTime}
               </p>
             )}

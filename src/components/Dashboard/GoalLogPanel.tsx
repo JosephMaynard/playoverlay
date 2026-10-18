@@ -313,7 +313,10 @@ export default function GoalLogPanel({
                     <MegaphoneIcon className="h-6 w-6" aria-hidden="true" />
                   }
                 >
-                  <span className="hidden lg:inline">
+                  {/* The right-hand column is only about 470px wide at the
+                      lg breakpoint, so the label waits for xl; the
+                      aria-label carries the name until then. */}
+                  <span className="hidden xl:inline">
                     {t('dashboard:goalLog.showBanner')}
                   </span>
                 </ActionButton>
