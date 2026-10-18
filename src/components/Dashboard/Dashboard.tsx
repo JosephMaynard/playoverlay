@@ -452,12 +452,12 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="select-none">
+      <div className="min-h-screen select-none bg-bg text-fg">
         <DashboardHeader
           setSideMenu={openSideMenu}
           onNewMatch={() => setNewMatchOpen(true)}
         />
-        <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
+        <main className="grid grid-cols-1 bg-bg lg:grid-cols-2 lg:pr-20">
           <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
             <Preview keyColour={appSettings.keyColour}>
               <Screens

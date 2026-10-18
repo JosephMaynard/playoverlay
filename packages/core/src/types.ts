@@ -113,8 +113,18 @@ export const supportedLanguageCodes = [
 
 export type LanguageCode = (typeof supportedLanguageCodes)[number];
 
+// Dashboard appearance. 'system' follows the OS; the other two force it,
+// so an operator outdoors can keep light mode on a laptop set to dark.
+export type ThemeSetting = 'system' | 'light' | 'dark';
+export const themeSettings: readonly ThemeSetting[] = [
+  'system',
+  'light',
+  'dark',
+];
+
 export interface AppSettings {
   keyColour: string;
+  theme?: ThemeSetting;
   autoSwitchScreens: boolean;
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;

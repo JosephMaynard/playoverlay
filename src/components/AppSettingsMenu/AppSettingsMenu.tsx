@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, Display } from '@playoverlay/core';
+import {
+  AppSettings,
+  Display,
+  ThemeSetting,
+  themeSettings,
+} from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -67,6 +72,19 @@ export default function AppSettingsMenu({
 
   return (
     <SideMenu open={open} setOpen={setOpen} title={t('settings:appMenu.title')}>
+      <CollapsiblePanel title={t('settings:appMenu.appearance.title')}>
+        <p className="mb-3 text-sm text-muted">
+          {t('settings:appMenu.appearance.description')}
+        </p>
+        <ButtonGrid
+          buttons={themeSettings.map((theme: ThemeSetting) => ({
+            label: t(`settings:appMenu.appearance.${theme}`),
+            onClick: () => updateAppSettings({ theme }),
+            // Unset means "system" for everyone who predates the setting.
+            selected: (appSettings.theme ?? 'system') === theme,
+          }))}
+        />
+      </CollapsiblePanel>
       <CollapsiblePanel title={t('settings:appMenu.keyColour')}>
         <ColourPicker
           label={t('settings:appMenu.keyColour')}

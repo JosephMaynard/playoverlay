@@ -4,6 +4,13 @@
     "save": "Speichern"
   },
   "appMenu": {
+    "appearance": {
+      "dark": "Dunkel",
+      "description": "Dunkel schont die Augen in dunklen Räumen oder neben OBS. Hell bleibt bei grellem Sonnenlicht lesbar.",
+      "light": "Hell",
+      "system": "Wie das System",
+      "title": "Darstellung"
+    },
     "browserSource": {
       "copied": "Kopiert!",
       "copy": "Kopieren",
@@ -77,9 +84,9 @@
     "windowControls": {
       "lockWindows": "Fenster sperren",
       "resetPositions": "Positionen zurücksetzen",
+      "title": "Fenster",
       "toggleFullscreen": "Vollbild umschalten",
-      "unlockWindows": "Fenster entsperren",
-      "title": "Fenster"
+      "unlockWindows": "Fenster entsperren"
     }
   },
   "colourPicker": {
@@ -137,6 +144,23 @@
   },
   "matchMenu": {
     "awayTeam": "Gastmannschaft",
+    "clubs": {
+      "deleteAria": "{{club}} löschen",
+      "deleteConfirmBody": "Möchten Sie den gespeicherten Verein „{{club}}“ wirklich löschen? Mannschaften, die ihn bereits verwenden, bleiben unverändert.",
+      "deleteError": "Der Verein konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      "deleteModalTitle": "Gespeicherten Verein löschen?",
+      "empty": "Noch keine gespeicherten Vereine. Verwenden Sie „{{action}}“ in den Einstellungen einer Mannschaft, um Name, Farben und Logo für künftige Spiele zu behalten.",
+      "loadError": "Ihre gespeicherten Vereine konnten nicht geladen werden.",
+      "loadLabel": "Gespeicherten Verein laden",
+      "noneSaved": "Noch keine gespeicherten Vereine",
+      "placeholder": "Verein auswählen",
+      "playerCount_one": "{{count}} Spieler",
+      "playerCount_other": "{{count}} Spieler",
+      "saveAsClub": "Als Verein speichern",
+      "saveError": "Der Verein konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "saved": "In Ihren Vereinen gespeichert.",
+      "title": "Gespeicherte Vereine"
+    },
     "details": {
       "extraTime": "Verlängerung",
       "extraTimeHalfLength": "Dauer einer Halbzeit der Verlängerung",
@@ -156,6 +180,24 @@
       "venue": "Austragungsort"
     },
     "homeTeam": "Heimmannschaft",
+    "lineup": {
+      "addPlayer": "Spieler hinzufügen",
+      "cap": "bis zu {{max}}",
+      "count_one": "{{count}} Spieler",
+      "count_other": "{{count}} Spieler",
+      "empty": "Fügen Sie den Kader hinzu, um eine Aufstellung einzublenden und Torschützen aus der Liste auszuwählen.",
+      "nameLabel": "{{team}}, Spieler {{n}}: Name",
+      "namePlaceholder": "Spielername",
+      "numberLabel": "{{team}}, Spieler {{n}}: Rückennummer",
+      "numberPlaceholder": "Nr.",
+      "pasteAction": "Spieler hinzufügen",
+      "pasteHint": "Ein Spieler pro Zeile. Setzen Sie die Rückennummer an den Anfang, wenn Sie sie haben, z. B. 9 Ali Smith.",
+      "pasteList": "Liste einfügen",
+      "pasteModalTitle": "Aufstellung einfügen: {{team}}",
+      "removeAria": "{{player}} entfernen",
+      "title": "Aufstellung",
+      "unnamedPlayer": "{{team}}, Spieler {{n}}"
+    },
     "saved": {
       "defaultName": "{{home}} gegen {{away}}",
       "deleteConfirmBody": "Möchten Sie die gespeicherten Spieleinstellungen „{{title}}“ wirklich löschen?",
@@ -184,42 +226,7 @@
       "textColourLabel": "Textfarbe von {{team}}",
       "upload": "Hochladen"
     },
-    "title": "Spieleinstellungen",
-    "clubs": {
-      "title": "Gespeicherte Vereine",
-      "loadLabel": "Gespeicherten Verein laden",
-      "placeholder": "Verein auswählen",
-      "noneSaved": "Noch keine gespeicherten Vereine",
-      "saveAsClub": "Als Verein speichern",
-      "saved": "In Ihren Vereinen gespeichert.",
-      "saveError": "Der Verein konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-      "loadError": "Ihre gespeicherten Vereine konnten nicht geladen werden.",
-      "empty": "Noch keine gespeicherten Vereine. Verwenden Sie „{{action}}“ in den Einstellungen einer Mannschaft, um Name, Farben und Logo für künftige Spiele zu behalten.",
-      "deleteAria": "{{club}} löschen",
-      "deleteModalTitle": "Gespeicherten Verein löschen?",
-      "deleteConfirmBody": "Möchten Sie den gespeicherten Verein „{{club}}“ wirklich löschen? Mannschaften, die ihn bereits verwenden, bleiben unverändert.",
-      "deleteError": "Der Verein konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
-      "playerCount_one": "{{count}} Spieler",
-      "playerCount_other": "{{count}} Spieler"
-    },
-    "lineup": {
-      "addPlayer": "Spieler hinzufügen",
-      "cap": "bis zu {{max}}",
-      "count_one": "{{count}} Spieler",
-      "count_other": "{{count}} Spieler",
-      "empty": "Fügen Sie den Kader hinzu, um eine Aufstellung einzublenden und Torschützen aus der Liste auszuwählen.",
-      "nameLabel": "{{team}}, Spieler {{n}}: Name",
-      "namePlaceholder": "Spielername",
-      "numberLabel": "{{team}}, Spieler {{n}}: Rückennummer",
-      "numberPlaceholder": "Nr.",
-      "pasteAction": "Spieler hinzufügen",
-      "pasteHint": "Ein Spieler pro Zeile. Setzen Sie die Rückennummer an den Anfang, wenn Sie sie haben, z. B. 9 Ali Smith.",
-      "pasteList": "Liste einfügen",
-      "pasteModalTitle": "Aufstellung einfügen: {{team}}",
-      "removeAria": "{{player}} entfernen",
-      "title": "Aufstellung",
-      "unnamedPlayer": "{{team}}, Spieler {{n}}"
-    }
+    "title": "Spieleinstellungen"
   },
   "system": {
     "about": "Über",

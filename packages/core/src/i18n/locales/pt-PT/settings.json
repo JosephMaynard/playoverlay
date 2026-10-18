@@ -4,6 +4,13 @@
     "save": "Guardar"
   },
   "appMenu": {
+    "appearance": {
+      "dark": "Escuro",
+      "description": "O modo escuro cansa menos a vista numa sala escura ou ao lado do OBS. O modo claro continua legível com sol forte.",
+      "light": "Claro",
+      "system": "Como o sistema",
+      "title": "Aspeto"
+    },
     "browserSource": {
       "copied": "Copiado!",
       "copy": "Copiar",
@@ -77,9 +84,9 @@
     "windowControls": {
       "lockWindows": "Bloquear janelas",
       "resetPositions": "Repor posições",
+      "title": "Janelas",
       "toggleFullscreen": "Alternar ecrã inteiro",
-      "unlockWindows": "Desbloquear janelas",
-      "title": "Janelas"
+      "unlockWindows": "Desbloquear janelas"
     }
   },
   "colourPicker": {
@@ -137,6 +144,23 @@
   },
   "matchMenu": {
     "awayTeam": "Equipa visitante",
+    "clubs": {
+      "deleteAria": "Eliminar {{club}}",
+      "deleteConfirmBody": "Tem a certeza de que pretende eliminar o clube guardado «{{club}}»? As equipas que já o utilizam não são alteradas.",
+      "deleteError": "Não foi possível eliminar o clube. Tente novamente.",
+      "deleteModalTitle": "Eliminar o clube guardado?",
+      "empty": "Ainda sem clubes guardados. Use «{{action}}» nas definições de uma equipa para manter o nome, as cores e o logótipo para os próximos jogos.",
+      "loadError": "Não foi possível carregar os clubes guardados.",
+      "loadLabel": "Carregar um clube guardado",
+      "noneSaved": "Ainda sem clubes guardados",
+      "placeholder": "Escolher um clube",
+      "playerCount_one": "{{count}} jogador",
+      "playerCount_other": "{{count}} jogadores",
+      "saveAsClub": "Guardar como clube",
+      "saveError": "Não foi possível guardar o clube. Tente novamente.",
+      "saved": "Guardado nos clubes.",
+      "title": "Clubes guardados"
+    },
     "details": {
       "extraTime": "Prolongamento",
       "extraTimeHalfLength": "Duração da parte do prolongamento",
@@ -156,6 +180,24 @@
       "venue": "Local"
     },
     "homeTeam": "Equipa da casa",
+    "lineup": {
+      "addPlayer": "Adicionar jogador",
+      "cap": "até {{max}}",
+      "count_one": "{{count}} jogador",
+      "count_other": "{{count}} jogadores",
+      "empty": "Adicione o plantel para mostrar os convocados no ar e escolher os marcadores a partir da lista.",
+      "nameLabel": "{{team}}, jogador {{n}}: nome",
+      "namePlaceholder": "Nome do jogador",
+      "numberLabel": "{{team}}, jogador {{n}}: número da camisola",
+      "numberPlaceholder": "N.º",
+      "pasteAction": "Adicionar jogadores",
+      "pasteHint": "Um jogador por linha. Coloque primeiro o número da camisola, se o tiver, p. ex. 9 Ali Smith.",
+      "pasteList": "Colar uma lista",
+      "pasteModalTitle": "Colar os convocados: {{team}}",
+      "removeAria": "Remover {{player}}",
+      "title": "Convocados",
+      "unnamedPlayer": "{{team}}, jogador {{n}}"
+    },
     "saved": {
       "defaultName": "{{home}} vs {{away}}",
       "deleteConfirmBody": "Tem a certeza de que pretende eliminar as definições de jogo guardadas «{{title}}»?",
@@ -184,42 +226,7 @@
       "textColourLabel": "Cor do texto de {{team}}",
       "upload": "Carregar"
     },
-    "title": "Definições do jogo",
-    "clubs": {
-      "title": "Clubes guardados",
-      "loadLabel": "Carregar um clube guardado",
-      "placeholder": "Escolher um clube",
-      "noneSaved": "Ainda sem clubes guardados",
-      "saveAsClub": "Guardar como clube",
-      "saved": "Guardado nos clubes.",
-      "saveError": "Não foi possível guardar o clube. Tente novamente.",
-      "loadError": "Não foi possível carregar os clubes guardados.",
-      "empty": "Ainda sem clubes guardados. Use «{{action}}» nas definições de uma equipa para manter o nome, as cores e o logótipo para os próximos jogos.",
-      "deleteAria": "Eliminar {{club}}",
-      "deleteModalTitle": "Eliminar o clube guardado?",
-      "deleteConfirmBody": "Tem a certeza de que pretende eliminar o clube guardado «{{club}}»? As equipas que já o utilizam não são alteradas.",
-      "deleteError": "Não foi possível eliminar o clube. Tente novamente.",
-      "playerCount_one": "{{count}} jogador",
-      "playerCount_other": "{{count}} jogadores"
-    },
-    "lineup": {
-      "addPlayer": "Adicionar jogador",
-      "cap": "até {{max}}",
-      "count_one": "{{count}} jogador",
-      "count_other": "{{count}} jogadores",
-      "empty": "Adicione o plantel para mostrar os convocados no ar e escolher os marcadores a partir da lista.",
-      "nameLabel": "{{team}}, jogador {{n}}: nome",
-      "namePlaceholder": "Nome do jogador",
-      "numberLabel": "{{team}}, jogador {{n}}: número da camisola",
-      "numberPlaceholder": "N.º",
-      "pasteAction": "Adicionar jogadores",
-      "pasteHint": "Um jogador por linha. Coloque primeiro o número da camisola, se o tiver, p. ex. 9 Ali Smith.",
-      "pasteList": "Colar uma lista",
-      "pasteModalTitle": "Colar os convocados: {{team}}",
-      "removeAria": "Remover {{player}}",
-      "title": "Convocados",
-      "unnamedPlayer": "{{team}}, jogador {{n}}"
-    }
+    "title": "Definições do jogo"
   },
   "system": {
     "about": "Acerca de",

@@ -85,3 +85,28 @@ describe('AppSettingsMenu window controls', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('AppSettingsMenu appearance', () => {
+  it('offers system, light and dark, with system selected by default', async () => {
+    const { updateAppSettings } = renderMenu();
+
+    expect(
+      screen.getByRole('button', { name: 'Match system' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dark' }));
+    expect(updateAppSettings).toHaveBeenCalledWith({ theme: 'dark' });
+  });
+
+  it('shows the saved choice as selected', () => {
+    renderMenu({ ...defaultAppSettings, theme: 'light' });
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+});

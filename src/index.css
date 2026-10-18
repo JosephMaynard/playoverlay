@@ -2,6 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dashboard theme tokens, as space-separated RGB so Tailwind can add an
+   alpha (see tailwind.config.js). Light is tuned for a tablet in daylight:
+   strong borders and near-black text. Dark uses the same navy as the
+   website so the app reads as one product next to OBS. The display window
+   never sets data-theme, so the on-air graphics are untouched. */
+:root {
+  color-scheme: light;
+  --c-bg: 241 245 249;
+  --c-surface: 255 255 255;
+  --c-surface-2: 241 245 249;
+  --c-line: 203 213 225;
+  --c-line-strong: 148 163 184;
+  --c-fg: 15 23 42;
+  --c-muted: 71 85 105;
+  --c-faint: 100 116 139;
+  --c-accent: 79 70 229;
+  --c-accent-hover: 67 56 202;
+  --c-accent-fg: 255 255 255;
+  --c-accent-soft: 224 231 255;
+  --c-live: 22 163 74;
+  --c-live-hover: 21 128 61;
+  --c-live-fg: 255 255 255;
+  --c-live-soft: 220 252 231;
+  --c-live-ink: 20 83 45;
+  --c-danger: 220 38 38;
+  --c-danger-hover: 185 28 28;
+  --c-danger-fg: 255 255 255;
+  --c-danger-soft: 254 226 226;
+  --c-danger-ink: 127 29 29;
+  --c-warn: 217 119 6;
+  --c-warn-soft: 254 243 199;
+  --c-warn-ink: 120 53 15;
+  --c-ink: 15 23 42;
+  --c-ink-fg: 255 255 255;
+  --c-overlay: 15 23 42;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --c-bg: 9 16 34;
+  --c-surface: 17 26 51;
+  --c-surface-2: 27 38 70;
+  --c-line: 45 58 94;
+  --c-line-strong: 80 96 138;
+  --c-fg: 241 245 249;
+  --c-muted: 163 175 199;
+  --c-faint: 112 126 156;
+  --c-accent: 129 140 248;
+  --c-accent-hover: 165 180 252;
+  --c-accent-fg: 15 23 42;
+  --c-accent-soft: 49 46 129;
+  --c-live: 74 222 128;
+  --c-live-hover: 134 239 172;
+  --c-live-fg: 5 46 22;
+  --c-live-soft: 20 60 40;
+  --c-live-ink: 187 247 208;
+  --c-danger: 248 113 113;
+  --c-danger-hover: 252 165 165;
+  --c-danger-fg: 69 10 10;
+  --c-danger-soft: 69 10 10;
+  --c-danger-ink: 254 202 202;
+  --c-warn: 251 191 36;
+  --c-warn-soft: 69 46 5;
+  --c-warn-ink: 253 230 138;
+  --c-ink: 2 6 23;
+  --c-ink-fg: 255 255 255;
+  --c-overlay: 0 0 0;
+}
+
 @layer base {
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {
