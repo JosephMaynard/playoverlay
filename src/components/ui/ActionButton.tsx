@@ -7,11 +7,7 @@ import { classNames } from '@playoverlay/core';
 // (goal, start, stop, screen switches), which have to land with a thumb
 // while the other hand is on a camera.
 export type ActionButtonVariant =
-  | 'secondary'
-  | 'primary'
-  | 'live'
-  | 'danger'
-  | 'ghost';
+  'secondary' | 'primary' | 'live' | 'danger' | 'danger-ghost' | 'ghost';
 export type ActionButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const sizeClasses: Record<ActionButtonSize, string> = {
@@ -27,6 +23,10 @@ const variantClasses: Record<ActionButtonVariant, string> = {
   primary: 'bg-accent text-accent-fg hover:bg-accent-hover',
   live: 'bg-live text-live-fg hover:bg-live-hover',
   danger: 'bg-danger text-danger-fg hover:bg-danger-hover',
+  // A quiet destructive action (reset, delete from a list): red text and
+  // outline only, so it never competes with the live controls beside it.
+  'danger-ghost':
+    'text-danger ring-1 ring-inset ring-danger/40 hover:bg-danger-soft hover:text-danger-ink',
   ghost: 'text-muted hover:bg-surface-2 hover:text-fg',
 };
 
@@ -59,7 +59,8 @@ export function actionButtonClasses({
 }
 
 export interface Props
-  extends ActionButtonStyle,
+  extends
+    ActionButtonStyle,
     Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   icon?: ReactNode;
   children?: ReactNode;

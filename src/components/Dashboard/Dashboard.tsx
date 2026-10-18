@@ -615,7 +615,7 @@ export default function Dashboard() {
           icon="warning"
           action={startNewMatch}
         >
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             {t('dashboard:newMatch.modalBody')}
           </p>
         </Modal>

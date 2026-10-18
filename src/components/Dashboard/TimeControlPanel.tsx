@@ -17,7 +17,7 @@ import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
 import ActionButton from '../ui/ActionButton';
 import Toggle from '../ui/Toggle';
-import { inputClassName, sectionHeadingClassName } from '../ui/fields';
+import { inputClassName } from '../ui/fields';
 
 export interface Props {
   time: Time;
@@ -148,7 +148,6 @@ export default function TimeControlPanel({
         </div>
         <ActionButton
           variant="secondary"
-          size="lg"
           block
           aria-label={t('dashboard:timeControl.setAdditionalTime')}
           onClick={() => setModal('additionalTime')}
@@ -157,13 +156,14 @@ export default function TimeControlPanel({
             ? `${t('dashboard:timeControl.addedTime')}: +${time.additionalTime}`
             : t('dashboard:timeControl.addedTime')}
         </ActionButton>
+        {/* Every phase stays one tap away for a late start or a restart
+            after a mistake, but at the small size and in one row, so the
+            goal buttons below are still on screen on a tablet. */}
         <div>
-          <h3
-            className={classNames(sectionHeadingClassName, 'mb-2 text-muted')}
-          >
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
             {t('dashboard:timeControl.allPhases')}
-          </h3>
-          <ButtonGrid buttons={phaseButtons} />
+          </p>
+          <ButtonGrid buttons={phaseButtons} columns={4} size="sm" />
         </div>
         <Toggle
           checked={autoSwitchScreens}

@@ -19,7 +19,6 @@ import Toggle from '../ui/Toggle';
 import {
   checkboxClassName,
   errorTextClassName,
-  helpTextClassName,
   inputClassName,
   labelClassName,
 } from '../ui/fields';
@@ -214,13 +213,8 @@ export default function ScreenRotationPanel({
           updateSettings({ ...settings, autoStartAtHalfTime })
         }
         label={t('dashboard:rotation.autoStart')}
-      />
-      {/* Not Toggle's description: that renders inside the switch's label,
-          which would fold the hint into the switch's accessible name. The
-          indent lines it up with the label beside the 56px track. */}
-      <p className={classNames(helpTextClassName, 'mb-4 pl-[4.25rem]')}>
-        {t('dashboard:rotation.autoStartHint')}
-      </p>
+        description={t('dashboard:rotation.autoStartHint')}
+      />{' '}
       <div className="flex flex-wrap items-center gap-3">
         <ActionButton
           variant={rotating ? 'danger' : 'live'}

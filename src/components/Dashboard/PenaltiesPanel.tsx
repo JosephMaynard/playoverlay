@@ -149,15 +149,12 @@ export default function PenaltiesPanel({
         >
           {t('dashboard:penaltiesPanel.undoLastAction')}
         </ActionButton>
-        {/* Wiping the shoot-out is rare and confirmed by a dialog, so it is
-            an outlined button tucked to the side: still red so it reads as
-            destructive, but never as heavy as Score and Miss above it. The
-            colours are marked important because the ghost variant's grey
-            text and hover sit later in the stylesheet and would win. */}
+        {/* Quiet on purpose: a reset next to Score and Miss must not look like
+            a third live control. */}
         <ActionButton
-          variant="ghost"
+          variant="danger-ghost"
           size="md"
-          className="self-end !text-danger ring-1 ring-inset ring-danger/50 hover:!bg-danger-soft hover:!text-danger-ink"
+          className="self-end"
           onClick={() => setModalOpen(true)}
         >
           {t('dashboard:penaltiesPanel.resetPenalties')}
