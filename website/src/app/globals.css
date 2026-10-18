@@ -1,40 +1,276 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens.
+ *
+ * Navy (#092049, from the logo) is the primary colour. Green (#2bb673) is the
+ * single accent, used sparingly: step numbers, the "on air" dot, small
+ * highlights. The other logo colours only appear together, as the thin brand
+ * stripe. Components use the semantic names below (bg-surface, text-muted,
+ * border-line, ...) so light and dark mode are handled here, once.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #ffffff;
+  --bg-subtle: #f4f6fa;
+  --surface: #ffffff;
+  --border: #dbe1ec;
+  --border-strong: #c2cbdc;
+  --text: #0b1630;
+  --text-muted: #45516b;
+  --text-faint: #5f6a82;
+  --primary: #092049;
+  --primary-hover: #183772;
+  --on-primary: #ffffff;
+  --accent: #2bb673;
+  --accent-text: #11703f;
+  --accent-soft: #e6f6ee;
+  --link: #164a9e;
+  --focus: #1268c4;
+  --code-bg: #eef1f7;
+  --warning-bg: #fff6e8;
+  --warning-border: #f3c98b;
+  --warning-text: #6b3d00;
+  --navy: #092049;
+  --navy-deep: #06173a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b1120;
-    --foreground: #e2e8f0;
+    --bg: #050c1e;
+    --bg-subtle: #0a1430;
+    --surface: #0d1a3a;
+    --border: #1f2e55;
+    --border-strong: #2f4170;
+    --text: #e9eef8;
+    --text-muted: #aab5cc;
+    --text-faint: #8d98b2;
+    --primary: #ffffff;
+    --primary-hover: #dce5f5;
+    --on-primary: #092049;
+    --accent-text: #62d69e;
+    --accent-soft: #0d2b25;
+    --link: #93c5ff;
+    --focus: #8fd0ff;
+    --code-bg: #111f42;
+    --warning-bg: #2a1d08;
+    --warning-border: #6a4914;
+    --warning-text: #f6d7a4;
+    --navy-deep: #040b1f;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+@theme inline {
+  --color-bg: var(--bg);
+  --color-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
+  --color-code: var(--code-bg);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-line: var(--warning-border);
+  --color-warning-fg: var(--warning-text);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-/* Consistent horizontal rhythm for page sections, with a hard cap so
-   nothing can ever force horizontal scroll on small screens. */
-.page-container {
-  width: 100%;
-  max-width: 80rem;
-  margin-inline: auto;
-  padding-inline: 1.25rem;
+/* Unlayered CSS would beat Tailwind utilities, so everything below sits in
+   the base and components layers and utilities can still override it. */
+@layer base {
+  html {
+    color-scheme: light dark;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Sections that are always navy (the hero, the final call to action) use the
+     dark-mode focus colour so the ring stays visible in light mode too. */
+  .on-navy {
+    --focus: #8fd0ff;
+    color: #ffffff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
 }
 
-@media (min-width: 640px) {
+@layer components {
+  /* Consistent horizontal rhythm, with a hard cap so nothing forces horizontal
+     scroll on small screens. 16px gutter on phones. */
   .page-container {
-    padding-inline: 2rem;
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .page-container {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* The five logo colours as a thin stripe. */
+  .brand-stripe {
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      #ef4136 0 20%,
+      #27aae1 20% 40%,
+      #2bb673 40% 60%,
+      #f9ed32 60% 80%,
+      #ff8b2c 80% 100%
+    );
+  }
+
+  /* Placeholder pattern for image slots that have no file yet. */
+  .slot-placeholder {
+    background-color: var(--bg-subtle);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 14px,
+      color-mix(in srgb, var(--border) 60%, transparent) 14px 15px
+    );
+  }
+
+  /*
+   * Long-form guide content. Written as plain semantic HTML in the docs pages
+   * and styled here, so each page reads as content rather than class lists.
+   */
+  .prose-doc {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .prose-doc > * + * {
+    margin-top: 1rem;
+  }
+
+  .prose-doc h2 {
+    margin-top: 3rem;
+    color: var(--text);
+    font-size: 1.5rem;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 6rem;
+  }
+
+  .prose-doc h3 {
+    margin-top: 2rem;
+    color: var(--text);
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: 600;
+    scroll-margin-top: 6rem;
+  }
+
+  .prose-doc > h2:first-child,
+  .prose-doc > h3:first-child {
+    margin-top: 0;
+  }
+
+  .prose-doc h2 + *,
+  .prose-doc h3 + * {
+    margin-top: 0.75rem;
+  }
+
+  .prose-doc strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .prose-doc a {
+    color: var(--link);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  .prose-doc a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .prose-doc ul,
+  .prose-doc ol {
+    padding-left: 1.25rem;
+  }
+
+  .prose-doc ul {
+    list-style: disc;
+  }
+
+  .prose-doc ol {
+    list-style: decimal;
+  }
+
+  .prose-doc li + li {
+    margin-top: 0.5rem;
+  }
+
+  .prose-doc li::marker {
+    color: var(--text-faint);
+  }
+
+  .prose-doc :not(pre) > code {
+    border-radius: 0.3rem;
+    background: var(--code-bg);
+    padding: 0.1rem 0.35rem;
+    color: var(--text);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+  }
+
+  .prose-doc table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .prose-doc th {
+    color: var(--text);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .prose-doc th,
+  .prose-doc td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0.75rem;
+    vertical-align: top;
+  }
+
+  .prose-doc thead th {
+    background: var(--bg-subtle);
   }
 }

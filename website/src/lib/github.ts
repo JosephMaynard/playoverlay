@@ -6,11 +6,20 @@
 // published release with the assets we expect yet. Every function here is
 // written to degrade gracefully: missing data just means "show the GitHub
 // releases link instead", never a broken page or a thrown error.
+//
+// Every GitHub URL on the site derives from REPO_OWNER and REPO_NAME, so
+// moving the repository (e.g. to the MagicZebraLtd organisation) is a
+// one-line change here.
 
-export const REPO_OWNER = "JosephMaynard";
+export const REPO_OWNER = "MagicZebraLtd";
 export const REPO_NAME = "playoverlay";
 export const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 export const RELEASES_PAGE_URL = `${REPO_URL}/releases`;
+export const ISSUES_URL = `${REPO_URL}/issues`;
+export const NEW_ISSUE_URL = `${REPO_URL}/issues/new`;
+export const LICENSE_URL = `${REPO_URL}/blob/HEAD/LICENSE`;
+export const TRADEMARKS_URL = `${REPO_URL}/blob/HEAD/TRADEMARKS.md`;
+export const BUILD_FROM_SOURCE_URL = `${REPO_URL}#building-from-source`;
 
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
 

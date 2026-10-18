@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,30 +16,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://playoverlay.com";
+const DEFAULT_TITLE = "PlayOverlay: live score and match-clock graphics for your stream";
+const SHARE_DESCRIPTION =
+  "A free, open-source desktop app for live score graphics on community football streams. Works with an ATEM Mini or OBS.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "PlayOverlay: live score and match-clock graphics for your stream",
+    default: DEFAULT_TITLE,
     template: "%s | PlayOverlay",
   },
-  description:
-    "PlayOverlay is a free, open-source desktop app for adding a live score bug, match clock, and penalty tracker to your sports stream, chroma key or OBS browser source, no signup required.",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   openGraph: {
-    title: "PlayOverlay: live score and match-clock graphics for your stream",
-    description:
-      "A free, open-source desktop app for live sports-score graphics, built for streaming community football to YouTube.",
+    title: DEFAULT_TITLE,
+    description: SHARE_DESCRIPTION,
     url: SITE_URL,
-    siteName: "PlayOverlay",
+    siteName: SITE_NAME,
     type: "website",
+    locale: "en_GB",
   },
   twitter: {
-    card: "summary",
-    title: "PlayOverlay: live score and match-clock graphics for your stream",
-    description:
-      "A free, open-source desktop app for live sports-score graphics, built for streaming community football to YouTube.",
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: SHARE_DESCRIPTION,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#050c1e" },
+  ],
 };
 
 export default function RootLayout({
@@ -48,13 +57,21 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-GB"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <body className="flex min-h-full flex-col bg-bg font-sans text-fg">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-on-primary"
+        >
+          Skip to content
+        </a>
         <PostHogProvider>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
           <SiteFooter />
         </PostHogProvider>
       </body>
