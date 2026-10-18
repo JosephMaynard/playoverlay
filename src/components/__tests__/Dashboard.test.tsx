@@ -1,8 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultAppSettings, defaultMatchSettings } from '../../constants';
-import { AppSettings, LiveMatch } from '../../types';
-import { MatchSettings, UpdateStatus } from '../../zodSchemas';
+import {
+  defaultAppSettings,
+  defaultMatchSettings,
+  AppSettings,
+  LiveMatch,
+  MatchSettings,
+  UpdateStatus,
+} from '@playoverlay/core';
 
 // These tests render the whole dashboard and step the clock through
 // thousands of fake-timer ticks. Alone the slowest takes under a second, but
@@ -156,11 +161,13 @@ async function renderDashboard(options: InstallOptions = {}) {
   const { electronAPI, callbacks } = installElectronAPI(options);
 
   const { default: Dashboard } = await import('../Dashboard/Dashboard');
-  const { useScoresStore } = await import('../../store/scores');
-  const { useMatchStateStore } = await import('../../store/matchState');
-  const { useTimeStore } = await import('../../store/time');
-  const { useAppSettingsStore } = await import('../../store/appSettings');
-  const { useMatchSettingsStore } = await import('../../store/matchSettings');
+  const {
+    useScoresStore,
+    useMatchStateStore,
+    useTimeStore,
+    useAppSettingsStore,
+    useMatchSettingsStore,
+  } = await import('@playoverlay/core');
 
   const view = render(<Dashboard />);
 
@@ -780,7 +787,7 @@ describe('Dashboard match engine', () => {
 
     it('drops undo history captured before the restore', async () => {
       const { callbacks, stores } = await renderDashboard({ liveMatch });
-      const { useUndoStore } = await import('../../store/undo');
+      const { useUndoStore } = await import('@playoverlay/core');
 
       // A screen switch while the restore offer is showing records an entry
       // against the blank launch state.
@@ -860,7 +867,7 @@ describe('Dashboard match engine', () => {
   describe('new match', () => {
     it('resets the match to a clean slate but keeps team settings', async () => {
       const { callbacks, stores } = await renderDashboard();
-      const { useUndoStore } = await import('../../store/undo');
+      const { useUndoStore } = await import('@playoverlay/core');
 
       act(() =>
         stores.matchSettings
@@ -919,7 +926,7 @@ describe('Dashboard match engine', () => {
 
     it('logs each goal with its minute, from any input, and undo removes it', async () => {
       const { callbacks, stores } = await renderDashboard();
-      const { useUndoStore } = await import('../../store/undo');
+      const { useUndoStore } = await import('@playoverlay/core');
 
       // Before kick-off: logged, but with no minute.
       act(() => callbacks.awayTeamScored?.());
@@ -973,7 +980,7 @@ describe('Dashboard match engine', () => {
 
     it('records the scorer on blur, as one undoable step', async () => {
       const { callbacks, stores } = await renderDashboard();
-      const { useUndoStore } = await import('../../store/undo');
+      const { useUndoStore } = await import('@playoverlay/core');
       act(() => callbacks.homeTeamScored?.());
       openGoalsPanel();
 

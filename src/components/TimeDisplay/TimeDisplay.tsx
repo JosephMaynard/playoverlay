@@ -1,8 +1,11 @@
 import { PencilIcon } from '@heroicons/react/24/outline';
 import { Trans, useTranslation } from 'react-i18next';
-import { Time } from '../../types';
-import { getPhaseById, getPhaseTitle } from '../../utils';
-import { MatchSettings } from '../../zodSchemas';
+import {
+  Time,
+  getPhaseById,
+  getPhaseTitle,
+  MatchSettings,
+} from '@playoverlay/core';
 
 export interface Props {
   time: Time;

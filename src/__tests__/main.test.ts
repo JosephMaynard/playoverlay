@@ -5,8 +5,8 @@ import {
   defaultMatchSettings,
   defaultMatchState,
   defaultScores,
-} from '../constants';
-import { LiveMatch } from '../types';
+  LiveMatch,
+} from '@playoverlay/core';
 
 // Drives main.ts end to end against a mocked Electron: every IPC and
 // lifecycle handler it registers is captured, so the tests can fire them the

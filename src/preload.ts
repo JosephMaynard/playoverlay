@@ -16,8 +16,8 @@ import {
   CustomScreen,
   LiveMatch,
   RemoteControlStatus,
-} from './types';
-import { MatchSettings } from './zodSchemas';
+} from '@playoverlay/core/types';
+import { MatchSettings } from '@playoverlay/core/zodSchemas';
 import { ExportDiagnosticsResult } from './main-functions/diagnostics';
 import { PreflightResult } from './main-functions/preflight';
 

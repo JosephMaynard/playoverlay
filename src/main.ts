@@ -27,13 +27,13 @@ import {
   RemoteControlSettings,
   Scores,
   Time,
-} from './types';
+} from '@playoverlay/core/types';
 import {
   defaultAppSettings,
   defaultMatchSettings,
   defaultMatchState,
   defaultScores,
-} from './constants';
+} from '@playoverlay/core/constants';
 import {
   appSettingsSchema,
   customScreenListSchema,
@@ -45,14 +45,14 @@ import {
   matchStateSchema,
   scoresSchema,
   timeSchema,
-} from './zodSchemas';
+} from '@playoverlay/core/zodSchemas';
 import {
   deriveGlobalAccelerator,
   getBrowserSourceSettings,
   getKeyboardShortcuts,
   getRemoteControlSettings,
   nearestSupportedLanguage,
-} from './utils';
+} from '@playoverlay/core/utils';
 import {
   DISPLAY_WINDOW,
   MAIN_WINDOW,

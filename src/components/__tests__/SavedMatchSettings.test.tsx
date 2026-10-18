@@ -7,8 +7,7 @@ import {
   within,
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings } from '../../constants';
-import { MatchSettings } from '../../zodSchemas';
+import { defaultMatchSettings, MatchSettings } from '@playoverlay/core';
 import SavedMatchSettings from '../MatchSettingsMenu/SavedMatchSettings';
 
 const savedFixture: MatchSettings = {

@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, MatchState, Scores, Time } from '../../types';
-import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import {
+  AppSettings,
+  MatchState,
+  Scores,
+  Time,
   defaultAppSettings,
   defaultMatchState,
   defaultMatchSettings,
   defaultScores,
   DisplayScreen,
   screens,
-} from '../../constants';
-import Screens from '../Screens/Screens';
-import { MatchSettings } from 'src/zodSchemas';
+  MatchSettings,
+  detectLanguage,
+} from '@playoverlay/core';
+import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import Screens from '@playoverlay/screens';
 import { createDisplayTransport } from '../../displayTransport';
-import { detectLanguage } from '../../utils';
 
 // Lets a browser-source URL pin a specific screen regardless of what the
 // operator currently has selected, e.g. `?screen=scoreboard` for a venue TV

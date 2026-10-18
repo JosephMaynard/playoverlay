@@ -5,7 +5,7 @@ import {
   sanitizeRemoteControlStatus,
   suggestedDiagnosticsFileName,
 } from '../diagnostics';
-import { defaultAppSettings } from '../../constants';
+import { defaultAppSettings } from '@playoverlay/core/constants';
 
 // buildDiagnosticsReport is pure (no Electron, no filesystem): every test
 // here feeds it fixed input and asserts on the returned string, exactly the

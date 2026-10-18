@@ -13,12 +13,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['src/**/*.{ts,tsx}'],
+      // The workspace packages are part of the app (they ship inside it), so
+      // they count towards its coverage the same as src/.
+      include: ['src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',
         'src/test/**',
         'src/**/*.test.{ts,tsx}',
         'src/**/*.spec.{ts,tsx}',
+        'packages/*/src/**/*.test.{ts,tsx}',
         'src/main.ts',
         'src/preload.ts',
         'src/renderer.ts',

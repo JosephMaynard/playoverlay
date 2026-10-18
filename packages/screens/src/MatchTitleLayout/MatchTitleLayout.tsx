@@ -1,0 +1,131 @@
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Scores,
+  calculatePenalties,
+  secondsUntilKickOff,
+  MatchSettings,
+} from '@playoverlay/core';
+import './MatchTitleLayout.css';
+
+export interface Props {
+  scores: Scores;
+  settings: MatchSettings;
+  active: boolean;
+}
+
+// Formats a positive countdown (whole seconds) as "M:SS", switching to
+// "H:MM:SS" once it reaches an hour or more.
+function formatCountdown(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const paddedSeconds = seconds.toString().padStart(2, '0');
+  if (hours >= 1) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${paddedSeconds}`;
+  }
+  return `${minutes}:${paddedSeconds}`;
+}
+
+export default function MatchTitleLayout({ scores, settings, active }: Props) {
+  const { t } = useTranslation();
+  const { homeTeamPenaltiesScored, awayTeamPenaltiesScored } =
+    calculatePenalties(scores.penalties);
+  // The hidden animation starts from the fully-shown position, so it must
+  // not play on first mount (display window load / OBS browser-source
+  // reload would flash the layout on screen); only animate out after the
+  // layout has actually been shown. Same pattern as ScoreboardLayout.
+  const [hasBeenActive, setHasBeenActive] = useState(active);
+  useEffect(() => {
+    if (active) setHasBeenActive(true);
+  }, [active]);
+
+  // Kick-off countdown: only ticks while this screen is on screen, mirroring
+  // ScoreboardLayout's wall-clock pattern (interval scoped to `active`).
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!active) return;
+    setNow(new Date());
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, [active]);
+
+  const secondsToKickOff = settings?.kickOffTime
+    ? secondsUntilKickOff(settings.kickOffTime, now)
+    : null;
+
+  return (
+    <div
+      className={`MatchTitleLayout ${
+        active
+          ? 'MatchTitleLayout_active'
+          : hasBeenActive
+            ? 'MatchTitleLayout_hidden'
+            : ''
+      } absolute left-0 top-0 h-full w-full`}
+    >
+      {(settings?.venue || settings?.kickOffTime) && (
+        <div className="MatchTitleLayout_venue flex flex-col items-center justify-center gap-1">
+          {settings?.venue && (
+            <div
+              className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
+            >
+              {settings.venue}
+            </div>
+          )}
+          {settings?.kickOffTime && (
+            <div
+              className={`MatchTitleLayout_venue_inner ${active ? 'MatchTitleLayout_venue_inner_active' : 'MatchTitleLayout_venue_inner_hidden'} z-0 max-w-full truncate bg-black text-center text-white`}
+            >
+              {t('screens:matchTitle.kickOff', {
+                time: settings.kickOffTime,
+              })}
+            </div>
+          )}
+          {active && secondsToKickOff !== null && secondsToKickOff > 0 && (
+            <div className="MatchTitleLayout_venue_inner MatchTitleLayout_venue_inner_active z-0 max-w-full truncate bg-black text-center text-white">
+              {t('screens:matchTitle.startsIn', {
+                countdown: formatCountdown(secondsToKickOff),
+              })}
+            </div>
+          )}
+        </div>
+      )}
+      <div className="MatchTitleLayout_homeTeam flex items-center overflow-hidden">
+        <div
+          className={`MatchTitleLayout_homeTeam_inner ${active ? 'MatchTitleLayout_homeTeam_inner_active' : 'MatchTitleLayout_homeTeam_inner_hidden'} w-full max-w-full truncate bg-black text-center text-white`}
+        >
+          <div>{settings.homeTeamNameFull}</div>
+          <div
+            className="MatchTitleLayout_teamColour"
+            style={{ backgroundColor: settings.homeTeamBackgroundColour }}
+          />
+        </div>
+      </div>
+      <div className="MatchTitleLayout_score z-10 bg-white text-center font-bold tabular-nums text-black">
+        <div>
+          {scores.homeTeam} - {scores.awayTeam}
+        </div>
+        {scores.penalties.length > 0 && (
+          <div className="MatchTitleLayout_penalties">
+            <div className="MatchTitleLayout_penalties_title bg-black text-center text-white">
+              {t('screens:penalties')}
+            </div>
+            <div>{`( ${homeTeamPenaltiesScored} - ${awayTeamPenaltiesScored} )`}</div>
+          </div>
+        )}
+      </div>
+      <div className="MatchTitleLayout_awayTeam flex items-center overflow-hidden">
+        <div
+          className={`MatchTitleLayout_awayTeam_inner ${active ? 'MatchTitleLayout_awayTeam_inner_active' : 'MatchTitleLayout_awayTeam_inner_hidden'} w-full max-w-full truncate bg-black text-center text-white`}
+        >
+          <div>{settings.awayTeamNameFull}</div>
+          <div
+            className="MatchTitleLayout_teamColour"
+            style={{ backgroundColor: settings.awayTeamBackgroundColour }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

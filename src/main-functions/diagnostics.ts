@@ -1,5 +1,5 @@
-import { AppSettings } from '../types';
-import { MatchSettings } from '../zodSchemas';
+import { AppSettings } from '@playoverlay/core/types';
+import { MatchSettings } from '@playoverlay/core/zodSchemas';
 import {
   formatLogLine,
   LogEntry,

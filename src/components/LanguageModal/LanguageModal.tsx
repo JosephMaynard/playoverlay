@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../Modal/Modal';
-import { supportedLanguages } from '../../constants';
-import { LanguageCode } from '../../types';
-import { classNames, detectLanguage } from '../../utils';
+import {
+  supportedLanguages,
+  LanguageCode,
+  classNames,
+  detectLanguage,
+} from '@playoverlay/core';
 
 export interface Props {
   // undefined = not yet chosen; the modal only ever shows in that state.

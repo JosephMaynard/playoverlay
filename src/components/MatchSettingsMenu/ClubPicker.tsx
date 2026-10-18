@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Club } from '../../types';
+import { Club } from '@playoverlay/core';
 
 export interface Props {
   // Used to keep the two teams' control ids apart.

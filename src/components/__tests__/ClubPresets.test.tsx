@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultAppSettings, defaultMatchSettings } from '../../constants';
-import { Club } from '../../types';
-import { MatchSettings } from '../../zodSchemas';
+import {
+  defaultAppSettings,
+  defaultMatchSettings,
+  Club,
+  MatchSettings,
+} from '@playoverlay/core';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 
 const rovers: Club = {

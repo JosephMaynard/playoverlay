@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Switch } from '@headlessui/react';
 import { MegaphoneIcon, TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
-import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
-import { Goal } from '../../types';
-import { MatchSettings } from '../../zodSchemas';
-import { MAX_SCORER_LENGTH } from '../../constants';
-import { formatGoalMinute } from '../../goalLog';
-import { classNames } from '../../utils';
+import { ScoresTeamName } from '@playoverlay/screens';
+import {
+  Goal,
+  MatchSettings,
+  MAX_SCORER_LENGTH,
+  formatGoalMinute,
+  classNames,
+} from '@playoverlay/core';
 
 export interface Props {
   goals: Goal[];

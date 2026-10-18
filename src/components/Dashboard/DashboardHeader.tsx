@@ -12,15 +12,15 @@ import { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logo from '../../assets/playoverlay-logo.svg';
-import { SUPPORT_URL } from '../../constants';
-import { SideMenuType } from '../../types';
 import {
+  SUPPORT_URL,
+  SideMenuType,
   selectCanRedo,
   selectCanUndo,
   selectNextRedoLabel,
   selectNextUndoLabel,
   useUndoStore,
-} from '../../store/undo';
+} from '@playoverlay/core';
 
 export interface Props {
   setSideMenu: (sideMenu: SideMenuType) => void;

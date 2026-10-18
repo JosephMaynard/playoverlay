@@ -3,9 +3,12 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultMatchSettings, defaultMatchState } from '../../constants';
-import { CustomScreen, LiveMatch } from '../../types';
-import { MatchSettings } from '../../zodSchemas';
+import {
+  defaultMatchSettings,
+  defaultMatchState,
+} from '@playoverlay/core/constants';
+import { CustomScreen, LiveMatch } from '@playoverlay/core/types';
+import { MatchSettings } from '@playoverlay/core/zodSchemas';
 
 const temporaryDirectories: string[] = [];
 

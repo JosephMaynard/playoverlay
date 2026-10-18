@@ -1,0 +1,25 @@
+import { create } from 'zustand';
+
+import { Scores } from '../types';
+
+interface ScoresStore {
+  scores: Scores;
+  setScores: (scoreUpdates: Partial<Scores>) => void;
+}
+
+export const useScoresStore = create<ScoresStore>((set) => ({
+  scores: {
+    homeTeam: 0,
+    awayTeam: 0,
+    penalties: [],
+    goals: [],
+  },
+  setScores: (scoreUpdates: Partial<Scores>) =>
+    set((state) => {
+      const scores = { ...state.scores, ...scoreUpdates };
+      return {
+        ...state,
+        scores,
+      };
+    }),
+}));

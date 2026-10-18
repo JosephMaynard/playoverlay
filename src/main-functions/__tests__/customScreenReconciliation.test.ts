@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { CustomScreen, MatchState } from '../../types';
-import { defaultMatchState } from '../../constants';
+import { CustomScreen, MatchState } from '@playoverlay/core/types';
+import { defaultMatchState } from '@playoverlay/core/constants';
 import {
   reconcileCustomScreens,
   reconcileMatchStateScreen,

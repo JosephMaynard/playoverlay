@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { checkColors } from '../../utils';
+import { checkColors } from '@playoverlay/core';
 
 export interface Props {
   value?: string;

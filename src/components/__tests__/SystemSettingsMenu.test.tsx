@@ -5,8 +5,8 @@ import {
   defaultAppSettings,
   defaultMatchSettings,
   defaultMatchState,
-} from '../../constants';
-import { AppSettings } from '../../types';
+  AppSettings,
+} from '@playoverlay/core';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 
 const connectToStreamDeck = vi.hoisted(() =>

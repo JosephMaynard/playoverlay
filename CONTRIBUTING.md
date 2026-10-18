@@ -13,9 +13,21 @@ npm start
 
 `npm start` launches the app via `electron-forge start` with the control window and display window both running.
 
+## Project layout
+
+The repo is an npm workspace. The Electron app lives at the root, and the code that PlayOverlay's other apps (a mobile app, and later a web app) share with it lives in `packages/`:
+
+- **`packages/core`** (`@playoverlay/core`): everything about a match that doesn't depend on the platform. Types, zod schemas, constants and utils, the goal log, the zustand stores and undo, the `useMatchClock` hook, the match actions (`createMatchActions`: goals, penalties, clock and phases, screen switches, restoring or starting a match), and every translation catalogue. It never touches Electron or `window.electronAPI` directly: the app connects the stores to IPC with `mirrorStores` and sets the undo log with `setMatchEventLogger` (see `src/electronBridge.ts`).
+- **`packages/screens`** (`@playoverlay/screens`): the on-air graphics, as React DOM components that take everything as props.
+- **The app (`src/`)**: the Electron main process, preload, the control window (dashboard and settings menus) and the display window, plus everything else that talks to Electron.
+
+The packages ship TypeScript source with no build step, so Vite, vitest and the mobile app's Metro bundler all consume them directly. Inside a package, use relative imports only (Metro can't resolve the app's `src/...` paths). The main process and preload import core's pure modules by subpath (`@playoverlay/core/utils` and so on) rather than the package entry, so React and the stores stay out of the main bundle; ESLint enforces this.
+
+A runtime dependency a package uses must also be listed in the root `package.json`: that is what the app is built from and what its bundled third-party notices are generated from.
+
 ## Before opening a PR
 
-Run all three checks locally, CI runs the same commands and will fail the build otherwise:
+Run all three checks locally (they cover `packages/` as well as the app), CI runs the same commands and will fail the build otherwise:
 
 ```bash
 npm run ts-check

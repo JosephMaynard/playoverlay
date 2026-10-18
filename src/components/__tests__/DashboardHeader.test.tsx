@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DashboardHeader from '../Dashboard/DashboardHeader';
-import { MatchSnapshot, UndoEntry, useUndoStore } from '../../store/undo';
+import { MatchSnapshot, UndoEntry, useUndoStore } from '@playoverlay/core';
 
 // A throwaway snapshot: the header only reads entry labels and stack lengths,
 // never the snapshot or slices (undo/redo are stubbed here), so its contents

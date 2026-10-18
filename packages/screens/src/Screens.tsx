@@ -1,0 +1,78 @@
+import {
+  ClockFormat,
+  MatchState,
+  Scores,
+  Time,
+  MatchSettings,
+} from '@playoverlay/core';
+import ScoresLayout from './ScoresLayout/ScoresLayout';
+import MatchTitleLayout from './MatchTitleLayout/MatchTitleLayout';
+import EndScreenLayout from './EndScreenLayout/EndScreenLayout';
+import PenaltiesLayout from './PenaltiesLayout/PenaltiesLayout';
+import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
+import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
+import ScoreboardLayout from './ScoreboardLayout/ScoreboardLayout';
+import GoalBannerLayout from './GoalBannerLayout/GoalBannerLayout';
+
+export interface Props {
+  matchSettings: MatchSettings;
+  scores: Scores;
+  time: Time;
+  matchState: MatchState;
+  clockFormat?: ClockFormat;
+}
+
+export default function Screens({
+  matchSettings,
+  scores,
+  time,
+  matchState,
+  clockFormat,
+}: Props) {
+  return (
+    <>
+      <OverlaysLayout
+        activeScreen={matchState.displayScreen}
+        overlays={matchState.overlays}
+      />
+      <ScoresLayout
+        matchSettings={matchSettings}
+        scores={scores}
+        time={time}
+        active={matchState.displayScreen === 'scoreBug'}
+      />
+      <MatchTitleLayout
+        settings={matchSettings}
+        scores={scores}
+        active={matchState.displayScreen === 'matchTitle'}
+      />
+      <EndScreenLayout
+        settings={matchSettings}
+        scores={scores}
+        active={matchState.displayScreen === 'endScreen'}
+      />
+      <PenaltiesLayout
+        penalties={scores.penalties}
+        active={matchState.displayScreen === 'penalties'}
+        penaltiesFirstTeam={matchState.penaltiesFirstTeam}
+        matchSettings={matchSettings}
+      />
+      <CustomScreenLayout
+        active={matchState.displayScreen === 'custom'}
+        customScreenImageUrl={matchState.customScreenImageUrl}
+      />
+      <ScoreboardLayout
+        matchSettings={matchSettings}
+        scores={scores}
+        time={time}
+        active={matchState.displayScreen === 'scoreboard'}
+        clockFormat={clockFormat}
+      />
+      <GoalBannerLayout
+        goals={scores.goals ?? []}
+        matchState={matchState}
+        matchSettings={matchSettings}
+      />
+    </>
+  );
+}

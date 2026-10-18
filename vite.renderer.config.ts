@@ -24,7 +24,14 @@ export default defineConfig((env) => {
     plugins: [pluginExposeRenderer(name)],
     resolve: {
       ...sharedResolve,
-      preserveSymlinks: true,
+      // Explicitly off: forge's own renderer defaults, which this config is
+      // merged over, turn it on. The workspace packages are symlinked into
+      // node_modules, and with it on they resolve to that node_modules path,
+      // where Vite applies no tsconfig.json (their JSX compiles for the
+      // classic runtime and the window fails with "React is not defined")
+      // and, in dev, pre-bundles them as a third-party dependency. Off, they
+      // resolve to their real path under packages/ and are built like src/.
+      preserveSymlinks: false,
     },
     clearScreen: false,
   } as UserConfig;

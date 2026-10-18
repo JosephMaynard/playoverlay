@@ -1,0 +1,375 @@
+import { create } from 'zustand';
+
+import { MatchState, Scores, Time } from '../types';
+import { parseTimeToSeconds, timeToString } from '../utils';
+import { useScoresStore } from './scores';
+import { useTimeStore } from './time';
+import { useMatchStateStore } from './matchState';
+
+// Multi-step undo/redo for live match state. The on-air state is split across
+// three stores: scores (including the penalty shootout), time (the clock), and
+// matchState (screen, phase, overlays).
+//
+// Undo is PER-SLICE, not whole-state: each action records and restores only
+// the slice(s) it actually changed. This is a hard correctness requirement for
+// a live broadcast. The commonest undo, a score correction, must never touch
+// the clock: if an operator misclicks a goal at 37:12 and presses Ctrl+Z at
+// 42:00, the clock must stay at 42:00, not rewind five minutes. Restoring the
+// time slice happens ONLY when the action actually moved the clock (a clock
+// action, or a phase advance which sets both the phase and its clock).
+//
+// Even then, the real match kept running while the operator noticed the
+// mistake. A restore puts the state back as if the action had never happened:
+// if the clock was running when the snapshot was taken, it is carried forward
+// by the wall-clock time since, instead of rewinding to the captured value.
+// Setting +3 at 45:00 and undoing at 47:00 leaves the clock at 47:00 with the
+// +3 removed.
+
+export type UndoSlice = 'scores' | 'time' | 'matchState';
+
+// A snapshot holds only the slices its action touched; the others are absent.
+export interface MatchSnapshot {
+  scores?: Scores;
+  time?: Time;
+  matchState?: MatchState;
+}
+
+export interface UndoEntry {
+  // The captured values of just this action's slices (deep cloned).
+  snapshot: MatchSnapshot;
+  // Which slices this entry holds and restores.
+  slices: UndoSlice[];
+  // i18n key (e.g. 'undo:actions.homeGoal') describing the action this entry
+  // reverses. Kept as a key, not a resolved string, so the label re-renders in
+  // the operator's current language.
+  label: string;
+  // Optional origin of the action (e.g. 'keyboard', 'phone'), unused by the
+  // core logic but available for diagnostics/telemetry later.
+  source?: string;
+  // Date.now() when the snapshot was taken, so a restore of a running clock
+  // can be carried forward by the time that has passed since.
+  capturedAt: number;
+}
+
+// The clock is system-clock driven (see useMatchClock): its running value is
+// derived from an internal anchor, not from the time store alone. Restoring
+// the time store is therefore not enough, the clock hook has to re-anchor
+// itself to the restored value and start/stop ticking to match. The hook
+// registers this callback; undo()/redo() invoke it, but ONLY when the time
+// slice is part of the restore.
+export type ClockResync = (time: Time) => void;
+
+// Receives every recorded operator action, for the host's durable log (the
+// Electron app forwards it to its main process's log and diagnostics ring
+// buffer). Optional: with none set, actions are simply not logged.
+export type MatchEventLogger = (label: string, source: string) => void;
+
+let matchEventLogger: MatchEventLogger | null = null;
+
+// Sets the logger captureUndo reports to. Returns a function that clears it
+// again (only if it is still the one set), for an effect cleanup.
+export function setMatchEventLogger(
+  logger: MatchEventLogger | null
+): () => void {
+  matchEventLogger = logger;
+  return () => {
+    if (matchEventLogger === logger) {
+      matchEventLogger = null;
+    }
+  };
+}
+
+// Cap the history so a long match can't grow the stack without bound. When the
+// cap is exceeded the oldest entry is dropped (standard bounded-undo history).
+export const UNDO_STACK_CAP = 50;
+
+interface UndoStore {
+  undoStack: UndoEntry[];
+  redoStack: UndoEntry[];
+  clockResync: ClockResync | null;
+
+  // Register the clock re-sync callback. Returns an unregister function that
+  // clears it again (only if it is still the one registered), for the hook's
+  // effect cleanup.
+  registerClockResync: (resync: ClockResync) => () => void;
+
+  // Snapshot the CURRENT values of the given slices and push them as the new
+  // top of the undo stack, then clear the redo stack (a fresh action always
+  // invalidates any pending redo). Call this at the START of an undoable
+  // action, before it mutates, so the snapshot is the pre-action state, and
+  // pass exactly the slices the action is about to change.
+  captureUndo: (label: string, slices: UndoSlice[], source?: string) => void;
+
+  // Restore the top undo entry's slices. The current values of those same
+  // slices are first pushed onto the redo stack so redo() can return to them.
+  undo: () => void;
+
+  // Inverse of undo().
+  redo: () => void;
+
+  // Drop both stacks. For operations that replace the whole match (restoring
+  // a crashed match, starting a new one): an entry captured before them
+  // describes a different match, and undoing it would splice that state into
+  // this one.
+  clearHistory: () => void;
+}
+
+// Deep clone so a snapshot can never alias live store state (the penalties and
+// overlays arrays in particular): a later in-place mutation of the live arrays
+// must not reach back into a stored snapshot, and restoring a snapshot must not
+// hand the live store a reference we still hold.
+function cloneSnapshot(snapshot: MatchSnapshot): MatchSnapshot {
+  return structuredClone(snapshot);
+}
+
+// Read the current values of just the requested slices as one deep-cloned
+// partial snapshot.
+function snapshotSlices(slices: UndoSlice[]): MatchSnapshot {
+  const snapshot: MatchSnapshot = {};
+  if (slices.includes('scores')) {
+    snapshot.scores = useScoresStore.getState().scores;
+  }
+  if (slices.includes('time')) {
+    snapshot.time = useTimeStore.getState().time;
+  }
+  if (slices.includes('matchState')) {
+    snapshot.matchState = useMatchStateStore.getState().matchState;
+  }
+  return cloneSnapshot(snapshot);
+}
+
+// The store setters merge partial updates into current state, so restoring
+// must spell out every optional field (as undefined where the snapshot omits
+// it) or a stale field from the current session would survive the merge, e.g.
+// a leftover matchPhase or customScreenImageUrl. Building full objects turns
+// each merge into a full replace.
+function fullScores(scores: Scores): Scores {
+  return {
+    homeTeam: scores.homeTeam,
+    awayTeam: scores.awayTeam,
+    penalties: scores.penalties ?? [],
+    goals: scores.goals ?? [],
+  };
+}
+
+function fullTime(time: Time): Time {
+  return {
+    time: time.time,
+    remainingTime: time.remainingTime,
+    additionalTime: time.additionalTime,
+    paused: time.paused,
+    showAdditionalTime: time.showAdditionalTime,
+    matchPhase: time.matchPhase,
+  };
+}
+
+// A snapshot of a running clock (phase active, not paused) advanced by the
+// wall-clock time since it was taken. A stopped or paused clock didn't move,
+// so it restores exactly as captured.
+function carryClockForward(time: Time, capturedAt: number): Time {
+  if (time.matchPhase === undefined || time.paused || !time.time) return time;
+
+  const elapsedSeconds = Math.round((Date.now() - capturedAt) / 1000);
+  if (elapsedSeconds <= 0) return time;
+
+  return {
+    ...time,
+    time: timeToString(parseTimeToSeconds(time.time) + elapsedSeconds),
+  };
+}
+
+// Overlays and the first penalty taker are deliberately NOT restored: no
+// undoable action changes them (overlay toggles and the first-team choice are
+// direct edits), so restoring them from a screen-switch or phase snapshot
+// would silently revert a later change, e.g. put a sponsor overlay the
+// operator has since taken off straight back on air. They keep their live
+// values.
+function fullMatchState(matchState: MatchState, live: MatchState): MatchState {
+  return {
+    displayScreen: matchState.displayScreen,
+    penaltiesFirstTeam: live.penaltiesFirstTeam,
+    overlays: live.overlays ?? [],
+    matchPhase: matchState.matchPhase,
+    previousMatchPhase: matchState.previousMatchPhase,
+    customScreenImageUrl: matchState.customScreenImageUrl,
+  };
+}
+
+// Apply an entry's slices to the live stores via the REAL store setters.
+// Routing the restore through setScores/setTime/setMatchState is deliberate:
+// every setter write is what the host's store mirror (see mirror.ts) carries
+// out to the display window, the OBS browser source, and any paired phone,
+// so a restore reaches every output the same way an ordinary edit does. It
+// also means the restore
+// must never go through the wrapped action handlers (incrementHomeTeamScore
+// and friends), which is exactly why undo()/redo() call these setters directly
+// and never re-enter captureUndo.
+//
+// matchState is applied before time so a phase-slice restore lands the phase
+// before the clock re-anchors against it. The clock is re-anchored ONLY when
+// the time slice is being restored, so a score-only or screen-only undo leaves
+// the running clock completely alone.
+function restoreEntry(entry: UndoEntry, clockResync: ClockResync | null) {
+  // Clone before applying so the live store never shares a reference with the
+  // stored entry (which stays on the redo/undo stack for a possible replay).
+  const snapshot = cloneSnapshot(entry.snapshot);
+
+  if (entry.slices.includes('scores') && snapshot.scores) {
+    useScoresStore.getState().setScores(fullScores(snapshot.scores));
+  }
+  if (entry.slices.includes('matchState') && snapshot.matchState) {
+    const matchStateStore = useMatchStateStore.getState();
+    matchStateStore.setMatchState(
+      fullMatchState(snapshot.matchState, matchStateStore.matchState)
+    );
+  }
+  if (entry.slices.includes('time') && snapshot.time) {
+    const time = carryClockForward(snapshot.time, entry.capturedAt);
+    useTimeStore.getState().setTime(fullTime(time));
+    // Re-anchor the match clock to the restored time (continue ticking if the
+    // restored phase was active and not paused, stay paused otherwise). Only
+    // reached when the time slice is part of this restore.
+    clockResync?.(time);
+  }
+}
+
+export const useUndoStore = create<UndoStore>((set, get) => ({
+  undoStack: [],
+  redoStack: [],
+  clockResync: null,
+
+  registerClockResync: (resync) => {
+    set({ clockResync: resync });
+    return () => {
+      // Only clear it if nobody else has since registered a different one.
+      if (get().clockResync === resync) {
+        set({ clockResync: null });
+      }
+    };
+  },
+
+  captureUndo: (label, slices, source) => {
+    const entry: UndoEntry = {
+      snapshot: snapshotSlices(slices),
+      slices,
+      label,
+      source,
+      capturedAt: Date.now(),
+    };
+    const nextStack = [...get().undoStack, entry];
+    // Bound the history, dropping the oldest entries first.
+    const bounded =
+      nextStack.length > UNDO_STACK_CAP
+        ? nextStack.slice(nextStack.length - UNDO_STACK_CAP)
+        : nextStack;
+    // A fresh action invalidates any pending redo.
+    set({ undoStack: bounded, redoStack: [] });
+
+    // Report every recorded operator action to the host's durable log (see
+    // setMatchEventLogger above). This is a pure observability side-channel
+    // alongside the snapshot above: it changes nothing about what gets
+    // captured or how undo/redo restore state. Absent in any test that
+    // doesn't set a logger.
+    matchEventLogger?.(label, source ?? 'laptop');
+  },
+
+  undo: () => {
+    const { undoStack, redoStack, clockResync } = get();
+    if (undoStack.length === 0) return;
+
+    const entry = undoStack[undoStack.length - 1];
+    // Push the current values of just THIS entry's slices onto the redo stack
+    // so redo() can return here. It carries the same slices and label as the
+    // entry being undone: redoing re-applies that same action.
+    const redoEntry: UndoEntry = {
+      snapshot: snapshotSlices(entry.slices),
+      slices: entry.slices,
+      label: entry.label,
+      source: entry.source,
+      capturedAt: Date.now(),
+    };
+
+    set({
+      undoStack: undoStack.slice(0, -1),
+      redoStack: [...redoStack, redoEntry],
+    });
+
+    restoreEntry(entry, clockResync);
+  },
+
+  redo: () => {
+    const { undoStack, redoStack, clockResync } = get();
+    if (redoStack.length === 0) return;
+
+    const entry = redoStack[redoStack.length - 1];
+    const undoEntry: UndoEntry = {
+      snapshot: snapshotSlices(entry.slices),
+      slices: entry.slices,
+      label: entry.label,
+      source: entry.source,
+      capturedAt: Date.now(),
+    };
+
+    set({
+      redoStack: redoStack.slice(0, -1),
+      undoStack: [...undoStack, undoEntry],
+    });
+
+    restoreEntry(entry, clockResync);
+  },
+
+  clearHistory: () => {
+    set({ undoStack: [], redoStack: [] });
+  },
+}));
+
+// Reactive selectors for the header buttons: subscribing to these makes the
+// buttons re-render (enable/disable, tooltip) as the stacks change.
+export const selectCanUndo = (state: UndoStore) => state.undoStack.length > 0;
+export const selectCanRedo = (state: UndoStore) => state.redoStack.length > 0;
+export const selectNextUndoLabel = (state: UndoStore): string | null =>
+  state.undoStack.length > 0
+    ? state.undoStack[state.undoStack.length - 1].label
+    : null;
+export const selectNextRedoLabel = (state: UndoStore): string | null =>
+  state.redoStack.length > 0
+    ? state.redoStack[state.redoStack.length - 1].label
+    : null;
+
+// A keydown target inside which the browser's own text undo/redo must be left
+// alone: undo/redo shortcuts inside an input, textarea, contenteditable, or an
+// ARIA textbox belong to the text field, not to the match. Kept as a pure,
+// DOM-only helper so it can be unit tested without React or Electron.
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
+
+export function isTextEntryTarget(target: EventTarget | null): boolean {
+  // Outside a DOM (React Native) there is no HTMLElement, and nothing is a
+  // text field in the sense meant here.
+  if (typeof HTMLElement === 'undefined') return false;
+  if (!(target instanceof HTMLElement)) return false;
+
+  const tagName = target.tagName;
+  if (tagName === 'INPUT') {
+    // A checkbox, colour swatch or button-like input takes no typing, so it
+    // must not swallow the match shortcuts (or undo) just by having focus
+    // after a click.
+    return !NON_TEXT_INPUT_TYPES.has((target as HTMLInputElement).type);
+  }
+  if (tagName === 'TEXTAREA' || tagName === 'SELECT') {
+    return true;
+  }
+  if (target.isContentEditable) return true;
+  if (target.getAttribute('role') === 'textbox') return true;
+
+  return false;
+}

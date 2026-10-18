@@ -1,5 +1,5 @@
 import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
-import ScoresTeamName from '../Screens/ScoresLayout/ScoresTeamName';
+import { ScoresTeamName } from '@playoverlay/screens';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../Modal/Modal';

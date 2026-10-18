@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { MatchSettings } from 'src/zodSchemas';
-import { Scores, Time } from '../../types';
+import { MatchSettings, Scores, Time } from '@playoverlay/core';
 
 export interface Props {
   matchSettings: MatchSettings;
