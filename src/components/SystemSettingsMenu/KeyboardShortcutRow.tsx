@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { keyboardEventToAccelerator } from '@playoverlay/core';
+import ActionButton from '../ui/ActionButton';
 
 export interface Props {
   label: string;
@@ -124,8 +125,10 @@ export default function KeyboardShortcutRow({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 py-2">
-      <span className="text-sm font-medium text-gray-900">{label}</span>
+    // Wraps on a narrow drawer so the label keeps its line and the 48px
+    // buttons never squeeze it.
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3">
+      <span className="text-base font-medium text-fg">{label}</span>
       <div className="flex items-center gap-2">
         {isRecording ? (
           <div
@@ -137,7 +140,7 @@ export default function KeyboardShortcutRow({
             })}
             onKeyDown={handleKeyDown}
             onBlur={onCancelRecording}
-            className="rounded-md bg-indigo-50 px-2 py-1 text-sm text-indigo-700 ring-1 ring-inset ring-indigo-300 focus:outline-none"
+            className="flex min-h-12 items-center rounded-xl bg-accent-soft px-3 text-sm font-medium text-fg ring-2 ring-inset ring-accent focus:outline-none"
           >
             {externalError ||
               error ||
@@ -145,24 +148,15 @@ export default function KeyboardShortcutRow({
           </div>
         ) : (
           <>
-            <kbd className="rounded-md bg-gray-100 px-2 py-1 text-sm text-gray-900 ring-1 ring-inset ring-gray-300">
+            <kbd className="rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-sm text-fg ring-1 ring-inset ring-line">
               {formatAccelerator(accelerator)}
             </kbd>
-            <button
-              type="button"
-              className="rounded-md bg-white px-2 py-1 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              onClick={onStartRecording}
-            >
+            <ActionButton size="md" onClick={onStartRecording}>
               {t('settings:appMenu.keyboardShortcutRow.change')}
-            </button>
-            <button
-              type="button"
-              disabled={isDefault}
-              className="rounded-md bg-white px-2 py-1 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:text-gray-300"
-              onClick={onReset}
-            >
+            </ActionButton>
+            <ActionButton size="md" disabled={isDefault} onClick={onReset}>
               {t('reset')}
-            </button>
+            </ActionButton>
           </>
         )}
       </div>

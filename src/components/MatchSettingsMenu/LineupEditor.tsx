@@ -8,9 +8,19 @@ import {
   Player,
   normalisePlayerName,
   normalisePlayers,
+  classNames,
   parsePlayerList,
 } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
+import {
+  compactInputClassName,
+  helpTextClassName,
+  inputClassName,
+  sectionHeadingClassName,
+  textareaClassName,
+} from '../ui/fields';
 
 export interface Props {
   // Keeps the two teams' control ids apart (see TeamSettings).
@@ -28,12 +38,6 @@ interface RowValues {
   number: string;
   name: string;
 }
-
-const inputClassName =
-  'block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6';
-
-const buttonClassName =
-  'inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400';
 
 // One player's number and name. Like the goal log's scorer field, edits are
 // held as a draft and committed when focus leaves the row (or on Enter), so
@@ -94,7 +98,10 @@ function PlayerRow({
         aria-label={t('settings:matchMenu.lineup.numberLabel', label)}
         placeholder={t('settings:matchMenu.lineup.numberPlaceholder')}
         maxLength={MAX_PLAYER_NUMBER_LENGTH}
-        className={`${inputClassName} w-[calc(3ch+1.5rem)] flex-shrink-0 px-2 text-center tabular-nums`}
+        className={classNames(
+          compactInputClassName,
+          'w-[calc(3ch+1.5rem)] flex-shrink-0 text-center tabular-nums'
+        )}
         value={shown.number}
         disabled={disabled}
         onChange={(event) => setDraft({ ...shown, number: event.target.value })}
@@ -106,7 +113,7 @@ function PlayerRow({
         aria-label={t('settings:matchMenu.lineup.nameLabel', label)}
         placeholder={t('settings:matchMenu.lineup.namePlaceholder')}
         maxLength={MAX_PLAYER_NAME_LENGTH}
-        className={`${inputClassName} w-full min-w-0`}
+        className={classNames(inputClassName, 'min-w-0')}
         value={shown.name}
         disabled={disabled}
         // A row the operator has just asked for is ready to type into.
@@ -114,19 +121,18 @@ function PlayerRow({
         onChange={(event) => setDraft({ ...shown, name: event.target.value })}
         onKeyDown={handleKeyDown}
       />
-      <button
-        type="button"
-        className="flex-shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-600 disabled:cursor-not-allowed disabled:hover:text-gray-400"
-        aria-label={t('settings:matchMenu.lineup.removeAria', {
+      <IconButton
+        tone="danger"
+        className="flex-shrink-0"
+        label={t('settings:matchMenu.lineup.removeAria', {
           player:
             normalisePlayerName(shown.name) ||
             t('settings:matchMenu.lineup.unnamedPlayer', label),
         })}
+        icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
         disabled={disabled}
         onClick={onRemove}
-      >
-        <TrashIcon className="h-5 w-5" aria-hidden="true" />
-      </button>
+      />
     </li>
   );
 }
@@ -199,20 +205,17 @@ export default function LineupEditor({
   };
 
   return (
-    <section className="col-span-full mb-4" aria-labelledby={headingId}>
-      <h3
-        id={headingId}
-        className="block text-sm font-medium leading-6 text-gray-900"
-      >
+    <section className="col-span-full" aria-labelledby={headingId}>
+      <h3 id={headingId} className={sectionHeadingClassName}>
         {t('settings:matchMenu.lineup.title')}
       </h3>
       {players.length === 0 && newRowId === null && (
-        <p className="mt-1 text-sm text-gray-500">
+        <p className={helpTextClassName}>
           {t('settings:matchMenu.lineup.empty')}
         </p>
       )}
       {(players.length > 0 || newRowId !== null) && (
-        <ul role="list" className="mt-2 space-y-2">
+        <ul role="list" className="mt-3 space-y-2">
           {players.map((player, index) => (
             <PlayerRow
               // Rows are positions in the list: only the focused row can hold
@@ -248,25 +251,23 @@ export default function LineupEditor({
           )}
         </ul>
       )}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className={buttonClassName}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <ActionButton
+          size="md"
           disabled={disabled || atCap}
           onClick={() => openNewRow(true)}
         >
           {t('settings:matchMenu.lineup.addPlayer')}
-        </button>
-        <button
-          type="button"
-          className={buttonClassName}
+        </ActionButton>
+        <ActionButton
+          size="md"
           disabled={disabled || atCap}
           onClick={() => setPasteOpen(true)}
         >
           {t('settings:matchMenu.lineup.pasteList')}
-        </button>
+        </ActionButton>
         {players.length > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted">
             {t('settings:matchMenu.lineup.count', { count: players.length })} (
             {t('settings:matchMenu.lineup.cap', { max: MAX_PLAYERS_PER_TEAM })})
           </span>
@@ -281,13 +282,13 @@ export default function LineupEditor({
         action={pastePlayers}
         actionDisabled={pasteText.trim() === ''}
       >
-        <label htmlFor={pasteId} className="block text-sm text-gray-500">
+        <label htmlFor={pasteId} className="block text-sm text-muted">
           {t('settings:matchMenu.lineup.pasteHint')}
         </label>
         <textarea
           id={pasteId}
           rows={10}
-          className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className={classNames(textareaClassName, 'mt-2')}
           value={pasteText}
           onChange={(event) => setPasteText(event.target.value)}
         />

@@ -4,7 +4,9 @@ import { TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import { ScoresTeamName } from '@playoverlay/screens';
-import { Club } from '@playoverlay/core';
+import { Club, classNames } from '@playoverlay/core';
+import IconButton from '../ui/IconButton';
+import { errorTextClassName } from '../ui/fields';
 
 export interface Props {
   clubs: Club[];
@@ -38,58 +40,57 @@ export default function SavedClubs({ clubs, loadError, deleteClub }: Props) {
   return (
     <CollapsiblePanel title={t('settings:matchMenu.clubs.title')}>
       {loadError && (
-        <p className="mb-2 text-sm text-red-600" role="alert">
+        <p className={classNames(errorTextClassName, 'mb-3')} role="alert">
           {t('settings:matchMenu.clubs.loadError')}
         </p>
       )}
       {clubs.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('settings:matchMenu.clubs.empty', {
             action: t('settings:matchMenu.clubs.saveAsClub'),
           })}
         </p>
       ) : (
-        <ul role="list" className="divide-y divide-gray-100">
+        <ul role="list" className="-my-1 divide-y divide-line">
           {clubs.map((club) => (
-            <li key={club.id} className="flex items-center gap-x-3 py-2">
+            <li key={club.id} className="flex min-h-14 items-center gap-3 py-1">
               {club.logo ? (
                 <div
-                  className="h-8 w-8 flex-shrink-0 bg-contain bg-center bg-no-repeat"
+                  className="h-10 w-10 flex-shrink-0 bg-contain bg-center bg-no-repeat"
                   style={{ backgroundImage: `url("${club.logo}")` }}
                 />
               ) : (
-                <div className="h-8 w-8 flex-shrink-0" />
+                <div className="h-10 w-10 flex-shrink-0" />
               )}
-              <div className="flex-shrink-0 ring-1 ring-gray-300 [--base-size:0.875rem]">
+              <div className="flex-shrink-0 ring-1 ring-line [--base-size:0.875rem]">
                 <ScoresTeamName
                   teamName={club.abbreviation}
                   textColour={club.textColour}
                   backgroundColour={club.backgroundColour}
                 />
               </div>
-              <span className="min-w-0 flex-grow truncate text-sm font-medium text-gray-900">
+              <span className="min-w-0 flex-grow truncate text-base font-medium text-fg">
                 {club.name}
               </span>
               {club.players && club.players.length > 0 && (
-                <span className="flex-shrink-0 text-sm text-gray-500">
+                <span className="flex-shrink-0 text-sm text-muted">
                   {t('settings:matchMenu.clubs.playerCount', {
                     count: club.players.length,
                   })}
                 </span>
               )}
-              <button
-                type="button"
-                className="flex-shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-600"
-                aria-label={t('settings:matchMenu.clubs.deleteAria', {
+              <IconButton
+                tone="danger"
+                className="flex-shrink-0"
+                label={t('settings:matchMenu.clubs.deleteAria', {
                   club: club.name,
                 })}
+                icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
                 onClick={() => {
                   setDeleteError(false);
                   setClubToDelete(club);
                 }}
-              >
-                <TrashIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
+              />
             </li>
           ))}
         </ul>
@@ -105,13 +106,13 @@ export default function SavedClubs({ clubs, loadError, deleteClub }: Props) {
         action={handleDelete}
         actionDisabled={deleting}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('settings:matchMenu.clubs.deleteConfirmBody', {
             club: clubToDelete?.name,
           })}
         </p>
         {deleteError && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
+          <p className={errorTextClassName} role="alert">
             {t('settings:matchMenu.clubs.deleteError')}
           </p>
         )}
