@@ -47,12 +47,12 @@ describe('zod schemas', () => {
       githubReleaseSchema.parse({
         tag_name: 'v0.15.0',
         html_url:
-          'https://github.com/JosephMaynard/playoverlay/releases/v0.15.0',
+          'https://github.com/MagicZebraLtd/playoverlay/releases/v0.15.0',
         ignored_field: true,
       })
     ).toEqual({
       tag_name: 'v0.15.0',
-      html_url: 'https://github.com/JosephMaynard/playoverlay/releases/v0.15.0',
+      html_url: 'https://github.com/MagicZebraLtd/playoverlay/releases/v0.15.0',
     });
 
     expect(

@@ -82,12 +82,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JosephMaynard/playoverlay.git"
+    "url": "git+https://github.com/MagicZebraLtd/playoverlay.git"
   },
   "bugs": {
-    "url": "https://github.com/JosephMaynard/playoverlay/issues"
+    "url": "https://github.com/MagicZebraLtd/playoverlay/issues"
   },
-  "homepage": "https://github.com/JosephMaynard/playoverlay#readme",
+  "homepage": "https://github.com/MagicZebraLtd/playoverlay#readme",
   "overrides": {
     "conf": {
       "ajv": "^8.20.0"
