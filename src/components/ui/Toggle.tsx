@@ -47,16 +47,25 @@ export default function Toggle({
           )}
         />
       </Switch>
-      <Switch.Label as="span" className="min-h-8 cursor-pointer select-none">
-        <span className="block text-base font-medium leading-8 text-fg">
+      {/* The description is a Switch.Description, not part of the label, so
+          the switch's accessible name stays the short label and the hint
+          is announced separately. */}
+      <span className="min-h-8 select-none">
+        <Switch.Label
+          as="span"
+          className="block cursor-pointer text-base font-medium leading-8 text-fg"
+        >
           {label}
-        </span>
+        </Switch.Label>
         {description && (
-          <span className="block text-sm leading-snug text-muted">
+          <Switch.Description
+            as="span"
+            className="block text-sm leading-snug text-muted"
+          >
             {description}
-          </span>
+          </Switch.Description>
         )}
-      </Switch.Label>
+      </span>
     </Switch.Group>
   );
 }
