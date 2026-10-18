@@ -5,10 +5,13 @@ import {
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
-  Switch,
 } from '@headlessui/react';
 import { MegaphoneIcon, TrashIcon } from '@heroicons/react/24/outline';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
+import Toggle from '../ui/Toggle';
+import { inputClassName } from '../ui/fields';
 import { ScoresTeamName } from '@playoverlay/screens';
 import {
   Goal,
@@ -38,8 +41,9 @@ export interface Props {
   removeGoal: (goalId: string) => void;
 }
 
-const scorerInputClassName =
-  'block w-full min-w-0 rounded-md border-0 px-2 py-1.5 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600';
+// min-w-0 lets the field shrink inside the row instead of pushing the
+// banner and remove buttons off a narrow screen.
+const scorerInputClassName = classNames(inputClassName, 'min-w-0');
 
 // The scorer field for one goal. Like the score editor, it commits on blur or
 // Enter rather than per keystroke, so a half-typed name never reaches the
@@ -182,13 +186,13 @@ function ScorerPicker({
             ref={optionsRef}
             anchor="bottom start"
             modal={false}
-            className="z-50 w-[var(--input-width)] min-w-56 rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 [--anchor-gap:4px]"
+            className="z-50 w-[var(--input-width)] min-w-56 rounded-xl bg-surface py-1 text-base text-fg shadow-lg ring-1 ring-line [--anchor-gap:4px]"
           >
             {matches.map((player, index) => (
               <ComboboxOption
                 key={`${player.number ?? ''}-${player.name}-${index}`}
                 value={player}
-                className="flex cursor-default select-none items-center gap-x-3 px-3 py-1.5 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+                className="flex min-h-12 cursor-default select-none items-center gap-x-3 px-3 py-2 text-fg data-[focus]:bg-accent data-[focus]:text-accent-fg"
               >
                 <span className="w-8 flex-shrink-0 text-right tabular-nums opacity-60">
                   {player.number}
@@ -196,7 +200,7 @@ function ScorerPicker({
                 <span className="truncate">{player.name}</span>
               </ComboboxOption>
             ))}
-            <p className="px-3 py-1.5 text-xs text-gray-500">
+            <p className="px-3 py-2 text-sm text-muted">
               {t('dashboard:goalLog.pickScorer')}
             </p>
           </ComboboxOptions>
@@ -221,33 +225,16 @@ export default function GoalLogPanel({
     // panel's state, and a solo operator filming the match won't be typing
     // scorers until half-time or full-time.
     <CollapsiblePanel title={t('dashboard:goalLog.title')} defaultOpen={false}>
-      <Switch.Group as="div" className="mb-4 flex items-center">
-        <Switch
-          checked={showBannerAutomatically}
-          onChange={setShowBannerAutomatically}
-          className={classNames(
-            showBannerAutomatically ? 'bg-indigo-600' : 'bg-gray-200',
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={classNames(
-              showBannerAutomatically ? 'translate-x-5' : 'translate-x-0',
-              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-            )}
-          />
-        </Switch>
-        <Switch.Label as="span" className="ml-3 text-sm">
-          <span className="font-medium text-gray-900">
-            {t('dashboard:goalLog.showAutomatically')}
-          </span>
-        </Switch.Label>
-      </Switch.Group>
+      <Toggle
+        className="mb-4"
+        checked={showBannerAutomatically}
+        onChange={setShowBannerAutomatically}
+        label={t('dashboard:goalLog.showAutomatically')}
+      />
       {goals.length === 0 ? (
-        <p className="text-sm text-gray-500">{t('dashboard:goalLog.empty')}</p>
+        <p className="text-sm text-muted">{t('dashboard:goalLog.empty')}</p>
       ) : (
-        <ul role="list" className="divide-y divide-gray-100">
+        <ul role="list" className="divide-y divide-line">
           {goals.map((goal) => {
             const isHome = goal.team === 'home';
             const teamName = isHome
@@ -267,10 +254,10 @@ export default function GoalLogPanel({
             return (
               <li
                 key={goal.id}
-                className="flex items-center gap-x-3 py-2"
+                className="flex min-h-14 items-center gap-x-3 py-2"
                 aria-label={description}
               >
-                <div className="flex-shrink-0 ring-1 ring-gray-300 [--base-size:0.875rem]">
+                <div className="flex-shrink-0 ring-1 ring-black/10 [--base-size:0.875rem]">
                   <ScoresTeamName
                     teamName={
                       isHome
@@ -289,12 +276,12 @@ export default function GoalLogPanel({
                     }
                   />
                 </div>
-                <span className="w-14 flex-shrink-0 text-sm font-semibold tabular-nums text-gray-900">
+                <span className="w-14 flex-shrink-0 text-base font-semibold tabular-nums text-fg">
                   {minute}
                 </span>
                 <div className="flex min-w-0 flex-grow items-center gap-x-2">
                   {goal.scorerNumber && (
-                    <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-gray-500">
+                    <span className="flex-shrink-0 text-base font-semibold tabular-nums text-muted">
                       {goal.scorerNumber}
                     </span>
                   )}
@@ -315,30 +302,31 @@ export default function GoalLogPanel({
                     />
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="inline-flex flex-shrink-0 items-center gap-x-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                <ActionButton
+                  size="md"
+                  className="flex-shrink-0"
                   aria-label={t('dashboard:goalLog.showBannerAria', {
                     goal: description,
                   })}
                   onClick={() => showBanner(goal.id)}
+                  icon={
+                    <MegaphoneIcon className="h-6 w-6" aria-hidden="true" />
+                  }
                 >
-                  <MegaphoneIcon className="h-5 w-5" aria-hidden="true" />
-                  <span className="hidden xl:inline">
+                  <span className="hidden lg:inline">
                     {t('dashboard:goalLog.showBanner')}
                   </span>
-                </button>
-                <button
-                  type="button"
-                  className="flex-shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-600"
-                  aria-label={t('dashboard:goalLog.removeAria', {
+                </ActionButton>
+                <IconButton
+                  tone="danger"
+                  className="flex-shrink-0"
+                  label={t('dashboard:goalLog.removeAria', {
                     goal: description,
                   })}
                   title={t('dashboard:goalLog.remove')}
+                  icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
                   onClick={() => removeGoal(goal.id)}
-                >
-                  <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
+                />
               </li>
             );
           })}

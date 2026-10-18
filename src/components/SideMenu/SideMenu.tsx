@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
+import IconButton from '../ui/IconButton';
 
 export interface Props {
   open: boolean;
@@ -39,7 +40,7 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-overlay/60 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-hidden">
@@ -55,33 +56,27 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
                 leaveTo="translate-x-full"
               >
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-xl">
-                  <div className="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
-                    <div className="px-4 sm:px-6">
-                      <div className="flex items-start justify-between">
-                        <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
-                          {title}
-                        </Dialog.Title>
-                        <div className="ml-3 flex h-7 items-center">
-                          <button
-                            type="button"
-                            className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            onClick={() => setOpen(false)}
-                          >
-                            <span className="absolute -inset-2.5" />
-                            <span className="sr-only">
-                              {t('common:closePanel')}
-                            </span>
-                            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
+                  <div className="flex h-full flex-col overflow-y-scroll bg-surface pb-6 text-fg shadow-xl">
+                    {/* The header stays put while the settings scroll, so
+                        the close button is always one tap away. */}
+                    <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between gap-3 border-b border-line bg-surface py-1 pl-4 pr-2 sm:pl-6">
+                      <Dialog.Title className="text-lg font-semibold leading-7 text-fg">
+                        {title}
+                      </Dialog.Title>
+                      <IconButton
+                        label={t('common:closePanel')}
+                        icon={
+                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        }
+                        onClick={() => setOpen(false)}
+                      />
                     </div>
                     <div className="relative mt-4 flex-1 px-2">
                       <div className="px-4">{children}</div>
                     </div>
                     {version && (
                       <div>
-                        <p className="text-center text-xs">
+                        <p className="text-center text-xs text-faint">
                           {t('common:versionLabel', { version })}
                         </p>
                       </div>

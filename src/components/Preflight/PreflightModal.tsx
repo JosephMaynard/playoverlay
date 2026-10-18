@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { classNames } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
 import PreflightCheckRow from './PreflightCheckRow';
 import { PreflightResult } from '../../main-functions/preflight';
@@ -10,9 +11,9 @@ export interface Props {
 }
 
 const SUMMARY_BANNER_CLASS = {
-  ok: 'bg-green-50 text-green-800 ring-1 ring-inset ring-green-200',
-  warning: 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200',
-  error: 'bg-red-50 text-red-800 ring-1 ring-inset ring-red-200',
+  ok: 'bg-live-soft text-live-ink ring-1 ring-inset ring-live/40',
+  warning: 'bg-warn-soft text-warn-ink ring-1 ring-inset ring-warn/40',
+  error: 'bg-danger-soft text-danger-ink ring-1 ring-inset ring-danger/40',
 } as const;
 
 // A one-button "am I ready to go live?" checklist for the app's one
@@ -77,16 +78,16 @@ export default function PreflightModal({ open, setOpen }: Props) {
       actionButtonColor="indigo"
       action={runPreflight}
     >
-      <p className="text-sm text-gray-500">{t('preflight:modal.intro')}</p>
+      <p className="text-sm text-muted">{t('preflight:modal.intro')}</p>
 
       {loading && !result && (
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="mt-4 text-sm text-muted">
           {t('preflight:action.running')}
         </p>
       )}
 
       {loadError && (
-        <p className="mt-4 text-sm text-red-600">
+        <p className="mt-4 text-sm font-medium text-danger">
           {t('preflight:modal.loadError')}
         </p>
       )}
@@ -94,13 +95,16 @@ export default function PreflightModal({ open, setOpen }: Props) {
       {result && (
         <>
           <div
-            className={`mt-4 rounded-md px-3 py-2 text-sm font-medium ${SUMMARY_BANNER_CLASS[result.summary.status]}`}
+            className={classNames(
+              'mt-4 rounded-xl px-4 py-3 text-base font-semibold',
+              SUMMARY_BANNER_CLASS[result.summary.status]
+            )}
           >
             {summaryText}
           </div>
           <ul
             role="list"
-            className="mt-2 max-h-[50vh] divide-y divide-gray-100 overflow-y-auto"
+            className="mt-2 max-h-[50vh] divide-y divide-line overflow-y-auto"
           >
             {result.checks.map((check) => (
               <PreflightCheckRow key={check.id} check={check} />
