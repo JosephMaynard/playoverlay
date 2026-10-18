@@ -10,6 +10,19 @@ import {
   removeValue,
 } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
+import {
+  checkboxClassName,
+  errorTextClassName,
+  inputClassName,
+  labelClassName,
+  radioClassName,
+  sectionHeadingClassName,
+} from '../ui/fields';
+
+// A radio or checkbox row where the whole 48px row is the label, so the
+// tap does not have to land on the 24px box itself.
+const choiceRowClassName =
+  'flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-2 text-base font-medium text-fg hover:bg-surface-2';
 
 // Same local i18n key map as SystemSettingsMenu's Stream Deck screen buttons
 // (duplicated rather than shared: `screens` is also used by
@@ -97,91 +110,84 @@ export default function EditCustomScreen({
           backgroundImage: `url("${customScreenToEdit?.url}")`,
           backgroundColor: keyColour,
         }}
-        className="my-8 aspect-video w-80 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm"
+        className="my-6 aspect-video w-full max-w-sm rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
       />
-      <div className="my-4">
-        <label
-          htmlFor="edit-custom-screen-title"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          {t('settings:customScreens.uploader.titleLabel')}
-        </label>
-        <div className="mt-2">
-          <input
-            type="text"
-            id="edit-custom-screen-title"
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-            value={customScreenToEdit?.title}
-            onChange={(e) => handleOnChange({ title: e.target.value })}
-          />
-        </div>
-      </div>
-      <fieldset className="mt-6">
-        <legend className="text-sm font-semibold leading-6 text-gray-900">
-          {t('settings:customScreens.editModal.type')}
-        </legend>
-        <div className="mt-2 space-y-2">
-          <div className="flex items-center">
+      <div className="space-y-6">
+        <div>
+          <label htmlFor="edit-custom-screen-title" className={labelClassName}>
+            {t('settings:customScreens.uploader.titleLabel')}
+          </label>
+          <div className="mt-2">
             <input
-              checked={
-                customScreenToEdit?.type === 'screen' ||
-                customScreenToEdit?.type === undefined
-              }
-              id="custom-graphic-type-screen"
-              name="custom-graphic-type"
-              type="radio"
-              value="screen"
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-              onChange={(e) => {
-                handleOnChange({
-                  type: e.target.value as 'screen' | 'overlay',
-                  overlayLinks: [],
-                });
-              }}
+              type="text"
+              id="edit-custom-screen-title"
+              className={inputClassName}
+              value={customScreenToEdit?.title}
+              onChange={(e) => handleOnChange({ title: e.target.value })}
             />
+          </div>
+        </div>
+        <fieldset>
+          <legend className={sectionHeadingClassName}>
+            {t('settings:customScreens.editModal.type')}
+          </legend>
+          <div className="mt-2 space-y-1">
             <label
               htmlFor="custom-graphic-type-screen"
-              className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              className={choiceRowClassName}
             >
+              <input
+                checked={
+                  customScreenToEdit?.type === 'screen' ||
+                  customScreenToEdit?.type === undefined
+                }
+                id="custom-graphic-type-screen"
+                name="custom-graphic-type"
+                type="radio"
+                value="screen"
+                className={radioClassName}
+                onChange={(e) => {
+                  handleOnChange({
+                    type: e.target.value as 'screen' | 'overlay',
+                    overlayLinks: [],
+                  });
+                }}
+              />
               {t('settings:customScreens.typeScreen')}
             </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              checked={customScreenToEdit?.type === 'overlay'}
-              id="custom-graphic-type-overlay"
-              name="custom-graphic-type"
-              type="radio"
-              value="overlay"
-              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-              onChange={(e) => {
-                handleOnChange({
-                  type: e.target.value as 'screen' | 'overlay',
-                });
-              }}
-            />
             <label
               htmlFor="custom-graphic-type-overlay"
-              className="ml-3 block text-sm font-medium leading-6 text-gray-900"
+              className={choiceRowClassName}
             >
+              <input
+                checked={customScreenToEdit?.type === 'overlay'}
+                id="custom-graphic-type-overlay"
+                name="custom-graphic-type"
+                type="radio"
+                value="overlay"
+                className={radioClassName}
+                onChange={(e) => {
+                  handleOnChange({
+                    type: e.target.value as 'screen' | 'overlay',
+                  });
+                }}
+              />
               {t('settings:customScreens.typeOverlay')}
             </label>
           </div>
-        </div>
-      </fieldset>
-      {customScreenToEdit?.type === 'overlay' && (
-        <fieldset className="mt-6">
-          <legend className="text-sm font-semibold leading-6 text-gray-900">
-            {t('settings:customScreens.editModal.overlayScreens')}
-          </legend>
-          <div className="mt-2 space-y-2">
-            <div className="relative flex items-start">
-              <div className="flex h-6 items-center">
+        </fieldset>
+        {customScreenToEdit?.type === 'overlay' && (
+          <fieldset>
+            <legend className={sectionHeadingClassName}>
+              {t('settings:customScreens.editModal.overlayScreens')}
+            </legend>
+            <div className="mt-2 space-y-1">
+              <label htmlFor="all" className={choiceRowClassName}>
                 <input
                   id="all"
                   name="all"
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  className={checkboxClassName}
                   checked={allScreensChecked}
                   onChange={(e) => {
                     handleOnChange({
@@ -189,21 +195,19 @@ export default function EditCustomScreen({
                     });
                   }}
                 />
-              </div>
-              <div className="ml-3 text-sm leading-6">
-                <label htmlFor="all" className="font-medium text-gray-900">
-                  {t('settings:customScreens.editModal.allScreens')}
-                </label>
-              </div>
-            </div>
-            {listedScreens.map((screen) => (
-              <div className="relative flex items-start" key={screen}>
-                <div className="flex h-6 items-center">
+                {t('settings:customScreens.editModal.allScreens')}
+              </label>
+              {listedScreens.map((screen) => (
+                <label
+                  htmlFor={screen}
+                  key={screen}
+                  className={choiceRowClassName}
+                >
                   <input
                     id={screen}
                     name={screen}
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    className={checkboxClassName}
                     checked={(customScreenToEdit?.overlayLinks || []).includes(
                       screen
                     )}
@@ -221,19 +225,15 @@ export default function EditCustomScreen({
                       });
                     }}
                   />
-                </div>
-                <div className="ml-3 text-sm leading-6">
-                  <label htmlFor={screen} className="font-medium text-gray-900">
-                    {t(screenLabelKeys[screen as DisplayScreen])}
-                  </label>
-                </div>
-              </div>
-            ))}
-          </div>
-        </fieldset>
-      )}
+                  {t(screenLabelKeys[screen as DisplayScreen])}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+      </div>
       {saveError && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
+        <p role="alert" className={errorTextClassName}>
           {saveError}
         </p>
       )}

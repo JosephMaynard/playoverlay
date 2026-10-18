@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import Button from '../ButtonGrid/Button';
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import { classNames } from '@playoverlay/core';
+import ActionButton from '../ui/ActionButton';
+import {
+  errorTextClassName,
+  inputClassName,
+  labelClassName,
+} from '../ui/fields';
 
 // Mirrors the main process's upload checks in fileHandler.ts (the same
 // allowed extensions and 10 MB cap). Checking here first refuses an
@@ -162,94 +168,105 @@ const DragAndDropUploader: React.FC<Props> = ({
   };
 
   return (
-    <div>
-      <h3 className="mb-2 block text-sm font-medium leading-6 text-gray-900">
-        {t('settings:customScreens.uploader.image')}
-      </h3>
+    <div className="space-y-4">
+      <div>
+        <h3 className={classNames(labelClassName, 'mb-2')}>
+          {t('settings:customScreens.uploader.image')}
+        </h3>
 
-      {!imageUrl ? (
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className="relative flex w-full flex-col items-center gap-4 rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400"
-          style={{
-            border: isDragging ? '2px dashed #000' : '2px dashed #ccc',
-          }}
-        >
-          <PhotoIcon className="h-16 w-16 text-gray-400" />
-          {isDragging ? (
-            <p>{t('settings:customScreens.uploader.dropHere')}</p>
-          ) : (
-            <>
-              <p>{t('settings:customScreens.uploader.dragDropHint')}</p>
-              <button
-                type="button"
-                className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {t('settings:customScreens.uploader.selectFile')}
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept={ACCEPTED_FILE_TYPES}
-                onChange={handleFileChange}
-              />
-            </>
-          )}
-        </div>
-      ) : (
-        <div>
-          <h3>{t('settings:customScreens.uploader.uploadedImage')}</h3>
+        {!imageUrl ? (
           <div
-            style={{
-              backgroundImage: `url(${imageUrl})`,
-              backgroundColor: keyColour,
-            }}
-            className="aspect-video w-full bg-contain bg-center bg-no-repeat"
-          />
-          <button onClick={handleDelete} disabled={isUploading}>
-            {t('settings:customScreens.uploader.deleteImage')}
-          </button>
-        </div>
-      )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={classNames(
+              'relative flex w-full flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-8 text-center text-base text-fg transition-colors',
+              isDragging
+                ? 'border-accent bg-accent-soft'
+                : 'border-line-strong hover:border-accent'
+            )}
+          >
+            <PhotoIcon className="h-16 w-16 text-faint" aria-hidden="true" />
+            {isDragging ? (
+              <p>{t('settings:customScreens.uploader.dropHere')}</p>
+            ) : (
+              <>
+                <p>{t('settings:customScreens.uploader.dragDropHint')}</p>
+                <ActionButton
+                  variant="primary"
+                  size="md"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {t('settings:customScreens.uploader.selectFile')}
+                </ActionButton>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept={ACCEPTED_FILE_TYPES}
+                  onChange={handleFileChange}
+                />
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <h3 className="text-sm text-muted">
+              {t('settings:customScreens.uploader.uploadedImage')}
+            </h3>
+            {/* On the key colour, so a transparent overlay looks as it
+                will on air. */}
+            <div
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+                backgroundColor: keyColour,
+              }}
+              className="aspect-video w-full rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+            />
+            <ActionButton
+              variant="danger"
+              size="md"
+              onClick={handleDelete}
+              disabled={isUploading}
+            >
+              {t('settings:customScreens.uploader.deleteImage')}
+            </ActionButton>
+          </div>
+        )}
 
-      {error && (
-        <p role="alert" style={{ color: 'red' }}>
-          {error}
-        </p>
-      )}
+        {error && (
+          <p role="alert" className={errorTextClassName}>
+            {error}
+          </p>
+        )}
+      </div>
 
-      <div className="my-4">
-        <label
-          htmlFor="add-custom-screen-title"
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
+      <div>
+        <label htmlFor="add-custom-screen-title" className={labelClassName}>
           {t('settings:customScreens.uploader.titleLabel')}
         </label>
         <div className="mt-2">
           <input
             type="text"
             id="add-custom-screen-title"
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className={inputClassName}
             onChange={(e) => setTitle(e.target.value)}
             value={title}
           />
         </div>
       </div>
 
-      <Button
+      <ActionButton
+        variant="primary"
+        size="md"
+        className="min-w-32"
         onClick={handleSave}
         disabled={!file || !title || isUploading}
-        label={
-          isUploading
-            ? t('settings:customScreens.uploader.uploading')
-            : t('settings:actions.save')
-        }
-        className="min-w-32"
-      />
+      >
+        {isUploading
+          ? t('settings:customScreens.uploader.uploading')
+          : t('settings:actions.save')}
+      </ActionButton>
     </div>
   );
 };

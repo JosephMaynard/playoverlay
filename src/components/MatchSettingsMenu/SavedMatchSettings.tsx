@@ -7,6 +7,12 @@ import WideModal from '../Modal/WideModal';
 import Empty from './Empty';
 import { nanoid } from 'nanoid';
 import { ArrowUpOnSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import ActionButton from '../ui/ActionButton';
+import {
+  errorTextClassName,
+  inputClassName,
+  labelClassName,
+} from '../ui/fields';
 
 export interface Props {
   matchSettings: MatchSettings;
@@ -145,21 +151,16 @@ export default function SavedMatchSettings({
   return (
     <>
       <CollapsiblePanel title={t('settings:matchMenu.saved.title')}>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            onClick={openSaveDialog}
-          >
+        <div className="grid grid-cols-2 gap-3">
+          <ActionButton variant="primary" size="md" onClick={openSaveDialog}>
             {t('settings:matchMenu.saved.saveCurrent')}
-          </button>
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          </ActionButton>
+          <ActionButton
+            size="md"
             onClick={() => setModal('show-saved-match-settings')}
           >
             {t('settings:matchMenu.saved.openSaved')}
-          </button>
+          </ActionButton>
         </div>
       </CollapsiblePanel>
       <WideModal
@@ -175,18 +176,18 @@ export default function SavedMatchSettings({
             })}
           />
         ) : (
-          <ul role="list" className="divide-y divide-gray-100">
+          <ul role="list" className="divide-y divide-line">
             {savedMatchSettings.map((savedMatchSetting) => (
               <li
                 key={savedMatchSetting.saveId}
-                className="flex items-center justify-between gap-x-4 py-4"
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
               >
                 <div className="flex min-w-0 flex-auto grow flex-col items-start justify-center">
-                  <p className="max-w-full truncate text-sm font-semibold leading-6 text-gray-900">
+                  <p className="max-w-full truncate text-base font-semibold text-fg">
                     {savedMatchSetting.saveTitle}
                   </p>
                   {savedMatchSetting.saveDate && (
-                    <p className="mt-1 text-xs leading-6 text-gray-600">
+                    <p className="mt-0.5 text-sm text-muted">
                       {t('settings:matchMenu.saved.savedAt', {
                         date: new Date(
                           savedMatchSetting.saveDate
@@ -196,30 +197,39 @@ export default function SavedMatchSettings({
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-x-1.5 rounded-md bg-green-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                  onClick={() =>
-                    setSavedMatchSettingsToRestore(savedMatchSetting)
-                  }
-                >
-                  <ArrowUpOnSquareIcon
-                    className="-ml-0.5 h-5 w-5"
-                    aria-hidden="true"
-                  />
-                  {t('settings:matchMenu.saved.restore')}
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                  onClick={() => {
-                    setDeleteError(null);
-                    setSavedMatchSettingsToDelete(savedMatchSetting);
-                  }}
-                >
-                  <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                  {t('settings:actions.delete')}
-                </button>
+                <div className="flex flex-shrink-0 items-center gap-3">
+                  <ActionButton
+                    variant="primary"
+                    size="md"
+                    icon={
+                      <ArrowUpOnSquareIcon
+                        className="-ml-0.5 h-5 w-5"
+                        aria-hidden="true"
+                      />
+                    }
+                    onClick={() =>
+                      setSavedMatchSettingsToRestore(savedMatchSetting)
+                    }
+                  >
+                    {t('settings:matchMenu.saved.restore')}
+                  </ActionButton>
+                  <ActionButton
+                    variant="danger"
+                    size="md"
+                    icon={
+                      <TrashIcon
+                        className="-ml-0.5 h-5 w-5"
+                        aria-hidden="true"
+                      />
+                    }
+                    onClick={() => {
+                      setDeleteError(null);
+                      setSavedMatchSettingsToDelete(savedMatchSetting);
+                    }}
+                  >
+                    {t('settings:actions.delete')}
+                  </ActionButton>
+                </div>
               </li>
             ))}
           </ul>
@@ -234,13 +244,13 @@ export default function SavedMatchSettings({
         action={handleDelete}
         actionDisabled={isWriting}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('settings:matchMenu.saved.deleteConfirmBody', {
             title: savedMatchSettingsToDelete?.saveTitle,
           })}
         </p>
         {deleteError && (
-          <p role="alert" className="mt-2 text-sm text-red-600">
+          <p role="alert" className={errorTextClassName}>
             {deleteError}
           </p>
         )}
@@ -271,7 +281,7 @@ export default function SavedMatchSettings({
           setModal(null);
         }}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('settings:matchMenu.saved.restoreConfirmBody')}
         </p>
       </Modal>
@@ -286,23 +296,20 @@ export default function SavedMatchSettings({
         actionDisabled={isWriting}
       >
         <div className="my-4">
-          <label
-            htmlFor="saved-match-settings-name"
-            className="block text-sm font-medium leading-6 text-gray-900"
-          >
+          <label htmlFor="saved-match-settings-name" className={labelClassName}>
             {t('settings:matchMenu.saved.nameLabel')}
           </label>
           <div className="mt-2">
             <input
               type="text"
               id="saved-match-settings-name"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className={inputClassName}
               value={savedMatchName}
               onChange={(e) => setSavedMatchName(e.target.value)}
             />
           </div>
           {saveError && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
+            <p role="alert" className={errorTextClassName}>
               {saveError}
             </p>
           )}

@@ -13,6 +13,8 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Modal from '../Modal/Modal';
 import EditCustomScreen from './EditCustomScreen';
 import Empty from '../MatchSettingsMenu/Empty';
+import ActionButton from '../ui/ActionButton';
+import { errorTextClassName } from '../ui/fields';
 
 export interface Props {
   open: boolean;
@@ -163,20 +165,16 @@ export default function CustomScreensMenu({
       setOpen={setOpen}
       title={t('settings:customScreens.title')}
     >
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto" />
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            onClick={() => setShowAddCustomScreenModal(true)}
-          >
-            {t('settings:customScreens.add')}
-          </button>
-        </div>
-      </div>
-      <div>
-        <ul role="list" className="divide-y divide-gray-100">
+      <ActionButton
+        variant="primary"
+        size="md"
+        block
+        onClick={() => setShowAddCustomScreenModal(true)}
+      >
+        {t('settings:customScreens.add')}
+      </ActionButton>
+      <div className="mt-2">
+        <ul role="list" className="divide-y divide-line">
           {customGraphics?.length === 0 && (
             <Empty
               title={t('settings:customScreens.emptyTitle')}
@@ -188,27 +186,29 @@ export default function CustomScreensMenu({
           {customGraphics?.map((customScreen) => (
             <li
               key={customScreen.filePath}
-              className="flex items-center justify-between gap-x-4 py-4"
+              className="flex flex-wrap items-center gap-3 py-4"
             >
+              {/* Shown on the key colour so a transparent overlay looks as
+                  it will on air. */}
               <div
                 style={{
                   backgroundImage: `url("${customScreen.url}")`,
                   backgroundColor: keyColour,
                 }}
-                className="aspect-video w-32 shrink-0 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm"
+                className="aspect-video w-32 shrink-0 rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
               />
-              <div className="flex min-w-0 flex-auto grow flex-col items-start justify-center">
+              <div className="flex min-w-0 flex-1 basis-40 flex-col items-start justify-center">
                 <div className="flex max-w-full items-center gap-x-2">
-                  <p className="truncate text-sm font-semibold leading-6 text-gray-900">
+                  <p className="truncate text-base font-semibold text-fg">
                     {customScreen.title}
                   </p>
                   {isGraphicOnAir(customScreen, matchState) && (
-                    <span className="inline-flex shrink-0 items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                    <span className="inline-flex shrink-0 items-center rounded-md bg-live-soft px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-ink">
                       {t('settings:customScreens.onAir')}
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm leading-6 text-gray-600">
+                <p className="mt-0.5 text-sm text-muted">
                   {t('settings:customScreens.typeLine', {
                     type:
                       customScreen.type === 'screen' ||
@@ -218,22 +218,30 @@ export default function CustomScreensMenu({
                   })}
                 </p>
               </div>
-              <button
-                type="button"
-                className="inline-flex items-center gap-x-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                onClick={() => handleEdit(customScreen)}
-              >
-                <PencilIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                {t('settings:customScreens.edit')}
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-x-1.5 rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                onClick={() => handleDelete(customScreen)}
-              >
-                <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-                {t('settings:actions.delete')}
-              </button>
+              <div className="ml-auto flex shrink-0 items-center gap-3">
+                <ActionButton
+                  size="md"
+                  icon={
+                    <PencilIcon
+                      className="-ml-0.5 h-5 w-5"
+                      aria-hidden="true"
+                    />
+                  }
+                  onClick={() => handleEdit(customScreen)}
+                >
+                  {t('settings:customScreens.edit')}
+                </ActionButton>
+                <ActionButton
+                  variant="danger"
+                  size="md"
+                  icon={
+                    <TrashIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                  }
+                  onClick={() => handleDelete(customScreen)}
+                >
+                  {t('settings:actions.delete')}
+                </ActionButton>
+              </div>
             </li>
           ))}
         </ul>
@@ -269,18 +277,18 @@ export default function CustomScreensMenu({
         action={handleConfirmDelete}
         actionDisabled={isWriting}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('settings:customScreens.deleteConfirmBody', {
             title: customScreenToDelete?.title,
           })}
         </p>
         {customScreenToDeleteIsOnAir && (
-          <p className="mt-2 text-sm font-medium text-red-700">
+          <p className={errorTextClassName}>
             {t('settings:customScreens.deleteOnAirWarning')}
           </p>
         )}
         {deleteError && (
-          <p role="alert" className="mt-2 text-sm text-red-600">
+          <p role="alert" className={errorTextClassName}>
             {deleteError}
           </p>
         )}

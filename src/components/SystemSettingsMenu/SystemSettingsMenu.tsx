@@ -36,10 +36,22 @@ import {
   onStreamDeckDisconnected,
 } from '../../stream-deck';
 import StreamDeckIcon from '../Icons/StreamDeckIcon';
-import { Switch } from '@headlessui/react';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import KeyboardShortcutRow from './KeyboardShortcutRow';
+import ActionButton from '../ui/ActionButton';
+import Toggle from '../ui/Toggle';
+import {
+  compactInputClassName,
+  errorTextClassName,
+  helpTextClassName,
+  labelClassName,
+} from '../ui/fields';
+
+// A URL to paste into OBS or a phone: monospace, scrollable rather than
+// wrapped, so it is copied exactly as shown.
+const urlClassName =
+  'min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-xl bg-surface-2 px-3 py-3 font-mono text-sm text-fg ring-1 ring-inset ring-line';
 
 export interface Props {
   open: boolean;
@@ -542,7 +554,7 @@ export default function SystemSettingsMenu({
         title={t('settings:system.title')}
       >
         <CollapsiblePanel title={t('settings:language.title')}>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             {t('settings:language.description')}
           </p>
           <ButtonGrid
@@ -555,7 +567,7 @@ export default function SystemSettingsMenu({
           />
         </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:appMenu.scoreboardClock.title')}>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             {t('settings:appMenu.scoreboardClock.description')}
           </p>
           <ButtonGrid
@@ -575,7 +587,7 @@ export default function SystemSettingsMenu({
           />
         </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:appMenu.keyboardShortcuts.title')}>
-          <div className="divide-y divide-gray-100">
+          <div className="-my-3 divide-y divide-line">
             <KeyboardShortcutRow
               label={shortcutLabels.nextMatchPhase}
               accelerator={keyboardShortcuts.nextMatchPhase}
@@ -643,274 +655,246 @@ export default function SystemSettingsMenu({
               }
             />
           </div>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className={classNames(helpTextClassName, 'pt-3')}>
             {t('settings:appMenu.keyboardShortcuts.globalHint')}
           </p>
         </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:appMenu.browserSource.title')}>
-          <Switch.Group as="div" className="mt-2 flex items-center">
-            <Switch
+          <div className="space-y-4">
+            <Toggle
               checked={browserSource.enabled}
               onChange={handleToggleBrowserSource}
-              className={classNames(
-                browserSource.enabled ? 'bg-indigo-600' : 'bg-gray-200',
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-              )}
-            >
-              <span
-                aria-hidden="true"
-                className={classNames(
-                  browserSource.enabled ? 'translate-x-5' : 'translate-x-0',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+              label={t('settings:appMenu.browserSource.enable')}
+            />
+            <div>
+              <label htmlFor="browserSourcePort" className={labelClassName}>
+                {t('settings:appMenu.browserSource.port')}
+              </label>
+              <div className="mt-2">
+                <input
+                  type="number"
+                  name="browserSourcePort"
+                  id="browserSourcePort"
+                  min={1024}
+                  max={65535}
+                  className={classNames(compactInputClassName, 'w-28')}
+                  value={browserSourcePortDraft}
+                  onChange={(event) => {
+                    setBrowserSourcePortDraft(event.target.value);
+                  }}
+                  onBlur={commitBrowserSourcePort}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      commitBrowserSourcePort();
+                    }
+                  }}
+                />
+                {browserSourcePortError && (
+                  <p className={errorTextClassName}>{browserSourcePortError}</p>
                 )}
-              />
-            </Switch>
-            <Switch.Label as="span" className="ml-3 text-sm">
-              <span className="font-medium text-gray-900">
-                {t('settings:appMenu.browserSource.enable')}
-              </span>
-            </Switch.Label>
-          </Switch.Group>
-          <label
-            htmlFor="browserSourcePort"
-            className="mt-3 block text-sm font-medium leading-6 text-gray-900"
-          >
-            {t('settings:appMenu.browserSource.port')}
-          </label>
-          <div className="mt-1">
-            <input
-              type="number"
-              name="browserSourcePort"
-              id="browserSourcePort"
-              min={1024}
-              max={65535}
-              className="block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              value={browserSourcePortDraft}
-              onChange={(event) => {
-                setBrowserSourcePortDraft(event.target.value);
-              }}
-              onBlur={commitBrowserSourcePort}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  commitBrowserSourcePort();
-                }
-              }}
-            />
-            {browserSourcePortError && (
-              <p className="mt-1 text-xs text-red-600">
-                {browserSourcePortError}
+              </div>
+              <p className={helpTextClassName}>
+                {browserSourceStatus?.error
+                  ? t('settings:appMenu.browserSource.statusWithError', {
+                      state: browserSourceStatus?.running
+                        ? t('settings:appMenu.browserSource.statusRunning')
+                        : t('settings:appMenu.browserSource.statusStopped'),
+                      error: browserSourceStatus.error,
+                    })
+                  : t('settings:appMenu.browserSource.status', {
+                      state: browserSourceStatus?.running
+                        ? t('settings:appMenu.browserSource.statusRunning')
+                        : t('settings:appMenu.browserSource.statusStopped'),
+                    })}
               </p>
-            )}
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <code className={urlClassName}>{browserSourceUrl}</code>
+                <ActionButton
+                  size="md"
+                  className="shrink-0"
+                  onClick={handleCopyBrowserSourceUrl}
+                >
+                  {copiedBrowserSourceUrl
+                    ? t('settings:appMenu.browserSource.copied')
+                    : t('settings:appMenu.browserSource.copy')}
+                </ActionButton>
+              </div>
+              <p className={helpTextClassName}>
+                {t('settings:appMenu.browserSource.hint')}
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="scoreboardBrowserSourceUrl"
+                className={labelClassName}
+              >
+                {t('settings:appMenu.browserSource.scoreboardView')}
+              </label>
+              <div className="mt-2 flex items-center gap-3">
+                <code id="scoreboardBrowserSourceUrl" className={urlClassName}>
+                  {scoreboardBrowserSourceUrl}
+                </code>
+                <ActionButton
+                  size="md"
+                  className="shrink-0"
+                  onClick={handleCopyScoreboardUrl}
+                >
+                  {copiedScoreboardUrl
+                    ? t('settings:appMenu.browserSource.copied')
+                    : t('settings:appMenu.browserSource.copy')}
+                </ActionButton>
+              </div>
+              <p className={helpTextClassName}>
+                <Trans
+                  i18nKey="settings:appMenu.browserSource.customScreenHint"
+                  components={{ code: <code /> }}
+                />
+              </p>
+            </div>
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            {browserSourceStatus?.error
-              ? t('settings:appMenu.browserSource.statusWithError', {
-                  state: browserSourceStatus?.running
-                    ? t('settings:appMenu.browserSource.statusRunning')
-                    : t('settings:appMenu.browserSource.statusStopped'),
-                  error: browserSourceStatus.error,
-                })
-              : t('settings:appMenu.browserSource.status', {
-                  state: browserSourceStatus?.running
-                    ? t('settings:appMenu.browserSource.statusRunning')
-                    : t('settings:appMenu.browserSource.statusStopped'),
-                })}
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <code className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">
-              {browserSourceUrl}
-            </code>
-            <button
-              type="button"
-              onClick={handleCopyBrowserSourceUrl}
-              className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
-            >
-              {copiedBrowserSourceUrl
-                ? t('settings:appMenu.browserSource.copied')
-                : t('settings:appMenu.browserSource.copy')}
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-gray-500">
-            {t('settings:appMenu.browserSource.hint')}
-          </p>
-          <label
-            htmlFor="scoreboardBrowserSourceUrl"
-            className="mt-3 block text-sm font-medium leading-6 text-gray-900"
-          >
-            {t('settings:appMenu.browserSource.scoreboardView')}
-          </label>
-          <div className="mt-1 flex items-center gap-2">
-            <code
-              id="scoreboardBrowserSourceUrl"
-              className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs"
-            >
-              {scoreboardBrowserSourceUrl}
-            </code>
-            <button
-              type="button"
-              onClick={handleCopyScoreboardUrl}
-              className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
-            >
-              {copiedScoreboardUrl
-                ? t('settings:appMenu.browserSource.copied')
-                : t('settings:appMenu.browserSource.copy')}
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-gray-500">
-            <Trans
-              i18nKey="settings:appMenu.browserSource.customScreenHint"
-              components={{ code: <code /> }}
-            />
-          </p>
         </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:appMenu.remoteControl.title')}>
-          <Switch.Group as="div" className="mt-2 flex items-center">
-            <Switch
+          <div className="space-y-4">
+            <Toggle
               checked={remoteControl.enabled}
               onChange={handleToggleRemoteControl}
-              className={classNames(
-                remoteControl.enabled ? 'bg-indigo-600' : 'bg-gray-200',
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-              )}
-            >
-              <span
-                aria-hidden="true"
-                className={classNames(
-                  remoteControl.enabled ? 'translate-x-5' : 'translate-x-0',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-                )}
-              />
-            </Switch>
-            <Switch.Label as="span" className="ml-3 text-sm">
-              <span className="font-medium text-gray-900">
-                {t('settings:appMenu.remoteControl.enable')}
-              </span>
-            </Switch.Label>
-          </Switch.Group>
-          <label
-            htmlFor="remoteControlPort"
-            className="mt-3 block text-sm font-medium leading-6 text-gray-900"
-          >
-            {t('settings:appMenu.remoteControl.port')}
-          </label>
-          <div className="mt-1">
-            <input
-              type="number"
-              name="remoteControlPort"
-              id="remoteControlPort"
-              min={1024}
-              max={65535}
-              className="block w-28 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              value={remoteControlPortDraft}
-              onChange={(event) => {
-                setRemoteControlPortDraft(event.target.value);
-              }}
-              onBlur={commitRemoteControlPort}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  commitRemoteControlPort();
-                }
-              }}
+              label={t('settings:appMenu.remoteControl.enable')}
             />
-            {remoteControlPortError && (
-              <p className="mt-1 text-xs text-red-600">
-                {remoteControlPortError}
-              </p>
-            )}
-          </div>
-          <p className="mt-2 text-xs text-gray-500">
-            {remoteControlStatus?.error
-              ? t('settings:appMenu.remoteControl.statusWithError', {
-                  state: remoteControlStatus?.running
-                    ? t('settings:appMenu.remoteControl.statusRunning')
-                    : t('settings:appMenu.remoteControl.statusStopped'),
-                  error: remoteControlStatus.error,
-                })
-              : t('settings:appMenu.remoteControl.status', {
-                  state: remoteControlStatus?.running
-                    ? t('settings:appMenu.remoteControl.statusRunning')
-                    : t('settings:appMenu.remoteControl.statusStopped'),
-                })}
-          </p>
-          {remoteControlStatus?.running && (
-            <>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="overflow-x-auto rounded bg-gray-100 px-2 py-1 text-xs">
-                  {remoteControlStatus.url}
-                </code>
-                <button
-                  type="button"
-                  onClick={handleCopyRemoteControlUrl}
-                  className="shrink-0 rounded-md bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
-                >
-                  {copiedRemoteControlUrl
-                    ? t('settings:appMenu.remoteControl.copied')
-                    : t('settings:appMenu.remoteControl.copy')}
-                </button>
-              </div>
-              <p className="mt-2 text-sm font-medium text-gray-900">
-                {t('settings:appMenu.remoteControl.pinLabel', {
-                  pin: remoteControlStatus.pin,
-                })}
-              </p>
-              {remoteControlQr && (
-                <img
-                  src={remoteControlQr}
-                  alt={t('settings:appMenu.remoteControl.qrAlt')}
-                  className="mt-2 h-40 w-40 rounded bg-white p-1"
+            <div>
+              <label htmlFor="remoteControlPort" className={labelClassName}>
+                {t('settings:appMenu.remoteControl.port')}
+              </label>
+              <div className="mt-2">
+                <input
+                  type="number"
+                  name="remoteControlPort"
+                  id="remoteControlPort"
+                  min={1024}
+                  max={65535}
+                  className={classNames(compactInputClassName, 'w-28')}
+                  value={remoteControlPortDraft}
+                  onChange={(event) => {
+                    setRemoteControlPortDraft(event.target.value);
+                  }}
+                  onBlur={commitRemoteControlPort}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      commitRemoteControlPort();
+                    }
+                  }}
                 />
-              )}
-              <p className="mt-2 text-xs text-gray-500">
-                {t('settings:appMenu.remoteControl.connected', {
-                  count: remoteControlStatus.connectedCount,
-                })}
+                {remoteControlPortError && (
+                  <p className={errorTextClassName}>{remoteControlPortError}</p>
+                )}
+              </div>
+              <p className={helpTextClassName}>
+                {remoteControlStatus?.error
+                  ? t('settings:appMenu.remoteControl.statusWithError', {
+                      state: remoteControlStatus?.running
+                        ? t('settings:appMenu.remoteControl.statusRunning')
+                        : t('settings:appMenu.remoteControl.statusStopped'),
+                      error: remoteControlStatus.error,
+                    })
+                  : t('settings:appMenu.remoteControl.status', {
+                      state: remoteControlStatus?.running
+                        ? t('settings:appMenu.remoteControl.statusRunning')
+                        : t('settings:appMenu.remoteControl.statusStopped'),
+                    })}
               </p>
-            </>
-          )}
-          <p className="mt-2 text-xs text-gray-500">
-            {t('settings:appMenu.remoteControl.hint')}
-          </p>
+            </div>
+            {remoteControlStatus?.running && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <code className={urlClassName}>
+                    {remoteControlStatus.url}
+                  </code>
+                  <ActionButton
+                    size="md"
+                    className="shrink-0"
+                    onClick={handleCopyRemoteControlUrl}
+                  >
+                    {copiedRemoteControlUrl
+                      ? t('settings:appMenu.remoteControl.copied')
+                      : t('settings:appMenu.remoteControl.copy')}
+                  </ActionButton>
+                </div>
+                <p className="text-base font-semibold text-fg">
+                  {t('settings:appMenu.remoteControl.pinLabel', {
+                    pin: remoteControlStatus.pin,
+                  })}
+                </p>
+                {remoteControlQr && (
+                  // The generated image carries its own white quiet zone,
+                  // so it scans the same in the dark theme.
+                  <img
+                    src={remoteControlQr}
+                    alt={t('settings:appMenu.remoteControl.qrAlt')}
+                    className="h-40 w-40 rounded-lg ring-1 ring-line"
+                  />
+                )}
+                <p className="text-sm text-muted">
+                  {t('settings:appMenu.remoteControl.connected', {
+                    count: remoteControlStatus.connectedCount,
+                  })}
+                </p>
+              </div>
+            )}
+            <p className="text-sm text-muted">
+              {t('settings:appMenu.remoteControl.hint')}
+            </p>
+          </div>
         </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:appMenu.diagnostics.title')}>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             {t('settings:appMenu.diagnostics.hint')}
           </p>
-          <button
-            type="button"
+          <ActionButton
+            variant="primary"
+            size="md"
             onClick={handleExportDiagnostics}
-            className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+            icon={
+              <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
+            }
           >
-            <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
             {t('settings:appMenu.diagnostics.export')}
-          </button>
+          </ActionButton>
           {diagnosticsMessage && (
-            <p className="mt-2 text-xs text-gray-500">{diagnosticsMessage}</p>
+            <p className={helpTextClassName}>{diagnosticsMessage}</p>
           )}
         </CollapsiblePanel>
-        <ul role="list" className="-mx-2 space-y-1 px-4">
+        <ul role="list" className="mx-4 mb-4 space-y-3 lg:mx-0">
           <li>
-            <button
-              className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+            <ActionButton
+              size="md"
+              block
+              icon={
+                <InformationCircleIcon
+                  className="h-6 w-6 shrink-0 text-muted"
+                  aria-hidden="true"
+                />
+              }
               onClick={() => {
                 setCurrentModal('about');
                 setOpen();
               }}
             >
-              <InformationCircleIcon
-                className={classNames(
-                  'text-gray-400 group-hover:text-indigo-600',
-                  'h-6 w-6 shrink-0'
-                )}
-                aria-hidden="true"
-              />
               {t('settings:system.about')}
-            </button>
+            </ActionButton>
           </li>
           <li>
-            <button
-              className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+            <ActionButton
+              size="md"
+              block
+              icon={
+                <StreamDeckIcon
+                  className="h-6 w-6 shrink-0 text-muted"
+                  aria-hidden="true"
+                />
+              }
               onClick={async () => {
                 if (streamDeckConnected) return;
                 try {
@@ -924,17 +908,10 @@ export default function SystemSettingsMenu({
                 }
               }}
             >
-              <StreamDeckIcon
-                className={classNames(
-                  'text-gray-400 group-hover:text-indigo-600',
-                  'h-6 w-6 shrink-0'
-                )}
-                aria-hidden="true"
-              />
               {streamDeckConnected
                 ? t('settings:system.streamDeckConnected')
                 : t('settings:system.connectStreamDeck')}
-            </button>
+            </ActionButton>
           </li>
         </ul>
       </SideMenu>
@@ -944,21 +921,21 @@ export default function SystemSettingsMenu({
         title={t('settings:system.aboutModal.title')}
         icon="playoverlay-logo"
       >
-        <div className="mt-6 border-t border-gray-100">
-          <dl className="divide-y divide-gray-100">
+        <div className="mt-6 border-t border-line">
+          <dl className="divide-y divide-line">
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt className="text-sm font-medium leading-6 text-gray-900">
+              <dt className="text-sm font-semibold leading-6 text-fg">
                 {t('settings:system.aboutModal.product')}
               </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+              <dd className="mt-1 text-sm leading-6 text-muted sm:col-span-2 sm:mt-0">
                 PlayOverlay
               </dd>
             </div>
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt className="text-sm font-medium leading-6 text-gray-900">
+              <dt className="text-sm font-semibold leading-6 text-fg">
                 {t('settings:system.aboutModal.version')}
               </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+              <dd className="mt-1 text-sm leading-6 text-muted sm:col-span-2 sm:mt-0">
                 {window?.electronAPI?.getVersion()}
               </dd>
             </div>

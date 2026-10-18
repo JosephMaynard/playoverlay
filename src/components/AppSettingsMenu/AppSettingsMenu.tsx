@@ -116,7 +116,9 @@ export default function AppSettingsMenu({
             ]}
           />
         ) : (
-          <p className="my-12">{t('settings:appMenu.displays.none')}</p>
+          <p className="text-sm text-muted">
+            {t('settings:appMenu.displays.none')}
+          </p>
         )}
         <ButtonGrid
           className="mt-4"
@@ -124,15 +126,11 @@ export default function AppSettingsMenu({
             {
               label: t('settings:appMenu.windowControls.toggleFullscreen'),
               onClick: () => window?.electronAPI?.toggleFullscreen(),
-              color: 'text-white',
-              backgroundColor: 'bg-indigo-600',
               disabled: isLocked,
             },
             {
               label: t('settings:appMenu.windowControls.resetPositions'),
               onClick: () => window?.electronAPI?.resetWindows(),
-              color: 'text-white',
-              backgroundColor: 'bg-indigo-600',
               disabled: isLocked,
             },
             {
@@ -140,8 +138,10 @@ export default function AppSettingsMenu({
                 ? t('settings:appMenu.windowControls.unlockWindows')
                 : t('settings:appMenu.windowControls.lockWindows'),
               onClick: isLocked ? handleUnlockWindows : handleLockWindows,
-              color: 'text-white',
-              backgroundColor: isLocked ? 'bg-red-600' : 'bg-green-600',
+              // Locking is what an operator does before kick-off, so it is
+              // the panel's main action; once locked, unlocking is a
+              // deliberate step back and reads as secondary.
+              variant: isLocked ? 'secondary' : 'primary',
               icon: isLocked ? (
                 <LockOpenIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
               ) : (
