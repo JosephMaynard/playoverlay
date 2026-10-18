@@ -96,6 +96,7 @@
     "running": "En cours",
     "setAdditionalTime": "Définir le temps additionnel",
     "start": "Démarrer : {{phase}}",
+    "startPlain": "Démarrer",
     "title": "Temps"
   }
 }

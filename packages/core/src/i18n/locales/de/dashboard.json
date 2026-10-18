@@ -96,6 +96,7 @@
     "running": "Läuft",
     "setAdditionalTime": "Nachspielzeit festlegen",
     "start": "{{phase}} starten",
+    "startPlain": "Starten",
     "title": "Zeit"
   }
 }

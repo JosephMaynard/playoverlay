@@ -96,6 +96,7 @@
     "running": "In corso",
     "setAdditionalTime": "Imposta il recupero",
     "start": "Avvia {{phase}}",
+    "startPlain": "Avvia",
     "title": "Tempo"
   }
 }

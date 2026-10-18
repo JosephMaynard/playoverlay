@@ -96,6 +96,7 @@
     "running": "Running",
     "setAdditionalTime": "Set Additional Time",
     "start": "Start {{phase}}",
+    "startPlain": "Start",
     "title": "Time"
   }
 }

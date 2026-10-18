@@ -135,7 +135,7 @@ export default function TimeControlPanel({
               ? t('dashboard:timeControl.start', {
                   phase: getPhaseTitle(t, nextPhase),
                 })
-              : t('dashboard:timeControl.start', { phase: '' }).trim()}
+              : t('dashboard:timeControl.startPlain')}
           </ActionButton>
           <ActionButton
             variant="danger"

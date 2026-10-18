@@ -21,8 +21,9 @@
   --c-accent-hover: 67 56 202;
   --c-accent-fg: 255 255 255;
   --c-accent-soft: 224 231 255;
-  --c-live: 22 163 74;
-  --c-live-hover: 21 128 61;
+  /* Green 700 rather than 600: white labels need 4.5:1 on a live button. */
+  --c-live: 21 128 61;
+  --c-live-hover: 22 101 52;
   --c-live-fg: 255 255 255;
   --c-live-soft: 220 252 231;
   --c-live-ink: 20 83 45;
@@ -48,7 +49,8 @@
   --c-line-strong: 80 96 138;
   --c-fg: 241 245 249;
   --c-muted: 163 175 199;
-  --c-faint: 112 126 156;
+  /* Light enough for placeholder text to pass 4.5:1 on the input surface. */
+  --c-faint: 134 148 176;
   --c-accent: 129 140 248;
   --c-accent-hover: 165 180 252;
   --c-accent-fg: 15 23 42;

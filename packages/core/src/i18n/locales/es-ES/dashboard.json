@@ -96,6 +96,7 @@
     "running": "En marcha",
     "setAdditionalTime": "Establecer tiempo añadido",
     "start": "Iniciar {{phase}}",
+    "startPlain": "Iniciar",
     "title": "Tiempo"
   }
 }
