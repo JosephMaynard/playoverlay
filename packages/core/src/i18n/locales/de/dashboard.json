@@ -7,6 +7,7 @@
     "empty": "Noch keine Tore. Jedes Tor erscheint hier mit seiner Spielminute, sobald es fällt.",
     "goal": "Tor: {{team}}",
     "goalWithMinute": "Tor: {{team}}, {{minute}}",
+    "pickScorer": "Nicht in der Aufstellung? Geben Sie einfach einen Namen ein.",
     "remove": "Tor entfernen",
     "removeAria": "Tor entfernen: {{goal}}",
     "scorerLabel": "Torschütze ({{goal}})",
@@ -48,6 +49,19 @@
     "score": "Getroffen",
     "teamFirst": "{{team}} zuerst",
     "undoLastAction": "Letzte Aktion rückgängig machen"
+  },
+  "rotation": {
+    "autoStart": "Zur Halbzeit automatisch starten",
+    "autoStartHint": "Startet, wenn die Uhr für eine Pause angehalten wird und das Spiel noch weitergeht, nie nach dem Abpfiff.",
+    "description": "Die Anzeige zeigt die ausgewählten Bildschirme nacheinander in der aufgeführten Reihenfolge, damit Sie vor dem Anstoß oder in der Halbzeit kurz weggehen können. Wenn Sie selbst einen Bildschirm wählen oder die Uhr starten, endet sie.",
+    "needTwo": "Wählen Sie mindestens zwei Bildschirme für den Wechsel aus.",
+    "rotating": "Wechselt",
+    "screens": "Anzuzeigende Bildschirme",
+    "seconds": "Sekunden pro Bildschirm",
+    "secondsError": "Geben Sie eine ganze Zahl von Sekunden von {{min}} bis {{max}} ein.",
+    "start": "Wechsel starten",
+    "stop": "Wechsel stoppen",
+    "title": "Bildschirme wechseln"
   },
   "scoreInput": {
     "decreaseScoreAria": "Spielstand von {{team}} verringern",

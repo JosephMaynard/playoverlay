@@ -198,7 +198,27 @@
       "deleteAria": "Supprimer {{club}}",
       "deleteModalTitle": "Supprimer le club enregistré ?",
       "deleteConfirmBody": "Voulez-vous vraiment supprimer le club enregistré « {{club}} » ? Les équipes qui l'utilisent déjà ne sont pas modifiées.",
-      "deleteError": "Le club n'a pas pu être supprimé. Veuillez réessayer."
+      "deleteError": "Le club n'a pas pu être supprimé. Veuillez réessayer.",
+      "playerCount_one": "{{count}} joueur",
+      "playerCount_other": "{{count}} joueurs"
+    },
+    "lineup": {
+      "addPlayer": "Ajouter un joueur",
+      "cap": "jusqu'à {{max}}",
+      "count_one": "{{count}} joueur",
+      "count_other": "{{count}} joueurs",
+      "empty": "Ajoutez l'effectif pour afficher une composition à l'antenne et choisir les buteurs dans la liste.",
+      "nameLabel": "{{team}}, joueur {{n}} : nom",
+      "namePlaceholder": "Nom du joueur",
+      "numberLabel": "{{team}}, joueur {{n}} : numéro de maillot",
+      "numberPlaceholder": "N°",
+      "pasteAction": "Ajouter les joueurs",
+      "pasteHint": "Un joueur par ligne. Mettez d'abord le numéro de maillot si vous l'avez, par ex. 9 Ali Smith.",
+      "pasteList": "Coller une liste",
+      "pasteModalTitle": "Coller la composition : {{team}}",
+      "removeAria": "Retirer {{player}}",
+      "title": "Composition",
+      "unnamedPlayer": "{{team}}, joueur {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Connecter le Stream Deck",
     "screens": {
+      "awayLineup": "Composition visiteurs",
       "custom": "Écrans personnalisés",
       "endScreen": "Écran de fin",
+      "homeLineup": "Composition domicile",
       "matchTitle": "Titre du match",
       "none": "Aucun",
       "penalties": "Tirs au but",

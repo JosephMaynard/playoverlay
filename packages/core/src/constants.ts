@@ -1,6 +1,7 @@
 import {
   MatchState,
   AppSettings,
+  ScreenRotationSettings,
   BrowserSourceSettings,
   KeyboardShortcuts,
   LanguageCode,
@@ -101,6 +102,26 @@ export const MAX_PERIOD_COUNT = 50;
 // something that fits the goal banner and end screen.
 export const MAX_SCORER_LENGTH = 40;
 
+// Line-up limits. A player's name becomes the scorer when picked in the goal
+// log, so it shares the scorer's bound. Thirty covers a matchday squad with
+// room to spare while keeping the two-column on-air list legible.
+export const MAX_PLAYER_NAME_LENGTH = MAX_SCORER_LENGTH;
+export const MAX_PLAYER_NUMBER_LENGTH = 3;
+export const MAX_PLAYERS_PER_TEAM = 30;
+
+// Screen rotation bounds. Below a few seconds a screen's own entrance
+// animation would barely finish before the next one starts.
+export const MIN_ROTATION_INTERVAL_SECONDS = 3;
+export const MAX_ROTATION_INTERVAL_SECONDS = 600;
+
+// Nothing selected and nothing automatic: a config.json with no
+// `screenRotation` key behaves exactly as it did before rotation existed.
+export const defaultScreenRotationSettings: ScreenRotationSettings = {
+  screens: [],
+  intervalSeconds: 10,
+  autoStartAtHalfTime: false,
+};
+
 // How long the on-air goal banner stays up after it is shown.
 export const GOAL_BANNER_DURATION_MS = 10000;
 
@@ -117,6 +138,8 @@ export const screens = {
   custom: 'Custom Screens',
   endScreen: 'End Screen',
   scoreboard: 'Scoreboard',
+  homeLineup: 'Home Line-up',
+  awayLineup: 'Away Line-up',
 } as const;
 
 export type DisplayScreen = keyof typeof screens;

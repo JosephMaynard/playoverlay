@@ -3,7 +3,10 @@ import {
   DisplayScreen,
   screens,
   CustomScreen,
+  MatchSettings,
+  hasLineup,
   insertValue,
+  lineupScreenTeam,
   removeValue,
 } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
@@ -19,6 +22,8 @@ const screenLabelKeys: Record<DisplayScreen, string> = {
   custom: 'settings:system.screens.custom',
   endScreen: 'settings:system.screens.endScreen',
   scoreboard: 'settings:system.screens.scoreboard',
+  homeLineup: 'settings:system.screens.homeLineup',
+  awayLineup: 'settings:system.screens.awayLineup',
 };
 
 export interface Props {
@@ -32,6 +37,22 @@ export interface Props {
   saveError?: string | null;
   // True while a save is in flight, so Save can't be clicked twice.
   isSaving?: boolean;
+  // Decides whether the line-up screens are listed (see linkableScreens).
+  matchSettings?: MatchSettings;
+}
+
+// The screens an overlay can be linked to. A line-up screen is only listed
+// while its team has players, as on the dashboard, so for a match without
+// line-ups the list (and what "All Screens" stores) is exactly what it was
+// before line-ups existed. Everything else is always listed.
+function linkableScreens(matchSettings?: MatchSettings): DisplayScreen[] {
+  return (Object.keys(screens) as DisplayScreen[]).filter((screen) => {
+    const team = lineupScreenTeam(screen);
+    return (
+      team === undefined ||
+      (matchSettings !== undefined && hasLineup(matchSettings, team))
+    );
+  });
 }
 
 export default function EditCustomScreen({
@@ -42,6 +63,7 @@ export default function EditCustomScreen({
   keyColour,
   saveError = null,
   isSaving = false,
+  matchSettings,
 }: Props) {
   const { t } = useTranslation();
   if (customScreenToEdit === null) return null;
@@ -52,8 +74,9 @@ export default function EditCustomScreen({
   // would never match them once the known-screens list grows, so tolerate
   // extra unknown ids and only require the current screens to be present.
   const overlayLinks = customScreenToEdit.overlayLinks || [];
-  const allScreensChecked = (Object.keys(screens) as DisplayScreen[]).every(
-    (screen) => overlayLinks.includes(screen)
+  const listedScreens = linkableScreens(matchSettings);
+  const allScreensChecked = listedScreens.every((screen) =>
+    overlayLinks.includes(screen)
   );
 
   return (
@@ -162,9 +185,7 @@ export default function EditCustomScreen({
                   checked={allScreensChecked}
                   onChange={(e) => {
                     handleOnChange({
-                      overlayLinks: e.target.checked
-                        ? (Object.keys(screens) as DisplayScreen[])
-                        : [],
+                      overlayLinks: e.target.checked ? listedScreens : [],
                     });
                   }}
                 />
@@ -175,7 +196,7 @@ export default function EditCustomScreen({
                 </label>
               </div>
             </div>
-            {Object.keys(screens).map((screen: DisplayScreen) => (
+            {listedScreens.map((screen) => (
               <div className="relative flex items-start" key={screen}>
                 <div className="flex h-6 items-center">
                   <input

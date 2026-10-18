@@ -245,6 +245,25 @@ describe('buildDiagnosticsReport', () => {
     expect(report).toContain('file:///~/AppData/Roaming/images/home.png');
   });
 
+  it("leaves players' names out, keeping only how many were entered", () => {
+    const report = buildDiagnosticsReport(
+      baseInput({
+        matchSettings: {
+          ...baseInput().matchSettings,
+          homeTeamPlayers: [
+            { name: 'Ali Smith', number: '9' },
+            { name: 'Jo Bloggs' },
+          ],
+        },
+      })
+    );
+
+    expect(report).not.toContain('Ali Smith');
+    expect(report).not.toContain('Jo Bloggs');
+    expect(report).toContain('"homeTeamPlayers": "2 players"');
+    expect(report).not.toContain('awayTeamPlayers');
+  });
+
   it('states plainly that the file is safe to share', () => {
     const report = buildDiagnosticsReport(baseInput());
 

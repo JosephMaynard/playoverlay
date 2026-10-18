@@ -39,6 +39,7 @@ If you're streaming through OBS instead of a hardware mixer, you can skip the se
 - **Generic timer mode**: for sports that aren't halves-based, switch the timer to a configurable number of named periods (e.g. 4 × 12-minute quarters)
 - **Penalty shootout tracker**: alternates teams automatically, records scored/missed, supports undo, and can be toggled off for matches that don't need it
 - **Screens**: match title, score bug, penalties, end screen, plus your own uploaded full-screen graphics and overlay images linked to specific screens
+- **Line-ups**: type or paste each team's players to put a line-up screen on air and pick goal scorers from a list, and have the display rotate through your chosen screens on its own before kick-off and at half-time
 - **Custom key colour** for whatever your mixer keys best
 - **OBS browser source output**: an optional local server that serves the display graphics with a transparent background, so OBS users don't need a chroma key at all
 - **Phone remote (LAN)**: an optional PIN-gated server that lets a phone on the same wifi control goals, the clock, match phases, and the on-air screen from the touchline
@@ -81,6 +82,25 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. Each goal puts a banner on air automatically and is logged with its minute. At half-time or full-time, open the **Goals** panel to add scorers (the end screen lists them) or show a banner again; the automatic banner can be switched off there too.
 5. Between fixtures, **New match** (next to undo and redo) clears the match and puts the match title on air, ready for the next kick-off.
 
+### Line-ups
+
+Each team's panel in **Match Settings** has a **Line-up** section. **Add player** gives you a row for a shirt number and a name. The number can be up to three characters, so `9`, `00` and `GK` all work, and pressing Enter moves straight on to the next player. **Paste a list** takes a whole team sheet at once, one player per line with the shirt number first if you have it, e.g. `9 Ali Smith`. A team can have up to 30 players. **Save as club** stores the squad with the club, so you only type it once.
+
+Once a team has players:
+
+- The scorer field in the **Goals** panel offers that team's players as you type, matching the name or the number. Pick one and the goal banner shows the number with the name, e.g. `9 Smith`. You can still type in a scorer who isn't in the line-up.
+- **Home Line-up** and **Away Line-up** appear among the screens in Display Controls and on the Stream Deck. Each shows the team's name, logo and colours over its players, in two columns for more than eleven.
+
+![The home line-up screen on the display output](docs/screenshots/lineup.png)
+
+None of this appears until a team has players. If you never enter one, the app works exactly as before.
+
+#### Rotating screens
+
+The **Rotate screens** panel under Display Controls cycles the display through screens you choose, so you can put the laptop down before kick-off or at half-time. Tick the screens to show: the match title, the line-ups, the score bug, the scoreboard, penalties, the end screen and your full-screen graphics. Set the seconds per screen and press **Start rotating**. The screens take turns in the order listed. The rotation stops as soon as you take over, whether you pick a screen on the dashboard, the Stream Deck or the phone, start the clock, press **New match** or restore a match.
+
+With **Start automatically at half-time** switched on, the rotation starts by itself whenever the clock stops for a break with more of the match to come. That covers half-time, breaks between periods and the break before extra time, but never full time. It needs at least two screens it can show, and it skips a graphic you've deleted or a line-up you've emptied.
+
 ### Keyboard shortcuts
 
 While PlayOverlay is focused, by default:
@@ -121,6 +141,8 @@ Add `?screen=<name>` to the browser source URL to pin that page to a specific sc
 | `penalties`      | Penalties screen               |
 | `endScreen`      | End screen                     |
 | `scoreboard`     | Spectator scoreboard           |
+| `homeLineup`     | Home team line-up              |
+| `awayLineup`     | Away team line-up              |
 
 **System Settings → OBS Browser Source** shows a ready-made copyable URL for the scoreboard view. Only the built-in screens above can be pinned; `custom` (your uploaded full-screen graphics) and any unrecognised or missing value fall back to following the operator.
 

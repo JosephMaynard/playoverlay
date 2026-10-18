@@ -1,10 +1,10 @@
 // @playoverlay/screens: the on-air graphics (score bug, match title,
-// penalties, end screen, scoreboard, goal banner, custom screens and
-// overlays) as plain React DOM components. The Electron display window, the
-// dashboard preview and the OBS browser source render them, and other hosts
-// (the mobile app's DOM components, a web app) can render the very same
-// graphics. They take everything as props and read no stores, so each host
-// decides where the match state comes from.
+// penalties, end screen, scoreboard, line-ups, goal banner, custom screens
+// and overlays) as plain React DOM components. The Electron display window,
+// the dashboard preview and the OBS browser source render them, and other
+// hosts (the mobile app's DOM components, a web app) can render the very
+// same graphics. They take everything as props and read no stores, so each
+// host decides where the match state comes from.
 
 export { default } from './Screens';
 export { default as Screens } from './Screens';
@@ -32,3 +32,5 @@ export { default as ScoreboardLayout } from './ScoreboardLayout/ScoreboardLayout
 export type { Props as ScoreboardLayoutProps } from './ScoreboardLayout/ScoreboardLayout';
 export { default as GoalBannerLayout } from './GoalBannerLayout/GoalBannerLayout';
 export type { Props as GoalBannerLayoutProps } from './GoalBannerLayout/GoalBannerLayout';
+export { default as LineupLayout } from './LineupLayout/LineupLayout';
+export type { Props as LineupLayoutProps } from './LineupLayout/LineupLayout';

@@ -4,6 +4,8 @@ import React from 'react';
 
 export interface Props {
   title: string;
+  // Shown beside the title, e.g. a status that matters while collapsed.
+  badge?: React.ReactNode;
   children?: React.ReactNode;
   defaultOpen?: boolean;
   className?: string;
@@ -12,6 +14,7 @@ export interface Props {
 
 export default function CollapsiblePanel({
   title,
+  badge,
   children,
   defaultOpen = true,
   className,
@@ -25,8 +28,9 @@ export default function CollapsiblePanel({
         {({ open }) => (
           <>
             <Disclosure.Button className="flex w-full justify-between bg-white px-4 py-4 text-left text-sm font-medium hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-gray-500/75">
-              <span className="text-base font-semibold leading-6 text-gray-900">
+              <span className="flex items-center gap-x-2 text-base font-semibold leading-6 text-gray-900">
                 {title}
+                {badge}
               </span>
               <ChevronUpIcon
                 className={`${
@@ -35,7 +39,11 @@ export default function CollapsiblePanel({
               />
             </Disclosure.Button>
             <Disclosure.Panel
-              className={`border-t border-gray-200${noPanelPadding ? '' : ' p-4'}`}
+              className={
+                noPanelPadding
+                  ? 'border-t border-gray-200'
+                  : 'border-t border-gray-200 p-4'
+              }
             >
               {children}
             </Disclosure.Panel>

@@ -8,15 +8,22 @@ import {
   screens,
   DisplayScreen,
   MAX_PERIOD_COUNT,
+  MAX_PLAYERS_PER_TEAM,
+  MAX_ROTATION_INTERVAL_SECONDS,
   MAX_SCORER_LENGTH,
+  MIN_ROTATION_INTERVAL_SECONDS,
+  defaultScreenRotationSettings,
 } from './constants';
 import {
   Club,
   CustomScreen,
   Goal,
   Penalty,
+  Player,
+  ScreenRotationEntry,
   supportedLanguageCodes,
 } from './types';
+import { normalisePlayerName, normalisePlayerNumber } from './lineup';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -35,17 +42,55 @@ export interface UpdateStatus extends Updates {
   newVersionAvailable: boolean;
 }
 
+// A shirt number: trimmed, undefined when blank, and dropped (rather than
+// cut short) when too long, so a hand-edited config.json can't put the wrong
+// number on air. Shared by line-up players and goal-log scorers.
+const playerNumberSchema = z
+  .string()
+  .optional()
+  .catch(undefined)
+  .transform(normalisePlayerNumber);
+
+// A line-up entry. The name is trimmed and bounded like the scorer; an entry
+// whose name is blank once trimmed is corrupt and gets dropped by
+// playerListSchema below.
+export const playerSchema = z.object({
+  name: z.string().transform(normalisePlayerName).pipe(z.string().min(1)),
+  number: playerNumberSchema,
+});
+
+// Entry by entry, like goalListSchema: a malformed player is dropped rather
+// than losing the whole list, and the list is capped at
+// MAX_PLAYERS_PER_TEAM. Used optionally (see matchSetingsSchema), so a value
+// that isn't an array at all degrades to no line-up rather than an empty one.
+export const playerListSchema = z.array(z.unknown()).transform((entries) =>
+  entries
+    .reduce<Player[]>((acc, entry) => {
+      const parsed = playerSchema.safeParse(entry);
+      if (parsed.success) {
+        const { name, number } = parsed.data;
+        acc.push(number ? { name, number } : { name });
+      }
+      return acc;
+    }, [])
+    .slice(0, MAX_PLAYERS_PER_TEAM)
+);
+
 export const matchSetingsSchema = z.object({
   homeTeamNameFull: z.string(),
   homeTeamNameAbbreviated: z.string(),
   homeTeamTextColour: z.optional(z.string()),
   homeTeamBackgroundColour: z.optional(z.string()),
   homeTeamLogo: z.optional(z.string()),
+  // Optional and absent until the operator enters a player, so settings
+  // saved before line-ups existed load unchanged.
+  homeTeamPlayers: playerListSchema.optional().catch(undefined),
   awayTeamNameFull: z.string(),
   awayTeamNameAbbreviated: z.string(),
   awayTeamTextColour: z.optional(z.string()),
   awayTeamBackgroundColour: z.optional(z.string()),
   awayTeamLogo: z.optional(z.string()),
+  awayTeamPlayers: playerListSchema.optional().catch(undefined),
   venue: z.optional(z.string()),
   saveTitle: z.optional(z.string()),
   kickOffTime: z.optional(z.string()),
@@ -91,6 +136,59 @@ export const matchSetingsSchema = z.object({
 });
 
 export type MatchSettings = z.infer<typeof matchSetingsSchema>;
+
+// Mirrors constants.ts's `screens` object, the single source of truth for
+// DisplayScreen, so this can never drift from the set of screens the app
+// actually knows how to render.
+const displayScreenValues = Object.keys(screens) as [
+  DisplayScreen,
+  ...DisplayScreen[],
+];
+export const displayScreenSchema = z.enum(displayScreenValues);
+
+// One rotation entry. `none` is never rotated to (a blank output is not a
+// screen to show), and a custom entry is meaningless without the image that
+// identifies it, so both fail here and are dropped by the list below. Any
+// image URL on a built-in screen is stray and is cleared.
+const screenRotationEntrySchema = z
+  .object({
+    screen: displayScreenSchema,
+    customScreenImageUrl: z.string().optional().catch(undefined),
+  })
+  .refine(
+    (entry) =>
+      entry.screen !== 'none' &&
+      (entry.screen !== 'custom' || Boolean(entry.customScreenImageUrl))
+  )
+  .transform((entry): ScreenRotationEntry =>
+    entry.screen === 'custom'
+      ? { screen: 'custom', customScreenImageUrl: entry.customScreenImageUrl }
+      : { screen: entry.screen }
+  );
+
+// Same per-field degradation as browserSource: one bad field falls back to
+// its default rather than losing the operator's chosen screens.
+export const screenRotationSchema = z.object({
+  screens: z
+    .array(z.unknown())
+    .catch([])
+    .transform((entries) =>
+      entries.reduce<ScreenRotationEntry[]>((acc, entry) => {
+        const parsed = screenRotationEntrySchema.safeParse(entry);
+        if (parsed.success) acc.push(parsed.data);
+        return acc;
+      }, [])
+    ),
+  intervalSeconds: z
+    .number()
+    .int()
+    .min(MIN_ROTATION_INTERVAL_SECONDS)
+    .max(MAX_ROTATION_INTERVAL_SECONDS)
+    .catch(defaultScreenRotationSettings.intervalSeconds),
+  autoStartAtHalfTime: z
+    .boolean()
+    .catch(defaultScreenRotationSettings.autoStartAtHalfTime),
+});
 
 // Stored app settings feed globalShortcut.register (which throws on a
 // malformed accelerator string) and the browser-source server, so corrupt
@@ -143,6 +241,7 @@ export const appSettingsSchema = z.object({
     })
     .optional()
     .catch(undefined),
+  screenRotation: screenRotationSchema.optional().catch(undefined),
 });
 
 // The operator-action event a renderer sends alongside every captureUndo
@@ -176,15 +275,6 @@ export const matchEventLogSchema = z.object({
 
 export const homeOrAwaySchema = z.enum(['home', 'away']);
 
-// Mirrors constants.ts's `screens` object, the single source of truth for
-// DisplayScreen, so this can never drift from the set of screens the app
-// actually knows how to render.
-const displayScreenValues = Object.keys(screens) as [
-  DisplayScreen,
-  ...DisplayScreen[],
-];
-export const displayScreenSchema = z.enum(displayScreenValues);
-
 export const penaltySchema = z.object({
   team: homeOrAwaySchema.catch('home'),
   result: z.enum(['scored', 'missed']).catch('missed'),
@@ -206,18 +296,24 @@ export const penaltyListSchema = z
 
 // A goal-log entry. The scorer is operator-typed free text, trimmed and
 // bounded so a hand-edited config.json can't push an absurd string on air.
-export const goalSchema = z.object({
-  id: z.string().min(1).max(64),
-  team: homeOrAwaySchema,
-  time: z.string().max(16).optional().catch(undefined),
-  matchPhase: z.string().max(64).optional().catch(undefined),
-  scorer: z
-    .string()
-    .transform((scorer) => scorer.trim().slice(0, MAX_SCORER_LENGTH))
-    .optional()
-    .catch(undefined)
-    .transform((scorer) => (scorer ? scorer : undefined)),
-});
+export const goalSchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    team: homeOrAwaySchema,
+    time: z.string().max(16).optional().catch(undefined),
+    matchPhase: z.string().max(64).optional().catch(undefined),
+    scorer: z
+      .string()
+      .transform((scorer) => scorer.trim().slice(0, MAX_SCORER_LENGTH))
+      .optional()
+      .catch(undefined)
+      .transform((scorer) => (scorer ? scorer : undefined)),
+    scorerNumber: playerNumberSchema,
+  })
+  // A shirt number only means something beside a scorer's name.
+  .transform(({ scorerNumber, ...goal }) =>
+    goal.scorer && scorerNumber ? { ...goal, scorerNumber } : goal
+  );
 
 // Like penaltyListSchema: a malformed entry is dropped rather than losing the
 // whole log, and a non-array value is an empty log.
@@ -333,6 +429,7 @@ export const clubSchema = z.object({
   textColour: z.string().max(32),
   backgroundColour: z.string().max(32),
   logo: z.string().optional().catch(undefined),
+  players: playerListSchema.optional().catch(undefined),
 });
 
 // Entry by entry, like the saved fixtures: one corrupt club is dropped

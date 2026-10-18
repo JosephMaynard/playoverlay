@@ -198,7 +198,27 @@
       "deleteAria": "Eliminar {{club}}",
       "deleteModalTitle": "Eliminar o clube guardado?",
       "deleteConfirmBody": "Tem a certeza de que pretende eliminar o clube guardado «{{club}}»? As equipas que já o utilizam não são alteradas.",
-      "deleteError": "Não foi possível eliminar o clube. Tente novamente."
+      "deleteError": "Não foi possível eliminar o clube. Tente novamente.",
+      "playerCount_one": "{{count}} jogador",
+      "playerCount_other": "{{count}} jogadores"
+    },
+    "lineup": {
+      "addPlayer": "Adicionar jogador",
+      "cap": "até {{max}}",
+      "count_one": "{{count}} jogador",
+      "count_other": "{{count}} jogadores",
+      "empty": "Adicione o plantel para mostrar os convocados no ar e escolher os marcadores a partir da lista.",
+      "nameLabel": "{{team}}, jogador {{n}}: nome",
+      "namePlaceholder": "Nome do jogador",
+      "numberLabel": "{{team}}, jogador {{n}}: número da camisola",
+      "numberPlaceholder": "N.º",
+      "pasteAction": "Adicionar jogadores",
+      "pasteHint": "Um jogador por linha. Coloque primeiro o número da camisola, se o tiver, p. ex. 9 Ali Smith.",
+      "pasteList": "Colar uma lista",
+      "pasteModalTitle": "Colar os convocados: {{team}}",
+      "removeAria": "Remover {{player}}",
+      "title": "Convocados",
+      "unnamedPlayer": "{{team}}, jogador {{n}}"
     }
   },
   "system": {
@@ -210,8 +230,10 @@
     },
     "connectStreamDeck": "Ligar ao Stream Deck",
     "screens": {
+      "awayLineup": "Convocados visitantes",
       "custom": "Ecrãs personalizados",
       "endScreen": "Ecrã final",
+      "homeLineup": "Convocados da casa",
       "matchTitle": "Título do jogo",
       "none": "Nenhum",
       "penalties": "Grandes penalidades",

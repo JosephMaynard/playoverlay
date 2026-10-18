@@ -3,6 +3,13 @@ import { MatchSettings } from './zodSchemas';
 
 export type homeOrAway = 'home' | 'away';
 
+// A member of a team's line-up. The shirt number is kept as text because it
+// is a label rather than a quantity: "0", "00" and "GK" all occur.
+export interface Player {
+  name: string;
+  number?: string;
+}
+
 export interface Penalty {
   team: homeOrAway;
   result: 'scored' | 'missed';
@@ -12,13 +19,17 @@ export interface Penalty {
 // Scored button, a shortcut, the Stream Deck or the phone. The match clock
 // and phase are captured at that moment so the minute can be shown on air
 // ("23'", "45+2'"); both are absent for a goal recorded with no phase
-// running. The scorer is optional and typed later by the operator.
+// running. The scorer is optional and typed later by the operator, or picked
+// from the team's line-up, in which case the shirt number comes with it.
 export interface Goal {
   id: string;
   team: homeOrAway;
   time?: string;
   matchPhase?: MatchPhase;
   scorer?: string;
+  // Only set for a scorer picked from the line-up; typing a different name
+  // clears it, so a number can never sit beside the wrong name on air.
+  scorerNumber?: string;
 }
 
 export interface Scores {
@@ -68,6 +79,23 @@ export interface RemoteControlStatus {
 
 export type ClockFormat = '24h' | '12h';
 
+// One screen in the rotation. Custom screens are identified by their image
+// URL, exactly as matchState.customScreenImageUrl identifies the one on air.
+export interface ScreenRotationEntry {
+  screen: DisplayScreen;
+  customScreenImageUrl?: string;
+}
+
+// Automatic screen rotation for the pre-match wait and half-time: the
+// display cycles through the chosen screens until the operator takes over.
+// Unset until the operator first changes it (see getScreenRotationSettings).
+export interface ScreenRotationSettings {
+  // In the rotation's fixed order (see rotationCandidates).
+  screens: ScreenRotationEntry[];
+  intervalSeconds: number;
+  autoStartAtHalfTime: boolean;
+}
+
 // The eight shipped catalogues (see src/i18n). Both Spanish and Portuguese
 // ship two regional variants rather than one, per the locked language spec.
 // Single source of truth: the zod schema, the picker options, and the type
@@ -101,6 +129,7 @@ export interface AppSettings {
   // log). On unless switched off: unset counts as on, since a solo operator
   // gets a goal graphic with no typing ("GOAL | team | minute").
   showGoalBannerAutomatically?: boolean;
+  screenRotation?: ScreenRotationSettings;
 }
 
 export interface MatchState {
@@ -154,6 +183,8 @@ export interface Club {
   textColour: string;
   backgroundColour: string;
   logo?: string;
+  // The squad, so a club's line-up only has to be typed once too.
+  players?: Player[];
 }
 
 export interface Display {

@@ -258,6 +258,10 @@ export default function MatchSettingsMenu({
         setTeamLogo={(homeTeamLogo: string | undefined) =>
           updateMatchSettings({ homeTeamLogo })
         }
+        players={matchSettings.homeTeamPlayers}
+        setPlayers={(homeTeamPlayers) =>
+          updateMatchSettings({ homeTeamPlayers })
+        }
         appSettings={appSettings}
       />
       <TeamSettings
@@ -282,6 +286,10 @@ export default function MatchSettingsMenu({
         teamLogo={matchSettings.awayTeamLogo}
         setTeamLogo={(awayTeamLogo: string | undefined) =>
           updateMatchSettings({ awayTeamLogo })
+        }
+        players={matchSettings.awayTeamPlayers}
+        setPlayers={(awayTeamPlayers) =>
+          updateMatchSettings({ awayTeamPlayers })
         }
         appSettings={appSettings}
       />

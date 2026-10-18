@@ -7,6 +7,7 @@
     "empty": "No goals yet. Each goal is listed here with its minute as it is scored.",
     "goal": "{{team}} goal",
     "goalWithMinute": "{{team}} goal, {{minute}}",
+    "pickScorer": "Not in the line-up? Just type a name.",
     "remove": "Remove goal",
     "removeAria": "Remove goal: {{goal}}",
     "scorerLabel": "Scorer ({{goal}})",
@@ -48,6 +49,19 @@
     "score": "Score",
     "teamFirst": "{{team}} First",
     "undoLastAction": "Undo Last Action"
+  },
+  "rotation": {
+    "autoStart": "Start automatically at half-time",
+    "autoStartHint": "Starts when the clock is stopped for a break with more of the match to come, never at full time.",
+    "description": "The display shows each chosen screen in turn, in the order listed, so you can step away before kick-off or at half-time. Choosing a screen yourself, or starting the clock, stops it.",
+    "needTwo": "Choose at least two screens to rotate.",
+    "rotating": "Rotating",
+    "screens": "Screens to show",
+    "seconds": "Seconds per screen",
+    "secondsError": "Enter a whole number of seconds from {{min}} to {{max}}.",
+    "start": "Start rotating",
+    "stop": "Stop rotating",
+    "title": "Rotate screens"
   },
   "scoreInput": {
     "decreaseScoreAria": "Decrease {{team}} score",

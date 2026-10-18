@@ -1,5 +1,6 @@
 import { Club, homeOrAway } from './types';
 import { MatchSettings } from './zodSchemas';
+import { hasLineup, teamPlayers } from './lineup';
 
 // Pure helpers for Club presets: the mapping between a saved club and the
 // home/away fields of the match settings, and how the saved list is kept.
@@ -11,16 +12,19 @@ type TeamFields = Pick<
   | 'homeTeamTextColour'
   | 'homeTeamBackgroundColour'
   | 'homeTeamLogo'
+  | 'homeTeamPlayers'
   | 'awayTeamNameFull'
   | 'awayTeamNameAbbreviated'
   | 'awayTeamTextColour'
   | 'awayTeamBackgroundColour'
   | 'awayTeamLogo'
+  | 'awayTeamPlayers'
 >;
 
 // The match-settings update that puts a club into the home or away slot.
-// Every field is set, the logo included (as undefined when the club has
-// none), so no detail of the previous team survives the swap.
+// Every field is set, the logo and players included (as undefined when the
+// club has none), so no detail of the previous team survives the swap: a
+// club saved without a squad must not inherit the last team's players.
 export function teamFieldsFromClub(
   club: Club,
   team: homeOrAway
@@ -32,6 +36,7 @@ export function teamFieldsFromClub(
       homeTeamTextColour: club.textColour,
       homeTeamBackgroundColour: club.backgroundColour,
       homeTeamLogo: club.logo,
+      homeTeamPlayers: club.players,
     };
   }
   return {
@@ -40,6 +45,7 @@ export function teamFieldsFromClub(
     awayTeamTextColour: club.textColour,
     awayTeamBackgroundColour: club.backgroundColour,
     awayTeamLogo: club.logo,
+    awayTeamPlayers: club.players,
   };
 }
 
@@ -69,6 +75,9 @@ export function clubFromTeam(
         ? matchSettings.homeTeamBackgroundColour
         : matchSettings.awayTeamBackgroundColour) ?? '#000000',
     logo: isHome ? matchSettings.homeTeamLogo : matchSettings.awayTeamLogo,
+    players: hasLineup(matchSettings, team)
+      ? teamPlayers(matchSettings, team)
+      : undefined,
   };
 }
 

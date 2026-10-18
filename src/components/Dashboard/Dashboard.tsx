@@ -23,6 +23,10 @@ import {
   isTextEntryTarget,
   reconcileActiveOverlays,
   reconcileActiveScreen,
+  reconcileLineupScreen,
+  getScreenRotationSettings,
+  useScreenRotation,
+  useScreenRotationStore,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
 import { connectStoresToElectron } from '../../electronBridge';
@@ -34,6 +38,7 @@ import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import GoalLogPanel from './GoalLogPanel';
+import ScreenRotationPanel from './ScreenRotationPanel';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
@@ -55,6 +60,10 @@ export default function Dashboard() {
   const [newMatchOpen, setNewMatchOpen] = useState(false);
 
   const clock = useMatchClock();
+  // Cycles the display through the operator's chosen screens while a
+  // rotation is running (see the Rotate screens panel).
+  useScreenRotation();
+  const rotating = useScreenRotationStore((state) => state.active);
 
   const scores = useScoresStore((state) => state.scores);
   const matchSettings = useMatchSettingsStore((state) => state.matchSettings);
@@ -266,6 +275,18 @@ export default function Dashboard() {
     }
   }, [customGraphicsLoaded, customGraphics, matchState, setMatchState]);
 
+  // The same for a line-up screen: removing a team's last player while its
+  // line-up is on air (or an undo bringing back a line-up screen for a team
+  // that no longer has one) takes it off air instead of leaving an empty
+  // output. Not an undo step either: it follows the settings.
+  useEffect(() => {
+    const reconciled = reconcileLineupScreen(
+      matchState.displayScreen,
+      matchSettings
+    );
+    if (reconciled) setMatchState(reconciled);
+  }, [matchState.displayScreen, matchSettings, setMatchState]);
+
   // Match shortcuts (both the focused-window set and the system-wide Alt set)
   // are paused only while the operator is typing: focus in a text field
   // anywhere in the control window, or the shortcut recorder. They used to be
@@ -464,6 +485,17 @@ export default function Dashboard() {
                 matchState={matchState}
                 customGraphics={customGraphics}
                 matchSettings={matchSettings}
+              />
+              <ScreenRotationPanel
+                settings={getScreenRotationSettings(appSettings)}
+                updateSettings={(screenRotation) =>
+                  updateAppSettings({ screenRotation })
+                }
+                matchSettings={matchSettings}
+                customGraphics={customGraphics}
+                rotating={rotating}
+                start={() => useScreenRotationStore.getState().start()}
+                stop={() => useScreenRotationStore.getState().stop()}
               />
             </div>
           </div>

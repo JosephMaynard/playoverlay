@@ -8,6 +8,7 @@ import {
   customScreenKey,
   addCustomScreen,
   removeCustomScreen,
+  isScreenOffered,
 } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
@@ -15,8 +16,9 @@ import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 // Local i18n key map (rather than translating the `screens` constant
 // directly): the same approach as SystemSettingsMenu's Stream Deck screen
 // buttons and EditCustomScreen's overlay-screen checkboxes, so all three
-// surfaces show the same translated label for a given screen.
-const screenLabelKeys: Record<DisplayScreen, string> = {
+// surfaces show the same translated label for a given screen. The dashboard's
+// screen rotation panel shares this one.
+export const screenLabelKeys: Record<DisplayScreen, string> = {
   none: 'settings:system.screens.none',
   matchTitle: 'settings:system.screens.matchTitle',
   scoreBug: 'settings:system.screens.scoreBug',
@@ -24,6 +26,8 @@ const screenLabelKeys: Record<DisplayScreen, string> = {
   custom: 'settings:system.screens.custom',
   endScreen: 'settings:system.screens.endScreen',
   scoreboard: 'settings:system.screens.scoreboard',
+  homeLineup: 'settings:system.screens.homeLineup',
+  awayLineup: 'settings:system.screens.awayLineup',
 };
 
 export interface Props {
@@ -55,12 +59,9 @@ export default function DisplayControlsPanel({
     <CollapsiblePanel title={t('dashboard:displayControls.title')}>
       <ButtonGrid
         buttons={[
-          ...Object.keys(screens)
+          ...(Object.keys(screens) as DisplayScreen[])
             .filter((screen) => screen !== 'custom')
-            .filter(
-              (screen) =>
-                matchSettings.hasPenalties !== false || screen !== 'penalties'
-            )
+            .filter((screen) => isScreenOffered(screen, matchSettings))
             .map((screen) => ({
               label: t(screenLabelKeys[screen as DisplayScreen]),
               onClick: () =>

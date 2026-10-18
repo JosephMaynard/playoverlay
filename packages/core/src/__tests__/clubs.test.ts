@@ -51,6 +51,38 @@ describe('clubFromTeam', () => {
   });
 });
 
+describe('club players', () => {
+  const squad = [{ name: 'Ali Smith', number: '9' }, { name: 'Jo Bloggs' }];
+
+  it('round-trips a squad through a saved club', () => {
+    const club = clubFromTeam(
+      'c9',
+      { ...defaultMatchSettings, awayTeamPlayers: squad },
+      'away'
+    );
+    expect(club.players).toEqual(squad);
+    expect(teamFieldsFromClub(club, 'home')).toHaveProperty(
+      'homeTeamPlayers',
+      squad
+    );
+  });
+
+  it("saves no players for a team without a line-up, and clears the previous team's on load", () => {
+    expect(clubFromTeam('c9', defaultMatchSettings, 'home')).not.toHaveProperty(
+      'players',
+      expect.anything()
+    );
+    const fields = teamFieldsFromClub(rovers, 'home');
+    expect(fields).toHaveProperty('homeTeamPlayers', undefined);
+    const merged = {
+      ...defaultMatchSettings,
+      homeTeamPlayers: squad,
+      ...fields,
+    };
+    expect(merged.homeTeamPlayers).toBeUndefined();
+  });
+});
+
 describe('upsertClub', () => {
   it('adds new clubs in name order', () => {
     const united = { ...rovers, id: 'c2', name: 'United' };
