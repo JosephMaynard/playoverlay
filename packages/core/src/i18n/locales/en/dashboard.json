@@ -18,8 +18,15 @@
     "title": "Goals"
   },
   "header": {
+    "graphics": "Graphics",
+    "newMatch": "New",
     "openMenu": "Open {{title}} Menu",
-    "teamSettings": "Team Settings"
+    "redo": "Redo",
+    "settings": "Settings",
+    "teamSettings": "Team Settings",
+    "teams": "Teams",
+    "undo": "Undo",
+    "window": "Window"
   },
   "newMatch": {
     "button": "New match",
@@ -75,16 +82,20 @@
     "title": "Scores"
   },
   "timeControl": {
+    "addedTime": "Added time",
     "additionalTimeLabel": "Additional time",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Adjust Time",
+    "allPhases": "Jump to a phase",
     "autoSwitchLabel": "Auto switch screens on start and stop",
     "clear": "Clear",
     "pause": "Pause",
     "resume": "Resume",
+    "running": "Running",
     "setAdditionalTime": "Set Additional Time",
+    "start": "Start {{phase}}",
     "title": "Time"
   }
 }

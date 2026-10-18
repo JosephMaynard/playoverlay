@@ -18,8 +18,15 @@
     "title": "Tore"
   },
   "header": {
+    "graphics": "Grafiken",
+    "newMatch": "Neu",
     "openMenu": "{{title}}-Menü öffnen",
-    "teamSettings": "Team-Einstellungen"
+    "redo": "Wiederholen",
+    "settings": "Einstellungen",
+    "teamSettings": "Team-Einstellungen",
+    "teams": "Teams",
+    "undo": "Rückgängig",
+    "window": "Fenster"
   },
   "newMatch": {
     "button": "Neues Spiel",
@@ -75,16 +82,20 @@
     "title": "Spielstände"
   },
   "timeControl": {
+    "addedTime": "Nachspielzeit",
     "additionalTimeLabel": "Nachspielzeit",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Zeit anpassen",
+    "allPhases": "Zu einer Phase springen",
     "autoSwitchLabel": "Bildschirme beim Start und Stopp automatisch wechseln",
     "clear": "Löschen",
     "pause": "Pause",
     "resume": "Fortsetzen",
+    "running": "Läuft",
     "setAdditionalTime": "Nachspielzeit festlegen",
+    "start": "{{phase}} starten",
     "title": "Zeit"
   }
 }

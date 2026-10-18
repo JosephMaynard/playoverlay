@@ -27,6 +27,8 @@ import {
   getScreenRotationSettings,
   useScreenRotation,
   useScreenRotationStore,
+  getNextPhaseId,
+  getPhaseList,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
 import { connectStoresToElectron } from '../../electronBridge';
@@ -46,6 +48,7 @@ import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
 import PreflightModal from '../Preflight/PreflightModal';
 import Modal from '../Modal/Modal';
 import DashboardHeader from './DashboardHeader';
+import ActionButton from '../ui/ActionButton';
 
 import logo from '../../assets/playoverlay-logo.svg';
 
@@ -79,6 +82,15 @@ export default function Dashboard() {
   );
 
   const time = useTimeStore((state) => state.time);
+  // The phase the big Start button offers: mirrors the next-phase shortcut
+  // and the phone remote, so every entry path agrees on what comes next.
+  const phaseList = getPhaseList(matchSettings);
+  const nextPhaseId = getNextPhaseId(
+    phaseList,
+    time.matchPhase,
+    matchState.previousMatchPhase
+  );
+  const nextPhase = phaseList.find((phase) => phase.id === nextPhaseId);
 
   const customGraphics = useCustomGraphicsStore(
     (state) => state.customGraphics
@@ -457,8 +469,11 @@ export default function Dashboard() {
           setSideMenu={openSideMenu}
           onNewMatch={() => setNewMatchOpen(true)}
         />
-        <main className="grid grid-cols-1 bg-bg lg:grid-cols-2 lg:pr-20">
-          <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
+        <main className="grid grid-cols-1 bg-bg lg:h-screen lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:pr-24">
+          {/* Left: what is on air and the screen switches. Right: the clock
+              and scores. On a landscape tablet both columns fit without
+              scrolling past the live controls. */}
+          <div className="lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto lg:p-4">
             <Preview keyColour={appSettings.keyColour}>
               <Screens
                 matchSettings={matchSettings}
@@ -468,16 +483,19 @@ export default function Dashboard() {
                 clockFormat={appSettings.clockFormat}
               />
             </Preview>
-            <div className="lg:overflow-y-auto lg:p-4">
-              <div className="mx-4 mb-4 lg:mx-auto">
-                <button
-                  type="button"
+            <div className="lg:pt-4">
+              <div className="mx-4 mb-4 lg:mx-0">
+                <ActionButton
+                  variant="live"
+                  size="lg"
+                  block
                   onClick={() => setPreflightOpen(true)}
-                  className="flex w-full items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-green-500"
+                  icon={
+                    <RocketLaunchIcon className="h-6 w-6" aria-hidden="true" />
+                  }
                 >
-                  <RocketLaunchIcon className="h-5 w-5" aria-hidden="true" />
                   {t('preflight:action.openButton')}
-                </button>
+                </ActionButton>
               </div>
               <DisplayControlsPanel
                 updateMatchState={setMatchState}
@@ -503,6 +521,7 @@ export default function Dashboard() {
             <TimeControlPanel
               time={time}
               matchSettings={matchSettings}
+              nextPhase={nextPhase}
               pause={handlePauseClock}
               resume={handleResumeClock}
               adjustTime={handleAdjustTime}
@@ -523,19 +542,6 @@ export default function Dashboard() {
               incrementAwayTeamScore={incrementAwayTeamScore}
               updateScore={updateScore}
             />
-            {matchSettings.hasPenalties !== false && (
-              <PenaltiesPanel
-                penalties={scores.penalties}
-                setPenalties={setPenalties}
-                penaltiesFirstTeam={matchState.penaltiesFirstTeam}
-                setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
-                  setMatchState({ penaltiesFirstTeam })
-                }
-                matchSettings={matchSettings}
-                onUndo={undo}
-                canUndo={canUndo}
-              />
-            )}
             <GoalLogPanel
               goals={scores.goals ?? []}
               matchSettings={matchSettings}
@@ -549,6 +555,19 @@ export default function Dashboard() {
               showBanner={showGoalBanner}
               removeGoal={removeGoal}
             />
+            {matchSettings.hasPenalties !== false && (
+              <PenaltiesPanel
+                penalties={scores.penalties}
+                setPenalties={setPenalties}
+                penaltiesFirstTeam={matchState.penaltiesFirstTeam}
+                setPenaltiesFirstTeam={(penaltiesFirstTeam: homeOrAway) =>
+                  setMatchState({ penaltiesFirstTeam })
+                }
+                matchSettings={matchSettings}
+                onUndo={undo}
+                canUndo={canUndo}
+              />
+            )}
           </div>
         </main>
         <MatchSettingsMenu

@@ -1,9 +1,13 @@
 import { MinusIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { ScoresTeamName } from '@playoverlay/screens';
+import { classNames } from '@playoverlay/core';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../Modal/Modal';
 import SoccerBallIcon from '../Icons/SoccerBallIcon';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
+import { inputClassName } from '../ui/fields';
 
 export interface Props {
   title: string;
@@ -53,57 +57,51 @@ export default function ScoreInput({
   };
   return (
     <>
-      <div className="overflow-hidden border border-gray-200 bg-white shadow sm:rounded-md">
-        <div className="border-b border-gray-200 bg-white p-3 sm:px-6">
-          <div className="-ml-4 -mt-2 flex flex-wrap items-center justify-between sm:flex-nowrap">
-            <div className="ml-4 mt-2">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">
-                {teamNameFull}
-              </h3>
-            </div>
-            <div className="ml-4 mt-2 flex-shrink-0 ring-1 ring-gray-300 [--base-size:1rem]">
-              <ScoresTeamName
-                teamName={teamNameAbbreviated}
-                textColour={textColour}
-                backgroundColour={backgroundColour}
-              />
-            </div>
+      <div className="flex flex-col overflow-hidden rounded-2xl ring-1 ring-line">
+        {/* Team strip in the team's own colours, so the two cards are told
+            apart at a glance and not by reading. */}
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-2"
+          style={{ backgroundColor: backgroundColour, color: textColour }}
+        >
+          <h3 className="truncate text-base font-semibold">{teamNameFull}</h3>
+          <div className="flex-shrink-0 ring-1 ring-black/20 [--base-size:0.875rem]">
+            <ScoresTeamName
+              teamName={teamNameAbbreviated}
+              textColour={textColour}
+              backgroundColour={backgroundColour}
+            />
           </div>
         </div>
-
-        <div className="relative flex min-h-16 flex-col items-center justify-center bg-black py-1">
-          <div className="flex h-full items-center justify-center">
-            <p className="text-center text-4xl font-semibold text-white">
-              {score}
-            </p>
-          </div>
-          <button
-            type="button"
-            aria-label={t('dashboard:scoreInput.editScoreAria', {
+        <div className="relative flex min-h-24 items-center justify-center bg-ink text-ink-fg">
+          <p className="text-center text-6xl font-semibold tabular-nums leading-none">
+            {score}
+          </p>
+          <IconButton
+            label={t('dashboard:scoreInput.editScoreAria', {
               team: teamNameFull,
             })}
-            className="absolute right-3 top-3 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            icon={<PencilIcon className="h-6 w-6" aria-hidden="true" />}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-fg/70 hover:bg-white/10 hover:text-ink-fg"
             onClick={() => setEditScoreModalOpen(true)}
-          >
-            <PencilIcon className="h-5 w-5" aria-hidden="true" />
-          </button>
+          />
         </div>
-        <div className="p-3">
-          <button
-            type="button"
-            className="flex w-full items-center overflow-hidden rounded-md bg-white pr-4 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+        <div className="bg-surface p-3">
+          <ActionButton
+            size="xl"
+            block
             onClick={onScored}
+            icon={
+              <span
+                style={{ backgroundColor: backgroundColour, color: textColour }}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ring-1 ring-black/10"
+              >
+                <SoccerBallIcon className="h-7 w-7" />
+              </span>
+            }
           >
-            <span
-              style={{ backgroundColor: backgroundColour, color: textColour }}
-              className="flex h-14 w-20 items-center justify-center rounded-l-md ring-1 ring-inset ring-gray-300"
-            >
-              <SoccerBallIcon className="h-9 w-9" />
-            </span>
-            <span className="mx-auto">
-              {t('dashboard:scoreInput.scored', { title })}
-            </span>
-          </button>
+            {t('dashboard:scoreInput.scored', { title })}
+          </ActionButton>
         </div>
       </div>
       <Modal
@@ -117,59 +115,45 @@ export default function ScoreInput({
         title={t('dashboard:scoreInput.editScore')}
         icon="edit"
       >
-        <label htmlFor={id}>
+        <label htmlFor={id} className="block text-sm font-semibold text-fg">
           {t('dashboard:scoreInput.scoreLabel', { team: teamNameFull })}
         </label>
-        <div className="mb-4 mt-2 flex rounded-md shadow-sm">
-          <div className="relative flex flex-grow items-stretch focus-within:z-10">
-            <button
-              type="button"
-              aria-label={t('dashboard:scoreInput.decreaseScoreAria', {
-                team: teamNameFull,
-              })}
-              className="relative -mr-px inline-flex items-center gap-x-1.5 rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              onClick={() => {
-                setDraftScore(null);
-                if (score > 0) {
-                  setScore(score - 1);
-                }
-              }}
-            >
-              <MinusIcon
-                className="-ml-0.5 h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </button>
-            <input
-              type="number"
-              name="number"
-              id={id}
-              className="block w-full rounded-none border-0 p-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              min={0}
-              onChange={(e) => setDraftScore(e.target.value)}
-              onBlur={commitDraftScore}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitDraftScore();
-              }}
-              value={draftScore ?? score}
-            />
-          </div>
-          <button
-            type="button"
+        <div className="mb-4 mt-2 flex items-stretch gap-2">
+          <ActionButton
+            aria-label={t('dashboard:scoreInput.decreaseScoreAria', {
+              team: teamNameFull,
+            })}
+            icon={<MinusIcon className="h-6 w-6" aria-hidden="true" />}
+            onClick={() => {
+              setDraftScore(null);
+              if (score > 0) {
+                setScore(score - 1);
+              }
+            }}
+          />
+          <input
+            type="number"
+            name="number"
+            id={id}
+            className={classNames(inputClassName, 'text-center text-xl')}
+            min={0}
+            onChange={(e) => setDraftScore(e.target.value)}
+            onBlur={commitDraftScore}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitDraftScore();
+            }}
+            value={draftScore ?? score}
+          />
+          <ActionButton
             aria-label={t('dashboard:scoreInput.increaseScoreAria', {
               team: teamNameFull,
             })}
-            className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            icon={<PlusIcon className="h-6 w-6" aria-hidden="true" />}
             onClick={() => {
               setDraftScore(null);
               setScore(score + 1);
             }}
-          >
-            <PlusIcon
-              className="-ml-0.5 h-5 w-5 text-gray-400"
-              aria-hidden="true"
-            />
-          </button>
+          />
         </div>
       </Modal>
     </>

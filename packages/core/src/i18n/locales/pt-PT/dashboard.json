@@ -18,8 +18,15 @@
     "title": "Golos"
   },
   "header": {
+    "graphics": "Grafismos",
+    "newMatch": "Novo",
     "openMenu": "Abrir menu de {{title}}",
-    "teamSettings": "Definições da equipa"
+    "redo": "Refazer",
+    "settings": "Definições",
+    "teamSettings": "Definições da equipa",
+    "teams": "Equipas",
+    "undo": "Anular",
+    "window": "Janela"
   },
   "newMatch": {
     "button": "Novo jogo",
@@ -75,16 +82,20 @@
     "title": "Marcadores"
   },
   "timeControl": {
+    "addedTime": "Tempo de compensação",
     "additionalTimeLabel": "Tempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tempo",
+    "allPhases": "Saltar para uma fase",
     "autoSwitchLabel": "Mudar automaticamente de ecrã ao iniciar e parar",
     "clear": "Limpar",
     "pause": "Pausar",
     "resume": "Retomar",
+    "running": "A decorrer",
     "setAdditionalTime": "Definir tempo adicional",
+    "start": "Iniciar {{phase}}",
     "title": "Tempo"
   }
 }

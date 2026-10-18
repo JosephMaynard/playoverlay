@@ -18,8 +18,15 @@
     "title": "Gols"
   },
   "header": {
+    "graphics": "Gráficos",
+    "newMatch": "Novo",
     "openMenu": "Abrir menu de {{title}}",
-    "teamSettings": "Configurações da equipe"
+    "redo": "Refazer",
+    "settings": "Configurações",
+    "teamSettings": "Configurações da equipe",
+    "teams": "Times",
+    "undo": "Desfazer",
+    "window": "Janela"
   },
   "newMatch": {
     "button": "Nova partida",
@@ -75,16 +82,20 @@
     "title": "Placar"
   },
   "timeControl": {
+    "addedTime": "Acréscimos",
     "additionalTimeLabel": "Tempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tempo",
+    "allPhases": "Ir para uma fase",
     "autoSwitchLabel": "Mudar automaticamente de tela ao iniciar e parar",
     "clear": "Limpar",
     "pause": "Pausar",
     "resume": "Retomar",
+    "running": "Em andamento",
     "setAdditionalTime": "Definir tempo adicional",
+    "start": "Iniciar {{phase}}",
     "title": "Tempo"
   }
 }

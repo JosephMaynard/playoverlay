@@ -18,8 +18,15 @@
     "title": "Gol"
   },
   "header": {
+    "graphics": "Grafiche",
+    "newMatch": "Nuova",
     "openMenu": "Apri il menu {{title}}",
-    "teamSettings": "Impostazioni squadra"
+    "redo": "Ripeti",
+    "settings": "Impostazioni",
+    "teamSettings": "Impostazioni squadra",
+    "teams": "Squadre",
+    "undo": "Annulla",
+    "window": "Finestra"
   },
   "newMatch": {
     "button": "Nuova partita",
@@ -75,16 +82,20 @@
     "title": "Punteggi"
   },
   "timeControl": {
+    "addedTime": "Recupero",
     "additionalTimeLabel": "Recupero",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Regola il tempo",
+    "allPhases": "Vai a una fase",
     "autoSwitchLabel": "Cambia automaticamente schermo all'avvio e all'arresto",
     "clear": "Cancella",
     "pause": "Pausa",
     "resume": "Riprendi",
+    "running": "In corso",
     "setAdditionalTime": "Imposta il recupero",
+    "start": "Avvia {{phase}}",
     "title": "Tempo"
   }
 }

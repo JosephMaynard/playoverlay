@@ -18,8 +18,15 @@
     "title": "Goles"
   },
   "header": {
+    "graphics": "Gráficos",
+    "newMatch": "Nuevo",
     "openMenu": "Abrir menú de {{title}}",
-    "teamSettings": "Configuración del equipo"
+    "redo": "Rehacer",
+    "settings": "Ajustes",
+    "teamSettings": "Configuración del equipo",
+    "teams": "Equipos",
+    "undo": "Deshacer",
+    "window": "Ventana"
   },
   "newMatch": {
     "button": "Nuevo partido",
@@ -75,16 +82,20 @@
     "title": "Marcadores"
   },
   "timeControl": {
+    "addedTime": "Tiempo agregado",
     "additionalTimeLabel": "Tiempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tiempo",
+    "allPhases": "Ir a una fase",
     "autoSwitchLabel": "Cambiar de pantalla automáticamente al iniciar y detener",
     "clear": "Borrar",
     "pause": "Pausar",
     "resume": "Reanudar",
+    "running": "En marcha",
     "setAdditionalTime": "Establecer tiempo adicional",
+    "start": "Iniciar {{phase}}",
     "title": "Tiempo"
   }
 }

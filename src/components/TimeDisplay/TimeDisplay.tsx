@@ -6,6 +6,7 @@ import {
   getPhaseTitle,
   MatchSettings,
 } from '@playoverlay/core';
+import IconButton from '../ui/IconButton';
 
 export interface Props {
   time: Time;
@@ -13,6 +14,9 @@ export interface Props {
   openAdjustmentsModal?: () => void;
 }
 
+// The clock as the operator sees it: large enough to read from arm's
+// length with a camera in the other hand. Always on the ink block, in both
+// themes, so it looks like the on-air clock and not like a form field.
 export default function TimeDisplay({
   time,
   matchSettings,
@@ -23,27 +27,25 @@ export default function TimeDisplay({
     ? getPhaseById(matchSettings, time.matchPhase)
     : undefined;
   return (
-    <div className="relative flex min-h-32 flex-col items-center justify-center bg-black py-1">
+    <div className="relative flex min-h-32 flex-col items-center justify-center bg-ink px-4 py-3 text-ink-fg">
       {time.time ? (
-        <div className="grid h-full w-full grid-cols-2 grid-rows-1">
-          <div className="flex items-center justify-center">
-            <p className="text-center font-semibold tabular-nums text-white [font-size:5rem]">
-              {time.time}
-            </p>
-          </div>
-          <div className="flex flex-col items-center justify-center font-semibold">
+        <div className="grid w-full grid-cols-2 items-center gap-4">
+          <p className="text-center font-semibold tabular-nums leading-none [font-size:clamp(3.5rem,9vw,5.5rem)]">
+            {time.time}
+          </p>
+          <div className="flex flex-col items-center justify-center">
             {currentPhase && (
-              <p className="mb-1 text-center text-sm tabular-nums text-white">
+              <p className="mb-1 text-center text-sm font-semibold uppercase tracking-wide text-ink-fg/70">
                 {getPhaseTitle(t, currentPhase)}
               </p>
             )}
             {time.remainingTime && (
-              <p className="text-center text-6xl font-normal text-white">
-                <span className="tabular-nums">{time.remainingTime}</span>
+              <p className="text-center font-normal tabular-nums leading-none [font-size:clamp(2.25rem,6vw,3.5rem)]">
+                {time.remainingTime}
               </p>
             )}
             {time.additionalTime && (
-              <p className="mt-1 text-center text-sm font-light text-white">
+              <p className="mt-2 text-center text-sm text-ink-fg/80">
                 <Trans
                   i18nKey="screens:timeDisplay.additionalTime"
                   values={{ minutes: time.additionalTime }}
@@ -56,21 +58,17 @@ export default function TimeDisplay({
           </div>
         </div>
       ) : (
-        <div className="flex h-full items-center justify-center">
-          <p className="text-center text-5xl font-semibold text-white">
-            {t('screens:timeDisplay.notRunning')}
-          </p>
-        </div>
+        <p className="text-center text-3xl font-semibold text-ink-fg/70 sm:text-4xl">
+          {t('screens:timeDisplay.notRunning')}
+        </p>
       )}
       {openAdjustmentsModal && time.time && (
-        <button
-          type="button"
-          aria-label={t('dashboard:timeControl.adjustTimeModalTitle')}
-          className="absolute right-4 top-4 rounded-full bg-white p-2 text-black shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        <IconButton
+          label={t('dashboard:timeControl.adjustTimeModalTitle')}
+          icon={<PencilIcon className="h-6 w-6" aria-hidden="true" />}
+          className="absolute right-2 top-2 text-ink-fg/70 hover:bg-white/10 hover:text-ink-fg"
           onClick={() => openAdjustmentsModal()}
-        >
-          <PencilIcon className="h-5 w-5" aria-hidden="true" />
-        </button>
+        />
       )}
     </div>
   );

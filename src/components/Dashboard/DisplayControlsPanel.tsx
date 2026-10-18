@@ -57,7 +57,11 @@ export default function DisplayControlsPanel({
   );
   return (
     <CollapsiblePanel title={t('dashboard:displayControls.title')}>
+      {/* Screen switches are the most-pressed buttons in a match after the
+          goal buttons, so they get the large size and two columns. */}
       <ButtonGrid
+        size="lg"
+        compact
         buttons={[
           ...(Object.keys(screens) as DisplayScreen[])
             .filter((screen) => screen !== 'custom')
@@ -75,12 +79,12 @@ export default function DisplayControlsPanel({
       />
       {customScreens?.length > 0 && (
         <>
-          <div className="my-4 border-b border-gray-200 pb-2">
-            <h3 className="text-base font-semibold leading-6 text-gray-900">
-              {t('settings:system.screens.custom')}
-            </h3>
-          </div>
+          <h3 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-muted">
+            {t('settings:system.screens.custom')}
+          </h3>
           <ButtonGrid
+            size="lg"
+            compact
             buttons={customScreens?.map((customScreen) => ({
               label: customScreen.title,
               onClick: () =>
@@ -98,12 +102,12 @@ export default function DisplayControlsPanel({
       )}
       {overlays?.length > 0 && (
         <>
-          <div className="my-4 border-b border-gray-200 pb-2">
-            <h3 className="text-base font-semibold leading-6 text-gray-900">
-              {t('dashboard:displayControls.overlays')}
-            </h3>
-          </div>
+          <h3 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-muted">
+            {t('dashboard:displayControls.overlays')}
+          </h3>
           <ButtonGrid
+            size="lg"
+            compact
             buttons={overlays?.map((customScreen) => {
               const selected = (matchState.overlays || []).some(
                 (activeOverlay) =>
