@@ -17,6 +17,8 @@
     "scoreEdit": "Spielstandänderung",
     "startClock": "Uhrstart",
     "stopClock": "Uhrstopp",
+    "substitution": "Auswechslung",
+    "substitutionRemoved": "Entfernung der Auswechslung",
     "switchScreen": "Bildschirmwechsel"
   },
   "button": {

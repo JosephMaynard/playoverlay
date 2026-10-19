@@ -8,6 +8,11 @@ export type homeOrAway = 'home' | 'away';
 export interface Player {
   name: string;
   number?: string;
+  // Whether the player starts the match. Absent means starting, so every
+  // squad entered before the bench existed keeps everyone on the pitch;
+  // only the bench is spelt out (false). There is no fixed number of
+  // starters: five-a-side, rugby and football all use the same flag.
+  starting?: boolean;
 }
 
 export interface Penalty {
@@ -32,6 +37,22 @@ export interface Goal {
   scorerNumber?: string;
 }
 
+// One substitution, made from the dashboard. Like a goal, the clock and
+// phase are captured when it is made so the minute can be shown on air, and
+// both are absent for one made with no phase running. The two players are
+// copied in rather than referenced by position, so a later edit to the
+// squad can't silently change who was swapped.
+export interface Substitution {
+  id: string;
+  team: homeOrAway;
+  time?: string;
+  matchPhase?: MatchPhase;
+  // The player leaving the pitch.
+  off: Player;
+  // The player replacing them.
+  on: Player;
+}
+
 export interface Scores {
   homeTeam: number;
   awayTeam: number;
@@ -39,6 +60,10 @@ export interface Scores {
   // Optional so snapshots and scores from before the goal log still load.
   // Lives with the score so undoing a goal removes its entry too.
   goals?: Goal[];
+  // Optional for the same reason. Lives in the scores slice so undo, the
+  // crash-restore snapshot and the live-match mirror all carry it with the
+  // goals; who is on the pitch is derived from it (see substitutions.ts).
+  substitutions?: Substitution[];
 }
 
 export interface KeyboardShortcuts {
@@ -168,10 +193,18 @@ export interface MatchState {
   // up (epoch ms). Outputs hide the banner GOAL_BANNER_DURATION_MS after
   // shownAt, so a browser source that reconnects later doesn't replay it.
   goalBanner?: GoalBanner;
+  // The substitution currently shown in the on-air substitution banner,
+  // timed exactly like the goal banner.
+  substitutionBanner?: SubstitutionBanner;
 }
 
 export interface GoalBanner {
   goalId: string;
+  shownAt: number;
+}
+
+export interface SubstitutionBanner {
+  substitutionId: string;
   shownAt: number;
 }
 

@@ -13,6 +13,7 @@ import CustomScreenLayout from './CustomScreenLayout/CustomScreenLayout';
 import OverlaysLayout from './OverlaysLayout/OverlaysLayout';
 import ScoreboardLayout from './ScoreboardLayout/ScoreboardLayout';
 import GoalBannerLayout from './GoalBannerLayout/GoalBannerLayout';
+import SubstitutionBannerLayout from './SubstitutionBannerLayout/SubstitutionBannerLayout';
 import LineupLayout from './LineupLayout/LineupLayout';
 
 export interface Props {
@@ -23,6 +24,30 @@ export interface Props {
   clockFormat?: ClockFormat;
 }
 
+// The goal and substitution banners share one spot, so only the one put up
+// most recently is shown: the other layout gets a matchState without its
+// banner, which it treats as "nothing to show" (and animates out if it was
+// up). A goal re-shown from the log after a substitution wins again, since
+// showing it gives it a fresh shownAt.
+function splitBanners(matchState: MatchState): {
+  forGoal: MatchState;
+  forSubstitution: MatchState;
+} {
+  const { goalBanner, substitutionBanner } = matchState;
+  if (!goalBanner || !substitutionBanner) {
+    return { forGoal: matchState, forSubstitution: matchState };
+  }
+  return substitutionBanner.shownAt > goalBanner.shownAt
+    ? {
+        forGoal: { ...matchState, goalBanner: undefined },
+        forSubstitution: matchState,
+      }
+    : {
+        forGoal: matchState,
+        forSubstitution: { ...matchState, substitutionBanner: undefined },
+      };
+}
+
 export default function Screens({
   matchSettings,
   scores,
@@ -30,6 +55,8 @@ export default function Screens({
   matchState,
   clockFormat,
 }: Props) {
+  const substitutions = scores.substitutions ?? [];
+  const banners = splitBanners(matchState);
   return (
     <>
       <OverlaysLayout
@@ -72,16 +99,23 @@ export default function Screens({
       <LineupLayout
         team="home"
         matchSettings={matchSettings}
+        substitutions={substitutions}
         active={matchState.displayScreen === 'homeLineup'}
       />
       <LineupLayout
         team="away"
         matchSettings={matchSettings}
+        substitutions={substitutions}
         active={matchState.displayScreen === 'awayLineup'}
       />
       <GoalBannerLayout
         goals={scores.goals ?? []}
-        matchState={matchState}
+        matchState={banners.forGoal}
+        matchSettings={matchSettings}
+      />
+      <SubstitutionBannerLayout
+        substitutions={substitutions}
+        matchState={banners.forSubstitution}
         matchSettings={matchSettings}
       />
     </>

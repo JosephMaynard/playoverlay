@@ -1,6 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { defaultMatchSettings, MatchSettings, Player } from '@playoverlay/core';
+import {
+  defaultMatchSettings,
+  MatchSettings,
+  Player,
+  Substitution,
+} from '@playoverlay/core';
 import LineupLayout from '../LineupLayout/LineupLayout';
 
 function squad(size: number): Player[] {
@@ -114,6 +119,72 @@ describe('LineupLayout', () => {
       <LineupLayout team="away" matchSettings={settings(squad(5))} active />
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows no bench, and nothing new at all, for a squad with everyone starting', () => {
+    const { container } = render(
+      <LineupLayout
+        team="home"
+        matchSettings={settings(squad(11))}
+        substitutions={[]}
+        active
+      />
+    );
+    expect(container.querySelector('.LineupLayout_bench')).toBeNull();
+    expect(screen.queryByText('Bench')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('list')).toHaveLength(1);
+  });
+
+  it('lists the starters on the pitch and the rest under Bench', () => {
+    const players = [
+      ...squad(11),
+      { name: 'Sub One', number: '12', starting: false },
+      { name: 'Sub Two', number: '13', starting: false },
+    ];
+    const { container } = render(
+      <LineupLayout team="home" matchSettings={settings(players)} active />
+    );
+
+    expect(screen.getByText('Bench')).toBeInTheDocument();
+    // Eleven on the pitch stay in one column; the bench is its own list.
+    expect(container.querySelector('.LineupLayout_board')).not.toHaveClass(
+      'LineupLayout_board_twoColumns'
+    );
+    const [pitch, bench] = columns();
+    expect(pitch).toHaveLength(11);
+    expect(bench).toEqual(['12Sub One', '13Sub Two']);
+  });
+
+  it('swaps a substituted player in place and moves them to the bench, looking like any other substitute', () => {
+    const players = [
+      ...squad(3),
+      { name: 'Sub One', number: '12', starting: false },
+      { name: 'Sub Two', number: '13', starting: false },
+    ];
+    const substitutions: Substitution[] = [
+      {
+        id: 's1',
+        team: 'home',
+        off: { name: 'Player 2', number: '2' },
+        on: { name: 'Sub One', number: '12' },
+      },
+    ];
+    render(
+      <LineupLayout
+        team="home"
+        matchSettings={settings(players)}
+        substitutions={substitutions}
+        active
+      />
+    );
+
+    const [pitch, bench] = columns();
+    expect(pitch).toEqual(['1Player 1', '12Sub One', '3Player 3']);
+    expect(bench).toEqual(['13Sub Two', '2Player 2']);
+    const benchItems = within(screen.getAllByRole('list')[1]).getAllByRole(
+      'listitem'
+    );
+    expect(benchItems[1].className).toBe(benchItems[0].className);
   });
 
   it('stays hidden, without playing the exit animation, until first shown', () => {

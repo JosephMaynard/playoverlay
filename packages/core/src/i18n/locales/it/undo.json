@@ -17,6 +17,8 @@
     "scoreEdit": "la modifica del punteggio",
     "startClock": "l'avvio del cronometro",
     "stopClock": "l'arresto del cronometro",
+    "substitution": "la sostituzione",
+    "substitutionRemoved": "la rimozione della sostituzione",
     "switchScreen": "il cambio di schermata"
   },
   "button": {

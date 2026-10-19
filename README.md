@@ -91,6 +91,8 @@ Once a team has players:
 - The scorer field in the **Goals** panel offers that team's players as you type, matching the name or the number. Pick one and the goal banner shows the number with the name, e.g. `9 Smith`. You can still type in a scorer who isn't in the line-up.
 - **Home Line-up** and **Away Line-up** appear among the screens in Display Controls and on the Stream Deck. Each shows the team's name, logo and colours over its players, in two columns for more than eleven.
 
+Each player has a **Starts** box, ticked by default. Untick it for the substitutes and the line-up screen shows the starters on the pitch with a smaller **Bench** group underneath; any number of starters works, so five-a-side and rugby squads are no different. Substitutions are logged from the dashboard during the match: the two players swap places on the line-up screen, and a banner like the goal banner announces the change on air with the minute. Remove a substitution to put both players back.
+
 ![The home line-up screen on the display output](docs/screenshots/lineup.png)
 
 None of this appears until a team has players. If you never enter one, the app works exactly as before.

@@ -149,6 +149,7 @@ function fullScores(scores: Scores): Scores {
     awayTeam: scores.awayTeam,
     penalties: scores.penalties ?? [],
     goals: scores.goals ?? [],
+    substitutions: scores.substitutions ?? [],
   };
 }
 
