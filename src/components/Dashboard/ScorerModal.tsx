@@ -9,7 +9,7 @@ import {
   Scores,
   classNames,
   formatGoalMinute,
-  teamPlayers,
+  lineupAfterSubstitutions,
 } from '@playoverlay/core';
 import { ScoresTeamName } from '@playoverlay/screens';
 import ActionButton from '../ui/ActionButton';
@@ -29,18 +29,6 @@ export interface Props {
   onNoScorer: () => void;
   onOwnGoal: () => void;
   onNotAGoal: () => void;
-}
-
-// The players as the modal lists them: the ones on the pitch first (the
-// squad's starters), then the bench, greyed because a scorer from there
-// means a substitution was missed, not that it cannot happen.
-function splitSquad(players: Player[]) {
-  const starting = (player: Player) =>
-    (player as Player & { starting?: boolean }).starting !== false;
-  return {
-    pitch: players.filter((player) => starting(player)),
-    bench: players.filter((player) => !starting(player)),
-  };
 }
 
 function PlayerTile({
@@ -85,9 +73,12 @@ export default function ScorerModal({
   const open = goal !== null;
   const team = goal?.team ?? 'home';
   const isHome = team === 'home';
-  const { pitch, bench } = splitSquad(
-    goal ? teamPlayers(matchSettings, team) : []
-  );
+  // The ones on the pitch first (starters, with substitutions applied),
+  // then the bench, greyed because a scorer from there means a
+  // substitution was missed, not that it cannot happen.
+  const { onPitch: pitch, bench } = goal
+    ? lineupAfterSubstitutions(matchSettings, team, scores.substitutions ?? [])
+    : { onPitch: [], bench: [] };
   const minute = goal ? formatGoalMinute(goal, matchSettings) : '';
   const teamName = isHome
     ? matchSettings.homeTeamNameFull

@@ -7,6 +7,7 @@ import {
   homeOrAway,
   LiveMatch,
   Player,
+  hasLineup,
   teamPlayers,
   SideMenuType,
   UpdateStatus,
@@ -42,6 +43,8 @@ import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
 import GoalsPanel from './GoalsPanel';
 import ScorerModal from './ScorerModal';
+import SubstitutionsPanel from './SubstitutionsPanel';
+import SubstitutionModal from './SubstitutionModal';
 import EditScoreModal from './EditScoreModal';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
@@ -71,6 +74,10 @@ export default function Dashboard() {
     goalId: string;
     isNew: boolean;
   } | null>(null);
+  // The team a substitution is being made for, while the modal is open.
+  const [substitutingTeam, setSubstitutingTeam] = useState<homeOrAway | null>(
+    null
+  );
   // The go-live checks run on mount so the tab can show a warning dot
   // before kick-off without being opened.
   const preflight = usePreflight();
@@ -444,6 +451,8 @@ export default function Dashboard() {
     setGoalScorer,
     removeGoal,
     maybeShowGoalBanner,
+    makeSubstitution,
+    removeSubstitution,
     startNewMatch: resetToNewMatch,
     setPenalties,
     incrementHomeTeamScore,
@@ -569,6 +578,24 @@ export default function Dashboard() {
         />
       ),
     },
+    // Only a team with a line-up can make a substitution, so the tab waits
+    // for one rather than showing two dead keys.
+    ...(hasLineup(matchSettings, 'home') || hasLineup(matchSettings, 'away')
+      ? [
+          {
+            key: 'substitutions',
+            label: t('dashboard:tabs.substitutions'),
+            content: (
+              <SubstitutionsPanel
+                substitutions={scores.substitutions ?? []}
+                matchSettings={matchSettings}
+                onSubstitute={setSubstitutingTeam}
+                removeSubstitution={removeSubstitution}
+              />
+            ),
+          },
+        ]
+      : []),
     ...(matchSettings.hasPenalties !== false
       ? [
           {
@@ -680,6 +707,13 @@ export default function Dashboard() {
           onNoScorer={finishScorerPrompt}
           onOwnGoal={ownGoal}
           onNotAGoal={notAGoal}
+        />
+        <SubstitutionModal
+          team={substitutingTeam}
+          matchSettings={matchSettings}
+          substitutions={scores.substitutions ?? []}
+          onConfirm={makeSubstitution}
+          onClose={() => setSubstitutingTeam(null)}
         />
         <EditScoreModal
           open={editScoreOpen}

@@ -87,9 +87,12 @@ export default function DisplayControlsPanel({
     <div>
       {heading(t('dashboard:displayControls.screens'))}
       {/* Screen switches are the most-pressed keys in a match after the
-          goal keys: large, four across, and the one on air is lit red. */}
+          goal keys: tall, four across, and the one on air is lit red. The
+          label stays at the base size so "Away Line-up" fits on one line
+          in a 1024px window. */}
       <ButtonGrid
-        size="lg"
+        size="md"
+        className="[&>button]:min-h-14"
         columns={4}
         selectedTone="air"
         buttons={[

@@ -91,6 +91,23 @@
     "ownGoal": "Own goal",
     "whoScored": "Who scored?"
   },
+  "substitutions": {
+    "change": "Change",
+    "confirm": "Confirm substitution",
+    "confirmAnother": "Confirm and make another",
+    "empty": "No substitutions yet. Tap a team above to log who came off and who came on.",
+    "emptyBench": "Nobody is left on the bench.",
+    "entry": "{{team}}: {{off}} off, {{on}} on",
+    "key": "Substitution",
+    "keyAria": "{{team}} substitution",
+    "off": "Coming off",
+    "on": "Coming on",
+    "pickOff": "Pick who is coming off",
+    "pickOn": "Pick from the bench",
+    "remove": "Remove substitution",
+    "removeAria": "Remove substitution: {{substitution}}",
+    "title": "Substitutions"
+  },
   "tabs": {
     "match": "Match",
     "output": "Output",

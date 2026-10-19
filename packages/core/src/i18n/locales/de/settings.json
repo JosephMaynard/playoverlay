@@ -26,6 +26,13 @@
       "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS-Browserquelle"
     },
+    "dashboardSize": {
+      "description": "Wie groß das Dashboard gezeichnet wird. Groß passt zu einem 4K-Touchscreen, klein bringt mehr auf ein 1024-px-Tablet.",
+      "large": "Groß",
+      "medium": "Mittel",
+      "small": "Klein",
+      "title": "Größe des Dashboards"
+    },
     "diagnostics": {
       "cancelled": "Export abgebrochen.",
       "error": "Diagnoseexport fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -37,6 +44,13 @@
     "displays": {
       "moveToScreen": "Auf Bildschirm {{n}} verschieben",
       "none": "Keine externen Bildschirme erkannt."
+    },
+    "goals": {
+      "askForScorer": "Nach dem Torschützen fragen, wenn das Team eine Aufstellung hat",
+      "askForScorerHint": "Die Spielstandsanzeige wird sofort aktualisiert; das Torbanner wartet auf die Auswahl. Tore per Tastenkürzel, Stream Deck oder Handy warten nie.",
+      "bannerAuto": "Tor- und Wechselbanner automatisch einblenden",
+      "bannerAutoHint": "Ausgeschaltet erscheint nichts, bis du es selbst einblendest.",
+      "title": "Tore und Banner"
     },
     "keyColour": "Schlüsselfarbe",
     "keyboardShortcutRow": {

@@ -26,6 +26,13 @@
       "statusWithError": "Statut : {{state}}, {{error}}",
       "title": "Source navigateur OBS"
     },
+    "dashboardSize": {
+      "description": "Taille d’affichage du tableau de bord. Grand convient à un écran tactile 4K ; petit en met plus sur une tablette de 1024 px.",
+      "large": "Grand",
+      "medium": "Moyen",
+      "small": "Petit",
+      "title": "Taille du tableau de bord"
+    },
     "diagnostics": {
       "cancelled": "Export annulé.",
       "error": "Échec de l'export des diagnostics. Veuillez réessayer.",
@@ -37,6 +44,13 @@
     "displays": {
       "moveToScreen": "Déplacer vers l'écran {{n}}",
       "none": "Aucun écran externe détecté."
+    },
+    "goals": {
+      "askForScorer": "Demander le buteur quand l’équipe a une composition",
+      "askForScorerHint": "Le score à l’écran se met à jour aussitôt ; le bandeau de but attend le choix. Les buts venant d’un raccourci, du Stream Deck ou du téléphone n’attendent jamais.",
+      "bannerAuto": "Diffuser automatiquement les bandeaux de but et de remplacement",
+      "bannerAutoHint": "Désactivé, rien ne part tant que vous ne l’affichez pas vous-même.",
+      "title": "Buts et bandeaux"
     },
     "keyColour": "Couleur clé",
     "keyboardShortcutRow": {

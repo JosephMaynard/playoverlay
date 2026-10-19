@@ -1021,7 +1021,7 @@ describe('Dashboard match engine', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Window Settings' }));
       fireEvent.click(
         screen.getByRole('switch', {
-          name: 'Put the goal banner on air automatically',
+          name: 'Put goal and substitution banners on air automatically',
         })
       );
       expect(
@@ -1124,6 +1124,47 @@ describe('Dashboard match engine', () => {
         stores.matchState.getState().matchState.goalBanner
       ).toBeUndefined();
     });
+  });
+});
+
+describe('Dashboard substitutions', () => {
+  it('logs a substitution from the tab as one undoable step and puts the banner up', async () => {
+    const { stores } = await renderDashboard({
+      matchSettings: {
+        ...defaultMatchSettings,
+        homeTeamPlayers: [
+          { name: 'Ali Smith', number: '9' },
+          { name: 'Kai Moore', number: '12', starting: false },
+        ],
+      },
+    });
+    const { useUndoStore } = await import('@playoverlay/core');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Substitutions' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Home Team substitution' })
+    );
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Ali Smith/ }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Kai Moore/ }));
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Confirm substitution' })
+    );
+
+    const [substitution] = stores.scores.getState().scores.substitutions ?? [];
+    expect(substitution).toEqual(
+      expect.objectContaining({
+        team: 'home',
+        off: { name: 'Ali Smith', number: '9' },
+        on: { name: 'Kai Moore', number: '12' },
+      })
+    );
+    expect(
+      stores.matchState.getState().matchState.substitutionBanner
+    ).toEqual(expect.objectContaining({ substitutionId: substitution.id }));
+
+    act(() => useUndoStore.getState().undo());
+    expect(stores.scores.getState().scores.substitutions).toEqual([]);
   });
 });
 

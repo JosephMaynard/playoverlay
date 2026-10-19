@@ -1,24 +1,28 @@
 {
   "displayControls": {
     "overlays": "Incrustations",
+    "screens": "Écrans",
     "title": "Commandes d'affichage"
   },
   "goalLog": {
     "empty": "Aucun but pour l'instant. Chaque but apparaît ici avec sa minute dès qu'il est marqué.",
     "goal": "But : {{team}}",
     "goalWithMinute": "But : {{team}}, {{minute}}",
-    "pickScorer": "Pas dans la composition ? Saisissez simplement un nom.",
     "remove": "Supprimer le but",
     "removeAria": "Supprimer le but : {{goal}}",
     "scorerLabel": "Buteur ({{goal}})",
     "scorerPlaceholder": "Buteur",
-    "showAutomatically": "Afficher le bandeau de but à l'antenne dès qu'un but est marqué",
-    "showBanner": "Afficher à l'antenne",
-    "showBannerAria": "Afficher à l'antenne : {{goal}}",
     "title": "Buts"
   },
+  "goals": {
+    "addScorer": "Ajouter le buteur",
+    "key": "But",
+    "keyAria": "But pour {{team}}"
+  },
   "header": {
+    "darkMode": "Mode sombre",
     "graphics": "Visuels",
+    "lightMode": "Mode clair",
     "newMatch": "Nouveau",
     "openMenu": "Ouvrir le menu {{title}}",
     "redo": "Rétablir",
@@ -61,11 +65,13 @@
     "autoStart": "Démarrer automatiquement à la mi-temps",
     "autoStartHint": "Démarre quand le chrono est arrêté pour une pause avant la suite du match, jamais à la fin du match.",
     "description": "L'affichage montre tour à tour chaque écran choisi, dans l'ordre de la liste, pour que vous puissiez vous éloigner avant le coup d'envoi ou à la mi-temps. Choisir vous-même un écran ou démarrer le chrono l'arrête.",
+    "keyRotating": "En rotation, {{seconds}} s par écran",
     "needTwo": "Choisissez au moins deux écrans à faire tourner.",
     "rotating": "En rotation",
     "screens": "Écrans à afficher",
     "seconds": "Secondes par écran",
     "secondsError": "Saisissez un nombre entier de secondes compris entre {{min}} et {{max}}.",
+    "setUp": "Configurer la rotation des écrans",
     "start": "Lancer la rotation",
     "stop": "Arrêter la rotation",
     "title": "Rotation des écrans"
@@ -73,16 +79,44 @@
   "scoreInput": {
     "decreaseScoreAria": "Diminuer le score de {{team}}",
     "editScore": "Modifier le score",
-    "editScoreAria": "Modifier le score de {{team}}",
     "increaseScoreAria": "Augmenter le score de {{team}}",
-    "scoreLabel": "Score de {{team}}",
-    "scored": "But de {{title}}"
+    "scoreLabel": "Score de {{team}}"
   },
-  "scoresPanel": {
-    "title": "Scores"
+  "scorer": {
+    "bench": "Banc",
+    "hint": "Le score est déjà mis à jour à l’écran. Le bandeau de but part dès que vous choisissez.",
+    "noScorer": "Pas de buteur",
+    "notAGoal": "Pas de but",
+    "onPitch": "Sur le terrain",
+    "ownGoal": "But contre son camp",
+    "whoScored": "Qui a marqué ?"
+  },
+  "substitutions": {
+    "change": "Modifier",
+    "confirm": "Confirmer le remplacement",
+    "confirmAnother": "Confirmer et en faire un autre",
+    "empty": "Aucun remplacement pour l’instant. Touchez une équipe ci-dessus pour noter qui sort et qui entre.",
+    "emptyBench": "Plus personne sur le banc.",
+    "entry": "{{team}} : {{off}} sort, {{on}} entre",
+    "key": "Remplacement",
+    "keyAria": "Remplacement {{team}}",
+    "off": "Sort",
+    "on": "Entre",
+    "pickOff": "Choisissez qui sort",
+    "pickOn": "Choisissez sur le banc",
+    "remove": "Supprimer le remplacement",
+    "removeAria": "Supprimer le remplacement : {{substitution}}",
+    "title": "Remplacements"
+  },
+  "tabs": {
+    "match": "Match",
+    "output": "Sortie",
+    "screens": "Écrans",
+    "substitutions": "Remplacements"
   },
   "timeControl": {
     "addedTime": "Temps additionnel",
+    "addedTimeAria": "Temps additionnel : {{minutes}} minutes",
     "additionalTimeLabel": "Temps additionnel",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
@@ -92,6 +126,9 @@
     "autoSwitchLabel": "Changer automatiquement d'écran au démarrage et à l'arrêt",
     "clear": "Effacer",
     "pause": "Pause",
+    "paused": "En pause",
+    "phasesAndClock": "Phases et chrono",
+    "remaining": "Restant",
     "resume": "Reprendre",
     "running": "En cours",
     "setAdditionalTime": "Définir le temps additionnel",

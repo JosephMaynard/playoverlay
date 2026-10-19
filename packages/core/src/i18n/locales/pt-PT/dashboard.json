@@ -1,24 +1,28 @@
 {
   "displayControls": {
     "overlays": "Sobreposições",
+    "screens": "Ecrãs",
     "title": "Controlos de ecrã"
   },
   "goalLog": {
     "empty": "Ainda sem golos. Cada golo aparece aqui com o respetivo minuto assim que é marcado.",
     "goal": "Golo: {{team}}",
     "goalWithMinute": "Golo: {{team}}, {{minute}}",
-    "pickScorer": "Não está nos convocados? Basta escrever um nome.",
     "remove": "Remover o golo",
     "removeAria": "Remover o golo: {{goal}}",
     "scorerLabel": "Marcador ({{goal}})",
     "scorerPlaceholder": "Marcador",
-    "showAutomatically": "Mostrar a faixa de golo no ar assim que for marcado um golo",
-    "showBanner": "Mostrar no ar",
-    "showBannerAria": "Mostrar no ar: {{goal}}",
     "title": "Golos"
   },
+  "goals": {
+    "addScorer": "Adicionar marcador",
+    "key": "Golo",
+    "keyAria": "Golo de {{team}}"
+  },
   "header": {
+    "darkMode": "Modo escuro",
     "graphics": "Grafismos",
+    "lightMode": "Modo claro",
     "newMatch": "Novo",
     "openMenu": "Abrir menu de {{title}}",
     "redo": "Refazer",
@@ -61,11 +65,13 @@
     "autoStart": "Iniciar automaticamente ao intervalo",
     "autoStartHint": "Começa quando o cronómetro é parado para uma pausa e ainda há jogo pela frente, nunca no fim do jogo.",
     "description": "O ecrã mostra à vez cada ecrã escolhido, pela ordem da lista, para que se possa afastar antes do pontapé de saída ou ao intervalo. Para quando escolhe um ecrã ou inicia o cronómetro.",
+    "keyRotating": "A rodar, {{seconds}} s por ecrã",
     "needTwo": "Escolha pelo menos dois ecrãs para alternar.",
     "rotating": "A rodar",
     "screens": "Ecrãs a mostrar",
     "seconds": "Segundos por ecrã",
     "secondsError": "Introduza um número inteiro de segundos de {{min}} a {{max}}.",
+    "setUp": "Configurar a rotação de ecrãs",
     "start": "Iniciar rotação",
     "stop": "Parar rotação",
     "title": "Rodar ecrãs"
@@ -73,16 +79,44 @@
   "scoreInput": {
     "decreaseScoreAria": "Reduzir o marcador de {{team}}",
     "editScore": "Editar marcador",
-    "editScoreAria": "Editar marcador de {{team}}",
     "increaseScoreAria": "Aumentar o marcador de {{team}}",
-    "scoreLabel": "Marcador de {{team}}",
-    "scored": "Golo de {{title}}"
+    "scoreLabel": "Marcador de {{team}}"
   },
-  "scoresPanel": {
-    "title": "Marcadores"
+  "scorer": {
+    "bench": "Banco",
+    "hint": "O marcador já está atualizado. O banner do golo sai assim que escolheres.",
+    "noScorer": "Sem marcador",
+    "notAGoal": "Não foi golo",
+    "onPitch": "Em campo",
+    "ownGoal": "Autogolo",
+    "whoScored": "Quem marcou?"
+  },
+  "substitutions": {
+    "change": "Alterar",
+    "confirm": "Confirmar substituição",
+    "confirmAnother": "Confirmar e fazer outra",
+    "empty": "Ainda sem substituições. Toca numa equipa acima para registar quem sai e quem entra.",
+    "emptyBench": "Já não há ninguém no banco.",
+    "entry": "{{team}}: sai {{off}}, entra {{on}}",
+    "key": "Substituição",
+    "keyAria": "Substituição de {{team}}",
+    "off": "Sai",
+    "on": "Entra",
+    "pickOff": "Escolhe quem sai",
+    "pickOn": "Escolhe do banco",
+    "remove": "Remover substituição",
+    "removeAria": "Remover substituição: {{substitution}}",
+    "title": "Substituições"
+  },
+  "tabs": {
+    "match": "Jogo",
+    "output": "Saída",
+    "screens": "Ecrãs",
+    "substitutions": "Substituições"
   },
   "timeControl": {
     "addedTime": "Tempo de compensação",
+    "addedTimeAria": "Tempo de compensação: {{minutes}} minutos",
     "additionalTimeLabel": "Tempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
@@ -92,6 +126,9 @@
     "autoSwitchLabel": "Mudar automaticamente de ecrã ao iniciar e parar",
     "clear": "Limpar",
     "pause": "Pausar",
+    "paused": "Em pausa",
+    "phasesAndClock": "Fases e relógio",
+    "remaining": "Restante",
     "resume": "Retomar",
     "running": "A decorrer",
     "setAdditionalTime": "Definir tempo adicional",

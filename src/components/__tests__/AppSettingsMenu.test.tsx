@@ -137,7 +137,7 @@ describe('AppSettingsMenu dashboard size and goals', () => {
 
     await user.click(
       screen.getByRole('switch', {
-        name: 'Put the goal banner on air automatically',
+        name: 'Put goal and substitution banners on air automatically',
       })
     );
     expect(updateAppSettings).toHaveBeenCalledWith({

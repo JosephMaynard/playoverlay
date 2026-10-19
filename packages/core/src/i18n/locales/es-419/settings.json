@@ -26,6 +26,13 @@
       "statusWithError": "Estado: {{state}}, {{error}}",
       "title": "Fuente de video del navegador de OBS"
     },
+    "dashboardSize": {
+      "description": "Tamaño con el que se dibuja el panel. Grande va bien en una pantalla táctil 4K; pequeño cabe más en una tableta de 1024 px.",
+      "large": "Grande",
+      "medium": "Mediano",
+      "small": "Pequeño",
+      "title": "Tamaño del panel"
+    },
     "diagnostics": {
       "cancelled": "Exportación cancelada.",
       "error": "No se pudo exportar el diagnóstico. Vuelve a intentarlo.",
@@ -37,6 +44,13 @@
     "displays": {
       "moveToScreen": "Mover a la pantalla {{n}}",
       "none": "No se detectaron pantallas externas."
+    },
+    "goals": {
+      "askForScorer": "Preguntar quién anotó cuando el equipo tiene alineación",
+      "askForScorerHint": "El marcador se actualiza al instante; el banner del gol espera la elección. Los goles desde un atajo, el Stream Deck o el celular nunca esperan.",
+      "bannerAuto": "Emitir automáticamente los banners de gol y de cambio",
+      "bannerAutoHint": "Desactivado, no sale nada hasta que lo muestres tú.",
+      "title": "Goles y banners"
     },
     "keyColour": "Color clave",
     "keyboardShortcutRow": {

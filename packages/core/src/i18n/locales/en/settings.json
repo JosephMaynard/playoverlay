@@ -48,8 +48,8 @@
     "goals": {
       "askForScorer": "Ask who scored when the team has a line-up",
       "askForScorerHint": "The score bug updates straight away; the goal banner waits for the pick. Goals from a shortcut, the Stream Deck or the phone never wait.",
-      "bannerAuto": "Put the goal banner on air automatically",
-      "bannerAutoHint": "Off, the banner only goes out when you show it from the goal log.",
+      "bannerAuto": "Put goal and substitution banners on air automatically",
+      "bannerAutoHint": "Off, nothing goes out until you show it yourself.",
       "title": "Goals and banners"
     },
     "keyColour": "Key Colour",
