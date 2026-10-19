@@ -87,6 +87,38 @@
   padding: 0.15em 0.5em;
 }
 
+/* The bench sits under the columns at a smaller size, in as many columns as
+   the board is wide enough for (two on a one-column board, four on a
+   two-column one), so seven substitutes add two rows rather than seven. */
+.LineupLayout_bench {
+  margin-top: calc(var(--base-size) * 0.5);
+}
+
+.LineupLayout_benchTitle {
+  font-size: calc(var(--base-size) * 0.5);
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  padding: 0 calc(var(--base-size) * 0.25) calc(var(--base-size) * 0.15);
+  color: white;
+}
+
+.LineupLayout_benchList {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(calc(var(--base-size) * 8), 1fr)
+  );
+  gap: calc(var(--base-size) * 0.1) calc(var(--base-size) * 0.25);
+}
+
+.LineupLayout_bench .LineupLayout_row {
+  font-size: calc(var(--base-size) * 0.55);
+}
+
+.LineupLayout_dense .LineupLayout_bench .LineupLayout_row {
+  font-size: calc(var(--base-size) * 0.45);
+}
+
 @keyframes lineup_layout_active {
   0% {
     transform: translateY(50%) translateZ(0);

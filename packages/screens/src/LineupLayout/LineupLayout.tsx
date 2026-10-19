@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   classNames,
   homeOrAway,
+  lineupAfterSubstitutions,
   MatchSettings,
   Player,
+  Substitution,
   teamPlayers,
 } from '@playoverlay/core';
 import './LineupLayout.css';
@@ -11,8 +14,14 @@ import './LineupLayout.css';
 export interface Props {
   team: homeOrAway;
   matchSettings: MatchSettings;
+  // The match's substitution log (both teams'); the screen works out who is
+  // on the pitch from it. Optional so a host without substitutions renders
+  // the squad as entered.
+  substitutions?: Substitution[];
   active: boolean;
 }
+
+const NO_SUBSTITUTIONS: Substitution[] = [];
 
 // Up to this many players fit one column; more are split over two.
 const ONE_COLUMN_MAX = 11;
@@ -44,11 +53,19 @@ function PlayerRow({
 }
 
 // A team's line-up on air: logo, full name and colour stripe over the
-// players in the order they were entered, in one column for up to eleven
-// and two balanced columns beyond that (the left one takes the odd player).
-// Shows nothing for a team without players; the dashboard never offers the
-// screen then anyway.
-export default function LineupLayout({ team, matchSettings, active }: Props) {
+// players on the pitch in the order they were entered, in one column for up
+// to eleven and two balanced columns beyond that (the left one takes the odd
+// player). A squad with a bench, or with substitutions made, gets a smaller
+// "Bench" group underneath; a player substituted off simply joins it. Shows
+// nothing for a team without players; the dashboard never offers the screen
+// then anyway.
+export default function LineupLayout({
+  team,
+  matchSettings,
+  substitutions = NO_SUBSTITUTIONS,
+  active,
+}: Props) {
+  const { t } = useTranslation();
   // The hidden animation starts from the fully-shown position, so it must
   // not play on first mount (display window load / OBS browser-source
   // reload would flash the layout on screen); only animate out after the
@@ -58,8 +75,12 @@ export default function LineupLayout({ team, matchSettings, active }: Props) {
     if (active) setHasBeenActive(true);
   }, [active]);
 
-  const players = teamPlayers(matchSettings, team);
-  if (players.length === 0) return null;
+  if (teamPlayers(matchSettings, team).length === 0) return null;
+  const { onPitch: players, bench } = lineupAfterSubstitutions(
+    matchSettings,
+    team,
+    substitutions
+  );
 
   const isHome = team === 'home';
   const name = isHome
@@ -122,6 +143,23 @@ export default function LineupLayout({ team, matchSettings, active }: Props) {
             </ol>
           ))}
         </div>
+        {bench.length > 0 && (
+          <div className="LineupLayout_bench">
+            <div className="LineupLayout_benchTitle font-bold uppercase">
+              {t('screens:lineup.bench')}
+            </div>
+            <ol className="LineupLayout_benchList">
+              {bench.map((player, row) => (
+                <PlayerRow
+                  key={`${player.number ?? ''}-${player.name}-${row}`}
+                  player={player}
+                  textColour={textColour}
+                  backgroundColour={backgroundColour}
+                />
+              ))}
+            </ol>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,9 @@
   "goalBanner": {
     "goal": "Gol"
   },
+  "lineup": {
+    "bench": "Panchina"
+  },
   "matchTitle": {
     "kickOff": "Calcio d'inizio {{time}}",
     "startsIn": "Calcio d'inizio tra {{countdown}}"
@@ -20,6 +23,9 @@
     "match": "Crono",
     "pm": "pm",
     "time": "Ora"
+  },
+  "substitutionBanner": {
+    "label": "Cambio"
   },
   "timeDisplay": {
     "additionalTime": "Recupero: <bold>{{minutes}} minuti</bold>",

@@ -2,6 +2,9 @@
   "goalBanner": {
     "goal": "But"
   },
+  "lineup": {
+    "bench": "Banc"
+  },
   "matchTitle": {
     "kickOff": "Coup d'envoi {{time}}",
     "startsIn": "Coup d'envoi dans {{countdown}}"
@@ -20,6 +23,9 @@
     "match": "Chrono",
     "pm": "pm",
     "time": "Heure"
+  },
+  "substitutionBanner": {
+    "label": "Changement"
   },
   "timeDisplay": {
     "additionalTime": "Temps additionnel : <bold>{{minutes}} minutes</bold>",
