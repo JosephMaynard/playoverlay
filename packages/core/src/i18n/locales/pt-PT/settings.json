@@ -182,6 +182,8 @@
     "homeTeam": "Equipa da casa",
     "lineup": {
       "addPlayer": "Adicionar jogador",
+      "benchCount_one": "{{count}} no banco",
+      "benchCount_other": "{{count}} no banco",
       "cap": "até {{max}}",
       "count_one": "{{count}} jogador",
       "count_other": "{{count}} jogadores",
@@ -195,6 +197,10 @@
       "pasteList": "Colar uma lista",
       "pasteModalTitle": "Colar os convocados: {{team}}",
       "removeAria": "Remover {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} titular",
+      "startingCount_other": "{{count}} titulares",
+      "startsLabel": "{{player}} titular",
       "title": "Convocados",
       "unnamedPlayer": "{{team}}, jogador {{n}}"
     },

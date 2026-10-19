@@ -182,6 +182,8 @@
     "homeTeam": "Home Team",
     "lineup": {
       "addPlayer": "Add player",
+      "benchCount_one": "{{count}} on the bench",
+      "benchCount_other": "{{count}} on the bench",
       "cap": "up to {{max}}",
       "count_one": "{{count}} player",
       "count_other": "{{count}} players",
@@ -195,6 +197,10 @@
       "pasteList": "Paste a list",
       "pasteModalTitle": "Paste the {{team}} line-up",
       "removeAria": "Remove {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} starting",
+      "startingCount_other": "{{count}} starting",
+      "startsLabel": "{{player}} starts",
       "title": "Line-up",
       "unnamedPlayer": "{{team}} player {{n}}"
     },

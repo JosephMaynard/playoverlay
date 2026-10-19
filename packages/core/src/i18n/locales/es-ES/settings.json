@@ -182,6 +182,8 @@
     "homeTeam": "Equipo local",
     "lineup": {
       "addPlayer": "Añadir jugador",
+      "benchCount_one": "{{count}} en el banquillo",
+      "benchCount_other": "{{count}} en el banquillo",
       "cap": "hasta {{max}}",
       "count_one": "{{count}} jugador",
       "count_other": "{{count}} jugadores",
@@ -195,6 +197,10 @@
       "pasteList": "Pegar una lista",
       "pasteModalTitle": "Pegar la alineación: {{team}}",
       "removeAria": "Quitar a {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} titular",
+      "startingCount_other": "{{count}} titulares",
+      "startsLabel": "{{player}} titular",
       "title": "Alineación",
       "unnamedPlayer": "{{team}}, jugador {{n}}"
     },

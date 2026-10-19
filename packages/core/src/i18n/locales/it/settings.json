@@ -182,6 +182,8 @@
     "homeTeam": "Squadra di casa",
     "lineup": {
       "addPlayer": "Aggiungi giocatore",
+      "benchCount_one": "{{count}} in panchina",
+      "benchCount_other": "{{count}} in panchina",
       "cap": "fino a {{max}}",
       "count_one": "{{count}} giocatore",
       "count_other": "{{count}} giocatori",
@@ -195,6 +197,10 @@
       "pasteList": "Incolla un elenco",
       "pasteModalTitle": "Incolla la formazione: {{team}}",
       "removeAria": "Rimuovi {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} titolare",
+      "startingCount_other": "{{count}} titolari",
+      "startsLabel": "{{player}} titolare",
       "title": "Formazione",
       "unnamedPlayer": "{{team}}, giocatore {{n}}"
     },

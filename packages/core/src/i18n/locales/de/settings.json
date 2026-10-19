@@ -182,6 +182,8 @@
     "homeTeam": "Heimmannschaft",
     "lineup": {
       "addPlayer": "Spieler hinzufügen",
+      "benchCount_one": "{{count}} auf der Bank",
+      "benchCount_other": "{{count}} auf der Bank",
       "cap": "bis zu {{max}}",
       "count_one": "{{count}} Spieler",
       "count_other": "{{count}} Spieler",
@@ -195,6 +197,10 @@
       "pasteList": "Liste einfügen",
       "pasteModalTitle": "Aufstellung einfügen: {{team}}",
       "removeAria": "{{player}} entfernen",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} in der Startaufstellung",
+      "startingCount_other": "{{count}} in der Startaufstellung",
+      "startsLabel": "{{player}} beginnt",
       "title": "Aufstellung",
       "unnamedPlayer": "{{team}}, Spieler {{n}}"
     },
