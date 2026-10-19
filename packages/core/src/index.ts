@@ -18,6 +18,7 @@ export * from './liveMatch';
 export * from './clubs';
 export * from './customScreens';
 export * from './lineup';
+export * from './substitutions';
 export * from './screenRotation';
 
 export * from './store/appSettings';

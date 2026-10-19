@@ -1,4 +1,4 @@
-import { Goal, homeOrAway, Time } from './types';
+import { Goal, homeOrAway, MatchPhase, Time } from './types';
 import { MatchSettings } from './zodSchemas';
 import { getPhaseById, parseTimeToSeconds } from './utils';
 
@@ -16,28 +16,42 @@ export function createGoal(id: string, team: homeOrAway, time: Time): Goal {
   return { id, team, time: time.time, matchPhase: time.matchPhase };
 }
 
-// The on-air minute for a goal. Football counts the minute in progress
-// (22:10 on the clock is the 23rd minute), and a goal after a phase's
+// Anything logged against the match clock: a goal, a substitution.
+export interface MatchEventTime {
+  time?: string;
+  matchPhase?: MatchPhase;
+}
+
+// The on-air minute for an event. Football counts the minute in progress
+// (22:10 on the clock is the 23rd minute), and an event after a phase's
 // scheduled end is shown as stoppage time: 46:30 in the first half is
-// "45+2'". Empty when the goal was recorded with no phase running.
+// "45+2'". Empty when the event was recorded with no phase running.
 //
 // Phase lengths can be fractional (22.5-minute halves), so the stoppage base
 // is the whole minute the scheduled end falls in: with an end of 22.5, the
 // 23rd minute is still regular time and 23:10 is "23+1'". That keeps labels
 // whole and in order (a plain seconds comparison would show 22:20 as "23'"
 // but 22:40 as "22+1'"). For whole-minute lengths it is the usual rule.
-export function formatGoalMinute(
-  goal: Goal,
+export function formatEventMinute(
+  event: MatchEventTime,
   matchSettings: MatchSettings
 ): string {
-  if (!goal.time) return '';
-  const minute = Math.floor(parseTimeToSeconds(goal.time) / 60) + 1;
-  const phase = getPhaseById(matchSettings, goal.matchPhase);
+  if (!event.time) return '';
+  const minute = Math.floor(parseTimeToSeconds(event.time) / 60) + 1;
+  const phase = getPhaseById(matchSettings, event.matchPhase);
   if (phase) {
     const base = Math.ceil(phase.end);
     if (minute > base) return `${base}+${minute - base}'`;
   }
   return `${minute}'`;
+}
+
+// The on-air minute for a goal (see formatEventMinute).
+export function formatGoalMinute(
+  goal: Goal,
+  matchSettings: MatchSettings
+): string {
+  return formatEventMinute(goal, matchSettings);
 }
 
 // The log with that team's most recent goal removed (a goal taken off the

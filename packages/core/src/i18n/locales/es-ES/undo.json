@@ -17,6 +17,8 @@
     "scoreEdit": "el cambio de marcador",
     "startClock": "el inicio del cronómetro",
     "stopClock": "la parada del cronómetro",
+    "substitution": "el cambio",
+    "substitutionRemoved": "la eliminación del cambio",
     "switchScreen": "el cambio de pantalla"
   },
   "button": {

@@ -17,6 +17,8 @@
     "scoreEdit": "score change",
     "startClock": "clock start",
     "stopClock": "clock stop",
+    "substitution": "substitution",
+    "substitutionRemoved": "substitution removal",
     "switchScreen": "screen change"
   },
   "button": {

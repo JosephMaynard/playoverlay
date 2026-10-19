@@ -17,6 +17,8 @@
     "scoreEdit": "la modification du score",
     "startClock": "le démarrage du chrono",
     "stopClock": "l'arrêt du chrono",
+    "substitution": "le remplacement",
+    "substitutionRemoved": "la suppression du remplacement",
     "switchScreen": "le changement d'écran"
   },
   "button": {

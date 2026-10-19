@@ -17,6 +17,8 @@
     "scoreEdit": "a alteração do placar",
     "startClock": "o início do cronômetro",
     "stopClock": "a parada do cronômetro",
+    "substitution": "a substituição",
+    "substitutionRemoved": "a remoção da substituição",
     "switchScreen": "a mudança de tela"
   },
   "button": {

@@ -112,6 +112,7 @@ describe('createMatchActions', () => {
       awayTeam: 0,
       penalties: [],
       goals: [],
+      substitutions: [],
     });
     expect(useMatchStateStore.getState().matchState.displayScreen).toBe(
       'matchTitle'

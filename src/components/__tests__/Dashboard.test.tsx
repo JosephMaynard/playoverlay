@@ -410,11 +410,12 @@ describe('Dashboard match engine', () => {
       });
       fireEvent.click(restoreButton);
 
-      // A snapshot from before the goal log restores with an empty log,
-      // replacing whatever the current session had.
+      // A snapshot from before the goal log restores with an empty log (and
+      // no substitutions), replacing whatever the current session had.
       expect(stores.scores.getState().scores).toEqual({
         ...liveMatch.scores,
         goals: [],
+        substitutions: [],
       });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
@@ -507,11 +508,12 @@ describe('Dashboard match engine', () => {
       expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
         defaultMatchSettings.hasExtraTime
       );
-      // A snapshot from before the goal log restores with an empty log,
-      // replacing whatever the current session had.
+      // A snapshot from before the goal log restores with an empty log (and
+      // no substitutions), replacing whatever the current session had.
       expect(stores.scores.getState().scores).toEqual({
         ...liveMatch.scores,
         goals: [],
+        substitutions: [],
       });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
