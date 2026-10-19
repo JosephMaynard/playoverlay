@@ -222,6 +222,83 @@ describe('Line-up editor', () => {
     expect(within(away).getByText('4 players (up to 30)')).toBeInTheDocument();
   });
 
+  it('marks a player as a substitute with the Starts box, and back again', async () => {
+    installElectronAPI();
+    const { settings } = await renderMenu({
+      homeTeamPlayers: [
+        { name: 'Ali Smith', number: '9' },
+        { name: 'Jo Bloggs' },
+      ],
+    });
+    const home = homeLineup();
+    const starts = within(home).getByRole('checkbox', {
+      name: 'Jo Bloggs starts',
+    });
+    expect(starts).toBeChecked();
+    expect(
+      within(home).getByRole('checkbox', { name: 'Ali Smith starts' })
+    ).toBeChecked();
+    expect(within(home).queryByText(/on the bench/)).not.toBeInTheDocument();
+
+    fireEvent.click(starts);
+    expect(settings().homeTeamPlayers).toEqual([
+      { name: 'Ali Smith', number: '9' },
+      { name: 'Jo Bloggs', starting: false },
+    ]);
+    expect(starts).not.toBeChecked();
+    expect(
+      within(home).getByText('1 starting, 1 on the bench')
+    ).toBeInTheDocument();
+    expect(within(home).getByText('2 players (up to 30)')).toBeInTheDocument();
+
+    // Back to starting drops the flag, so the stored shape is as before.
+    fireEvent.click(starts);
+    expect(settings().homeTeamPlayers).toEqual([
+      { name: 'Ali Smith', number: '9' },
+      { name: 'Jo Bloggs' },
+    ]);
+    expect(within(home).queryByText(/on the bench/)).not.toBeInTheDocument();
+  });
+
+  it('keeps a bench flag through a name edit, and lets a new row start on the bench', async () => {
+    installElectronAPI();
+    const { settings } = await renderMenu({
+      homeTeamPlayers: [{ name: 'Ali Smith', number: '9', starting: false }],
+    });
+    const home = homeLineup();
+    const name = within(home).getByRole('textbox', {
+      name: 'Home Team player 1: name',
+    });
+    expect(
+      within(home).getByRole('checkbox', { name: 'Ali Smith starts' })
+    ).not.toBeChecked();
+
+    fireEvent.change(name, { target: { value: 'Ali Smyth' } });
+    fireEvent.blur(name);
+    expect(settings().homeTeamPlayers).toEqual([
+      { name: 'Ali Smyth', number: '9', starting: false },
+    ]);
+
+    fireEvent.click(within(home).getByRole('button', { name: 'Add player' }));
+    const newStarts = within(home).getByRole('checkbox', {
+      name: 'Home Team player 2 starts',
+    });
+    expect(newStarts).toBeChecked();
+    fireEvent.click(newStarts);
+    const newName = within(home).getByRole('textbox', {
+      name: 'Home Team player 2: name',
+    });
+    fireEvent.change(newName, { target: { value: 'Jo Bloggs' } });
+    fireEvent.keyDown(newName, { key: 'Enter' });
+    expect(settings().homeTeamPlayers).toEqual([
+      { name: 'Ali Smyth', number: '9', starting: false },
+      { name: 'Jo Bloggs', starting: false },
+    ]);
+    expect(
+      within(home).getByText('0 starting, 2 on the bench')
+    ).toBeInTheDocument();
+  });
+
   it('gives each team panel its own control ids', async () => {
     installElectronAPI();
     await renderMenu({

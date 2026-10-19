@@ -12,6 +12,7 @@ import {
   matchStateSchema,
   playerListSchema,
   scoresSchema,
+  substitutionListSchema,
   timeSchema,
   updatesSchema,
 } from '../zodSchemas';
@@ -549,6 +550,77 @@ describe('line-up schemas', () => {
       clubListSchema.parse([{ ...club, players: [{ name: 'Ali Smith' }] }])
     ).toEqual([{ ...club, players: [{ name: 'Ali Smith' }] }]);
     expect(clubListSchema.parse([{ ...club, players: 7 }])).toEqual([club]);
+  });
+
+  it('keeps the bench flag on a player, and only when it is false', () => {
+    expect(
+      playerListSchema.parse([
+        { name: 'Ali Smith', number: '9', starting: false },
+        { name: 'Jo Bloggs', starting: true },
+        { name: 'Kim Lee', starting: 'yes' },
+      ])
+    ).toEqual([
+      { name: 'Ali Smith', number: '9', starting: false },
+      { name: 'Jo Bloggs' },
+      { name: 'Kim Lee' },
+    ]);
+  });
+
+  it('round-trips substitutions, and leaves them absent in scores from before they existed', () => {
+    const substitution = {
+      id: 's1',
+      team: 'home',
+      time: '62:10',
+      matchPhase: 'secondHalf',
+      off: { name: 'Ali Smith', number: '9' },
+      on: { name: 'Kim Lee', number: '14' },
+    };
+    const parsed = scoresSchema.parse({
+      homeTeam: 1,
+      awayTeam: 0,
+      penalties: [],
+      substitutions: [substitution],
+    });
+    expect(parsed.substitutions).toEqual([substitution]);
+
+    const old = scoresSchema.parse({ homeTeam: 1, awayTeam: 0, penalties: [] });
+    expect('substitutions' in old).toBe(false);
+
+    const banner = { substitutionId: 's1', shownAt: 1_700_000_000_000 };
+    expect(
+      matchStateSchema.parse({
+        ...defaultMatchState,
+        substitutionBanner: banner,
+      }).substitutionBanner
+    ).toEqual(banner);
+    expect(
+      matchStateSchema.parse({ ...defaultMatchState, substitutionBanner: 's1' })
+        .substitutionBanner
+    ).toBeUndefined();
+  });
+
+  it('drops a malformed substitution and tidies the players in a kept one', () => {
+    expect(
+      substitutionListSchema.parse([
+        {
+          id: 's1',
+          team: 'away',
+          off: { name: ' Ali Smith ', number: '9', starting: false },
+          on: { name: 'Kim Lee', number: ' ' },
+        },
+        { id: 's2', team: 'home', off: { name: '' }, on: { name: 'Kim Lee' } },
+        { id: 's3', team: 'home', off: { name: 'Ali Smith' } },
+        'not a substitution',
+      ])
+    ).toEqual([
+      {
+        id: 's1',
+        team: 'away',
+        off: { name: 'Ali Smith', number: '9' },
+        on: { name: 'Kim Lee' },
+      },
+    ]);
+    expect(substitutionListSchema.parse('none')).toEqual([]);
   });
 
   it("keeps a goal's scorer number only beside a scorer", () => {

@@ -5,9 +5,11 @@ import {
   MAX_PLAYERS_PER_TEAM,
 } from '../constants';
 import {
+  formatPlayer,
   formatScorer,
   hasLineup,
   isScreenOffered,
+  isStarter,
   normalisePlayers,
   parsePlayerList,
   reconcileLineupScreen,
@@ -85,6 +87,20 @@ describe('parsePlayerList', () => {
     expect(parsePlayerList('')).toEqual([]);
     expect(parsePlayerList('\n \n')).toEqual([]);
   });
+
+  it('leaves everyone in a pasted list starting', () => {
+    const players = parsePlayerList('9 Ali Smith\nJo Bloggs');
+    expect(players.every(isStarter)).toBe(true);
+    expect(players.some((player) => 'starting' in player)).toBe(false);
+  });
+});
+
+describe('isStarter', () => {
+  it('treats only an explicit false as the bench', () => {
+    expect(isStarter({ name: 'Ali Smith' })).toBe(true);
+    expect(isStarter({ name: 'Ali Smith', starting: true })).toBe(true);
+    expect(isStarter({ name: 'Ali Smith', starting: false })).toBe(false);
+  });
 });
 
 describe('normalisePlayers', () => {
@@ -106,6 +122,27 @@ describe('normalisePlayers', () => {
       name: 'Player',
     }));
     expect(normalisePlayers(many)).toHaveLength(MAX_PLAYERS_PER_TEAM);
+  });
+
+  it('keeps the bench flag, and only the bench flag, so starters keep their old shape', () => {
+    expect(
+      normalisePlayers([
+        { name: 'Ali Smith', number: '9', starting: false },
+        { name: 'Jo Bloggs', starting: true },
+        { name: 'Kim Lee' },
+      ])
+    ).toEqual([
+      { name: 'Ali Smith', number: '9', starting: false },
+      { name: 'Jo Bloggs' },
+      { name: 'Kim Lee' },
+    ]);
+  });
+});
+
+describe('formatPlayer', () => {
+  it('shows a player the way the banner shows a scorer', () => {
+    expect(formatPlayer({ name: 'Smith', number: '9' })).toBe('9 Smith');
+    expect(formatPlayer({ name: 'Smith', starting: false })).toBe('Smith');
   });
 });
 
