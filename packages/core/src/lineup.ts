@@ -29,15 +29,27 @@ export function normalisePlayerNumber(
   return trimmed;
 }
 
+// Whether a player starts the match: anyone not explicitly on the bench.
+export function isStarter(player: Player): boolean {
+  return player.starting !== false;
+}
+
+// A player as stored: tidied name, the number only when there is one, and
+// the bench flag only when it is false, so a squad with everyone starting
+// keeps exactly the shape it had before the bench existed.
+export function normalisePlayer(player: Player): Player {
+  const name = normalisePlayerName(player.name);
+  const number = normalisePlayerNumber(player.number);
+  const stored: Player = number ? { name, number } : { name };
+  if (!isStarter(player)) stored.starting = false;
+  return stored;
+}
+
 // A list as stored: every name and number tidied, players without a name
 // dropped, and the list capped at MAX_PLAYERS_PER_TEAM.
 export function normalisePlayers(players: Player[]): Player[] {
   return players
-    .map((player) => {
-      const name = normalisePlayerName(player.name);
-      const number = normalisePlayerNumber(player.number);
-      return number ? { name, number } : { name };
-    })
+    .map(normalisePlayer)
     .filter((player) => player.name !== '')
     .slice(0, MAX_PLAYERS_PER_TEAM);
 }
@@ -104,6 +116,12 @@ export function formatScorer(goal: Pick<Goal, 'scorer' | 'scorerNumber'>) {
   return goal.scorerNumber
     ? `${goal.scorerNumber} ${goal.scorer}`
     : goal.scorer;
+}
+
+// A player as the substitution banner shows them, in the scorer's format so
+// "9 Smith" reads the same on both banners.
+export function formatPlayer(player: Player): string {
+  return formatScorer(scorerFromPlayer(player));
 }
 
 // Each team's line-up screen.

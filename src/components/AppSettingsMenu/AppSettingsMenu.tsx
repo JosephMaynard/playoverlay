@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, Display } from '@playoverlay/core';
+import {
+  AppSettings,
+  DashboardScale,
+  dashboardScales,
+  Display,
+  ThemeSetting,
+  themeSettings,
+} from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
@@ -10,6 +17,7 @@ import {
   LockOpenIcon,
 } from '@heroicons/react/24/outline';
 import SideMenu from '../SideMenu/SideMenu';
+import Toggle from '../ui/Toggle';
 
 export interface Props {
   open: boolean;
@@ -67,6 +75,49 @@ export default function AppSettingsMenu({
 
   return (
     <SideMenu open={open} setOpen={setOpen} title={t('settings:appMenu.title')}>
+      <CollapsiblePanel title={t('settings:appMenu.appearance.title')}>
+        <p className="mb-3 text-sm text-muted">
+          {t('settings:appMenu.appearance.description')}
+        </p>
+        <ButtonGrid
+          buttons={themeSettings.map((theme: ThemeSetting) => ({
+            label: t(`settings:appMenu.appearance.${theme}`),
+            onClick: () => updateAppSettings({ theme }),
+            // Unset means "system" for everyone who predates the setting.
+            selected: (appSettings.theme ?? 'system') === theme,
+          }))}
+        />
+        <h3 className="mb-1 mt-5 text-base font-semibold text-fg">
+          {t('settings:appMenu.dashboardSize.title')}
+        </h3>
+        <p className="mb-3 text-sm text-muted">
+          {t('settings:appMenu.dashboardSize.description')}
+        </p>
+        <ButtonGrid
+          buttons={dashboardScales.map((scale: DashboardScale) => ({
+            label: t(`settings:appMenu.dashboardSize.${scale}`),
+            onClick: () => updateAppSettings({ dashboardScale: scale }),
+            selected: (appSettings.dashboardScale ?? 'medium') === scale,
+          }))}
+        />
+      </CollapsiblePanel>
+      <CollapsiblePanel title={t('settings:appMenu.goals.title')}>
+        <Toggle
+          checked={appSettings.askForScorer !== false}
+          onChange={(askForScorer) => updateAppSettings({ askForScorer })}
+          label={t('settings:appMenu.goals.askForScorer')}
+          description={t('settings:appMenu.goals.askForScorerHint')}
+        />
+        <Toggle
+          className="mt-4"
+          checked={appSettings.showGoalBannerAutomatically !== false}
+          onChange={(showGoalBannerAutomatically) =>
+            updateAppSettings({ showGoalBannerAutomatically })
+          }
+          label={t('settings:appMenu.goals.bannerAuto')}
+          description={t('settings:appMenu.goals.bannerAutoHint')}
+        />
+      </CollapsiblePanel>
       <CollapsiblePanel title={t('settings:appMenu.keyColour')}>
         <ColourPicker
           label={t('settings:appMenu.keyColour')}
@@ -98,23 +149,24 @@ export default function AppSettingsMenu({
             ]}
           />
         ) : (
-          <p className="my-12">{t('settings:appMenu.displays.none')}</p>
+          <p className="text-sm text-muted">
+            {t('settings:appMenu.displays.none')}
+          </p>
         )}
+        {/* Stacked: three labels this long wrap badly side by side in a
+            drawer. */}
         <ButtonGrid
           className="mt-4"
+          columns={1}
           buttons={[
             {
               label: t('settings:appMenu.windowControls.toggleFullscreen'),
               onClick: () => window?.electronAPI?.toggleFullscreen(),
-              color: 'text-white',
-              backgroundColor: 'bg-indigo-600',
               disabled: isLocked,
             },
             {
               label: t('settings:appMenu.windowControls.resetPositions'),
               onClick: () => window?.electronAPI?.resetWindows(),
-              color: 'text-white',
-              backgroundColor: 'bg-indigo-600',
               disabled: isLocked,
             },
             {
@@ -122,8 +174,10 @@ export default function AppSettingsMenu({
                 ? t('settings:appMenu.windowControls.unlockWindows')
                 : t('settings:appMenu.windowControls.lockWindows'),
               onClick: isLocked ? handleUnlockWindows : handleLockWindows,
-              color: 'text-white',
-              backgroundColor: isLocked ? 'bg-red-600' : 'bg-green-600',
+              // Locking is what an operator does before kick-off, so it is
+              // the panel's main action; once locked, unlocking is a
+              // deliberate step back and reads as secondary.
+              variant: isLocked ? 'secondary' : 'primary',
               icon: isLocked ? (
                 <LockOpenIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
               ) : (

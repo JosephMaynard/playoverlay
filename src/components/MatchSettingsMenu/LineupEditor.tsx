@@ -6,11 +6,23 @@ import {
   MAX_PLAYER_NUMBER_LENGTH,
   MAX_PLAYERS_PER_TEAM,
   Player,
+  isStarter,
   normalisePlayerName,
   normalisePlayers,
+  classNames,
   parsePlayerList,
 } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
+import {
+  checkboxClassName,
+  compactInputClassName,
+  helpTextClassName,
+  inputClassName,
+  sectionHeadingClassName,
+  textareaClassName,
+} from '../ui/fields';
 
 export interface Props {
   // Keeps the two teams' control ids apart (see TeamSettings).
@@ -27,18 +39,15 @@ export interface Props {
 interface RowValues {
   number: string;
   name: string;
+  starting: boolean;
 }
 
-const inputClassName =
-  'block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6';
-
-const buttonClassName =
-  'inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400';
-
-// One player's number and name. Like the goal log's scorer field, edits are
-// held as a draft and committed when focus leaves the row (or on Enter), so
-// a half-typed name never reaches the on-air screens or storage. Moving
-// between the row's own two fields keeps the draft.
+// One player's number, name and whether they start. Like the goal log's
+// scorer field, typed edits are held as a draft and committed when focus
+// leaves the row (or on Enter), so a half-typed name never reaches the
+// on-air screens or storage. Moving between the row's own fields keeps the
+// draft. The Starts box is a click, not typing, so it commits the row at
+// once.
 function PlayerRow({
   idPrefix,
   index,
@@ -72,6 +81,22 @@ function PlayerRow({
     onCommit(shown, viaEnter);
   };
 
+  const setStarting = (starting: boolean) => {
+    const next = { ...shown, starting };
+    // A new row has no player to commit to yet; its flag travels with the
+    // draft until the name is committed.
+    if (isNew) {
+      setDraft(next);
+      return;
+    }
+    setDraft(null);
+    onCommit(next, false);
+  };
+
+  const playerLabel =
+    normalisePlayerName(shown.name) ||
+    t('settings:matchMenu.lineup.unnamedPlayer', label);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -94,7 +119,10 @@ function PlayerRow({
         aria-label={t('settings:matchMenu.lineup.numberLabel', label)}
         placeholder={t('settings:matchMenu.lineup.numberPlaceholder')}
         maxLength={MAX_PLAYER_NUMBER_LENGTH}
-        className={`${inputClassName} w-[calc(3ch+1.5rem)] flex-shrink-0 px-2 text-center tabular-nums`}
+        className={classNames(
+          compactInputClassName,
+          'w-[calc(3ch+1.5rem)] flex-shrink-0 text-center tabular-nums'
+        )}
         value={shown.number}
         disabled={disabled}
         onChange={(event) => setDraft({ ...shown, number: event.target.value })}
@@ -106,7 +134,7 @@ function PlayerRow({
         aria-label={t('settings:matchMenu.lineup.nameLabel', label)}
         placeholder={t('settings:matchMenu.lineup.namePlaceholder')}
         maxLength={MAX_PLAYER_NAME_LENGTH}
-        className={`${inputClassName} w-full min-w-0`}
+        className={classNames(inputClassName, 'min-w-0')}
         value={shown.name}
         disabled={disabled}
         // A row the operator has just asked for is ready to type into.
@@ -114,19 +142,27 @@ function PlayerRow({
         onChange={(event) => setDraft({ ...shown, name: event.target.value })}
         onKeyDown={handleKeyDown}
       />
-      <button
-        type="button"
-        className="flex-shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-600 disabled:cursor-not-allowed disabled:hover:text-gray-400"
-        aria-label={t('settings:matchMenu.lineup.removeAria', {
-          player:
-            normalisePlayerName(shown.name) ||
-            t('settings:matchMenu.lineup.unnamedPlayer', label),
+      <input
+        type="checkbox"
+        id={`${rowId}-starts`}
+        aria-label={t('settings:matchMenu.lineup.startsLabel', {
+          player: playerLabel,
         })}
+        className={classNames(checkboxClassName, 'flex-shrink-0')}
+        checked={shown.starting}
+        disabled={disabled}
+        onChange={(event) => setStarting(event.target.checked)}
+      />
+      <IconButton
+        tone="danger"
+        className="flex-shrink-0"
+        label={t('settings:matchMenu.lineup.removeAria', {
+          player: playerLabel,
+        })}
+        icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
         disabled={disabled}
         onClick={onRemove}
-      >
-        <TrashIcon className="h-5 w-5" aria-hidden="true" />
-      </button>
+      />
     </li>
   );
 }
@@ -153,6 +189,8 @@ export default function LineupEditor({
   const headingId = `${idPrefix}-lineup-heading`;
   const pasteId = `${idPrefix}-lineup-paste`;
   const atCap = players.length >= MAX_PLAYERS_PER_TEAM;
+  const startingCount = players.filter(isStarter).length;
+  const benchCount = players.length - startingCount;
 
   const openNewRow = (open: boolean) => {
     const id = open ? nextRowId.current++ : null;
@@ -170,7 +208,13 @@ export default function LineupEditor({
     const [edited] = normalisePlayers([values]);
     if (!edited) return;
     const player = players[index];
-    if (player.name === edited.name && player.number === edited.number) return;
+    if (
+      player.name === edited.name &&
+      player.number === edited.number &&
+      isStarter(player) === isStarter(edited)
+    ) {
+      return;
+    }
     commitPlayers(
       players.map((entry, position) => (position === index ? edited : entry))
     );
@@ -184,7 +228,7 @@ export default function LineupEditor({
     }
     const nextPlayers = [
       ...players,
-      { name: values.name, number: values.number },
+      { name: values.name, number: values.number, starting: values.starting },
     ];
     commitPlayers(nextPlayers);
     // Enter on a new row moves straight on to the next, so a squad can be
@@ -199,20 +243,17 @@ export default function LineupEditor({
   };
 
   return (
-    <section className="col-span-full mb-4" aria-labelledby={headingId}>
-      <h3
-        id={headingId}
-        className="block text-sm font-medium leading-6 text-gray-900"
-      >
+    <section className="col-span-full" aria-labelledby={headingId}>
+      <h3 id={headingId} className={sectionHeadingClassName}>
         {t('settings:matchMenu.lineup.title')}
       </h3>
       {players.length === 0 && newRowId === null && (
-        <p className="mt-1 text-sm text-gray-500">
+        <p className={helpTextClassName}>
           {t('settings:matchMenu.lineup.empty')}
         </p>
       )}
       {(players.length > 0 || newRowId !== null) && (
-        <ul role="list" className="mt-2 space-y-2">
+        <ul role="list" className="mt-3 space-y-2">
           {players.map((player, index) => (
             <PlayerRow
               // Rows are positions in the list: only the focused row can hold
@@ -221,7 +262,11 @@ export default function LineupEditor({
               idPrefix={idPrefix}
               index={index}
               team={team}
-              values={{ number: player.number ?? '', name: player.name }}
+              values={{
+                number: player.number ?? '',
+                name: player.name,
+                starting: isStarter(player),
+              }}
               disabled={disabled}
               onCommit={(values) => updatePlayer(index, values)}
               onRemove={() =>
@@ -237,7 +282,7 @@ export default function LineupEditor({
               idPrefix={idPrefix}
               index={players.length}
               team={team}
-              values={{ number: '', name: '' }}
+              values={{ number: '', name: '', starting: true }}
               isNew
               disabled={disabled}
               onCommit={(values, viaEnter) =>
@@ -248,27 +293,39 @@ export default function LineupEditor({
           )}
         </ul>
       )}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className={buttonClassName}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <ActionButton
+          size="md"
           disabled={disabled || atCap}
           onClick={() => openNewRow(true)}
         >
           {t('settings:matchMenu.lineup.addPlayer')}
-        </button>
-        <button
-          type="button"
-          className={buttonClassName}
+        </ActionButton>
+        <ActionButton
+          size="md"
           disabled={disabled || atCap}
           onClick={() => setPasteOpen(true)}
         >
           {t('settings:matchMenu.lineup.pasteList')}
-        </button>
+        </ActionButton>
         {players.length > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted">
             {t('settings:matchMenu.lineup.count', { count: players.length })} (
             {t('settings:matchMenu.lineup.cap', { max: MAX_PLAYERS_PER_TEAM })})
+          </span>
+        )}
+        {/* Only worth a line once someone is on the bench: with everyone
+            starting the player count already says it all. */}
+        {benchCount > 0 && (
+          <span className="text-sm text-muted">
+            {t('settings:matchMenu.lineup.squadSummary', {
+              starting: t('settings:matchMenu.lineup.startingCount', {
+                count: startingCount,
+              }),
+              bench: t('settings:matchMenu.lineup.benchCount', {
+                count: benchCount,
+              }),
+            })}
           </span>
         )}
       </div>
@@ -281,13 +338,13 @@ export default function LineupEditor({
         action={pastePlayers}
         actionDisabled={pasteText.trim() === ''}
       >
-        <label htmlFor={pasteId} className="block text-sm text-gray-500">
+        <label htmlFor={pasteId} className="block text-sm text-muted">
           {t('settings:matchMenu.lineup.pasteHint')}
         </label>
         <textarea
           id={pasteId}
           rows={10}
-          className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className={classNames(textareaClassName, 'mt-2')}
           value={pasteText}
           onChange={(event) => setPasteText(event.target.value)}
         />

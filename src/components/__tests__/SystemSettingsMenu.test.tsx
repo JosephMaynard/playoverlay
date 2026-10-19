@@ -216,20 +216,23 @@ describe('SystemSettingsMenu language selector', () => {
 
     // getLanguage() falls back to detectLanguage(); jsdom's default
     // navigator.language is en-US, so English is selected.
-    expect(screen.getByRole('button', { name: 'English' }).className).toMatch(
-      /bg-green-300/
+    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
     );
   });
 
   it('marks the chosen language selected once appSettings.language is set', () => {
     renderMenu({ appSettings: { ...defaultAppSettings, language: 'de' } });
 
-    expect(screen.getByRole('button', { name: 'Deutsch' }).className).toMatch(
-      /bg-green-300/
+    expect(screen.getByRole('button', { name: 'Deutsch' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
     );
-    expect(
-      screen.getByRole('button', { name: 'English' }).className
-    ).not.toMatch(/bg-green-300/);
+    expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
   });
 
   it('calls updateAppSettings with the chosen language code when clicked', async () => {
@@ -249,8 +252,9 @@ describe('SystemSettingsMenu scoreboard clock', () => {
     const updateAppSettings = vi.fn();
     renderMenu({ updateAppSettings });
 
-    expect(screen.getByRole('button', { name: '24-hour' }).className).toMatch(
-      /bg-green-300/
+    expect(screen.getByRole('button', { name: '24-hour' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
     );
 
     await user.click(screen.getByRole('button', { name: 'AM/PM' }));

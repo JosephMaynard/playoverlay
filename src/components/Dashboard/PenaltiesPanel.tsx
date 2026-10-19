@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Penalty, homeOrAway, MatchSettings } from '@playoverlay/core';
+import {
+  Penalty,
+  homeOrAway,
+  MatchSettings,
+  classNames,
+} from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
+import ActionButton from '../ui/ActionButton';
+import { sectionHeadingClassName } from '../ui/fields';
 import { PenaltiesBoard } from '@playoverlay/screens';
 
 export interface Props {
@@ -43,10 +49,10 @@ export default function PenaltiesPanel({
         : 'home';
 
   return (
-    <CollapsiblePanel title={t('settings:system.screens.penalties')}>
+    <div>
       <div className="mb-4 [--base-size:1.25rem]">
         <PenaltiesBoard
-          className="border border-gray-600"
+          className="border border-line-strong"
           matchSettings={matchSettings}
           penalties={penalties}
           penaltiesFirstTeam={penaltiesFirstTeam}
@@ -74,7 +80,7 @@ export default function PenaltiesPanel({
           },
         ]}
       />
-      <h3 className="my-4 text-base font-semibold leading-6 text-gray-900">
+      <h3 className={classNames(sectionHeadingClassName, 'my-4 text-lg')}>
         {t('dashboard:penaltiesPanel.nextPenalty', {
           team:
             nextPenalyTeam === 'home'
@@ -106,8 +112,8 @@ export default function PenaltiesPanel({
                 'undo:actions.penaltyScored'
               );
             },
-            color: 'text-white',
-            backgroundColor: 'bg-green-600',
+            variant: 'live',
+            size: 'xl',
           },
           {
             label: t('dashboard:penaltiesPanel.miss'),
@@ -123,33 +129,36 @@ export default function PenaltiesPanel({
                 'undo:actions.penaltyMissed'
               );
             },
-            backgroundColor: 'bg-red-700',
-            color: 'text-white',
+            variant: 'danger',
+            size: 'xl',
           },
         ]}
       />
-      <ButtonGrid
-        compact
-        buttons={[
-          {
-            label: t('dashboard:penaltiesPanel.undoLastAction'),
-            // Delegates to the global undo rather than doing its own local
-            // slice: the last penalty add is on the shared undo stack, so this
-            // and Ctrl/Cmd+Z reverse the exact same thing. Disabled (not just
-            // guarded) when there is nothing to undo.
-            onClick: onUndo,
-            disabled: !canUndo,
-            color: 'text-white',
-            backgroundColor: 'bg-indigo-600',
-          },
-          {
-            label: t('dashboard:penaltiesPanel.resetPenalties'),
-            onClick: () => setModalOpen(true),
-            backgroundColor: 'bg-red-700',
-            color: 'text-white',
-          },
-        ]}
-      />
+      <div className="flex flex-col gap-3">
+        <ActionButton
+          variant="primary"
+          size="lg"
+          block
+          // Delegates to the global undo rather than doing its own local
+          // slice: the last penalty add is on the shared undo stack, so this
+          // and Ctrl/Cmd+Z reverse the exact same thing. Disabled (not just
+          // guarded) when there is nothing to undo.
+          onClick={onUndo}
+          disabled={!canUndo}
+        >
+          {t('dashboard:penaltiesPanel.undoLastAction')}
+        </ActionButton>
+        {/* Quiet on purpose: a reset next to Score and Miss must not look like
+            a third live control. */}
+        <ActionButton
+          variant="danger-ghost"
+          size="md"
+          className="self-end"
+          onClick={() => setModalOpen(true)}
+        >
+          {t('dashboard:penaltiesPanel.resetPenalties')}
+        </ActionButton>
+      </div>
       <Modal
         open={modalOpen}
         setOpen={setModalOpen}
@@ -161,10 +170,10 @@ export default function PenaltiesPanel({
           setModalOpen(false);
         }}
       >
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           {t('dashboard:penaltiesPanel.resetConfirmBody')}
         </p>
       </Modal>
-    </CollapsiblePanel>
+    </div>
   );
 }

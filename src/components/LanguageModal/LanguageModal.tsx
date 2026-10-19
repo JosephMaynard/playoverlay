@@ -45,7 +45,7 @@ export default function LanguageModal({ language, onConfirm }: Props) {
       actionButtonColor="indigo"
       action={() => onConfirm(selected)}
     >
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted">
         {t('settings:language.modal.description')}
       </p>
       <div className="mt-4 grid grid-cols-2 gap-2">
@@ -56,10 +56,11 @@ export default function LanguageModal({ language, onConfirm }: Props) {
             aria-pressed={selected === code}
             onClick={() => setSelected(code)}
             className={classNames(
-              'rounded-md border px-3 py-2 text-left text-sm font-medium',
+              'min-h-12 rounded-xl px-4 py-2 text-left text-base font-medium transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
               selected === code
-                ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                : 'border-gray-200 text-gray-900 hover:bg-gray-50'
+                ? 'bg-accent-soft text-fg ring-2 ring-inset ring-accent'
+                : 'bg-surface text-fg ring-1 ring-inset ring-line hover:bg-surface-2 hover:ring-line-strong'
             )}
           >
             {label}

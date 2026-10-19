@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   defaultAppSettings,
@@ -204,16 +204,14 @@ function advance(ms: number) {
   });
 }
 
-// The pencil button that opens the "Adjust Time" modal is icon-only, but
-// carries an aria-label (reusing the same "Adjust Time" copy as the modal's
-// own title), so it can be found by accessible name rather than structurally.
+// The key that opens the "Phases & clock" pop-up, which holds the phase
+// list, the clock nudges and pause/resume.
 function getOpenAdjustTimeButton(): HTMLElement {
-  return screen.getByRole('button', { name: 'Adjust Time' });
+  return screen.getByRole('button', { name: 'Phases & clock' });
 }
 
-// The pause/resume icon button is also icon-only, but carries an aria-label
-// of whichever action it currently performs ("Pause" while running, "Resume"
-// while paused), so it too can be found by accessible name.
+// The pause/resume key in that pop-up is labelled with whichever action it
+// currently performs ("Pause" while running, "Resume" while paused).
 function getPauseOrResumeButton(): HTMLElement {
   return screen.getByRole('button', { name: /^(Pause|Resume)$/ });
 }
@@ -410,11 +408,12 @@ describe('Dashboard match engine', () => {
       });
       fireEvent.click(restoreButton);
 
-      // A snapshot from before the goal log restores with an empty log,
-      // replacing whatever the current session had.
+      // A snapshot from before the goal log restores with an empty log (and
+      // no substitutions), replacing whatever the current session had.
       expect(stores.scores.getState().scores).toEqual({
         ...liveMatch.scores,
         goals: [],
+        substitutions: [],
       });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
@@ -507,11 +506,12 @@ describe('Dashboard match engine', () => {
       expect(stores.matchSettings.getState().matchSettings.hasExtraTime).toBe(
         defaultMatchSettings.hasExtraTime
       );
-      // A snapshot from before the goal log restores with an empty log,
-      // replacing whatever the current session had.
+      // A snapshot from before the goal log restores with an empty log (and
+      // no substitutions), replacing whatever the current session had.
       expect(stores.scores.getState().scores).toEqual({
         ...liveMatch.scores,
         goals: [],
+        substitutions: [],
       });
       expect(stores.matchState.getState().matchState).toEqual(
         liveMatch.matchState
@@ -582,8 +582,9 @@ describe('Dashboard match engine', () => {
     it('stops the clock when a settings change removes the running phase', async () => {
       const { stores } = await renderDashboard();
 
-      // Start extraTimeSecondHalf directly via the Time panel's phase
-      // buttons (default football settings include extra time).
+      // Start extraTimeSecondHalf directly via the phase keys in the
+      // Phases & clock pop-up (default football settings include extra time).
+      fireEvent.click(getOpenAdjustTimeButton());
       fireEvent.click(
         screen.getByRole('button', { name: 'Extra Time Second Half' })
       );
@@ -919,9 +920,10 @@ describe('Dashboard match engine', () => {
   });
 
   describe('goal log', () => {
-    // The Goals panel starts collapsed; goals are logged either way.
+    // The Goals tab is the match tab group's first tab, so it is already
+    // showing; selecting it again is harmless and keeps the intent clear.
     function openGoalsPanel() {
-      fireEvent.click(screen.getByRole('button', { name: 'Goals' }));
+      fireEvent.click(screen.getByRole('tab', { name: 'Goals' }));
     }
 
     it('logs each goal with its minute, from any input, and undo removes it', async () => {
@@ -999,7 +1001,7 @@ describe('Dashboard match engine', () => {
       expect(stores.scores.getState().scores.homeTeam).toBe(1);
     });
 
-    it('shows the goal banner automatically unless switched off, and on request', async () => {
+    it('shows the goal banner automatically unless switched off in Window Settings', async () => {
       const { callbacks, stores } = await renderDashboard();
 
       // On by default: no typing needed for a goal graphic.
@@ -1010,10 +1012,10 @@ describe('Dashboard match engine', () => {
         shownAt: Date.now(),
       });
 
-      openGoalsPanel();
+      fireEvent.click(screen.getByRole('button', { name: 'Window Settings' }));
       fireEvent.click(
         screen.getByRole('switch', {
-          name: 'Show the goal banner on air as soon as a goal is scored',
+          name: 'Put goal and substitution banners on air automatically',
         })
       );
       expect(
@@ -1023,14 +1025,117 @@ describe('Dashboard match engine', () => {
       expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
         homeGoal.id
       );
+    });
 
-      // Shown by hand from the log.
+    it('asks who scored from the goal key when the team has a line-up, holding the banner until the pick', async () => {
+      const { stores } = await renderDashboard({
+        matchSettings: {
+          ...defaultMatchSettings,
+          homeTeamPlayers: [
+            { name: 'Ali Smith', number: '9' },
+            { name: 'Kai Moore', number: '12' },
+          ],
+        },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
+      // The score is up at once; the banner waits for the modal.
+      expect(stores.scores.getState().scores.homeTeam).toBe(1);
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
+      // Fake timers are on, so the modal is read synchronously (Headless UI
+      // mounts it at once and only animates the opacity).
+      const dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByText('Who scored?')).toBeInTheDocument();
+
       fireEvent.click(
-        screen.getByRole('button', { name: 'Show on air: Away Team goal' })
+        within(dialog).getByRole('button', { name: /Ali Smith/ })
       );
-      const awayGoal = stores.scores.getState().scores.goals?.[1];
+      const [goal] = stores.scores.getState().scores.goals ?? [];
+      expect(goal).toEqual(
+        expect.objectContaining({ scorer: 'Ali Smith', scorerNumber: '9' })
+      );
       expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
-        awayGoal?.id
+        goal.id
+      );
+    });
+
+    it('never asks for a team without a line-up, and takes a mis-tapped goal back from the modal', async () => {
+      const { stores } = await renderDashboard({
+        matchSettings: {
+          ...defaultMatchSettings,
+          homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+        },
+      });
+
+      // The away team has no line-up: the goal and its banner go straight out.
+      fireEvent.click(screen.getByRole('button', { name: 'Away Team scored' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      const [awayGoal] = stores.scores.getState().scores.goals ?? [];
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        awayGoal.id
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
+      expect(stores.scores.getState().scores.homeTeam).toBe(1);
+      const dialog = screen.getByRole('dialog');
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Not a goal' })
+      );
+      expect(stores.scores.getState().scores.homeTeam).toBe(0);
+      expect(stores.scores.getState().scores.goals).toHaveLength(1);
+      // The away banner is still the one on air; the mis-tap never showed one.
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        awayGoal.id
+      );
+    });
+
+    it('drops the scorer question when the goal is undone, so redo does not reopen it', async () => {
+      const { stores } = await renderDashboard({
+        matchSettings: {
+          ...defaultMatchSettings,
+          homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+        },
+      });
+
+      const { useUndoStore } = await import('@playoverlay/core');
+      fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
+      expect(screen.getByText('Who scored?')).toBeInTheDocument();
+      // Ctrl+Z is still live under the modal: the goal goes, and the question
+      // with it.
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.goals ?? []).toHaveLength(0);
+      act(() => useUndoStore.getState().redo());
+      advance(500);
+      const [goal] = stores.scores.getState().scores.goals ?? [];
+      expect(goal).toBeDefined();
+      // Headless UI keeps a closing dialog in the DOM under fake timers, so
+      // the check is behavioural: a pick now must not land on the restored
+      // goal, and nothing from the old prompt puts a banner up.
+      screen
+        .queryAllByRole('button', { name: /Ali Smith/ })
+        .forEach((button) => fireEvent.click(button));
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
+    });
+
+    it('lets the operator switch the scorer question off', async () => {
+      const { stores } = await renderDashboard({
+        appSettings: { ...defaultAppSettings, askForScorer: false },
+        matchSettings: {
+          ...defaultMatchSettings,
+          homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+        },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      const [goal] = stores.scores.getState().scores.goals ?? [];
+      expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
+        goal.id
       );
     });
 
@@ -1048,6 +1153,47 @@ describe('Dashboard match engine', () => {
         stores.matchState.getState().matchState.goalBanner
       ).toBeUndefined();
     });
+  });
+});
+
+describe('Dashboard substitutions', () => {
+  it('logs a substitution from the tab as one undoable step and puts the banner up', async () => {
+    const { stores } = await renderDashboard({
+      matchSettings: {
+        ...defaultMatchSettings,
+        homeTeamPlayers: [
+          { name: 'Ali Smith', number: '9' },
+          { name: 'Kai Moore', number: '12', starting: false },
+        ],
+      },
+    });
+    const { useUndoStore } = await import('@playoverlay/core');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Substitutions' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Home Team substitution' })
+    );
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Ali Smith/ }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Kai Moore/ }));
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Confirm substitution' })
+    );
+
+    const [substitution] = stores.scores.getState().scores.substitutions ?? [];
+    expect(substitution).toEqual(
+      expect.objectContaining({
+        team: 'home',
+        off: { name: 'Ali Smith', number: '9' },
+        on: { name: 'Kai Moore', number: '12' },
+      })
+    );
+    expect(stores.matchState.getState().matchState.substitutionBanner).toEqual(
+      expect.objectContaining({ substitutionId: substitution.id })
+    );
+
+    act(() => useUndoStore.getState().undo());
+    expect(stores.scores.getState().scores.substitutions).toEqual([]);
   });
 });
 
@@ -1114,20 +1260,22 @@ describe('Dashboard screen rotation', () => {
     const displayed = () =>
       stores.matchState.getState().matchState.displayScreen;
 
-    fireEvent.click(screen.getByRole('button', { name: /Rotate screens/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Start rotating' }));
+    // The Rotate key in Display Controls starts the rotation directly.
+    fireEvent.click(screen.getByRole('button', { name: 'Rotate screens' }));
     expect(displayed()).toBe('matchTitle');
     advance(5000);
     expect(displayed()).toBe('scoreboard');
     advance(5000);
     expect(displayed()).toBe('matchTitle');
-    expect(screen.getByText('Rotating')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Rotating, 5 s per screen' })
+    ).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(screen.getByRole('button', { name: 'Score Bug' }));
     expect(displayed()).toBe('scoreBug');
     expect(
-      screen.getByRole('button', { name: 'Start rotating' })
-    ).toBeInTheDocument();
+      screen.getByRole('button', { name: 'Rotate screens' })
+    ).toHaveAttribute('aria-pressed', 'false');
     advance(20_000);
     expect(displayed()).toBe('scoreBug');
   });

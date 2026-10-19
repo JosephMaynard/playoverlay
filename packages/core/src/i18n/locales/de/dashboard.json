@@ -1,25 +1,36 @@
 {
   "displayControls": {
     "overlays": "Overlays",
+    "screens": "Bildschirme",
     "title": "Anzeigesteuerung"
   },
   "goalLog": {
     "empty": "Noch keine Tore. Jedes Tor erscheint hier mit seiner Spielminute, sobald es fällt.",
     "goal": "Tor: {{team}}",
     "goalWithMinute": "Tor: {{team}}, {{minute}}",
-    "pickScorer": "Nicht in der Aufstellung? Geben Sie einfach einen Namen ein.",
     "remove": "Tor entfernen",
     "removeAria": "Tor entfernen: {{goal}}",
     "scorerLabel": "Torschütze ({{goal}})",
     "scorerPlaceholder": "Torschütze",
-    "showAutomatically": "Tor-Einblendung sofort zeigen, wenn ein Tor fällt",
-    "showBanner": "Einblenden",
-    "showBannerAria": "Einblenden: {{goal}}",
     "title": "Tore"
   },
+  "goals": {
+    "addScorer": "Torschütze hinzufügen",
+    "key": "Tor",
+    "keyAria": "Tor für {{team}}"
+  },
   "header": {
+    "darkMode": "Dunkler Modus",
+    "graphics": "Grafiken",
+    "lightMode": "Heller Modus",
+    "newMatch": "Neu",
     "openMenu": "{{title}}-Menü öffnen",
-    "teamSettings": "Team-Einstellungen"
+    "redo": "Wiederholen",
+    "settings": "Einstellungen",
+    "teamSettings": "Team-Einstellungen",
+    "teams": "Teams",
+    "undo": "Rückgängig",
+    "window": "Fenster"
   },
   "newMatch": {
     "button": "Neues Spiel",
@@ -54,11 +65,13 @@
     "autoStart": "Zur Halbzeit automatisch starten",
     "autoStartHint": "Startet, wenn die Uhr für eine Pause angehalten wird und das Spiel noch weitergeht, nie nach dem Abpfiff.",
     "description": "Die Anzeige zeigt die ausgewählten Bildschirme nacheinander in der aufgeführten Reihenfolge, damit Sie vor dem Anstoß oder in der Halbzeit kurz weggehen können. Wenn Sie selbst einen Bildschirm wählen oder die Uhr starten, endet sie.",
+    "keyRotating": "Wechselt, {{seconds}} s pro Bildschirm",
     "needTwo": "Wählen Sie mindestens zwei Bildschirme für den Wechsel aus.",
     "rotating": "Wechselt",
     "screens": "Anzuzeigende Bildschirme",
     "seconds": "Sekunden pro Bildschirm",
     "secondsError": "Geben Sie eine ganze Zahl von Sekunden von {{min}} bis {{max}} ein.",
+    "setUp": "Bildschirmwechsel einrichten",
     "start": "Wechsel starten",
     "stop": "Wechsel stoppen",
     "title": "Bildschirme wechseln"
@@ -66,25 +79,61 @@
   "scoreInput": {
     "decreaseScoreAria": "Spielstand von {{team}} verringern",
     "editScore": "Spielstand bearbeiten",
-    "editScoreAria": "Spielstand von {{team}} bearbeiten",
     "increaseScoreAria": "Spielstand von {{team}} erhöhen",
-    "scoreLabel": "Spielstand {{team}}",
-    "scored": "Tor für {{title}}"
+    "scoreLabel": "Spielstand {{team}}"
   },
-  "scoresPanel": {
-    "title": "Spielstände"
+  "scorer": {
+    "bench": "Bank",
+    "hint": "Die Spielstandsanzeige ist bereits aktualisiert. Das Torbanner erscheint, sobald du auswählst.",
+    "noScorer": "Kein Torschütze",
+    "notAGoal": "Kein Tor",
+    "onPitch": "Auf dem Platz",
+    "ownGoal": "Eigentor",
+    "whoScored": "Wer hat getroffen?"
+  },
+  "substitutions": {
+    "change": "Ändern",
+    "confirm": "Wechsel bestätigen",
+    "confirmAnother": "Bestätigen und weiteren Wechsel",
+    "empty": "Noch keine Wechsel. Tippe oben auf ein Team, um festzuhalten, wer vom Platz geht und wer kommt.",
+    "emptyBench": "Niemand mehr auf der Bank.",
+    "entry": "{{team}}: {{off}} raus, {{on}} rein",
+    "key": "Wechsel",
+    "keyAria": "Wechsel {{team}}",
+    "off": "Geht raus",
+    "on": "Kommt rein",
+    "pickOff": "Wähle, wer rausgeht",
+    "pickOn": "Von der Bank wählen",
+    "remove": "Wechsel entfernen",
+    "removeAria": "Wechsel entfernen: {{substitution}}",
+    "title": "Wechsel"
+  },
+  "tabs": {
+    "match": "Spiel",
+    "output": "Ausgabe",
+    "screens": "Bildschirme",
+    "substitutions": "Wechsel"
   },
   "timeControl": {
+    "addedTime": "Nachspielzeit",
+    "addedTimeAria": "Nachspielzeit: {{minutes}} Minuten",
     "additionalTimeLabel": "Nachspielzeit",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Zeit anpassen",
+    "allPhases": "Zu einer Phase springen",
     "autoSwitchLabel": "Bildschirme beim Start und Stopp automatisch wechseln",
     "clear": "Löschen",
     "pause": "Pause",
+    "paused": "Pausiert",
+    "phasesAndClock": "Phasen & Uhr",
+    "remaining": "Verbleibend",
     "resume": "Fortsetzen",
+    "running": "Läuft",
     "setAdditionalTime": "Nachspielzeit festlegen",
+    "start": "{{phase}} starten",
+    "startPlain": "Starten",
     "title": "Zeit"
   }
 }

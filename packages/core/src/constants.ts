@@ -91,6 +91,7 @@ export const defaultScores: Scores = {
   awayTeam: 0,
   penalties: [],
   goals: [],
+  substitutions: [],
 };
 
 // The most periods generic timer mode allows. Shared by the settings form,
@@ -122,8 +123,11 @@ export const defaultScreenRotationSettings: ScreenRotationSettings = {
   autoStartAtHalfTime: false,
 };
 
-// How long the on-air goal banner stays up after it is shown.
+// How long the on-air goal banner stays up after it is shown. The
+// substitution banner uses the same window so the two feel like one family
+// of graphics, and so one "show automatically" setting can cover both.
 export const GOAL_BANNER_DURATION_MS = 10000;
+export const SUBSTITUTION_BANNER_DURATION_MS = GOAL_BANNER_DURATION_MS;
 
 // Where "Support PlayOverlay" points: the project's Ko-fi page. Opened in
 // the system browser from the dashboard rail and the Help menu.

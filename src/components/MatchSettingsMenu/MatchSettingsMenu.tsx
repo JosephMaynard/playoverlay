@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Switch } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import {
   AppSettings,
@@ -20,6 +19,13 @@ import SavedMatchSettings from './SavedMatchSettings';
 import SavedClubs from './SavedClubs';
 import ClubPicker from './ClubPicker';
 import { nanoid } from 'nanoid';
+import ActionButton from '../ui/ActionButton';
+import Toggle from '../ui/Toggle';
+import {
+  errorTextClassName,
+  inputClassName,
+  labelClassName,
+} from '../ui/fields';
 
 // Upper bounds matching the persistence schema (zodSchemas.ts): a value the
 // schema rejects is silently reset to the default on the next reload, so the
@@ -117,7 +123,7 @@ function DraftNumberInput({
         step={step}
         aria-invalid={invalid || undefined}
         aria-describedby={invalid ? errorId : undefined}
-        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        className={inputClassName}
         value={draft ?? value}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={handleCommit}
@@ -129,7 +135,7 @@ function DraftNumberInput({
         }}
       />
       {invalid && (
-        <p id={errorId} className="mt-1 text-xs text-red-600">
+        <p id={errorId} className={errorTextClassName}>
           {errorMessage}
         </p>
       )}
@@ -294,178 +300,99 @@ export default function MatchSettingsMenu({
         appSettings={appSettings}
       />
       <CollapsiblePanel title={t('settings:matchMenu.details.title')}>
-        <div className="col-span-full mb-4">
-          <label
-            htmlFor="matchVenue"
-            className="block text-sm font-medium leading-6 text-gray-900"
-          >
-            {t('settings:matchMenu.details.venue')}
-          </label>
-          <div className="mt-2">
-            <input
-              type="text"
-              name="matchVenue"
-              id="matchVenue"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
-              onChange={(e) => {
-                updateMatchSettings({ venue: e.target.value || undefined });
-              }}
-              value={matchSettings.venue || ''}
+        <div className="space-y-4">
+          <div className="col-span-full">
+            <label htmlFor="matchVenue" className={labelClassName}>
+              {t('settings:matchMenu.details.venue')}
+            </label>
+            <div className="mt-2">
+              <input
+                type="text"
+                name="matchVenue"
+                id="matchVenue"
+                className={inputClassName}
+                onChange={(e) => {
+                  updateMatchSettings({ venue: e.target.value || undefined });
+                }}
+                value={matchSettings.venue || ''}
+              />
+            </div>
+          </div>
+          <div className="col-span-full">
+            <label htmlFor="kickOffTime" className={labelClassName}>
+              {t('settings:matchMenu.details.kickOffTime')}
+            </label>
+            <div className="mt-2">
+              <input
+                type="time"
+                name="kickOffTime"
+                id="kickOffTime"
+                className={inputClassName}
+                onChange={(e) => {
+                  updateMatchSettings({
+                    kickOffTime: e.target.value || undefined,
+                  });
+                }}
+                value={matchSettings.kickOffTime || ''}
+              />
+            </div>
+          </div>
+          <div>
+            <label className={classNames(labelClassName, 'mb-2')}>
+              {t('settings:matchMenu.details.timerMode')}
+            </label>
+            <ButtonGrid
+              compact
+              buttons={[
+                {
+                  label: t('settings:matchMenu.details.football'),
+                  selected: matchSettings.timerMode !== 'generic',
+                  onClick: () => updateMatchSettings({ timerMode: 'football' }),
+                },
+                {
+                  label: t('settings:matchMenu.details.generic'),
+                  selected: matchSettings.timerMode === 'generic',
+                  onClick: () => updateMatchSettings({ timerMode: 'generic' }),
+                },
+              ]}
             />
           </div>
-        </div>
-        <div className="col-span-full mb-4">
-          <label
-            htmlFor="kickOffTime"
-            className="block text-sm font-medium leading-6 text-gray-900"
-          >
-            {t('settings:matchMenu.details.kickOffTime')}
-          </label>
-          <div className="mt-2">
-            <input
-              type="time"
-              name="kickOffTime"
-              id="kickOffTime"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              onChange={(e) => {
-                updateMatchSettings({
-                  kickOffTime: e.target.value || undefined,
-                });
-              }}
-              value={matchSettings.kickOffTime || ''}
-            />
-          </div>
-        </div>
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-medium leading-6 text-gray-900">
-            {t('settings:matchMenu.details.timerMode')}
-          </label>
-          <ButtonGrid
-            compact
-            buttons={[
-              {
-                label: t('settings:matchMenu.details.football'),
-                selected: matchSettings.timerMode !== 'generic',
-                onClick: () => updateMatchSettings({ timerMode: 'football' }),
-              },
-              {
-                label: t('settings:matchMenu.details.generic'),
-                selected: matchSettings.timerMode === 'generic',
-                onClick: () => updateMatchSettings({ timerMode: 'generic' }),
-              },
-            ]}
-          />
-        </div>
-        {matchSettings.timerMode === 'generic' ? (
-          <div className="mb-4 grid grid-cols-3 gap-4">
-            <div>
-              <label
-                htmlFor="periodCount"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                {t('settings:matchMenu.details.periodCount')}
-              </label>
-              <div className="mt-2">
-                <DraftNumberInput
-                  id="periodCount"
-                  value={String(matchSettings.periodCount ?? 4)}
-                  parse={parsePeriodCountInput}
-                  commit={(periodCount) => updateMatchSettings({ periodCount })}
-                  errorMessage={t(
-                    'settings:matchMenu.details.periodCountError'
-                  )}
-                  min={1}
-                  max={MAX_PERIOD_COUNT}
-                  step={1}
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="periodLength"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                {t('settings:matchMenu.details.periodLength')}
-              </label>
-              <div className="mt-2">
-                <DraftNumberInput
-                  id="periodLength"
-                  value={String(matchSettings.periodLength ?? 10)}
-                  parse={parseLengthInput}
-                  commit={(periodLength) =>
-                    updateMatchSettings({ periodLength })
-                  }
-                  errorMessage={t('settings:matchMenu.details.lengthError')}
-                  max={MAX_LENGTH_MINUTES}
-                  step="any"
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="periodName"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                {t('settings:matchMenu.details.periodNameLabel')}
-              </label>
-              <div className="mt-2">
-                <input
-                  type="text"
-                  name="periodName"
-                  id="periodName"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  value={matchSettings.periodName || ''}
-                  placeholder={t(
-                    'settings:matchMenu.details.periodNamePlaceholder'
-                  )}
-                  onChange={(e) =>
-                    updateMatchSettings({
-                      periodName: e.target.value || undefined,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-4 grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="halfLength"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                {t('settings:matchMenu.details.halfLength')}
-              </label>
-              <div className="mt-2">
-                <DraftNumberInput
-                  id="halfLength"
-                  // Show the length actually in effect: getPhaseList falls
-                  // back to 45 when it's unset.
-                  value={String(matchSettings.halfLength ?? 45)}
-                  parse={parseLengthInput}
-                  commit={(halfLength) => updateMatchSettings({ halfLength })}
-                  errorMessage={t('settings:matchMenu.details.lengthError')}
-                  max={MAX_LENGTH_MINUTES}
-                  step="any"
-                />
-              </div>
-            </div>
-            {matchSettings.hasExtraTime !== false && (
+          {matchSettings.timerMode === 'generic' ? (
+            // Two short number fields side by side, with the free-text name
+            // on its own row: three columns are too narrow in a drawer.
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label
-                  htmlFor="extraTimeHalfLength"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
-                  {t('settings:matchMenu.details.extraTimeHalfLength')}
+                <label htmlFor="periodCount" className={labelClassName}>
+                  {t('settings:matchMenu.details.periodCount')}
                 </label>
                 <div className="mt-2">
                   <DraftNumberInput
-                    id="extraTimeHalfLength"
-                    // getPhaseList falls back to 15 when it's unset.
-                    value={String(matchSettings.extraTimeHalfLength ?? 15)}
+                    id="periodCount"
+                    value={String(matchSettings.periodCount ?? 4)}
+                    parse={parsePeriodCountInput}
+                    commit={(periodCount) =>
+                      updateMatchSettings({ periodCount })
+                    }
+                    errorMessage={t(
+                      'settings:matchMenu.details.periodCountError'
+                    )}
+                    min={1}
+                    max={MAX_PERIOD_COUNT}
+                    step={1}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="periodLength" className={labelClassName}>
+                  {t('settings:matchMenu.details.periodLength')}
+                </label>
+                <div className="mt-2">
+                  <DraftNumberInput
+                    id="periodLength"
+                    value={String(matchSettings.periodLength ?? 10)}
                     parse={parseLengthInput}
-                    commit={(extraTimeHalfLength) =>
-                      updateMatchSettings({ extraTimeHalfLength })
+                    commit={(periodLength) =>
+                      updateMatchSettings({ periodLength })
                     }
                     errorMessage={t('settings:matchMenu.details.lengthError')}
                     max={MAX_LENGTH_MINUTES}
@@ -473,87 +400,109 @@ export default function MatchSettingsMenu({
                   />
                 </div>
               </div>
-            )}
-          </div>
-        )}
-        {matchSettings.timerMode !== 'generic' && (
-          <Switch.Group as="div" className="mb-4 flex items-center">
-            <Switch
+              <div className="col-span-2">
+                <label htmlFor="periodName" className={labelClassName}>
+                  {t('settings:matchMenu.details.periodNameLabel')}
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    name="periodName"
+                    id="periodName"
+                    className={inputClassName}
+                    value={matchSettings.periodName || ''}
+                    placeholder={t(
+                      'settings:matchMenu.details.periodNamePlaceholder'
+                    )}
+                    onChange={(e) =>
+                      updateMatchSettings({
+                        periodName: e.target.value || undefined,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="halfLength" className={labelClassName}>
+                  {t('settings:matchMenu.details.halfLength')}
+                </label>
+                <div className="mt-2">
+                  <DraftNumberInput
+                    id="halfLength"
+                    // Show the length actually in effect: getPhaseList falls
+                    // back to 45 when it's unset.
+                    value={String(matchSettings.halfLength ?? 45)}
+                    parse={parseLengthInput}
+                    commit={(halfLength) => updateMatchSettings({ halfLength })}
+                    errorMessage={t('settings:matchMenu.details.lengthError')}
+                    max={MAX_LENGTH_MINUTES}
+                    step="any"
+                  />
+                </div>
+              </div>
+              {matchSettings.hasExtraTime !== false && (
+                <div>
+                  <label
+                    htmlFor="extraTimeHalfLength"
+                    className={labelClassName}
+                  >
+                    {t('settings:matchMenu.details.extraTimeHalfLength')}
+                  </label>
+                  <div className="mt-2">
+                    <DraftNumberInput
+                      id="extraTimeHalfLength"
+                      // getPhaseList falls back to 15 when it's unset.
+                      value={String(matchSettings.extraTimeHalfLength ?? 15)}
+                      parse={parseLengthInput}
+                      commit={(extraTimeHalfLength) =>
+                        updateMatchSettings({ extraTimeHalfLength })
+                      }
+                      errorMessage={t('settings:matchMenu.details.lengthError')}
+                      max={MAX_LENGTH_MINUTES}
+                      step="any"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {matchSettings.timerMode !== 'generic' && (
+            <Toggle
               checked={matchSettings.hasExtraTime !== false}
               onChange={(hasExtraTime: boolean) =>
                 updateMatchSettings({ hasExtraTime })
               }
-              className={classNames(
-                matchSettings.hasExtraTime !== false
-                  ? 'bg-indigo-600'
-                  : 'bg-gray-200',
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-              )}
-            >
-              <span
-                aria-hidden="true"
-                className={classNames(
-                  matchSettings.hasExtraTime !== false
-                    ? 'translate-x-5'
-                    : 'translate-x-0',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-                )}
-              />
-            </Switch>
-            <Switch.Label as="span" className="ml-3 text-sm">
-              <span className="font-medium text-gray-900">
-                {t('settings:matchMenu.details.extraTime')}
-              </span>
-            </Switch.Label>
-          </Switch.Group>
-        )}
-        <Switch.Group as="div" className="mb-4 flex items-center">
-          <Switch
+              label={t('settings:matchMenu.details.extraTime')}
+            />
+          )}
+          <Toggle
             checked={matchSettings.hasPenalties !== false}
             onChange={(hasPenalties: boolean) =>
               updateMatchSettings({ hasPenalties })
             }
-            className={classNames(
-              matchSettings.hasPenalties !== false
-                ? 'bg-indigo-600'
-                : 'bg-gray-200',
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-            )}
+            label={t('settings:matchMenu.details.penalties')}
+          />
+          <ActionButton
+            size="md"
+            onClick={() => {
+              updateMatchSettings({
+                timerMode: 'football',
+                halfLength: 45,
+                extraTimeHalfLength: 15,
+                hasExtraTime: true,
+                hasPenalties: true,
+                periodCount: undefined,
+                periodLength: undefined,
+                periodName: undefined,
+              });
+            }}
           >
-            <span
-              aria-hidden="true"
-              className={classNames(
-                matchSettings.hasPenalties !== false
-                  ? 'translate-x-5'
-                  : 'translate-x-0',
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-              )}
-            />
-          </Switch>
-          <Switch.Label as="span" className="ml-3 text-sm">
-            <span className="font-medium text-gray-900">
-              {t('settings:matchMenu.details.penalties')}
-            </span>
-          </Switch.Label>
-        </Switch.Group>
-        <button
-          type="button"
-          className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          onClick={() => {
-            updateMatchSettings({
-              timerMode: 'football',
-              halfLength: 45,
-              extraTimeHalfLength: 15,
-              hasExtraTime: true,
-              hasPenalties: true,
-              periodCount: undefined,
-              periodLength: undefined,
-              periodName: undefined,
-            });
-          }}
-        >
-          {t('reset')}
-        </button>
+            {t('reset')}
+          </ActionButton>
+        </div>
       </CollapsiblePanel>
     </SideMenu>
   );

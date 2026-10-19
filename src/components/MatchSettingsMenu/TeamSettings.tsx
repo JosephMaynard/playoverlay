@@ -1,10 +1,16 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppSettings, Player } from '@playoverlay/core';
+import { AppSettings, Player, classNames } from '@playoverlay/core';
 import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ColourPicker from '../ColorPicker/ColorPicker';
 import LineupEditor from './LineupEditor';
 import { ScoresTeamName } from '@playoverlay/screens';
+import ActionButton from '../ui/ActionButton';
+import {
+  errorTextClassName,
+  inputClassName,
+  labelClassName,
+} from '../ui/fields';
 
 export interface Props {
   title: string;
@@ -93,129 +99,135 @@ export default function TeamSettings({
 
   return (
     <CollapsiblePanel title={title}>
-      {clubPicker}
-      <div className="col-span-full mb-4">
-        <label
-          htmlFor={`${idPrefix}-teamNameFull`}
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          {t('settings:matchMenu.team.nameLabel', { team: title })}
-        </label>
-        <div className="mt-2">
-          <input
-            type="text"
-            name={`${idPrefix}-teamNameFull`}
-            id={`${idPrefix}-teamNameFull`}
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
-            onChange={(e) => {
-              if (disabled !== true) {
-                setTeamNameFull(e.target.value);
-              }
-            }}
-            disabled={disabled}
-            readOnly={disabled}
-            value={teamNameFull}
-          />
-        </div>
-      </div>
-      <div className="mb-2 inline-block border border-gray-900 [--base-size:2rem]">
-        <ScoresTeamName
-          teamName={teamNameAbbreviated}
-          textColour={textColour}
-          backgroundColour={backgroundColour}
-        />
-      </div>
-      <div className="col-span-full mb-4">
-        <label
-          htmlFor={`${idPrefix}-teamNameAbbreviated`}
-          className="block text-sm font-medium leading-6 text-gray-900"
-        >
-          {t('settings:matchMenu.team.abbreviatedLabel', { team: title })}
-        </label>
-        <div className="mt-2">
-          <input
-            type="text"
-            name={`${idPrefix}-teamNameAbbreviated`}
-            id={`${idPrefix}-teamNameAbbreviated`}
-            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-700 sm:text-sm sm:leading-6"
-            maxLength={3}
-            onChange={(e) => {
-              if (disabled !== true) {
-                setTeamNameAbbreviated(e.target.value.toLocaleUpperCase());
-              }
-            }}
-            value={teamNameAbbreviated}
-            disabled={disabled}
-            readOnly={disabled}
-          />
-        </div>
-      </div>
-      <div className="col-span-full mb-4">
-        <label className="block text-sm font-medium leading-6 text-gray-900">
-          {t('settings:matchMenu.team.logoLabel', { team: title })}
-        </label>
-        <div className="mt-2 flex items-center gap-3">
-          {teamLogo && (
-            <div
-              className="h-12 w-12 shrink-0 rounded-sm bg-contain bg-center bg-no-repeat shadow-sm ring-1 ring-inset ring-gray-300"
-              style={{ backgroundImage: `url("${teamLogo}")` }}
-            />
-          )}
-          <button
-            type="button"
-            className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-            onClick={() => logoInputRef.current?.click()}
-            disabled={disabled || logoUploading}
+      <div className="space-y-4">
+        {clubPicker}
+        <div className="col-span-full">
+          <label
+            htmlFor={`${idPrefix}-teamNameFull`}
+            className={labelClassName}
           >
-            {t('settings:matchMenu.team.upload')}
-          </button>
-          <input
-            type="file"
-            ref={logoInputRef}
-            style={{ display: 'none' }}
-            accept="image/png, image/jpeg, image/svg+xml, image/webp"
-            onChange={handleLogoChange}
-          />
-          {teamLogo && (
-            <button
-              type="button"
-              className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
-              onClick={handleRemoveLogo}
+            {t('settings:matchMenu.team.nameLabel', { team: title })}
+          </label>
+          <div className="mt-2">
+            <input
+              type="text"
+              name={`${idPrefix}-teamNameFull`}
+              id={`${idPrefix}-teamNameFull`}
+              className={inputClassName}
+              onChange={(e) => {
+                if (disabled !== true) {
+                  setTeamNameFull(e.target.value);
+                }
+              }}
+              disabled={disabled}
+              readOnly={disabled}
+              value={teamNameFull}
+            />
+          </div>
+        </div>
+        <div className="col-span-full">
+          <label
+            htmlFor={`${idPrefix}-teamNameAbbreviated`}
+            className={labelClassName}
+          >
+            {t('settings:matchMenu.team.abbreviatedLabel', { team: title })}
+          </label>
+          {/* The badge sits beside the field it previews, so the effect of
+              each letter is visible without looking away. */}
+          <div className="mt-2 flex items-center gap-3">
+            <input
+              type="text"
+              name={`${idPrefix}-teamNameAbbreviated`}
+              id={`${idPrefix}-teamNameAbbreviated`}
+              className={classNames(inputClassName, 'min-w-0 flex-1')}
+              maxLength={3}
+              onChange={(e) => {
+                if (disabled !== true) {
+                  setTeamNameAbbreviated(e.target.value.toLocaleUpperCase());
+                }
+              }}
+              value={teamNameAbbreviated}
+              disabled={disabled}
+              readOnly={disabled}
+            />
+            <div className="flex-shrink-0 ring-1 ring-line-strong [--base-size:2rem]">
+              <ScoresTeamName
+                teamName={teamNameAbbreviated}
+                textColour={textColour}
+                backgroundColour={backgroundColour}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="col-span-full">
+          <label className={labelClassName}>
+            {t('settings:matchMenu.team.logoLabel', { team: title })}
+          </label>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {teamLogo && (
+              <div
+                className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+                style={{ backgroundImage: `url("${teamLogo}")` }}
+              />
+            )}
+            <ActionButton
+              size="md"
+              onClick={() => logoInputRef.current?.click()}
               disabled={disabled || logoUploading}
             >
-              {t('settings:matchMenu.team.remove')}
-            </button>
+              {t('settings:matchMenu.team.upload')}
+            </ActionButton>
+            <input
+              type="file"
+              ref={logoInputRef}
+              style={{ display: 'none' }}
+              accept="image/png, image/jpeg, image/svg+xml, image/webp"
+              onChange={handleLogoChange}
+            />
+            {teamLogo && (
+              <ActionButton
+                size="md"
+                onClick={handleRemoveLogo}
+                disabled={disabled || logoUploading}
+              >
+                {t('settings:matchMenu.team.remove')}
+              </ActionButton>
+            )}
+          </div>
+          {logoUploadError && (
+            <p className={errorTextClassName}>{logoUploadError}</p>
           )}
         </div>
-        {logoUploadError && (
-          <p className="mt-2 text-xs text-red-600">{logoUploadError}</p>
+        {setPlayers && (
+          <LineupEditor
+            idPrefix={idPrefix}
+            team={title}
+            players={players ?? []}
+            setPlayers={setPlayers}
+            disabled={disabled}
+          />
         )}
+        <div className="space-y-2">
+          <ColourPicker
+            label={t('settings:matchMenu.team.textColourLabel', {
+              team: title,
+            })}
+            onChange={setTextColour}
+            value={textColour}
+            keyColour={appSettings.keyColour}
+            disabled={disabled}
+          />
+          <ColourPicker
+            label={t('settings:matchMenu.team.backgroundColourLabel', {
+              team: title,
+            })}
+            onChange={setBackgroundColour}
+            value={backgroundColour}
+            keyColour={appSettings.keyColour}
+            disabled={disabled}
+          />
+        </div>
       </div>
-      {setPlayers && (
-        <LineupEditor
-          idPrefix={idPrefix}
-          team={title}
-          players={players ?? []}
-          setPlayers={setPlayers}
-          disabled={disabled}
-        />
-      )}
-      <ColourPicker
-        label={t('settings:matchMenu.team.textColourLabel', { team: title })}
-        onChange={setTextColour}
-        value={textColour}
-        keyColour={appSettings.keyColour}
-        disabled={disabled}
-      />
-      <ColourPicker
-        label={t('settings:matchMenu.team.backgroundColourLabel', {
-          team: title,
-        })}
-        onChange={setBackgroundColour}
-        value={backgroundColour}
-        keyColour={appSettings.keyColour}
-        disabled={disabled}
-      />
     </CollapsiblePanel>
   );
 }

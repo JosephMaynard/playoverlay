@@ -64,12 +64,14 @@ blue) so the site stays consistent.
 | 12 | `screen-away-lineup` | 2560 × 1440 | 16:9 | Screenshot | Screens | Done: `screen-away-lineup.png` |
 | 13 | `scorer-picker` | 1600 × 1000 | 16:10 | Screenshot | Line-ups | Done: `scorer-picker.png` |
 | 14 | `rotation-panel` | 1600 × 1000 | 16:10 | Screenshot | Line-ups | Done: `rotation-panel.png` |
+| 15 | `substitution-modal` | 1600 × 1000 | 16:10 | Screenshot | Line-ups | Done: `substitution-modal.png` |
+| 16 | `screen-substitution-banner` | 2560 × 1440 | 16:9 | Screenshot | Line-ups | Done: `screen-substitution-banner.png` |
 
 The three files in `public/screenshots/` (`dashboard.png` at 1600 × 1000,
-`score-bug.png` and `scoreboard.png` at 2560 × 1440) were recaptured with the
-line-ups feature: the dashboard shows the Home Line-up and Away Line-up
-buttons and the Rotate screens panel. All the captured screenshots show
-Winchester F.C. 2-1 Romsey United in the second half.
+`score-bug.png` and `scoreboard.png` at 2560 × 1440) and every dashboard
+screenshot were recaptured with the re-cut dashboard (pinned preview and
+clock, two tab groups, mixer-style keys). All the captured screenshots show
+Winchester F.C. 2-1 Romsey United in the second half, in the light theme.
 
 To replace a finished screenshot, recapture it the same way and save it over
 the existing file. The capture instructions below are kept for that.
@@ -254,22 +256,38 @@ A photorealistic close-up of a compact USB control pad with fifteen square backl
 
 - **Size:** 1600 × 1000 px, 16:10
 - **Used on:** the Line-ups guide ("Picking the scorer").
-- **Shows:** the dashboard with the Goals panel in view, a scorer being typed
-  next to a goal and the hint "Not in the line-up? Just type a name." under
-  the field. The preview shows the goal banner with "9 Ali Smith 23'".
-- **How to capture:** with both line-ups entered and a few goals logged,
-  scroll the dashboard to the Goals panel, click into a scorer field, type a
-  couple of letters that match no player, and screenshot the dashboard window.
+- **Shows:** the "Who scored?" question over the dimmed dashboard straight
+  after the Winchester goal key was tapped: the players on the pitch as
+  tiles, the bench beneath, and Not a goal, Own goal and No scorer. The score
+  in the clock block already reads 3-1.
+- **How to capture:** with the home line-up entered (some players unticked
+  as Starts), tap the Winchester goal key and screenshot the dashboard window
+  before choosing.
 
 ## 14. `rotation-panel` (screenshot, done)
 
 - **Size:** 1600 × 1000 px, 16:10
 - **Used on:** the Line-ups guide ("Rotating screens").
-- **Shows:** the dashboard with the **Rotate screens** panel opened under
-  Display Controls and its description in view. The screen ticks, **Seconds
-  per screen** and **Start automatically at half-time** are below the bottom
-  edge of this capture.
-- **Better version:** scroll the left column so the whole panel is in view,
-  with a few screens ticked, the seconds set and the automatic start switched
-  on, and screenshot the dashboard window at 1600 × 1000. Save it over
-  `public/images/rotation-panel.png`.
+- **Shows:** the **Rotate screens** set-up open over the dimmed dashboard,
+  with three screens ticked, the seconds set and the half-time start on.
+- **How to capture:** press the gear beside the Rotate screens key and
+  screenshot the dashboard window at 1600 × 1000.
+
+## 15. `substitution-modal` (screenshot, done)
+
+- **Size:** 1600 × 1000 px, 16:10
+- **Used on:** the Line-ups guide ("Substitutions").
+- **Shows:** the substitution picker over the dimmed dashboard with both
+  steps chosen: Coming off 10 Marcus Lane, Coming on 16 Nathan Brooks lit
+  green on the bench, and Confirm substitution ready.
+- **How to capture:** open the Substitutions tab, tap the Winchester key,
+  pick a player off and one on, and screenshot before confirming.
+
+## 16. `screen-substitution-banner` (screenshot, done)
+
+- **Size:** 2560 × 1440 px, 16:9
+- **Used on:** the Line-ups guide ("Substitutions").
+- **Shows:** the display output with the score bug and the substitution
+  banner: SUB, Winchester F.C., 16 Nathan Brooks on, 10 Marcus Lane off, 64'.
+- **How to capture:** confirm a substitution with the score bug on air and
+  screenshot the display window within ten seconds.

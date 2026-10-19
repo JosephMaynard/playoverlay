@@ -21,9 +21,14 @@ import {
   Penalty,
   Player,
   ScreenRotationEntry,
+  Substitution,
   supportedLanguageCodes,
 } from './types';
-import { normalisePlayerName, normalisePlayerNumber } from './lineup';
+import {
+  normalisePlayer,
+  normalisePlayerName,
+  normalisePlayerNumber,
+} from './lineup';
 
 export const updatesSchema = z.object({
   latestVersion: z.string(),
@@ -57,6 +62,9 @@ const playerNumberSchema = z
 export const playerSchema = z.object({
   name: z.string().transform(normalisePlayerName).pipe(z.string().min(1)),
   number: playerNumberSchema,
+  // Absent means starting (see Player); anything but a boolean is treated
+  // the same way rather than benching a player over a corrupt value.
+  starting: z.boolean().optional().catch(undefined),
 });
 
 // Entry by entry, like goalListSchema: a malformed player is dropped rather
@@ -67,10 +75,7 @@ export const playerListSchema = z.array(z.unknown()).transform((entries) =>
   entries
     .reduce<Player[]>((acc, entry) => {
       const parsed = playerSchema.safeParse(entry);
-      if (parsed.success) {
-        const { name, number } = parsed.data;
-        acc.push(number ? { name, number } : { name });
-      }
+      if (parsed.success) acc.push(normalisePlayer(parsed.data));
       return acc;
     }, [])
     .slice(0, MAX_PLAYERS_PER_TEAM)
@@ -198,6 +203,11 @@ export const screenRotationSchema = z.object({
 // discarding the user's remaining settings.
 export const appSettingsSchema = z.object({
   keyColour: z.string().catch(defaultAppSettings.keyColour),
+  theme: z.enum(['system', 'light', 'dark']).optional().catch(undefined),
+  dashboardScale: z
+    .enum(['small', 'medium', 'large'])
+    .optional()
+    .catch(undefined),
   autoSwitchScreens: z.boolean().catch(defaultAppSettings.autoSwitchScreens),
   clockFormat: z.enum(['24h', '12h']).optional().catch(undefined),
   // Unset (undefined) is a meaningful value here, it's what triggers the
@@ -205,6 +215,7 @@ export const appSettingsSchema = z.object({
   // undefined (re-showing the picker) rather than a default language.
   language: z.enum(supportedLanguageCodes).optional().catch(undefined),
   showGoalBannerAutomatically: z.boolean().optional().catch(undefined),
+  askForScorer: z.boolean().optional().catch(undefined),
   browserSource: z
     .object({
       enabled: z.boolean(),
@@ -328,6 +339,36 @@ export const goalListSchema = z
     }, [])
   );
 
+// The two players in a substitution. The bench flag is meaningless on a
+// substitution (it records who swapped, not the squad), so it is dropped.
+const substitutionPlayerSchema = playerSchema.transform(({ name, number }) =>
+  normalisePlayer({ name, number })
+);
+
+// A substitution-log entry: same bounds as a goal's clock and phase, with
+// the two players tidied like line-up entries.
+export const substitutionSchema = z.object({
+  id: z.string().min(1).max(64),
+  team: homeOrAwaySchema,
+  time: z.string().max(16).optional().catch(undefined),
+  matchPhase: z.string().max(64).optional().catch(undefined),
+  off: substitutionPlayerSchema,
+  on: substitutionPlayerSchema,
+});
+
+// Like goalListSchema: a malformed entry is dropped rather than losing the
+// whole log, and a non-array value is an empty log.
+export const substitutionListSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries) =>
+    entries.reduce<Substitution[]>((acc, entry) => {
+      const parsed = substitutionSchema.safeParse(entry);
+      if (parsed.success) acc.push(parsed.data);
+      return acc;
+    }, [])
+  );
+
 export const scoresSchema = z.object({
   homeTeam: z
     .number()
@@ -345,6 +386,8 @@ export const scoresSchema = z.object({
   // Absent in scores saved before the goal log existed; left absent rather
   // than filled in, matching the optional Scores.goals.
   goals: goalListSchema.optional(),
+  // Likewise absent in scores saved before substitutions existed.
+  substitutions: substitutionListSchema.optional(),
 });
 
 export const timeSchema = z.object({
@@ -401,6 +444,10 @@ export const matchStateSchema = z.object({
     .object({ goalId: z.string(), shownAt: z.number().finite() })
     .optional()
     .catch(undefined),
+  substitutionBanner: z
+    .object({ substitutionId: z.string(), shownAt: z.number().finite() })
+    .optional()
+    .catch(undefined),
 });
 
 // Parses a MatchSettings[] entry by entry, the array counterpart of
@@ -446,7 +493,12 @@ export const clubListSchema = z
   );
 
 export const liveMatchSchema = z.object({
-  scores: scoresSchema.catch({ ...defaultScores, penalties: [], goals: [] }),
+  scores: scoresSchema.catch({
+    ...defaultScores,
+    penalties: [],
+    goals: [],
+    substitutions: [],
+  }),
   time: timeSchema.catch({}),
   matchState: matchStateSchema.catch(defaultMatchState),
   savedAt: z

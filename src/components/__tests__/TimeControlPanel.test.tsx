@@ -34,12 +34,19 @@ function createProps(
 // v0.17.0 (see Dashboard.test.tsx for the end-to-end contract) rather than
 // being decided here, so this panel is only responsible for calling
 // startTime/stopTime and for reflecting the setting in its own toggle.
+// The phase list, clock nudges and the auto-switch toggle sit behind the
+// "Phases & clock" key.
+function openPhases() {
+  fireEvent.click(screen.getByRole('button', { name: 'Phases & clock' }));
+}
+
 describe('TimeControlPanel', () => {
   it('starts the selected match phase', async () => {
     const user = userEvent.setup();
     const props = createProps();
     render(<TimeControlPanel {...props} />);
 
+    openPhases();
     await user.click(screen.getByRole('button', { name: 'Second Half' }));
 
     expect(props.startTime).toHaveBeenCalledWith('secondHalf');
@@ -59,6 +66,7 @@ describe('TimeControlPanel', () => {
     const props = createProps({ autoSwitchScreens: false });
     render(<TimeControlPanel {...props} />);
 
+    openPhases();
     expect(screen.getByRole('switch')).not.toBeChecked();
   });
 

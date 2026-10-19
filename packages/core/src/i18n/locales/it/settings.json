@@ -4,6 +4,13 @@
     "save": "Salva"
   },
   "appMenu": {
+    "appearance": {
+      "dark": "Scuro",
+      "description": "Il tema scuro affatica meno gli occhi in una stanza buia o accanto a OBS. Il tema chiaro resta leggibile in pieno sole.",
+      "light": "Chiaro",
+      "system": "Come il sistema",
+      "title": "Aspetto"
+    },
     "browserSource": {
       "copied": "Copiato!",
       "copy": "Copia",
@@ -19,6 +26,13 @@
       "statusWithError": "Stato: {{state}}, {{error}}",
       "title": "Sorgente Browser OBS"
     },
+    "dashboardSize": {
+      "description": "Quanto grande viene disegnato il pannello. Grande è adatto a un touch screen 4K; piccolo fa stare di più su un tablet da 1024 px.",
+      "large": "Grande",
+      "medium": "Medio",
+      "small": "Piccolo",
+      "title": "Dimensione del pannello"
+    },
     "diagnostics": {
       "cancelled": "Esportazione annullata.",
       "error": "Esportazione della diagnostica non riuscita. Riprova.",
@@ -30,6 +44,13 @@
     "displays": {
       "moveToScreen": "Sposta sullo schermo {{n}}",
       "none": "Nessuno schermo esterno rilevato."
+    },
+    "goals": {
+      "askForScorer": "Chiedi chi ha segnato quando la squadra ha una formazione",
+      "askForScorerHint": "Il punteggio in onda si aggiorna subito; il banner del gol attende la scelta. I gol da scorciatoia, Stream Deck o telefono non attendono mai.",
+      "bannerAuto": "Manda in onda automaticamente i banner di gol e sostituzioni",
+      "bannerAutoHint": "Disattivato, non parte nulla finché non lo mostri tu.",
+      "title": "Gol e banner"
     },
     "keyColour": "Colore chiave",
     "keyboardShortcutRow": {
@@ -77,9 +98,9 @@
     "windowControls": {
       "lockWindows": "Blocca finestre",
       "resetPositions": "Reimposta posizioni",
+      "title": "Finestre",
       "toggleFullscreen": "Attiva/disattiva schermo intero",
-      "unlockWindows": "Sblocca finestre",
-      "title": "Finestre"
+      "unlockWindows": "Sblocca finestre"
     }
   },
   "colourPicker": {
@@ -137,6 +158,23 @@
   },
   "matchMenu": {
     "awayTeam": "Squadra ospite",
+    "clubs": {
+      "deleteAria": "Elimina {{club}}",
+      "deleteConfirmBody": "Vuoi davvero eliminare il club salvato \"{{club}}\"? Le squadre che lo usano già non vengono modificate.",
+      "deleteError": "Impossibile eliminare il club. Riprova.",
+      "deleteModalTitle": "Eliminare il club salvato?",
+      "empty": "Ancora nessun club salvato. Usa \"{{action}}\" nelle impostazioni di una squadra per conservarne nome, colori e logo per le prossime partite.",
+      "loadError": "Impossibile caricare i club salvati.",
+      "loadLabel": "Carica un club salvato",
+      "noneSaved": "Nessun club salvato",
+      "placeholder": "Scegli un club",
+      "playerCount_one": "{{count}} giocatore",
+      "playerCount_other": "{{count}} giocatori",
+      "saveAsClub": "Salva come club",
+      "saveError": "Impossibile salvare il club. Riprova.",
+      "saved": "Salvato nei tuoi club.",
+      "title": "Club salvati"
+    },
     "details": {
       "extraTime": "Tempi supplementari",
       "extraTimeHalfLength": "Durata di un tempo supplementare",
@@ -156,6 +194,30 @@
       "venue": "Sede"
     },
     "homeTeam": "Squadra di casa",
+    "lineup": {
+      "addPlayer": "Aggiungi giocatore",
+      "benchCount_one": "{{count}} in panchina",
+      "benchCount_other": "{{count}} in panchina",
+      "cap": "fino a {{max}}",
+      "count_one": "{{count}} giocatore",
+      "count_other": "{{count}} giocatori",
+      "empty": "Aggiungi la rosa per mostrare una formazione in onda e scegliere i marcatori dall'elenco.",
+      "nameLabel": "{{team}}, giocatore {{n}}: nome",
+      "namePlaceholder": "Nome del giocatore",
+      "numberLabel": "{{team}}, giocatore {{n}}: numero di maglia",
+      "numberPlaceholder": "N.",
+      "pasteAction": "Aggiungi giocatori",
+      "pasteHint": "Un giocatore per riga. Metti prima il numero di maglia, se lo hai, ad es. 9 Ali Smith.",
+      "pasteList": "Incolla un elenco",
+      "pasteModalTitle": "Incolla la formazione: {{team}}",
+      "removeAria": "Rimuovi {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} titolare",
+      "startingCount_other": "{{count}} titolari",
+      "startsLabel": "{{player}} titolare",
+      "title": "Formazione",
+      "unnamedPlayer": "{{team}}, giocatore {{n}}"
+    },
     "saved": {
       "defaultName": "{{home}} - {{away}}",
       "deleteConfirmBody": "Vuoi davvero eliminare le impostazioni partita salvate \"{{title}}\"?",
@@ -184,42 +246,7 @@
       "textColourLabel": "Colore del testo di {{team}}",
       "upload": "Carica"
     },
-    "title": "Impostazioni partita",
-    "clubs": {
-      "title": "Club salvati",
-      "loadLabel": "Carica un club salvato",
-      "placeholder": "Scegli un club",
-      "noneSaved": "Nessun club salvato",
-      "saveAsClub": "Salva come club",
-      "saved": "Salvato nei tuoi club.",
-      "saveError": "Impossibile salvare il club. Riprova.",
-      "loadError": "Impossibile caricare i club salvati.",
-      "empty": "Ancora nessun club salvato. Usa \"{{action}}\" nelle impostazioni di una squadra per conservarne nome, colori e logo per le prossime partite.",
-      "deleteAria": "Elimina {{club}}",
-      "deleteModalTitle": "Eliminare il club salvato?",
-      "deleteConfirmBody": "Vuoi davvero eliminare il club salvato \"{{club}}\"? Le squadre che lo usano già non vengono modificate.",
-      "deleteError": "Impossibile eliminare il club. Riprova.",
-      "playerCount_one": "{{count}} giocatore",
-      "playerCount_other": "{{count}} giocatori"
-    },
-    "lineup": {
-      "addPlayer": "Aggiungi giocatore",
-      "cap": "fino a {{max}}",
-      "count_one": "{{count}} giocatore",
-      "count_other": "{{count}} giocatori",
-      "empty": "Aggiungi la rosa per mostrare una formazione in onda e scegliere i marcatori dall'elenco.",
-      "nameLabel": "{{team}}, giocatore {{n}}: nome",
-      "namePlaceholder": "Nome del giocatore",
-      "numberLabel": "{{team}}, giocatore {{n}}: numero di maglia",
-      "numberPlaceholder": "N.",
-      "pasteAction": "Aggiungi giocatori",
-      "pasteHint": "Un giocatore per riga. Metti prima il numero di maglia, se lo hai, ad es. 9 Ali Smith.",
-      "pasteList": "Incolla un elenco",
-      "pasteModalTitle": "Incolla la formazione: {{team}}",
-      "removeAria": "Rimuovi {{player}}",
-      "title": "Formazione",
-      "unnamedPlayer": "{{team}}, giocatore {{n}}"
-    }
+    "title": "Impostazioni partita"
   },
   "system": {
     "about": "Informazioni",

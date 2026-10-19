@@ -844,7 +844,7 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - zod@3.25.76
+ - zod@4.6.7
 
 This package contains the following license:
 
@@ -1464,7 +1464,7 @@ THE SOFTWARE.
 
 The following npm package may be included in this product:
 
- - nanoid@5.1.16
+ - nanoid@6.0.2
 
 This package contains the following license:
 

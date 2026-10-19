@@ -4,6 +4,13 @@
     "save": "Save"
   },
   "appMenu": {
+    "appearance": {
+      "dark": "Dark",
+      "description": "Dark is easier on the eyes in a dark room or beside OBS. Light stays readable in bright sunlight.",
+      "light": "Light",
+      "system": "Match system",
+      "title": "Appearance"
+    },
     "browserSource": {
       "copied": "Copied!",
       "copy": "Copy",
@@ -19,6 +26,13 @@
       "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS Browser Source"
     },
+    "dashboardSize": {
+      "description": "How large the dashboard is drawn. Large suits a 4K touch screen; small fits more on a 1024px tablet.",
+      "large": "Large",
+      "medium": "Medium",
+      "small": "Small",
+      "title": "Dashboard size"
+    },
     "diagnostics": {
       "cancelled": "Export cancelled.",
       "error": "Failed to export diagnostics. Please try again.",
@@ -30,6 +44,13 @@
     "displays": {
       "moveToScreen": "Move to Screen {{n}}",
       "none": "No external displays detected."
+    },
+    "goals": {
+      "askForScorer": "Ask who scored when the team has a line-up",
+      "askForScorerHint": "The score bug updates straight away; the goal banner waits for the pick. Goals from a shortcut, the Stream Deck or the phone never wait.",
+      "bannerAuto": "Put goal and substitution banners on air automatically",
+      "bannerAutoHint": "Off, nothing goes out until you show it yourself.",
+      "title": "Goals and banners"
     },
     "keyColour": "Key Colour",
     "keyboardShortcutRow": {
@@ -77,9 +98,9 @@
     "windowControls": {
       "lockWindows": "Lock Windows",
       "resetPositions": "Reset positions",
+      "title": "Windows",
       "toggleFullscreen": "Toggle Fullscreen",
-      "unlockWindows": "Unlock Windows",
-      "title": "Windows"
+      "unlockWindows": "Unlock Windows"
     }
   },
   "colourPicker": {
@@ -137,6 +158,23 @@
   },
   "matchMenu": {
     "awayTeam": "Away Team",
+    "clubs": {
+      "deleteAria": "Delete {{club}}",
+      "deleteConfirmBody": "Are you sure you want to delete the saved club \"{{club}}\"? Teams already using it are not changed.",
+      "deleteError": "The club could not be deleted. Please try again.",
+      "deleteModalTitle": "Delete saved club?",
+      "empty": "No saved clubs yet. Use \"{{action}}\" in a team's settings to keep its name, colours and logo for future fixtures.",
+      "loadError": "Your saved clubs could not be loaded.",
+      "loadLabel": "Load a saved club",
+      "noneSaved": "No saved clubs yet",
+      "placeholder": "Choose a club",
+      "playerCount_one": "{{count}} player",
+      "playerCount_other": "{{count}} players",
+      "saveAsClub": "Save as club",
+      "saveError": "The club could not be saved. Please try again.",
+      "saved": "Saved to your clubs.",
+      "title": "Saved clubs"
+    },
     "details": {
       "extraTime": "Extra time",
       "extraTimeHalfLength": "Extra Time Half Length",
@@ -156,6 +194,30 @@
       "venue": "Venue"
     },
     "homeTeam": "Home Team",
+    "lineup": {
+      "addPlayer": "Add player",
+      "benchCount_one": "{{count}} on the bench",
+      "benchCount_other": "{{count}} on the bench",
+      "cap": "up to {{max}}",
+      "count_one": "{{count}} player",
+      "count_other": "{{count}} players",
+      "empty": "Add the squad to show a line-up on air and pick goal scorers from it.",
+      "nameLabel": "{{team}} player {{n}}: name",
+      "namePlaceholder": "Player name",
+      "numberLabel": "{{team}} player {{n}}: shirt number",
+      "numberPlaceholder": "No.",
+      "pasteAction": "Add players",
+      "pasteHint": "One player per line. Put the shirt number first if you have it, e.g. 9 Ali Smith.",
+      "pasteList": "Paste a list",
+      "pasteModalTitle": "Paste the {{team}} line-up",
+      "removeAria": "Remove {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} starting",
+      "startingCount_other": "{{count}} starting",
+      "startsLabel": "{{player}} starts",
+      "title": "Line-up",
+      "unnamedPlayer": "{{team}} player {{n}}"
+    },
     "saved": {
       "defaultName": "{{home}} vs {{away}}",
       "deleteConfirmBody": "Are you sure you want to delete the saved match settings \"{{title}}\"?",
@@ -184,42 +246,7 @@
       "textColourLabel": "{{team}} Text Colour",
       "upload": "Upload"
     },
-    "title": "Match Settings",
-    "clubs": {
-      "title": "Saved clubs",
-      "loadLabel": "Load a saved club",
-      "placeholder": "Choose a club",
-      "noneSaved": "No saved clubs yet",
-      "saveAsClub": "Save as club",
-      "saved": "Saved to your clubs.",
-      "saveError": "The club could not be saved. Please try again.",
-      "loadError": "Your saved clubs could not be loaded.",
-      "empty": "No saved clubs yet. Use \"{{action}}\" in a team's settings to keep its name, colours and logo for future fixtures.",
-      "deleteAria": "Delete {{club}}",
-      "deleteModalTitle": "Delete saved club?",
-      "deleteConfirmBody": "Are you sure you want to delete the saved club \"{{club}}\"? Teams already using it are not changed.",
-      "deleteError": "The club could not be deleted. Please try again.",
-      "playerCount_one": "{{count}} player",
-      "playerCount_other": "{{count}} players"
-    },
-    "lineup": {
-      "addPlayer": "Add player",
-      "cap": "up to {{max}}",
-      "count_one": "{{count}} player",
-      "count_other": "{{count}} players",
-      "empty": "Add the squad to show a line-up on air and pick goal scorers from it.",
-      "nameLabel": "{{team}} player {{n}}: name",
-      "namePlaceholder": "Player name",
-      "numberLabel": "{{team}} player {{n}}: shirt number",
-      "numberPlaceholder": "No.",
-      "pasteAction": "Add players",
-      "pasteHint": "One player per line. Put the shirt number first if you have it, e.g. 9 Ali Smith.",
-      "pasteList": "Paste a list",
-      "pasteModalTitle": "Paste the {{team}} line-up",
-      "removeAria": "Remove {{player}}",
-      "title": "Line-up",
-      "unnamedPlayer": "{{team}} player {{n}}"
-    }
+    "title": "Match Settings"
   },
   "system": {
     "about": "About",

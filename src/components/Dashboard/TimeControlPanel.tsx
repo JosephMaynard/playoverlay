@@ -1,24 +1,35 @@
 import { PlayIcon, PauseIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import {
   Time,
   MatchPhase,
+  MatchPeriod,
+  Scores,
   classNames,
   getPhaseList,
   getPhaseTitle,
   isValidAdditionalTime,
   MatchSettings,
 } from '@playoverlay/core';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import WideModal from '../Modal/WideModal';
 import TimeDisplay from '../TimeDisplay/TimeDisplay';
-import { Switch } from '@headlessui/react';
+import ActionButton, { actionButtonClasses } from '../ui/ActionButton';
+import Toggle from '../ui/Toggle';
+import { inputClassName } from '../ui/fields';
 
 export interface Props {
   time: Time;
   matchSettings: MatchSettings;
+  scores?: Scores;
+  onEditScore?: () => void;
+  // The phase that would start next (first phase before kick-off, the one
+  // after the phase that just ended at a break), or undefined once the
+  // match has run out of phases or while one is running.
+  nextPhase?: MatchPeriod;
   pause: () => void;
   resume: () => void;
   adjustTime: (difference: number) => void;
@@ -30,9 +41,33 @@ export interface Props {
   setAutoSwitchScreens: (autoSwitchScreens: boolean) => void;
 }
 
+const adjustSteps: {
+  seconds: number;
+  kind: 'minutes' | 'seconds';
+  n: number;
+}[] = [
+  { seconds: -600, kind: 'minutes', n: 10 },
+  { seconds: -60, kind: 'minutes', n: 1 },
+  { seconds: -10, kind: 'seconds', n: 10 },
+  { seconds: -1, kind: 'seconds', n: 1 },
+  { seconds: 1, kind: 'seconds', n: 1 },
+  { seconds: 10, kind: 'seconds', n: 10 },
+  { seconds: 60, kind: 'minutes', n: 1 },
+  { seconds: 600, kind: 'minutes', n: 10 },
+];
+
+// The clock block, pinned at the top of the dashboard for the whole match:
+// the clock itself, Start and Stop, and Added time. Everything else to do
+// with the clock (jumping to a phase, nudging the time, pausing, the
+// auto-switch setting) sits behind one key in a pop-up, because a late
+// start or a correction is rare and can cost a tap, while the time left is
+// what the operator gets asked for all match.
 export default function TimeControlPanel({
   time,
   matchSettings,
+  scores,
+  onEditScore,
+  nextPhase,
   pause,
   resume,
   adjustTime,
@@ -44,16 +79,13 @@ export default function TimeControlPanel({
   setAutoSwitchScreens,
 }: Props) {
   const { t } = useTranslation();
-  const [modal, setModal] = useState<
-    'adjustTime' | 'additionalTime' | undefined
-  >();
+  const [additionalTimeOpen, setAdditionalTimeOpen] = useState(false);
   // Typed additional time, committed on blur or Enter rather than per
   // keystroke: typing "10" would otherwise put "+1" on air first and record
   // two undo entries. null means "not editing": show the live value.
   const [draftAdditionalTime, setDraftAdditionalTime] = useState<string | null>(
     null
   );
-
   const commitDraftAdditionalTime = () => {
     if (draftAdditionalTime === null) return;
     const typed = draftAdditionalTime.trim();
@@ -68,110 +100,181 @@ export default function TimeControlPanel({
     if (!isValidAdditionalTime(minutes)) return;
     if (minutes !== time.additionalTime) setAdditionalTime(minutes);
   };
+
   // Starting/stopping a phase's auto-switch-screens behaviour is handled by
   // startTime/stopTime themselves (centralised in useMatchClock); this
   // panel just triggers them.
+  const running = time.matchPhase !== undefined;
   const phaseButtons = getPhaseList(matchSettings).map((phase) => ({
     label: getPhaseTitle(t, phase),
     onClick: () => startTime(phase.id),
     selected: time.matchPhase === phase.id,
   }));
+
   return (
-    <CollapsiblePanel title={t('dashboard:timeControl.title')} noPanelPadding>
+    <section
+      aria-label={t('dashboard:timeControl.title')}
+      // Stretches to the preview's height beside it, with the ink block
+      // taking the spare room, so the two pinned panels share one bottom edge.
+      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-sm lg:h-full"
+    >
       <TimeDisplay
         time={time}
         matchSettings={matchSettings}
-        openAdjustmentsModal={() => setModal('adjustTime')}
+        scores={scores}
+        onEditScore={onEditScore}
       />
-      <div className="p-4">
-        <ButtonGrid
-          className="mb-4"
-          buttons={[
-            ...phaseButtons,
-            {
-              label: t('settings:system.stop'),
-              onClick: () => stopTime(),
-              disabled: time.matchPhase === undefined,
-              backgroundColor: 'bg-red-700',
-              color: 'text-white',
-            },
-            {
-              label: t('dashboard:timeControl.setAdditionalTime'),
-              onClick: () => setModal('additionalTime'),
-              backgroundColor: 'bg-indigo-600',
-              color: 'text-white',
-            },
-          ]}
-        />
-        <Switch.Group as="div" className="mx-3 ml-2 flex items-center">
-          <Switch
-            checked={autoSwitchScreens}
-            onChange={setAutoSwitchScreens}
-            className={classNames(
-              autoSwitchScreens ? 'bg-indigo-600' : 'bg-gray-200',
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2'
-            )}
+      <div className="flex flex-col gap-3 p-4">
+        {/* The two things that happen at the touchline: start the coming
+            phase, stop the running one. Both are always there, one of them
+            live, so the thumb learns one place. */}
+        <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
+          <ActionButton
+            variant="live"
+            size="xl"
+            className="min-h-20"
+            disabled={running || !nextPhase}
+            onClick={() => nextPhase && startTime(nextPhase.id)}
+            icon={<PlayIcon className="h-6 w-6" aria-hidden="true" />}
           >
-            <span
-              aria-hidden="true"
-              className={classNames(
-                autoSwitchScreens ? 'translate-x-5' : 'translate-x-0',
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-              )}
-            />
-          </Switch>
-          <Switch.Label as="span" className="ml-3 text-sm">
-            <span className="font-medium text-gray-900">
-              {t('dashboard:timeControl.autoSwitchLabel')}
-            </span>
-          </Switch.Label>
-        </Switch.Group>
+            {nextPhase
+              ? t('dashboard:timeControl.start', {
+                  phase: getPhaseTitle(t, nextPhase),
+                })
+              : t('dashboard:timeControl.startPlain')}
+          </ActionButton>
+          <ActionButton
+            variant="danger"
+            size="xl"
+            className="min-h-20"
+            disabled={!running}
+            onClick={() => stopTime()}
+          >
+            {t('settings:system.stop')}
+          </ActionButton>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <ActionButton
+            variant="secondary"
+            aria-label={t('dashboard:timeControl.setAdditionalTime')}
+            onClick={() => setAdditionalTimeOpen(true)}
+          >
+            {time.additionalTime
+              ? `${t('dashboard:timeControl.addedTime')}: +${time.additionalTime}`
+              : t('dashboard:timeControl.addedTime')}
+          </ActionButton>
+          <Popover>
+            <PopoverButton
+              className={actionButtonClasses({
+                variant: 'secondary',
+                block: true,
+              })}
+            >
+              {t('dashboard:timeControl.phasesAndClock')}
+              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+            </PopoverButton>
+            <PopoverPanel
+              anchor="bottom end"
+              transition
+              className="z-40 w-[min(32rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-4 shadow-xl transition duration-150 ease-out [--anchor-gap:8px] data-[closed]:scale-95 data-[closed]:opacity-0"
+            >
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                {t('dashboard:timeControl.allPhases')}
+              </p>
+              {/* Every phase stays one tap away for a late start or a
+                  restart after a mistake; the running one is lit green. */}
+              <ButtonGrid
+                buttons={phaseButtons}
+                columns={2}
+                selectedTone="go"
+              />
+              <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+                {t('dashboard:timeControl.adjustTimeModalTitle')}
+              </p>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+                {adjustSteps.map((step) => (
+                  <ActionButton
+                    key={step.seconds}
+                    size="sm"
+                    disabled={!time.time}
+                    onClick={() => adjustTime(step.seconds)}
+                  >
+                    {t(
+                      step.kind === 'minutes'
+                        ? 'dashboard:timeControl.adjustMinutes'
+                        : 'dashboard:timeControl.adjustSeconds',
+                      { sign: step.seconds < 0 ? '-' : '+', n: step.n }
+                    )}
+                  </ActionButton>
+                ))}
+              </div>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <Toggle
+                  checked={autoSwitchScreens}
+                  onChange={setAutoSwitchScreens}
+                  label={t('dashboard:timeControl.autoSwitchLabel')}
+                />
+                {isPaused ? (
+                  <ActionButton
+                    variant="live"
+                    disabled={!time.time}
+                    onClick={() => resume()}
+                    icon={<PlayIcon className="h-5 w-5" aria-hidden="true" />}
+                  >
+                    {t('dashboard:timeControl.resume')}
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    variant="secondary"
+                    disabled={!time.time}
+                    onClick={() => pause()}
+                    icon={<PauseIcon className="h-5 w-5" aria-hidden="true" />}
+                  >
+                    {t('dashboard:timeControl.pause')}
+                  </ActionButton>
+                )}
+              </div>
+            </PopoverPanel>
+          </Popover>
+        </div>
       </div>
       <WideModal
-        open={modal === 'additionalTime'}
+        open={additionalTimeOpen}
         setOpen={() => {
           commitDraftAdditionalTime();
-          setModal(undefined);
+          setAdditionalTimeOpen(false);
         }}
         title={t('dashboard:timeControl.setAdditionalTime')}
       >
         <label htmlFor="additionalTime" className="sr-only">
           {t('dashboard:timeControl.additionalTimeLabel')}
         </label>
-        <div className="mb-2 mt-2 flex rounded-md shadow-sm">
-          <div className="relative flex flex-grow items-stretch focus-within:z-10">
-            <input
-              type="number"
-              name="additionalTime"
-              id="additionalTime"
-              className="block w-full rounded-none rounded-l-md border-0 py-1.5 text-center text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              min={1}
-              step={1}
-              onChange={(e) => setDraftAdditionalTime(e.target.value)}
-              onBlur={commitDraftAdditionalTime}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  commitDraftAdditionalTime();
-                  setModal(undefined);
-                }
-              }}
-              value={draftAdditionalTime ?? time.additionalTime ?? ''}
-            />
-            <button
-              type="button"
-              aria-label={t('dashboard:timeControl.clear')}
-              className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-              onClick={() => {
-                setDraftAdditionalTime(null);
-                setAdditionalTime();
-              }}
-            >
-              <XMarkIcon
-                className="-ml-0.5 h-5 w-5 text-gray-900"
-                aria-hidden="true"
-              />
-            </button>
-          </div>
+        <div className="mb-4 mt-2 flex gap-2">
+          <input
+            type="number"
+            name="additionalTime"
+            id="additionalTime"
+            className={classNames(inputClassName, 'text-center text-xl')}
+            min={1}
+            step={1}
+            onChange={(e) => setDraftAdditionalTime(e.target.value)}
+            onBlur={commitDraftAdditionalTime}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                commitDraftAdditionalTime();
+                setAdditionalTimeOpen(false);
+              }
+            }}
+            value={draftAdditionalTime ?? time.additionalTime ?? ''}
+          />
+          <ActionButton
+            aria-label={t('dashboard:timeControl.clear')}
+            icon={<XMarkIcon className="h-6 w-6" aria-hidden="true" />}
+            onClick={() => {
+              setDraftAdditionalTime(null);
+              setAdditionalTime();
+            }}
+          />
         </div>
         <ButtonGrid
           buttons={[
@@ -182,7 +285,7 @@ export default function TimeControlPanel({
               onClick: () => {
                 setDraftAdditionalTime(null);
                 setAdditionalTime(index + 1);
-                setModal(undefined);
+                setAdditionalTimeOpen(false);
               },
             })),
             {
@@ -190,113 +293,13 @@ export default function TimeControlPanel({
               onClick: () => {
                 setDraftAdditionalTime(null);
                 setAdditionalTime();
-                setModal(undefined);
+                setAdditionalTimeOpen(false);
               },
-              backgroundColor: 'bg-red-700',
-              color: 'text-white',
+              variant: 'danger' as const,
             },
           ]}
         />
       </WideModal>
-      <WideModal
-        open={modal === 'adjustTime'}
-        setOpen={() => {
-          setModal(undefined);
-        }}
-        title={t('dashboard:timeControl.adjustTimeModalTitle')}
-      >
-        <TimeDisplay time={time} matchSettings={matchSettings} />
-
-        <div className="mx-auto mt-8 text-center">
-          <span className="text-s isolate mx-auto inline-flex rounded-md shadow-sm">
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(-600)}
-            >
-              {t('dashboard:timeControl.adjustMinutes', { sign: '-', n: 10 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(-60)}
-            >
-              {t('dashboard:timeControl.adjustMinutes', { sign: '-', n: 1 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(-10)}
-            >
-              {t('dashboard:timeControl.adjustSeconds', { sign: '-', n: 10 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(-1)}
-            >
-              {t('dashboard:timeControl.adjustSeconds', { sign: '-', n: 1 })}
-            </button>
-            {isPaused ? (
-              <button
-                type="button"
-                disabled={!time.time}
-                aria-label={t('dashboard:timeControl.resume')}
-                className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-                onClick={() => resume()}
-              >
-                <PlayIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={!time.time}
-                aria-label={t('dashboard:timeControl.pause')}
-                className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-                onClick={() => pause()}
-              >
-                <PauseIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
-            )}
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(1)}
-            >
-              {t('dashboard:timeControl.adjustSeconds', { sign: '+', n: 1 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(10)}
-            >
-              {t('dashboard:timeControl.adjustSeconds', { sign: '+', n: 10 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(60)}
-            >
-              {t('dashboard:timeControl.adjustMinutes', { sign: '+', n: 1 })}
-            </button>
-            <button
-              type="button"
-              disabled={!time.time}
-              className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 md:text-sm xl:text-base"
-              onClick={() => adjustTime(600)}
-            >
-              {t('dashboard:timeControl.adjustMinutes', { sign: '+', n: 10 })}
-            </button>
-          </span>
-        </div>
-      </WideModal>
-    </CollapsiblePanel>
+    </section>
   );
 }

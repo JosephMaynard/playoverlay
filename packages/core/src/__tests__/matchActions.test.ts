@@ -11,6 +11,8 @@ import { useMatchStateStore } from '../store/matchState';
 import { useScoresStore } from '../store/scores';
 import { useTimeStore } from '../store/time';
 import { selectNextUndoLabel, useUndoStore } from '../store/undo';
+import { playersOnBench, playersOnPitch } from '../substitutions';
+import { LiveMatch } from '../types';
 
 // The match actions are exercised end to end, through a rendered dashboard
 // and the real clock, by the Electron app's Dashboard tests. These cover the
@@ -112,6 +114,7 @@ describe('createMatchActions', () => {
       awayTeam: 0,
       penalties: [],
       goals: [],
+      substitutions: [],
     });
     expect(useMatchStateStore.getState().matchState.displayScreen).toBe(
       'matchTitle'
@@ -173,5 +176,180 @@ describe('setGoalScorer', () => {
     actions.setGoalScorer('g1', 'Smith', '9');
     actions.setGoalScorer('g1', 'Smith', '');
     expect(recorded()).toEqual({ ...goal, scorer: 'Smith' });
+  });
+});
+
+describe('substitutions', () => {
+  const smith = { name: 'Ali Smith', number: '9' };
+  const bloggs = { name: 'Jo Bloggs', number: '10' };
+  const lee = { name: 'Kim Lee', number: '14', starting: false };
+  const squad = [smith, bloggs, lee];
+
+  beforeEach(() => {
+    useScoresStore.setState({
+      scores: {
+        homeTeam: 0,
+        awayTeam: 0,
+        penalties: [],
+        goals: [],
+        substitutions: [],
+      },
+    });
+    useTimeStore.setState({
+      time: { time: '62:10', matchPhase: 'secondHalf', paused: false },
+    });
+    useMatchStateStore.setState({ matchState: { ...defaultMatchState } });
+    useMatchSettingsStore.setState({
+      matchSettings: { ...defaultMatchSettings, homeTeamPlayers: squad },
+    });
+    useAppSettingsStore.setState({ appSettings: { ...defaultAppSettings } });
+    useUndoStore.setState({ undoStack: [], redoStack: [], clockResync: null });
+  });
+
+  const logged = () => useScoresStore.getState().scores.substitutions ?? [];
+  const settings = () => useMatchSettingsStore.getState().matchSettings;
+
+  it('logs a substitution with the minute as one score-only undo step, and shows the banner', () => {
+    const onOperatorAction = vi.fn();
+    const actions = createMatchActions(fakeClock(), { onOperatorAction });
+
+    actions.makeSubstitution('home', smith, lee);
+
+    expect(logged()).toEqual([
+      expect.objectContaining({
+        team: 'home',
+        time: '62:10',
+        matchPhase: 'secondHalf',
+        off: smith,
+        on: { name: 'Kim Lee', number: '14' },
+      }),
+    ]);
+    expect(playersOnPitch(settings(), 'home', logged())).toEqual([
+      { name: 'Kim Lee', number: '14' },
+      bloggs,
+    ]);
+    expect(playersOnBench(settings(), 'home', logged())).toEqual([smith]);
+    expect(onOperatorAction).toHaveBeenCalledTimes(1);
+    const { undoStack } = useUndoStore.getState();
+    expect(undoStack).toHaveLength(1);
+    expect(undoStack[0].label).toBe('undo:actions.substitution');
+    expect(undoStack[0].slices).toEqual(['scores']);
+    expect(useMatchStateStore.getState().matchState.substitutionBanner).toEqual(
+      { substitutionId: logged()[0].id, shownAt: expect.any(Number) }
+    );
+  });
+
+  it('does nothing when a player is swapped for themselves', () => {
+    const actions = createMatchActions(fakeClock());
+
+    actions.makeSubstitution('home', smith, { ...smith, starting: false });
+
+    expect(logged()).toEqual([]);
+    expect(useUndoStore.getState().undoStack).toHaveLength(0);
+  });
+
+  it('leaves the banner alone when automatic banners are switched off, and shows it on request', () => {
+    useAppSettingsStore.setState({
+      appSettings: {
+        ...defaultAppSettings,
+        showGoalBannerAutomatically: false,
+      },
+    });
+    const actions = createMatchActions(fakeClock());
+
+    actions.makeSubstitution('home', smith, lee);
+    expect(
+      useMatchStateStore.getState().matchState.substitutionBanner
+    ).toBeUndefined();
+
+    actions.showSubstitutionBanner(logged()[0].id);
+    expect(
+      useMatchStateStore.getState().matchState.substitutionBanner
+        ?.substitutionId
+    ).toBe(logged()[0].id);
+    // Showing a banner is not an operator action to undo.
+    expect(useUndoStore.getState().undoStack).toHaveLength(1);
+  });
+
+  it('removes an entry as its own undo step, putting both players back', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, lee);
+    const [entry] = logged();
+
+    actions.removeSubstitution(entry.id);
+
+    expect(logged()).toEqual([]);
+    expect(playersOnPitch(settings(), 'home', logged())).toEqual([
+      smith,
+      bloggs,
+    ]);
+    expect(selectNextUndoLabel(useUndoStore.getState())).toBe(
+      'undo:actions.substitutionRemoved'
+    );
+
+    // An id that is not in the log records nothing.
+    actions.removeSubstitution('missing');
+    expect(useUndoStore.getState().undoStack).toHaveLength(2);
+  });
+
+  it('restores the log on undo and redo', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, lee);
+    const [entry] = logged();
+
+    useUndoStore.getState().undo();
+    expect(logged()).toEqual([]);
+
+    useUndoStore.getState().redo();
+    expect(logged()).toEqual([entry]);
+
+    actions.removeSubstitution(entry.id);
+    useUndoStore.getState().undo();
+    expect(logged()).toEqual([entry]);
+  });
+
+  it('clears the log and the banner for a new match', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, lee);
+
+    actions.startNewMatch();
+
+    expect(logged()).toEqual([]);
+    expect(
+      useMatchStateStore.getState().matchState.substitutionBanner
+    ).toBeUndefined();
+  });
+
+  it('restores the log with a match, and an older snapshot restores with none', () => {
+    const actions = createMatchActions(fakeClock());
+    const entry = {
+      id: 's1',
+      team: 'away' as const,
+      time: '70:00',
+      matchPhase: 'secondHalf',
+      off: bloggs,
+      on: smith,
+    };
+    const liveMatch: LiveMatch = {
+      scores: {
+        homeTeam: 1,
+        awayTeam: 0,
+        penalties: [],
+        goals: [],
+        substitutions: [entry],
+      },
+      time: { time: '71:00', matchPhase: 'secondHalf', paused: true },
+      matchState: { ...defaultMatchState },
+      savedAt: Date.now(),
+    };
+
+    actions.restoreMatch(liveMatch);
+    expect(logged()).toEqual([entry]);
+
+    actions.restoreMatch({
+      ...liveMatch,
+      scores: { homeTeam: 1, awayTeam: 0, penalties: [] },
+    });
+    expect(logged()).toEqual([]);
   });
 });

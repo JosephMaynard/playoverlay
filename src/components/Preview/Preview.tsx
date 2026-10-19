@@ -8,9 +8,9 @@ export interface Props {
 export default function Preview({ children, keyColour }: Props) {
   return (
     <>
-      <div className="fixed z-50 mb-4 w-full overflow-hidden bg-black shadow-lg lg:relative lg:z-auto lg:grid lg:h-full lg:w-full lg:shadow-none lg:[max-height:none]">
+      <div className="fixed z-50 mb-4 w-full overflow-hidden bg-black shadow-lg lg:relative lg:z-auto lg:mb-0 lg:aspect-video lg:h-auto lg:w-full lg:overflow-hidden lg:rounded-xl lg:bg-transparent lg:shadow-none lg:ring-1 lg:ring-line">
         <div
-          className="Preview relative inset-0 m-auto aspect-video h-auto max-h-full w-auto max-w-lg overflow-hidden lg:absolute lg:max-w-full"
+          className="Preview relative inset-0 m-auto aspect-video h-auto max-h-full w-auto max-w-lg overflow-hidden lg:absolute lg:h-full lg:w-full lg:max-w-none"
           style={{ backgroundColor: keyColour }}
         >
           {children}

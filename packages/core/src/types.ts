@@ -8,6 +8,11 @@ export type homeOrAway = 'home' | 'away';
 export interface Player {
   name: string;
   number?: string;
+  // Whether the player starts the match. Absent means starting, so every
+  // squad entered before the bench existed keeps everyone on the pitch;
+  // only the bench is spelt out (false). There is no fixed number of
+  // starters: five-a-side, rugby and football all use the same flag.
+  starting?: boolean;
 }
 
 export interface Penalty {
@@ -32,6 +37,22 @@ export interface Goal {
   scorerNumber?: string;
 }
 
+// One substitution, made from the dashboard. Like a goal, the clock and
+// phase are captured when it is made so the minute can be shown on air, and
+// both are absent for one made with no phase running. The two players are
+// copied in rather than referenced by position, so a later edit to the
+// squad can't silently change who was swapped.
+export interface Substitution {
+  id: string;
+  team: homeOrAway;
+  time?: string;
+  matchPhase?: MatchPhase;
+  // The player leaving the pitch.
+  off: Player;
+  // The player replacing them.
+  on: Player;
+}
+
 export interface Scores {
   homeTeam: number;
   awayTeam: number;
@@ -39,6 +60,10 @@ export interface Scores {
   // Optional so snapshots and scores from before the goal log still load.
   // Lives with the score so undoing a goal removes its entry too.
   goals?: Goal[];
+  // Optional for the same reason. Lives in the scores slice so undo, the
+  // crash-restore snapshot and the live-match mirror all carry it with the
+  // goals; who is on the pitch is derived from it (see substitutions.ts).
+  substitutions?: Substitution[];
 }
 
 export interface KeyboardShortcuts {
@@ -113,8 +138,29 @@ export const supportedLanguageCodes = [
 
 export type LanguageCode = (typeof supportedLanguageCodes)[number];
 
+// Dashboard appearance. 'system' follows the OS; the other two force it,
+// so an operator outdoors can keep light mode on a laptop set to dark.
+export type ThemeSetting = 'system' | 'light' | 'dark';
+export const themeSettings: readonly ThemeSetting[] = [
+  'system',
+  'light',
+  'dark',
+];
+
+// How large the dashboard is drawn. 'medium' is the design size; 'small'
+// fits more on a 1024px tablet, 'large' suits a 4K touch screen run at
+// 100% scaling, where everything would otherwise be half size.
+export type DashboardScale = 'small' | 'medium' | 'large';
+export const dashboardScales: readonly DashboardScale[] = [
+  'small',
+  'medium',
+  'large',
+];
+
 export interface AppSettings {
   keyColour: string;
+  theme?: ThemeSetting;
+  dashboardScale?: DashboardScale;
   autoSwitchScreens: boolean;
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
@@ -129,6 +175,10 @@ export interface AppSettings {
   // log). On unless switched off: unset counts as on, since a solo operator
   // gets a goal graphic with no typing ("GOAL | team | minute").
   showGoalBannerAutomatically?: boolean;
+  // After a goal key is tapped for a team with a line-up, ask who scored
+  // before the banner goes out (the score bug updates regardless). On
+  // unless switched off; unset counts as on.
+  askForScorer?: boolean;
   screenRotation?: ScreenRotationSettings;
 }
 
@@ -143,10 +193,18 @@ export interface MatchState {
   // up (epoch ms). Outputs hide the banner GOAL_BANNER_DURATION_MS after
   // shownAt, so a browser source that reconnects later doesn't replay it.
   goalBanner?: GoalBanner;
+  // The substitution currently shown in the on-air substitution banner,
+  // timed exactly like the goal banner.
+  substitutionBanner?: SubstitutionBanner;
 }
 
 export interface GoalBanner {
   goalId: string;
+  shownAt: number;
+}
+
+export interface SubstitutionBanner {
+  substitutionId: string;
   shownAt: number;
 }
 

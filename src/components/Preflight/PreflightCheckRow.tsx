@@ -1,9 +1,11 @@
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  MinusCircleIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import { classNames } from '@playoverlay/core';
 import { PreflightCheckResult } from '../../main-functions/preflight';
 
 export interface Props {
@@ -12,14 +14,16 @@ export interface Props {
 
 const STATUS_ICON = {
   ok: CheckCircleIcon,
+  info: MinusCircleIcon,
   warning: ExclamationTriangleIcon,
   error: XCircleIcon,
 } as const;
 
 const STATUS_ICON_CLASS = {
-  ok: 'text-green-600',
-  warning: 'text-amber-500',
-  error: 'text-red-600',
+  ok: 'text-live',
+  info: 'text-faint',
+  warning: 'text-warn',
+  error: 'text-danger',
 } as const;
 
 // One row of the preflight checklist. Mostly a thin t(titleKey)/t(detailKey)
@@ -55,12 +59,15 @@ export default function PreflightCheckRow({ check }: Props) {
   return (
     <li className="flex gap-x-3 py-3">
       <Icon
-        className={`mt-0.5 h-5 w-5 flex-shrink-0 ${STATUS_ICON_CLASS[check.status]}`}
+        className={classNames(
+          'mt-0.5 h-6 w-6 flex-shrink-0',
+          STATUS_ICON_CLASS[check.status]
+        )}
         aria-hidden="true"
       />
       <div>
-        <p className="text-sm font-medium text-gray-900">{t(check.titleKey)}</p>
-        <p className="mt-0.5 text-sm text-gray-500">
+        <p className="text-base font-medium text-fg">{t(check.titleKey)}</p>
+        <p className="mt-0.5 text-sm text-muted">
           {t(check.detailKey, detailData)}
         </p>
       </div>

@@ -77,9 +77,9 @@ If you'd rather not trust an unsigned binary, build it yourself from source, see
 ## Using it
 
 1. Open **Match Settings** and set team names, abbreviations, colours, and logos, plus the venue, kick-off time, and half lengths. **Save as club** keeps a team's details for next time, and **Load a saved club** fills a team in one step. This is also where you choose between the football timer and generic periods, and toggle extra time and penalties for the match.
-2. In **Window Settings**, pick your key colour. Whether screens switch automatically when the clock starts and stops is a toggle next to the clock controls on the dashboard.
-3. Move the display window to the output monitor and make it fullscreen.
-4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. Each goal puts a banner on air automatically and is logged with its minute. At half-time or full-time, open the **Goals** panel to add scorers (the end screen lists them) or show a banner again; the automatic banner can be switched off there too.
+2. In **Window Settings**, pick your key colour and the dashboard size (small for a 1024px tablet, large for a 4K touch screen). Whether screens switch automatically when the clock starts and stops lives under **Phases & clock** on the dashboard.
+3. Move the display window to the output monitor and make it fullscreen. The **Go live check** tab next to the screen keys runs through the setup and shows a dot while something needs attention.
+4. Kick off: start the first half, add goals as they happen, add stoppage time, advance phases. The preview and the clock stay on screen for the whole match; the clock block shows the score (tap it to correct the score by hand) and the time remaining. Each goal is logged with its minute in the **Goals** tab and puts a banner on air. For a team with a line-up the goal key asks who scored before the banner goes out (see below). Jumping to a phase, nudging the clock and pausing it are one tap away under **Phases & clock**.
 5. Between fixtures, **New match** (next to undo and redo) clears the match and puts the match title on air, ready for the next kick-off.
 
 ### Line-ups
@@ -88,8 +88,10 @@ Each team's panel in **Match Settings** has a **Line-up** section. **Add player*
 
 Once a team has players:
 
-- The scorer field in the **Goals** panel offers that team's players as you type, matching the name or the number. Pick one and the goal banner shows the number with the name, e.g. `9 Smith`. You can still type in a scorer who isn't in the line-up.
-- **Home Line-up** and **Away Line-up** appear among the screens in Display Controls and on the Stream Deck. Each shows the team's name, logo and colours over its players, in two columns for more than eleven.
+- Tapping that team's goal key updates the score bug at once and asks who scored: the players on the pitch as large tiles, the bench beneath, plus **No scorer**, **Own goal** and **Not a goal** for a mis-tap. The goal banner goes out once you choose, with the number and the name, e.g. `9 Smith`. Tap a goal in the log to change its scorer later. Goals from a keyboard shortcut, the Stream Deck or the phone never wait for the question. Both the question and the automatic banners can be switched off in **Window Settings**. A team without a line-up keeps a plain scorer field in the log.
+- **Home Line-up** and **Away Line-up** appear among the screen keys and on the Stream Deck. Each shows the team's name, logo and colours over its players, in two columns for more than eleven.
+
+Each player has a **Starts** box, ticked by default. Untick it for the substitutes and the line-up screen shows the starters on the pitch with a smaller **Bench** group underneath; any number of starters works, so five-a-side and rugby squads are no different. Substitutions are logged from the **Substitutions** tab during the match: tap the team, pick who is coming off from the players on the pitch, then who is coming on from the bench, and confirm (or confirm and make another for a double change). The two players swap places on the line-up screen, and a banner like the goal banner announces the change on air with the minute. Remove a substitution from the list to put both players back.
 
 ![The home line-up screen on the display output](docs/screenshots/lineup.png)
 
@@ -97,7 +99,7 @@ None of this appears until a team has players. If you never enter one, the app w
 
 #### Rotating screens
 
-The **Rotate screens** panel under Display Controls cycles the display through screens you choose, so you can put the laptop down before kick-off or at half-time. Tick the screens to show: the match title, the line-ups, the score bug, the scoreboard, penalties, the end screen and your full-screen graphics. Set the seconds per screen and press **Start rotating**. The screens take turns in the order listed. The rotation stops as soon as you take over, whether you pick a screen on the dashboard, the Stream Deck or the phone, start the clock, press **New match** or restore a match.
+The **Rotate screens** key under the screen keys cycles the display through screens you choose, so you can put the laptop down before kick-off or at half-time. The gear beside it opens the set-up: tick the screens to show (the match title, the line-ups, the score bug, the scoreboard, penalties, the end screen and your full-screen graphics) and set the seconds per screen. Tap the key to start; it stays lit, with the interval, while the screens take turns in the order listed. The rotation stops as soon as you take over, whether you pick a screen on the dashboard, the Stream Deck or the phone, start the clock, press **New match** or restore a match.
 
 With **Start automatically at half-time** switched on, the rotation starts by itself whenever the clock stops for a break with more of the match to come. That covers half-time, breaks between periods and the break before extra time, but never full time. It needs at least two screens it can show, and it skips a graphic you've deleted or a line-up you've emptied.
 

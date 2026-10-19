@@ -1,0 +1,44 @@
+/* A copy of GoalBannerLayout.css under its own class names: the two banners
+   share a position and a reveal, so a substitution reads as the goal
+   banner's sibling, but each keeps its own transition state. */
+.SubstitutionBannerLayout {
+  --base-size: 1.75cqw;
+  position: absolute;
+  bottom: calc(var(--base-size) * 1.5);
+  left: calc(var(--base-size) * 1.5);
+  font-size: var(--base-size);
+  overflow: hidden;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 0;
+  transition: max-width 0.6s;
+}
+
+.SubstitutionBannerLayout_active {
+  /* Wider than the goal banner's window: it carries two names. */
+  max-width: calc(var(--base-size) * 56);
+}
+
+.SubstitutionBannerLayout_item {
+  padding: calc(var(--base-size) / 4) calc(var(--base-size) / 2);
+  flex-shrink: 0;
+}
+
+.SubstitutionBannerLayout_label {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.SubstitutionBannerLayout_player {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--base-size) / 3);
+}
+
+.SubstitutionBannerLayout_arrow {
+  font-size: 0.75em;
+}
+
+.SubstitutionBannerLayout_minute {
+  font-variant-numeric: tabular-nums;
+}

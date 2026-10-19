@@ -5,6 +5,7 @@ import './i18n';
 import Dashboard from './components/Dashboard/Dashboard';
 import LanguageModal from './components/LanguageModal/LanguageModal';
 import { useAppSettingsStore, detectLanguage } from '@playoverlay/core';
+import { useDashboardScale, useTheme } from './theme';
 
 // Thin wrapper around Dashboard: owns the two pieces of i18n wiring that
 // don't belong inside Dashboard itself (which is owned by a later wave) -
@@ -21,6 +22,8 @@ function ControlRoot() {
   useEffect(() => {
     i18n.changeLanguage(appSettings.language ?? detectLanguage());
   }, [appSettings.language, i18n]);
+  useTheme(appSettings.theme);
+  useDashboardScale(appSettings.dashboardScale);
 
   return (
     <>

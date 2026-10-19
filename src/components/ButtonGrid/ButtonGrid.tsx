@@ -1,26 +1,52 @@
 import Button, { Props as ButtonProps } from './Button';
+import { classNames } from '@playoverlay/core';
+import type {
+  ActionButtonSelectedTone,
+  ActionButtonSize,
+} from '../ui/ActionButton';
 
 export interface Props {
   className?: string;
   buttons: ButtonProps[];
   compact?: boolean;
+  // Column count from md up (2 below it). compact is the older spelling
+  // of columns={2}.
+  columns?: 1 | 2 | 3 | 4;
+  // Applied to every button unless the button sets its own.
+  size?: ActionButtonSize;
+  // What a selected button in this grid means (see ActionButton).
+  selectedTone?: ActionButtonSelectedTone;
 }
 
-export default function ButtonGrid({ className, buttons, compact }: Props) {
+const columnClasses = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-2 md:grid-cols-3',
+  4: 'grid-cols-2 md:grid-cols-4',
+};
+
+export default function ButtonGrid({
+  className,
+  buttons,
+  compact,
+  columns,
+  size,
+  selectedTone,
+}: Props) {
   return (
     <div
-      className={`grid w-full grid-cols-1 gap-2 ${compact ? 'md:grid-cols-2' : 'sm:grid-cols-2 md:grid-cols-3'} auto-rows-fr${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'grid w-full auto-rows-fr gap-2',
+        columnClasses[columns ?? (compact ? 2 : 3)],
+        className ?? ''
+      )}
     >
       {buttons.map((button, index) => (
         <Button
-          onClick={button.onClick}
           key={`${button.label}-${index}`}
-          disabled={button.disabled}
-          icon={button.icon}
-          label={button.label}
-          color={button.color}
-          backgroundColor={button.backgroundColor}
-          selected={button.selected}
+          {...button}
+          size={button.size ?? size}
+          selectedTone={button.selectedTone ?? selectedTone}
         />
       ))}
     </div>

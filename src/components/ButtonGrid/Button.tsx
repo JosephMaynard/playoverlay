@@ -1,38 +1,64 @@
+import ActionButton, {
+  ActionButtonSelectedTone,
+  ActionButtonSize,
+  ActionButtonVariant,
+} from '../ui/ActionButton';
+
 export interface Props {
   label: string;
   onClick: () => void;
+  variant?: ActionButtonVariant;
+  size?: ActionButtonSize;
+  // Older call sites pass Tailwind colour classes; they map onto the
+  // semantic variants so everything themes together. Prefer `variant`.
   color?: string;
   backgroundColor?: string;
   selected?: boolean;
+  selectedTone?: ActionButtonSelectedTone;
   disabled?: boolean;
   icon?: React.ReactNode;
   className?: string;
 }
 
+function variantFromLegacyColour(
+  backgroundColor: string | undefined
+): ActionButtonVariant {
+  if (!backgroundColor) return 'secondary';
+  if (backgroundColor.startsWith('bg-red')) return 'danger';
+  if (backgroundColor.startsWith('bg-green')) return 'live';
+  if (
+    backgroundColor.startsWith('bg-indigo') ||
+    backgroundColor.startsWith('bg-blue')
+  ) {
+    return 'primary';
+  }
+  return 'secondary';
+}
+
 export default function Button({
   label,
   onClick,
-  color,
+  variant,
+  size,
   backgroundColor,
   selected,
+  selectedTone,
   disabled,
   icon,
   className,
 }: Props) {
   return (
-    <button
-      className={`${icon ? 'inline-flex items-center gap-x-1.5' : ''} rounded-lg ${backgroundColor ? backgroundColor : selected ? 'bg-green-300' : 'bg-white hover:bg-gray-50'} ${icon ? 'px-3.5' : 'px-2'} py-3.5 font-semibold disabled:bg-gray-200 disabled:text-gray-400 ${color || 'text-gray-900'} shadow-sm ring-1 ring-inset ring-gray-300${className ? ` ${className}` : ''}`}
-      onClick={onClick}
+    <ActionButton
+      variant={variant ?? variantFromLegacyColour(backgroundColor)}
+      size={size}
+      selected={selected}
+      selectedTone={selectedTone}
       disabled={disabled}
-      // Only a genuine toggle/selected-state button passes `selected` at
-      // all (screen/phase/language pickers and similar segmented controls);
-      // plain action buttons (Stop, Clear, …) leave it undefined, which
-      // omits the attribute entirely rather than announcing a false
-      // "not pressed" state.
-      aria-pressed={selected === undefined ? undefined : selected}
+      icon={icon}
+      className={className}
+      onClick={onClick}
     >
-      {icon}
       {label}
-    </button>
+    </ActionButton>
   );
 }

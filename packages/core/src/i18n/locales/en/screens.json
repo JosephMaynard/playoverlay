@@ -2,6 +2,9 @@
   "goalBanner": {
     "goal": "Goal"
   },
+  "lineup": {
+    "bench": "Bench"
+  },
   "matchTitle": {
     "kickOff": "Kick-off {{time}}",
     "startsIn": "Starts in {{countdown}}"
@@ -20,6 +23,9 @@
     "match": "Match",
     "pm": "pm",
     "time": "Time"
+  },
+  "substitutionBanner": {
+    "label": "Sub"
   },
   "timeDisplay": {
     "additionalTime": "Additional time: <bold>{{minutes}} minutes</bold>",

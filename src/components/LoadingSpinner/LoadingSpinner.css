@@ -14,7 +14,6 @@
   height: var(--size);
   width: var(--size);
   border-radius: 50%;
-  background-color: navy;
   animation: LoadingSpinner_ball_animation var(--duration) infinite;
   transform-origin: 50% 100%;
 }
@@ -25,7 +24,9 @@
   height: calc(var(--size) / 4);
   width: var(--size);
   border-radius: 50%;
-  background-color: navy;
+  /* The ink token is dark in both themes, and a shadow should never read
+     as a glow on the dark one. */
+  background-color: rgb(var(--c-ink));
   opacity: 0.5;
   animation: LoadingSpinner_shadow_animation var(--duration) infinite;
 }

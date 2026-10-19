@@ -14,7 +14,11 @@
 // construction: nothing in this file (or its caller) writes to disk, moves a
 // window, or changes match state, it only looks and reports.
 
-export type PreflightStatus = 'ok' | 'warning' | 'error';
+// 'info' is a check that did not apply (a service left off): neither a
+// pass to celebrate nor a problem, so it never counts towards the summary.
+export type PreflightStatus = 'ok' | 'info' | 'warning' | 'error';
+// The summary only ever reports problems or their absence.
+export type PreflightSummaryStatus = Exclude<PreflightStatus, 'info'>;
 
 // One row of the checklist. titleKey/detailKey are i18next keys (not baked
 // English strings) so the UI can render them in the operator's chosen
@@ -31,7 +35,7 @@ export interface PreflightCheckResult {
 }
 
 export interface PreflightSummary {
-  status: PreflightStatus;
+  status: PreflightSummaryStatus;
   errorCount: number;
   warningCount: number;
 }
@@ -194,7 +198,7 @@ function evaluateService(
   if (!service.enabled) {
     return {
       id,
-      status: 'ok',
+      status: 'info',
       titleKey,
       detailKey: `preflight:checks.${id}.off`,
     };
@@ -340,7 +344,7 @@ function summarize(checks: PreflightCheckResult[]): PreflightSummary {
     (check) => check.status === 'warning'
   ).length;
 
-  const status: PreflightStatus =
+  const status: PreflightSummaryStatus =
     errorCount > 0 ? 'error' : warningCount > 0 ? 'warning' : 'ok';
 
   return { status, errorCount, warningCount };

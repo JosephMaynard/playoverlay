@@ -4,6 +4,13 @@
     "save": "Enregistrer"
   },
   "appMenu": {
+    "appearance": {
+      "dark": "Sombre",
+      "description": "Le mode sombre repose les yeux dans une pièce sombre ou à côté d’OBS. Le mode clair reste lisible en plein soleil.",
+      "light": "Clair",
+      "system": "Comme le système",
+      "title": "Apparence"
+    },
     "browserSource": {
       "copied": "Copié !",
       "copy": "Copier",
@@ -19,6 +26,13 @@
       "statusWithError": "Statut : {{state}}, {{error}}",
       "title": "Source navigateur OBS"
     },
+    "dashboardSize": {
+      "description": "Taille d’affichage du tableau de bord. Grand convient à un écran tactile 4K ; petit en met plus sur une tablette de 1024 px.",
+      "large": "Grand",
+      "medium": "Moyen",
+      "small": "Petit",
+      "title": "Taille du tableau de bord"
+    },
     "diagnostics": {
       "cancelled": "Export annulé.",
       "error": "Échec de l'export des diagnostics. Veuillez réessayer.",
@@ -30,6 +44,13 @@
     "displays": {
       "moveToScreen": "Déplacer vers l'écran {{n}}",
       "none": "Aucun écran externe détecté."
+    },
+    "goals": {
+      "askForScorer": "Demander le buteur quand l’équipe a une composition",
+      "askForScorerHint": "Le score à l’écran se met à jour aussitôt ; le bandeau de but attend le choix. Les buts venant d’un raccourci, du Stream Deck ou du téléphone n’attendent jamais.",
+      "bannerAuto": "Diffuser automatiquement les bandeaux de but et de remplacement",
+      "bannerAutoHint": "Désactivé, rien ne part tant que vous ne l’affichez pas vous-même.",
+      "title": "Buts et bandeaux"
     },
     "keyColour": "Couleur clé",
     "keyboardShortcutRow": {
@@ -77,9 +98,9 @@
     "windowControls": {
       "lockWindows": "Verrouiller les fenêtres",
       "resetPositions": "Réinitialiser les positions",
+      "title": "Fenêtres",
       "toggleFullscreen": "Basculer le plein écran",
-      "unlockWindows": "Déverrouiller les fenêtres",
-      "title": "Fenêtres"
+      "unlockWindows": "Déverrouiller les fenêtres"
     }
   },
   "colourPicker": {
@@ -137,6 +158,23 @@
   },
   "matchMenu": {
     "awayTeam": "Équipe visiteuse",
+    "clubs": {
+      "deleteAria": "Supprimer {{club}}",
+      "deleteConfirmBody": "Voulez-vous vraiment supprimer le club enregistré « {{club}} » ? Les équipes qui l'utilisent déjà ne sont pas modifiées.",
+      "deleteError": "Le club n'a pas pu être supprimé. Veuillez réessayer.",
+      "deleteModalTitle": "Supprimer le club enregistré ?",
+      "empty": "Aucun club enregistré pour l'instant. Utilisez « {{action}} » dans les paramètres d'une équipe pour conserver son nom, ses couleurs et son logo pour les prochains matchs.",
+      "loadError": "Impossible de charger vos clubs enregistrés.",
+      "loadLabel": "Charger un club enregistré",
+      "noneSaved": "Aucun club enregistré",
+      "placeholder": "Choisir un club",
+      "playerCount_one": "{{count}} joueur",
+      "playerCount_other": "{{count}} joueurs",
+      "saveAsClub": "Enregistrer comme club",
+      "saveError": "Le club n'a pas pu être enregistré. Veuillez réessayer.",
+      "saved": "Enregistré dans vos clubs.",
+      "title": "Clubs enregistrés"
+    },
     "details": {
       "extraTime": "Prolongation",
       "extraTimeHalfLength": "Durée d'une mi-temps de prolongation",
@@ -156,6 +194,30 @@
       "venue": "Lieu"
     },
     "homeTeam": "Équipe à domicile",
+    "lineup": {
+      "addPlayer": "Ajouter un joueur",
+      "benchCount_one": "{{count}} sur le banc",
+      "benchCount_other": "{{count}} sur le banc",
+      "cap": "jusqu'à {{max}}",
+      "count_one": "{{count}} joueur",
+      "count_other": "{{count}} joueurs",
+      "empty": "Ajoutez l'effectif pour afficher une composition à l'antenne et choisir les buteurs dans la liste.",
+      "nameLabel": "{{team}}, joueur {{n}} : nom",
+      "namePlaceholder": "Nom du joueur",
+      "numberLabel": "{{team}}, joueur {{n}} : numéro de maillot",
+      "numberPlaceholder": "N°",
+      "pasteAction": "Ajouter les joueurs",
+      "pasteHint": "Un joueur par ligne. Mettez d'abord le numéro de maillot si vous l'avez, par ex. 9 Ali Smith.",
+      "pasteList": "Coller une liste",
+      "pasteModalTitle": "Coller la composition : {{team}}",
+      "removeAria": "Retirer {{player}}",
+      "squadSummary": "{{starting}}, {{bench}}",
+      "startingCount_one": "{{count}} titulaire",
+      "startingCount_other": "{{count}} titulaires",
+      "startsLabel": "{{player}} titulaire",
+      "title": "Composition",
+      "unnamedPlayer": "{{team}}, joueur {{n}}"
+    },
     "saved": {
       "defaultName": "{{home}} contre {{away}}",
       "deleteConfirmBody": "Voulez-vous vraiment supprimer les paramètres de match enregistrés « {{title}} » ?",
@@ -184,42 +246,7 @@
       "textColourLabel": "Couleur du texte de {{team}}",
       "upload": "Envoyer"
     },
-    "title": "Paramètres de match",
-    "clubs": {
-      "title": "Clubs enregistrés",
-      "loadLabel": "Charger un club enregistré",
-      "placeholder": "Choisir un club",
-      "noneSaved": "Aucun club enregistré",
-      "saveAsClub": "Enregistrer comme club",
-      "saved": "Enregistré dans vos clubs.",
-      "saveError": "Le club n'a pas pu être enregistré. Veuillez réessayer.",
-      "loadError": "Impossible de charger vos clubs enregistrés.",
-      "empty": "Aucun club enregistré pour l'instant. Utilisez « {{action}} » dans les paramètres d'une équipe pour conserver son nom, ses couleurs et son logo pour les prochains matchs.",
-      "deleteAria": "Supprimer {{club}}",
-      "deleteModalTitle": "Supprimer le club enregistré ?",
-      "deleteConfirmBody": "Voulez-vous vraiment supprimer le club enregistré « {{club}} » ? Les équipes qui l'utilisent déjà ne sont pas modifiées.",
-      "deleteError": "Le club n'a pas pu être supprimé. Veuillez réessayer.",
-      "playerCount_one": "{{count}} joueur",
-      "playerCount_other": "{{count}} joueurs"
-    },
-    "lineup": {
-      "addPlayer": "Ajouter un joueur",
-      "cap": "jusqu'à {{max}}",
-      "count_one": "{{count}} joueur",
-      "count_other": "{{count}} joueurs",
-      "empty": "Ajoutez l'effectif pour afficher une composition à l'antenne et choisir les buteurs dans la liste.",
-      "nameLabel": "{{team}}, joueur {{n}} : nom",
-      "namePlaceholder": "Nom du joueur",
-      "numberLabel": "{{team}}, joueur {{n}} : numéro de maillot",
-      "numberPlaceholder": "N°",
-      "pasteAction": "Ajouter les joueurs",
-      "pasteHint": "Un joueur par ligne. Mettez d'abord le numéro de maillot si vous l'avez, par ex. 9 Ali Smith.",
-      "pasteList": "Coller une liste",
-      "pasteModalTitle": "Coller la composition : {{team}}",
-      "removeAria": "Retirer {{player}}",
-      "title": "Composition",
-      "unnamedPlayer": "{{team}}, joueur {{n}}"
-    }
+    "title": "Paramètres de match"
   },
   "system": {
     "about": "À propos",

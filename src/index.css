@@ -2,6 +2,177 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dashboard theme tokens, as space-separated RGB so Tailwind can add an
+   alpha (see tailwind.config.js). Light is tuned for a tablet in daylight:
+   strong borders and near-black text. Dark uses the same navy as the
+   website so the app reads as one product next to OBS. The display window
+   never sets data-theme, so the on-air graphics are untouched. */
+:root {
+  color-scheme: light;
+  --c-bg: 241 245 249;
+  --c-surface: 255 255 255;
+  --c-surface-2: 241 245 249;
+  --c-line: 203 213 225;
+  --c-line-strong: 148 163 184;
+  --c-fg: 15 23 42;
+  --c-muted: 71 85 105;
+  --c-faint: 100 116 139;
+  --c-accent: 79 70 229;
+  --c-accent-hover: 67 56 202;
+  --c-accent-fg: 255 255 255;
+  --c-accent-soft: 224 231 255;
+  /* Green 700 rather than 600: white labels need 4.5:1 on a live button. */
+  --c-live: 21 128 61;
+  --c-live-hover: 22 101 52;
+  --c-live-fg: 255 255 255;
+  --c-live-soft: 220 252 231;
+  --c-live-ink: 20 83 45;
+  --c-danger: 220 38 38;
+  --c-danger-hover: 185 28 28;
+  --c-danger-fg: 255 255 255;
+  --c-danger-soft: 254 226 226;
+  --c-danger-ink: 127 29 29;
+  --c-warn: 217 119 6;
+  --c-warn-soft: 254 243 199;
+  --c-warn-ink: 120 53 15;
+  --c-ink: 15 23 42;
+  --c-ink-fg: 255 255 255;
+  --c-overlay: 15 23 42;
+  /* Keys: the dashboard's buttons are drawn like the keys on a vision
+     mixer, a short top-to-bottom gradient with a hairline and an inset
+     highlight, so a lit one (on air, running) reads at a glance. */
+  --c-key-1: 255 255 255;
+  --c-key-2: 228 232 237;
+  --c-key-line: 167 176 187;
+  --c-key-hi: 255 255 255;
+  --key-hi-alpha: 1;
+  /* The go keys carry white labels at body size, so both gradient stops
+     stay dark enough for 4.5:1 (the same greens as the live tokens). */
+  --c-key-go-1: 21 128 61;
+  --c-key-go-2: 22 101 52;
+  --c-key-air-1: 216 38 43;
+  --c-key-air-2: 171 27 32;
+  --c-key-accent-1: 79 70 229;
+  --c-key-accent-2: 67 56 202;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --c-bg: 9 16 34;
+  --c-surface: 17 26 51;
+  --c-surface-2: 27 38 70;
+  --c-line: 45 58 94;
+  --c-line-strong: 80 96 138;
+  --c-fg: 241 245 249;
+  --c-muted: 163 175 199;
+  /* Light enough for placeholder text to pass 4.5:1 on the input surface. */
+  --c-faint: 134 148 176;
+  --c-accent: 129 140 248;
+  --c-accent-hover: 165 180 252;
+  --c-accent-fg: 15 23 42;
+  --c-accent-soft: 49 46 129;
+  --c-live: 74 222 128;
+  --c-live-hover: 134 239 172;
+  --c-live-fg: 5 46 22;
+  --c-live-soft: 20 60 40;
+  --c-live-ink: 187 247 208;
+  --c-danger: 248 113 113;
+  --c-danger-hover: 252 165 165;
+  --c-danger-fg: 69 10 10;
+  --c-danger-soft: 69 10 10;
+  --c-danger-ink: 254 202 202;
+  --c-warn: 251 191 36;
+  --c-warn-soft: 69 46 5;
+  --c-warn-ink: 253 230 138;
+  --c-ink: 2 6 23;
+  --c-ink-fg: 255 255 255;
+  --c-overlay: 0 0 0;
+  --c-key-1: 58 65 75;
+  --c-key-2: 42 48 56;
+  --c-key-line: 26 30 35;
+  --c-key-hi: 255 255 255;
+  --key-hi-alpha: 0.1;
+  --c-key-go-1: 24 136 66;
+  --c-key-go-2: 20 108 52;
+  --c-key-air-1: 230 56 47;
+  --c-key-air-2: 179 36 28;
+  --c-key-accent-1: 99 102 241;
+  --c-key-accent-2: 79 70 229;
+}
+
+@layer components {
+  /* The base key. Variants only swap the two gradient stops and the
+     hairline, so every key keeps the same depth and pressed state. */
+  .key {
+    border: 1px solid rgb(var(--c-key-line));
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-2))
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(var(--c-key-hi) / var(--key-hi-alpha)),
+      0 1px 1px rgb(0 0 0 / 0.25);
+  }
+  .key:hover:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-1))
+    );
+  }
+  .key:active:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-2)),
+      rgb(var(--c-key-2))
+    );
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.35);
+  }
+  .key-go,
+  .key-air,
+  .key-accent {
+    color: #fff;
+    text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 1px 2px rgb(0 0 0 / 0.35);
+  }
+  .key-go {
+    --c-key-1: var(--c-key-go-1);
+    --c-key-2: var(--c-key-go-2);
+    --c-key-line: var(--c-key-go-2);
+  }
+  .key-air {
+    --c-key-1: var(--c-key-air-1);
+    --c-key-2: var(--c-key-air-2);
+    --c-key-line: var(--c-key-air-2);
+  }
+  .key-accent {
+    --c-key-1: var(--c-key-accent-1);
+    --c-key-2: var(--c-key-accent-2);
+    --c-key-line: var(--c-key-accent-2);
+  }
+  /* A lit key glows in its own colour, the way a bus key does on a
+     switcher, so the screen on air and the phase running are visible from
+     across a touchline. */
+  .key-lit {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 1px rgb(var(--c-key-2)),
+      0 0 18px rgb(var(--c-key-1) / 0.55);
+  }
+  .key-go:hover:not(:disabled),
+  .key-air:hover:not(:disabled),
+  .key-accent:hover:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-1))
+    );
+  }
+}
+
 @layer base {
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {

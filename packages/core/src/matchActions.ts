@@ -6,8 +6,10 @@ import {
   MatchPhase,
   MatchState,
   Penalty,
+  Player,
   Scores,
   Time,
+  homeOrAway,
 } from './types';
 import { MatchSettings, matchSetingsSchema } from './zodSchemas';
 import {
@@ -20,6 +22,7 @@ import {
 import { getNextPhaseId, getPhaseList, isValidAdditionalTime } from './utils';
 import { createGoal, removeLatestGoal, trimGoalsToScore } from './goalLog';
 import { normalisePlayerNumber } from './lineup';
+import { createSubstitution, samePlayer } from './substitutions';
 import { useScoresStore } from './store/scores';
 import { useMatchSettingsStore } from './store/matchSettings';
 import { useMatchStateStore } from './store/matchState';
@@ -42,6 +45,11 @@ export type MatchClock = Pick<
   | 'restoreClock'
   | 'resetClock'
 >;
+
+export interface GoalOptions {
+  // Hold the goal banner back until the scorer has been chosen.
+  awaitScorer?: boolean;
+}
 
 export interface MatchActionOptions {
   // Called at each point where an operator action supersedes the host's
@@ -171,7 +179,11 @@ export function createMatchActions(
           .replaceMatchSettings({ ...defaultMatchSettings, ...parsed.data });
       }
     }
-    setScores({ ...liveMatch.scores, goals: liveMatch.scores.goals ?? [] });
+    setScores({
+      ...liveMatch.scores,
+      goals: liveMatch.scores.goals ?? [],
+      substitutions: liveMatch.scores.substitutions ?? [],
+    });
     // Restore fully replaces the match state. The store setter merges and
     // both defaultMatchState and the snapshot may omit optional keys, so the
     // optional fields are cleared explicitly first, otherwise one left over
@@ -262,6 +274,61 @@ export function createMatchActions(
     }
   };
 
+  // Substitutions. Score-slice undo entries like the goal log, since the log
+  // lives with the scores. Who is on the pitch is derived from the log (see
+  // substitutions.ts), so removing an entry is the whole correction: the two
+  // players swap back with nothing else to put right. Swapping a player for
+  // themselves changes nothing, so it records nothing.
+  const makeSubstitution = (team: homeOrAway, off: Player, on: Player) => {
+    if (samePlayer(off, on)) return;
+    captureUndo('undo:actions.substitution', ['scores']);
+    onOperatorAction();
+    const prevScores = useScoresStore.getState().scores;
+    const substitution = createSubstitution(
+      nanoid(),
+      team,
+      off,
+      on,
+      useTimeStore.getState().time
+    );
+    setScores({
+      substitutions: [...(prevScores.substitutions ?? []), substitution],
+    });
+    maybeShowSubstitutionBanner(substitution.id);
+  };
+
+  const removeSubstitution = (substitutionId: string) => {
+    const substitutions = useScoresStore.getState().scores.substitutions ?? [];
+    if (!substitutions.some((entry) => entry.id === substitutionId)) return;
+    captureUndo('undo:actions.substitutionRemoved', ['scores']);
+    setScores({
+      substitutions: substitutions.filter(
+        (entry) => entry.id !== substitutionId
+      ),
+    });
+  };
+
+  // Puts the substitution banner on air for one substitution. Not an undo
+  // step, like the goal banner: it takes itself off after
+  // SUBSTITUTION_BANNER_DURATION_MS.
+  const showSubstitutionBanner = (substitutionId: string) => {
+    setMatchState({
+      substitutionBanner: { substitutionId, shownAt: Date.now() },
+    });
+  };
+
+  // The goal banner's "show automatically" setting covers both banners: an
+  // operator who wants goals announced by themselves wants the same for
+  // substitutions, and one who shows graphics by hand wants neither.
+  const maybeShowSubstitutionBanner = (substitutionId: string) => {
+    if (
+      useAppSettingsStore.getState().appSettings.showGoalBannerAutomatically !==
+      false
+    ) {
+      showSubstitutionBanner(substitutionId);
+    }
+  };
+
   // New match: back to a clean slate between fixtures in one step, instead of
   // resetting the score, penalties, clock, phase history and graphics one by
   // one (easy to get half right between back-to-back fixtures). Team
@@ -274,7 +341,12 @@ export function createMatchActions(
     // fixture must not take it off again.
     stopRotation();
     clock.resetClock();
-    setScores({ ...defaultScores, penalties: [], goals: [] });
+    setScores({
+      ...defaultScores,
+      penalties: [],
+      goals: [],
+      substitutions: [],
+    });
     setMatchState({
       ...defaultMatchState,
       overlays: [],
@@ -282,6 +354,7 @@ export function createMatchActions(
       previousMatchPhase: undefined,
       customScreenImageUrl: undefined,
       goalBanner: undefined,
+      substitutionBanner: undefined,
       displayScreen: 'matchTitle',
     });
     useUndoStore.getState().clearHistory();
@@ -300,31 +373,37 @@ export function createMatchActions(
     setScores({ ...prevScores, penalties });
   };
 
-  const incrementHomeTeamScore = () => {
-    captureUndo('undo:actions.homeGoal', ['scores']);
+  // A goal for either team: the score goes up and the goal is logged with
+  // the clock. Returns the new goal's id. With awaitScorer the banner is
+  // held back so the host can ask who scored first and then call
+  // maybeShowGoalBanner itself; a goal from a shortcut, the Stream Deck or
+  // the phone never waits, since nobody may be at the laptop to answer.
+  const scoreGoal = (
+    team: 'home' | 'away',
+    { awaitScorer = false }: GoalOptions = {}
+  ): string => {
+    captureUndo(
+      team === 'home' ? 'undo:actions.homeGoal' : 'undo:actions.awayGoal',
+      ['scores']
+    );
     onOperatorAction();
     const prevScores = useScoresStore.getState().scores;
-    const goal = createGoal(nanoid(), 'home', useTimeStore.getState().time);
+    const goal = createGoal(nanoid(), team, useTimeStore.getState().time);
     setScores({
       ...prevScores,
-      homeTeam: prevScores.homeTeam + 1,
+      [team === 'home' ? 'homeTeam' : 'awayTeam']:
+        prevScores[team === 'home' ? 'homeTeam' : 'awayTeam'] + 1,
       goals: [...(prevScores.goals ?? []), goal],
     });
-    maybeShowGoalBanner(goal.id);
+    if (!awaitScorer) maybeShowGoalBanner(goal.id);
+    return goal.id;
   };
 
-  const incrementAwayTeamScore = () => {
-    captureUndo('undo:actions.awayGoal', ['scores']);
-    onOperatorAction();
-    const prevScores = useScoresStore.getState().scores;
-    const goal = createGoal(nanoid(), 'away', useTimeStore.getState().time);
-    setScores({
-      ...prevScores,
-      awayTeam: prevScores.awayTeam + 1,
-      goals: [...(prevScores.goals ?? []), goal],
-    });
-    maybeShowGoalBanner(goal.id);
-  };
+  const incrementHomeTeamScore = (options?: GoalOptions) =>
+    scoreGoal('home', options);
+
+  const incrementAwayTeamScore = (options?: GoalOptions) =>
+    scoreGoal('away', options);
 
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
   // drive the score negative. Clears any pending restore prompt, exactly like
@@ -512,6 +591,10 @@ export function createMatchActions(
     removeGoal,
     showGoalBanner,
     maybeShowGoalBanner,
+    makeSubstitution,
+    removeSubstitution,
+    showSubstitutionBanner,
+    maybeShowSubstitutionBanner,
     startNewMatch,
     setPenalties,
     incrementHomeTeamScore,

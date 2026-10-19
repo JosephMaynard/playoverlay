@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Club } from '@playoverlay/core';
+import { Club, classNames } from '@playoverlay/core';
+import ActionButton from '../ui/ActionButton';
+import {
+  errorTextClassName,
+  labelClassName,
+  selectClassName,
+} from '../ui/fields';
 
 export interface Props {
   // Used to keep the two teams' control ids apart.
@@ -36,17 +42,14 @@ export default function ClubPicker({
   };
 
   return (
-    <div className="col-span-full mb-4 rounded-md bg-gray-50 p-3 ring-1 ring-inset ring-gray-200">
-      <label
-        htmlFor={selectId}
-        className="block text-sm font-medium leading-6 text-gray-900"
-      >
+    <div className="col-span-full rounded-xl bg-surface-2 p-3 ring-1 ring-inset ring-line">
+      <label htmlFor={selectId} className={labelClassName}>
         {t('settings:matchMenu.clubs.loadLabel')}
       </label>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 flex items-center gap-3">
         <select
           id={selectId}
-          className="block w-full min-w-0 rounded-md border-0 py-1.5 pl-3 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 sm:text-sm sm:leading-6"
+          className={classNames(selectClassName, 'min-w-0')}
           value=""
           disabled={clubs.length === 0}
           onChange={(event) => {
@@ -70,22 +73,22 @@ export default function ClubPicker({
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          className="inline-flex flex-shrink-0 items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+        <ActionButton
+          size="md"
+          className="flex-shrink-0"
           onClick={handleSave}
           disabled={!canSave || saving}
         >
           {t('settings:matchMenu.clubs.saveAsClub')}
-        </button>
+        </ActionButton>
       </div>
       {status === 'saved' && (
-        <p className="mt-2 text-xs text-green-700" role="status">
+        <p className="mt-2 text-sm font-medium text-live-ink" role="status">
           {t('settings:matchMenu.clubs.saved')}
         </p>
       )}
       {status === 'error' && (
-        <p className="mt-2 text-xs text-red-600" role="alert">
+        <p className={errorTextClassName} role="alert">
           {t('settings:matchMenu.clubs.saveError')}
         </p>
       )}

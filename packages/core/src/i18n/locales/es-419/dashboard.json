@@ -1,25 +1,36 @@
 {
   "displayControls": {
     "overlays": "Superposiciones",
+    "screens": "Pantallas",
     "title": "Controles de pantalla"
   },
   "goalLog": {
     "empty": "Todavía no hay goles. Cada gol aparece aquí con su minuto en cuanto se anota.",
     "goal": "Gol: {{team}}",
     "goalWithMinute": "Gol: {{team}}, {{minute}}",
-    "pickScorer": "¿No está en la alineación? Solo escribe un nombre.",
     "remove": "Quitar el gol",
     "removeAria": "Quitar el gol: {{goal}}",
     "scorerLabel": "Goleador ({{goal}})",
     "scorerPlaceholder": "Goleador",
-    "showAutomatically": "Mostrar el rótulo de gol al aire en cuanto se anote un gol",
-    "showBanner": "Mostrar al aire",
-    "showBannerAria": "Mostrar al aire: {{goal}}",
     "title": "Goles"
   },
+  "goals": {
+    "addScorer": "Agregar goleador",
+    "key": "Gol",
+    "keyAria": "Gol de {{team}}"
+  },
   "header": {
+    "darkMode": "Modo oscuro",
+    "graphics": "Gráficos",
+    "lightMode": "Modo claro",
+    "newMatch": "Nuevo",
     "openMenu": "Abrir menú de {{title}}",
-    "teamSettings": "Configuración del equipo"
+    "redo": "Rehacer",
+    "settings": "Ajustes",
+    "teamSettings": "Configuración del equipo",
+    "teams": "Equipos",
+    "undo": "Deshacer",
+    "window": "Ventana"
   },
   "newMatch": {
     "button": "Nuevo partido",
@@ -54,11 +65,13 @@
     "autoStart": "Iniciar automáticamente en el entretiempo",
     "autoStartHint": "Empieza cuando el cronómetro se detiene para una pausa y todavía queda partido, nunca al final.",
     "description": "La pantalla muestra por turnos cada pantalla elegida, en el orden de la lista, para que puedas alejarte antes del saque inicial o en el entretiempo. Se detiene si eliges tú una pantalla o inicias el cronómetro.",
+    "keyRotating": "Rotando, {{seconds}} s por pantalla",
     "needTwo": "Elige al menos dos pantallas para alternar.",
     "rotating": "En rotación",
     "screens": "Pantallas para mostrar",
     "seconds": "Segundos por pantalla",
     "secondsError": "Ingresa un número entero de segundos del {{min}} al {{max}}.",
+    "setUp": "Configurar la rotación de pantallas",
     "start": "Iniciar rotación",
     "stop": "Detener rotación",
     "title": "Rotar pantallas"
@@ -66,25 +79,61 @@
   "scoreInput": {
     "decreaseScoreAria": "Reducir el marcador de {{team}}",
     "editScore": "Editar marcador",
-    "editScoreAria": "Editar marcador de {{team}}",
     "increaseScoreAria": "Aumentar el marcador de {{team}}",
-    "scoreLabel": "Marcador de {{team}}",
-    "scored": "Gol de {{title}}"
+    "scoreLabel": "Marcador de {{team}}"
   },
-  "scoresPanel": {
-    "title": "Marcadores"
+  "scorer": {
+    "bench": "Banca",
+    "hint": "El marcador ya está actualizado. El banner del gol sale en cuanto elijas.",
+    "noScorer": "Sin goleador",
+    "notAGoal": "No es gol",
+    "onPitch": "En la cancha",
+    "ownGoal": "Autogol",
+    "whoScored": "¿Quién anotó?"
+  },
+  "substitutions": {
+    "change": "Cambiar",
+    "confirm": "Confirmar cambio",
+    "confirmAnother": "Confirmar y hacer otro",
+    "empty": "Todavía no hay cambios. Toca un equipo arriba para registrar quién sale y quién entra.",
+    "emptyBench": "No queda nadie en la banca.",
+    "entry": "{{team}}: sale {{off}}, entra {{on}}",
+    "key": "Cambio",
+    "keyAria": "Cambio de {{team}}",
+    "off": "Sale",
+    "on": "Entra",
+    "pickOff": "Elige quién sale",
+    "pickOn": "Elige de la banca",
+    "remove": "Eliminar cambio",
+    "removeAria": "Eliminar cambio: {{substitution}}",
+    "title": "Cambios"
+  },
+  "tabs": {
+    "match": "Partido",
+    "output": "Salida",
+    "screens": "Pantallas",
+    "substitutions": "Cambios"
   },
   "timeControl": {
+    "addedTime": "Tiempo agregado",
+    "addedTimeAria": "Tiempo agregado: {{minutes}} minutos",
     "additionalTimeLabel": "Tiempo adicional",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Ajustar tiempo",
+    "allPhases": "Ir a una fase",
     "autoSwitchLabel": "Cambiar de pantalla automáticamente al iniciar y detener",
     "clear": "Borrar",
     "pause": "Pausar",
+    "paused": "En pausa",
+    "phasesAndClock": "Fases y reloj",
+    "remaining": "Restante",
     "resume": "Reanudar",
+    "running": "En marcha",
     "setAdditionalTime": "Establecer tiempo adicional",
+    "start": "Iniciar {{phase}}",
+    "startPlain": "Iniciar",
     "title": "Tiempo"
   }
 }

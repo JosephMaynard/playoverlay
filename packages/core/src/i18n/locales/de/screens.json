@@ -2,6 +2,9 @@
   "goalBanner": {
     "goal": "Tor"
   },
+  "lineup": {
+    "bench": "Bank"
+  },
   "matchTitle": {
     "kickOff": "Anstoß {{time}}",
     "startsIn": "Anstoß in {{countdown}}"
@@ -20,6 +23,9 @@
     "match": "Spielzeit",
     "pm": "pm",
     "time": "Uhrzeit"
+  },
+  "substitutionBanner": {
+    "label": "Wechsel"
   },
   "timeDisplay": {
     "additionalTime": "Nachspielzeit: <bold>{{minutes}} Minuten</bold>",

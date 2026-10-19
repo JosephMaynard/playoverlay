@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../i18n';
 import SideMenu from '../SideMenu/SideMenu';
@@ -61,5 +61,26 @@ describe('SideMenu version line', () => {
     renderSideMenu();
 
     expect(screen.queryByText(/Version/)).not.toBeInTheDocument();
+  });
+});
+
+describe('SideMenu support link', () => {
+  it('opens the Ko-fi page in the browser from the drawer footer', () => {
+    const openUrlInBrowser = vi.fn();
+    Object.defineProperty(window, 'electronAPI', {
+      configurable: true,
+      value: {
+        getVersion: () => '0.21.0',
+        openUrlInBrowser,
+      } as unknown as Window['electronAPI'],
+    });
+    renderSideMenu();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Support PlayOverlay' })
+    );
+    expect(openUrlInBrowser).toHaveBeenCalledWith(
+      'https://ko-fi.com/magiczebra'
+    );
   });
 });

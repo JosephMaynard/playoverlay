@@ -34,3 +34,5 @@ export { default as GoalBannerLayout } from './GoalBannerLayout/GoalBannerLayout
 export type { Props as GoalBannerLayoutProps } from './GoalBannerLayout/GoalBannerLayout';
 export { default as LineupLayout } from './LineupLayout/LineupLayout';
 export type { Props as LineupLayoutProps } from './LineupLayout/LineupLayout';
+export { default as SubstitutionBannerLayout } from './SubstitutionBannerLayout/SubstitutionBannerLayout';
+export type { Props as SubstitutionBannerLayoutProps } from './SubstitutionBannerLayout/SubstitutionBannerLayout';

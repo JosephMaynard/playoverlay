@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RocketLaunchIcon } from '@heroicons/react/24/outline';
 
 import {
   AppSettings,
+  Goal,
   homeOrAway,
   LiveMatch,
+  Player,
+  hasLineup,
+  teamPlayers,
   SideMenuType,
   UpdateStatus,
   useMatchClock,
@@ -27,6 +30,8 @@ import {
   getScreenRotationSettings,
   useScreenRotation,
   useScreenRotationStore,
+  getNextPhaseId,
+  getPhaseList,
 } from '@playoverlay/core';
 import Screens from '@playoverlay/screens';
 import { connectStoresToElectron } from '../../electronBridge';
@@ -34,18 +39,22 @@ import { connectStoresToElectron } from '../../electronBridge';
 import Preview from '../Preview/Preview';
 import MatchSettingsMenu from '../MatchSettingsMenu/MatchSettingsMenu';
 import TimeControlPanel from './TimeControlPanel';
-import ScoresPanel from '../ScoresPanel/ScoresPanel';
 import DisplayControlsPanel from './DisplayControlsPanel';
 import PenaltiesPanel from './PenaltiesPanel';
-import GoalLogPanel from './GoalLogPanel';
-import ScreenRotationPanel from './ScreenRotationPanel';
+import GoalsPanel from './GoalsPanel';
+import ScorerModal from './ScorerModal';
+import SubstitutionsPanel from './SubstitutionsPanel';
+import SubstitutionModal from './SubstitutionModal';
+import EditScoreModal from './EditScoreModal';
 import AppSettingsMenu from '../AppSettingsMenu/AppSettingsMenu';
 import CustomScreensMenu from '../CustomScreens/CustomScreensMenu';
 import AppNotification from '../AppNotification/AppNotification';
 import SystemSettingsMenu from '../SystemSettingsMenu/SystemSettingsMenu';
-import PreflightModal from '../Preflight/PreflightModal';
+import PreflightChecklist from '../Preflight/PreflightChecklist';
+import { usePreflight } from '../Preflight/usePreflight';
 import Modal from '../Modal/Modal';
 import DashboardHeader from './DashboardHeader';
+import Tabs, { TabItem } from '../ui/Tabs';
 
 import logo from '../../assets/playoverlay-logo.svg';
 
@@ -56,8 +65,22 @@ export default function Dashboard() {
   const [restorableMatch, setRestorableMatch] = useState<LiveMatch | null>(
     null
   );
-  const [preflightOpen, setPreflightOpen] = useState(false);
   const [newMatchOpen, setNewMatchOpen] = useState(false);
+  const [editScoreOpen, setEditScoreOpen] = useState(false);
+  // The goal whose scorer is being asked for: set the moment a goal key is
+  // tapped for a team with a line-up (isNew, the banner waits on it), or
+  // from the goal log to change a scorer later.
+  const [scorerPrompt, setScorerPrompt] = useState<{
+    goalId: string;
+    isNew: boolean;
+  } | null>(null);
+  // The team a substitution is being made for, while the modal is open.
+  const [substitutingTeam, setSubstitutingTeam] = useState<homeOrAway | null>(
+    null
+  );
+  // The go-live checks run on mount so the tab can show a warning dot
+  // before kick-off without being opened.
+  const preflight = usePreflight();
 
   const clock = useMatchClock();
   // Cycles the display through the operator's chosen screens while a
@@ -79,6 +102,15 @@ export default function Dashboard() {
   );
 
   const time = useTimeStore((state) => state.time);
+  // The phase the big Start button offers: mirrors the next-phase shortcut
+  // and the phone remote, so every entry path agrees on what comes next.
+  const phaseList = getPhaseList(matchSettings);
+  const nextPhaseId = getNextPhaseId(
+    phaseList,
+    time.matchPhase,
+    matchState.previousMatchPhase
+  );
+  const nextPhase = phaseList.find((phase) => phase.id === nextPhaseId);
 
   const customGraphics = useCustomGraphicsStore(
     (state) => state.customGraphics
@@ -418,7 +450,9 @@ export default function Dashboard() {
     restoreMatch,
     setGoalScorer,
     removeGoal,
-    showGoalBanner,
+    maybeShowGoalBanner,
+    makeSubstitution,
+    removeSubstitution,
     startNewMatch: resetToNewMatch,
     setPenalties,
     incrementHomeTeamScore,
@@ -450,80 +484,130 @@ export default function Dashboard() {
     setNewMatchOpen(false);
   };
 
-  return (
-    <>
-      <div className="select-none">
-        <DashboardHeader
-          setSideMenu={openSideMenu}
-          onNewMatch={() => setNewMatchOpen(true)}
+  // A goal from the dashboard's own keys. For a team with a line-up (and
+  // unless the operator has turned it off) the banner waits for the scorer
+  // modal; the score bug updates straight away either way. Goals from a
+  // shortcut, the Stream Deck or the phone keep their immediate banner,
+  // since nobody may be at the laptop to answer.
+  const scoreGoal = (team: homeOrAway) => {
+    const ask =
+      appSettings.askForScorer !== false &&
+      teamPlayers(matchSettings, team).length > 0;
+    const goalId =
+      team === 'home'
+        ? incrementHomeTeamScore({ awaitScorer: ask })
+        : incrementAwayTeamScore({ awaitScorer: ask });
+    if (ask) setScorerPrompt({ goalId, isNew: true });
+  };
+  // The modal follows the store: a goal undone while it is open closes it.
+  const promptedGoal: Goal | null = scorerPrompt
+    ? ((scores.goals ?? []).find((goal) => goal.id === scorerPrompt.goalId) ??
+      null)
+    : null;
+  // Ctrl+Z still works while the modal is up. A goal undone there ends the
+  // prompt, so redoing the goal does not bring the modal back, and the banner
+  // for a prompt the operator never finished is not shown late.
+  useEffect(() => {
+    if (scorerPrompt && !promptedGoal) setScorerPrompt(null);
+  }, [scorerPrompt, promptedGoal]);
+  const finishScorerPrompt = () => {
+    if (scorerPrompt?.isNew) maybeShowGoalBanner(scorerPrompt.goalId);
+    setScorerPrompt(null);
+  };
+  const pickScorer = (player: Player) => {
+    if (scorerPrompt) {
+      setGoalScorer(scorerPrompt.goalId, player.name, player.number ?? '');
+    }
+    finishScorerPrompt();
+  };
+  const ownGoal = () => {
+    if (scorerPrompt) {
+      setGoalScorer(scorerPrompt.goalId, t('dashboard:scorer.ownGoal'));
+    }
+    finishScorerPrompt();
+  };
+  const notAGoal = () => {
+    if (scorerPrompt) removeGoal(scorerPrompt.goalId);
+    setScorerPrompt(null);
+  };
+
+  const preflightDot =
+    preflight.result?.summary.status === 'error'
+      ? 'danger'
+      : preflight.result?.summary.status === 'warning'
+        ? 'warn'
+        : undefined;
+
+  const outputTabs: TabItem[] = [
+    {
+      key: 'screens',
+      label: t('dashboard:tabs.screens'),
+      content: (
+        <DisplayControlsPanel
+          updateMatchState={setMatchState}
+          switchScreen={switchDisplayScreen}
+          matchState={matchState}
+          customGraphics={customGraphics}
+          matchSettings={matchSettings}
+          rotation={getScreenRotationSettings(appSettings)}
+          updateRotation={(screenRotation) =>
+            updateAppSettings({ screenRotation })
+          }
+          rotating={rotating}
+          startRotation={() => useScreenRotationStore.getState().start()}
+          stopRotation={() => useScreenRotationStore.getState().stop()}
         />
-        <main className="grid grid-cols-1 bg-slate-100 lg:grid-cols-2 lg:pr-20">
-          <div className="lg:grid lg:h-screen lg:grid-cols-1 lg:grid-rows-2">
-            <Preview keyColour={appSettings.keyColour}>
-              <Screens
+      ),
+    },
+    {
+      key: 'goLive',
+      label: t('preflight:action.openButton'),
+      dot: preflightDot,
+      content: <PreflightChecklist {...preflight} />,
+    },
+  ];
+
+  const matchTabs: TabItem[] = [
+    {
+      key: 'goals',
+      label: t('dashboard:goalLog.title'),
+      content: (
+        <GoalsPanel
+          goals={scores.goals ?? []}
+          matchSettings={matchSettings}
+          onGoal={scoreGoal}
+          onPickScorer={(goal) =>
+            setScorerPrompt({ goalId: goal.id, isNew: false })
+          }
+          setScorer={setGoalScorer}
+          removeGoal={removeGoal}
+        />
+      ),
+    },
+    // Only a team with a line-up can make a substitution, so the tab waits
+    // for one rather than showing two dead keys.
+    ...(hasLineup(matchSettings, 'home') || hasLineup(matchSettings, 'away')
+      ? [
+          {
+            key: 'substitutions',
+            label: t('dashboard:tabs.substitutions'),
+            content: (
+              <SubstitutionsPanel
+                substitutions={scores.substitutions ?? []}
                 matchSettings={matchSettings}
-                scores={scores}
-                time={time}
-                matchState={matchState}
-                clockFormat={appSettings.clockFormat}
+                onSubstitute={setSubstitutingTeam}
+                removeSubstitution={removeSubstitution}
               />
-            </Preview>
-            <div className="lg:overflow-y-auto lg:p-4">
-              <div className="mx-4 mb-4 lg:mx-auto">
-                <button
-                  type="button"
-                  onClick={() => setPreflightOpen(true)}
-                  className="flex w-full items-center justify-center gap-x-2 rounded-md bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-green-500"
-                >
-                  <RocketLaunchIcon className="h-5 w-5" aria-hidden="true" />
-                  {t('preflight:action.openButton')}
-                </button>
-              </div>
-              <DisplayControlsPanel
-                updateMatchState={setMatchState}
-                switchScreen={switchDisplayScreen}
-                matchState={matchState}
-                customGraphics={customGraphics}
-                matchSettings={matchSettings}
-              />
-              <ScreenRotationPanel
-                settings={getScreenRotationSettings(appSettings)}
-                updateSettings={(screenRotation) =>
-                  updateAppSettings({ screenRotation })
-                }
-                matchSettings={matchSettings}
-                customGraphics={customGraphics}
-                rotating={rotating}
-                start={() => useScreenRotationStore.getState().start()}
-                stop={() => useScreenRotationStore.getState().stop()}
-              />
-            </div>
-          </div>
-          <div className="lg:h-screen lg:overflow-y-auto lg:p-4">
-            <TimeControlPanel
-              time={time}
-              matchSettings={matchSettings}
-              pause={handlePauseClock}
-              resume={handleResumeClock}
-              adjustTime={handleAdjustTime}
-              isPaused={clock.paused}
-              setAdditionalTime={handleSetAdditionalTime}
-              startTime={handleStartPhase}
-              stopTime={handleStopClock}
-              autoSwitchScreens={appSettings.autoSwitchScreens}
-              setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
-                updateAppSettings({ autoSwitchScreens })
-              }
-            />
-            <ScoresPanel
-              matchSettings={matchSettings}
-              scores={scores}
-              time={time}
-              incrementHomeTeamScore={incrementHomeTeamScore}
-              incrementAwayTeamScore={incrementAwayTeamScore}
-              updateScore={updateScore}
-            />
-            {matchSettings.hasPenalties !== false && (
+            ),
+          },
+        ]
+      : []),
+    ...(matchSettings.hasPenalties !== false
+      ? [
+          {
+            key: 'penalties',
+            label: t('settings:system.screens.penalties'),
+            content: (
               <PenaltiesPanel
                 penalties={scores.penalties}
                 setPenalties={setPenalties}
@@ -535,21 +619,55 @@ export default function Dashboard() {
                 onUndo={undo}
                 canUndo={canUndo}
               />
-            )}
-            <GoalLogPanel
-              goals={scores.goals ?? []}
+            ),
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <>
+      <div className="min-h-screen select-none bg-bg text-fg">
+        <DashboardHeader
+          setSideMenu={openSideMenu}
+          onNewMatch={() => setNewMatchOpen(true)}
+          theme={appSettings.theme}
+          setTheme={(theme) => updateAppSettings({ theme })}
+        />
+        {/* Top row, pinned: what is on air and the clock (with the score),
+            the two things the operator looks at all match. Bottom row: two
+            tab groups with everything else. On a landscape tablet the whole
+            dashboard fits without scrolling. */}
+        <main className="grid grid-cols-1 gap-4 bg-bg p-4 lg:h-screen lg:grid-cols-[minmax(0,13fr)_minmax(0,11fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:pr-28">
+          <Preview keyColour={appSettings.keyColour}>
+            <Screens
               matchSettings={matchSettings}
-              showBannerAutomatically={
-                appSettings.showGoalBannerAutomatically !== false
-              }
-              setShowBannerAutomatically={(showGoalBannerAutomatically) =>
-                updateAppSettings({ showGoalBannerAutomatically })
-              }
-              setScorer={setGoalScorer}
-              showBanner={showGoalBanner}
-              removeGoal={removeGoal}
+              scores={scores}
+              time={time}
+              matchState={matchState}
+              clockFormat={appSettings.clockFormat}
             />
-          </div>
+          </Preview>
+          <TimeControlPanel
+            time={time}
+            matchSettings={matchSettings}
+            scores={scores}
+            onEditScore={() => setEditScoreOpen(true)}
+            nextPhase={nextPhase}
+            pause={handlePauseClock}
+            resume={handleResumeClock}
+            adjustTime={handleAdjustTime}
+            isPaused={clock.paused}
+            setAdditionalTime={handleSetAdditionalTime}
+            startTime={handleStartPhase}
+            stopTime={handleStopClock}
+            autoSwitchScreens={appSettings.autoSwitchScreens}
+            setAutoSwitchScreens={(autoSwitchScreens: boolean) =>
+              updateAppSettings({ autoSwitchScreens })
+            }
+          />
+          <Tabs label={t('dashboard:tabs.output')} tabs={outputTabs} />
+          <Tabs label={t('dashboard:tabs.match')} tabs={matchTabs} />
         </main>
         <MatchSettingsMenu
           sidebarOpen={sideMenu === 'team-settings'}
@@ -586,7 +704,30 @@ export default function Dashboard() {
           appSettings={appSettings}
           updateAppSettings={updateAppSettings}
         />
-        <PreflightModal open={preflightOpen} setOpen={setPreflightOpen} />
+        <ScorerModal
+          goal={promptedGoal}
+          isNew={scorerPrompt?.isNew ?? false}
+          matchSettings={matchSettings}
+          scores={scores}
+          onPick={pickScorer}
+          onNoScorer={finishScorerPrompt}
+          onOwnGoal={ownGoal}
+          onNotAGoal={notAGoal}
+        />
+        <SubstitutionModal
+          team={substitutingTeam}
+          matchSettings={matchSettings}
+          substitutions={scores.substitutions ?? []}
+          onConfirm={makeSubstitution}
+          onClose={() => setSubstitutingTeam(null)}
+        />
+        <EditScoreModal
+          open={editScoreOpen}
+          setOpen={setEditScoreOpen}
+          scores={scores}
+          matchSettings={matchSettings}
+          updateScore={updateScore}
+        />
         <Modal
           open={newMatchOpen}
           setOpen={setNewMatchOpen}
@@ -596,7 +737,7 @@ export default function Dashboard() {
           icon="warning"
           action={startNewMatch}
         >
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             {t('dashboard:newMatch.modalBody')}
           </p>
         </Modal>

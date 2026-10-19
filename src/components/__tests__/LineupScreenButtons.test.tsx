@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  defaultScreenRotationSettings,
   CustomScreen,
   defaultMatchSettings,
   defaultMatchState,
@@ -22,6 +23,11 @@ function renderPanel(matchSettings: MatchSettings) {
       switchScreen={switchScreen}
       matchState={defaultMatchState}
       customGraphics={[]}
+      rotation={defaultScreenRotationSettings}
+      updateRotation={vi.fn()}
+      rotating={false}
+      startRotation={vi.fn()}
+      stopRotation={vi.fn()}
       matchSettings={matchSettings}
     />
   );
@@ -36,7 +42,15 @@ describe('Display Controls line-up buttons', () => {
       screen
         .getAllByRole('button', { pressed: false })
         .map((b) => b.textContent)
-    ).toEqual(['None', 'Match Title', 'Penalties', 'End Screen', 'Scoreboard']);
+    ).toEqual([
+      'None',
+      'Match Title',
+      'Penalties',
+      'End Screen',
+      'Scoreboard',
+      // The rotation key is a toggle too (lit while rotating).
+      'Rotate screens',
+    ]);
     expect(
       screen.queryByRole('button', { name: 'Home Line-up' })
     ).not.toBeInTheDocument();

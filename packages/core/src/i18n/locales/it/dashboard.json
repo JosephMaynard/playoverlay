@@ -1,25 +1,36 @@
 {
   "displayControls": {
     "overlays": "Overlay",
+    "screens": "Schermate",
     "title": "Controlli di visualizzazione"
   },
   "goalLog": {
     "empty": "Ancora nessun gol. Ogni gol compare qui con il suo minuto appena viene segnato.",
     "goal": "Gol: {{team}}",
     "goalWithMinute": "Gol: {{team}}, {{minute}}",
-    "pickScorer": "Non è in formazione? Scrivi semplicemente un nome.",
     "remove": "Rimuovi il gol",
     "removeAria": "Rimuovi il gol: {{goal}}",
     "scorerLabel": "Marcatore ({{goal}})",
     "scorerPlaceholder": "Marcatore",
-    "showAutomatically": "Mostra il banner del gol in onda appena viene segnato un gol",
-    "showBanner": "Mostra in onda",
-    "showBannerAria": "Mostra in onda: {{goal}}",
     "title": "Gol"
   },
+  "goals": {
+    "addScorer": "Aggiungi marcatore",
+    "key": "Gol",
+    "keyAria": "Gol di {{team}}"
+  },
   "header": {
+    "darkMode": "Modalità scura",
+    "graphics": "Grafiche",
+    "lightMode": "Modalità chiara",
+    "newMatch": "Nuova",
     "openMenu": "Apri il menu {{title}}",
-    "teamSettings": "Impostazioni squadra"
+    "redo": "Ripeti",
+    "settings": "Impostazioni",
+    "teamSettings": "Impostazioni squadra",
+    "teams": "Squadre",
+    "undo": "Annulla",
+    "window": "Finestra"
   },
   "newMatch": {
     "button": "Nuova partita",
@@ -54,11 +65,13 @@
     "autoStart": "Avvia automaticamente all'intervallo",
     "autoStartHint": "Parte quando il cronometro viene fermato per una pausa con altro ancora da giocare, mai a fine partita.",
     "description": "Lo schermo mostra a turno ogni schermata scelta, nell'ordine dell'elenco, così puoi allontanarti prima del calcio d'inizio o all'intervallo. Si ferma quando scegli tu una schermata o avvii il cronometro.",
+    "keyRotating": "In rotazione, {{seconds}} s per schermata",
     "needTwo": "Scegli almeno due schermate da alternare.",
     "rotating": "In rotazione",
     "screens": "Schermate da mostrare",
     "seconds": "Secondi per schermata",
     "secondsError": "Inserisci un numero intero di secondi da {{min}} a {{max}}.",
+    "setUp": "Configura la rotazione delle schermate",
     "start": "Avvia la rotazione",
     "stop": "Ferma la rotazione",
     "title": "Rotazione schermate"
@@ -66,25 +79,61 @@
   "scoreInput": {
     "decreaseScoreAria": "Diminuisci il punteggio di {{team}}",
     "editScore": "Modifica punteggio",
-    "editScoreAria": "Modifica il punteggio di {{team}}",
     "increaseScoreAria": "Aumenta il punteggio di {{team}}",
-    "scoreLabel": "Punteggio {{team}}",
-    "scored": "Gol di {{title}}"
+    "scoreLabel": "Punteggio {{team}}"
   },
-  "scoresPanel": {
-    "title": "Punteggi"
+  "scorer": {
+    "bench": "Panchina",
+    "hint": "Il punteggio in onda è già aggiornato. Il banner del gol parte appena scegli.",
+    "noScorer": "Nessun marcatore",
+    "notAGoal": "Non è gol",
+    "onPitch": "In campo",
+    "ownGoal": "Autogol",
+    "whoScored": "Chi ha segnato?"
+  },
+  "substitutions": {
+    "change": "Cambia",
+    "confirm": "Conferma sostituzione",
+    "confirmAnother": "Conferma e fanne un’altra",
+    "empty": "Nessuna sostituzione finora. Tocca una squadra qui sopra per registrare chi esce e chi entra.",
+    "emptyBench": "Nessuno è rimasto in panchina.",
+    "entry": "{{team}}: esce {{off}}, entra {{on}}",
+    "key": "Sostituzione",
+    "keyAria": "Sostituzione {{team}}",
+    "off": "Esce",
+    "on": "Entra",
+    "pickOff": "Scegli chi esce",
+    "pickOn": "Scegli dalla panchina",
+    "remove": "Rimuovi sostituzione",
+    "removeAria": "Rimuovi sostituzione: {{substitution}}",
+    "title": "Sostituzioni"
+  },
+  "tabs": {
+    "match": "Partita",
+    "output": "Uscita",
+    "screens": "Schermate",
+    "substitutions": "Sostituzioni"
   },
   "timeControl": {
+    "addedTime": "Recupero",
+    "addedTimeAria": "Recupero: {{minutes}} minuti",
     "additionalTimeLabel": "Recupero",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
     "adjustSeconds": "{{sign}}{{n}}s",
     "adjustTimeModalTitle": "Regola il tempo",
+    "allPhases": "Vai a una fase",
     "autoSwitchLabel": "Cambia automaticamente schermo all'avvio e all'arresto",
     "clear": "Cancella",
     "pause": "Pausa",
+    "paused": "In pausa",
+    "phasesAndClock": "Fasi e cronometro",
+    "remaining": "Rimanente",
     "resume": "Riprendi",
+    "running": "In corso",
     "setAdditionalTime": "Imposta il recupero",
+    "start": "Avvia {{phase}}",
+    "startPlain": "Avvia",
     "title": "Tempo"
   }
 }
