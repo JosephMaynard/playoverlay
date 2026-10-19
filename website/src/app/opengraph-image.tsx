@@ -11,19 +11,32 @@ const STRIPE = ["#ef4136", "#27aae1", "#2bb673", "#f9ed32", "#ff8b2c"];
 
 /**
  * The logo SVG styles its shapes with CSS classes, which the image renderer
- * doesn't apply. Swap each class for a plain fill attribute (and drop the
- * hidden layer) so it renders as an <img>.
+ * doesn't apply. Swap each class for plain presentation attributes (fill,
+ * and the ring's stroke) and drop any hidden layer so it renders as an <img>.
  */
 async function logoDataUri(): Promise<string> {
   const svg = await readFile(join(process.cwd(), "public", "playoverlay-logo.svg"), "utf8");
-  const fills: Record<string, string> = {};
-  for (const match of svg.matchAll(/\.(cls-\d+)\{fill:(#[0-9a-fA-F]{6})(;display:none)?\}/g)) {
-    fills[match[1]] = match[3] ? "none" : match[2];
+  const attrs: Record<string, string> = {};
+  for (const match of svg.matchAll(/\.(cls-\d+)\{([^}]*)\}/g)) {
+    const [, name, body] = match;
+    if (body.includes("display:none")) {
+      attrs[name] = 'fill="none"';
+      continue;
+    }
+    attrs[name] = body
+      .split(";")
+      .map((declaration) => declaration.trim())
+      .filter((declaration) => /^(fill|stroke|stroke-width|stroke-miterlimit):/.test(declaration))
+      .map((declaration) => {
+        const [property, value] = declaration.split(":");
+        return `${property}="${value}"`;
+      })
+      .join(" ");
   }
   const inlined = svg
     .replace(/<defs>[\s\S]*?<\/defs>/, "")
     .replace(/<title>[\s\S]*?<\/title>/, "")
-    .replace(/class="(cls-\d+)"/g, (_, name: string) => `fill="${fills[name] ?? "none"}"`);
+    .replace(/class="(cls-\d+)"/g, (_, name: string) => attrs[name] ?? 'fill="none"');
   return `data:image/svg+xml;base64,${Buffer.from(inlined).toString("base64")}`;
 }
 
