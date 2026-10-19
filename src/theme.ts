@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { ThemeSetting } from '@playoverlay/core';
+import type { DashboardScale, ThemeSetting } from '@playoverlay/core';
 
 export type ResolvedTheme = 'light' | 'dark';
 
@@ -38,4 +38,26 @@ export function useTheme(setting: ThemeSetting | undefined) {
     media.addEventListener('change', apply);
     return () => media.removeEventListener('change', apply);
   }, [setting]);
+}
+
+// Zoom factors for the dashboard size setting. CSS zoom on <html> scales
+// the fixed rail, the drawers and the modals together, which a transform
+// on the dashboard root would not.
+const SCALE_ZOOM: Record<DashboardScale, number> = {
+  small: 0.9,
+  medium: 1,
+  large: 1.25,
+};
+
+export function applyDashboardScale(
+  scale: DashboardScale | undefined,
+  root = document.documentElement
+) {
+  root.style.zoom = String(SCALE_ZOOM[scale ?? 'medium']);
+}
+
+export function useDashboardScale(scale: DashboardScale | undefined) {
+  useEffect(() => {
+    applyDashboardScale(scale);
+  }, [scale]);
 }

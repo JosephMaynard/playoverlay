@@ -199,6 +199,10 @@ export const screenRotationSchema = z.object({
 export const appSettingsSchema = z.object({
   keyColour: z.string().catch(defaultAppSettings.keyColour),
   theme: z.enum(['system', 'light', 'dark']).optional().catch(undefined),
+  dashboardScale: z
+    .enum(['small', 'medium', 'large'])
+    .optional()
+    .catch(undefined),
   autoSwitchScreens: z.boolean().catch(defaultAppSettings.autoSwitchScreens),
   clockFormat: z.enum(['24h', '12h']).optional().catch(undefined),
   // Unset (undefined) is a meaningful value here, it's what triggers the
@@ -206,6 +210,7 @@ export const appSettingsSchema = z.object({
   // undefined (re-showing the picker) rather than a default language.
   language: z.enum(supportedLanguageCodes).optional().catch(undefined),
   showGoalBannerAutomatically: z.boolean().optional().catch(undefined),
+  askForScorer: z.boolean().optional().catch(undefined),
   browserSource: z
     .object({
       enabled: z.boolean(),

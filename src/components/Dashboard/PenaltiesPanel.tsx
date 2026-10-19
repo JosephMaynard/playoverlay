@@ -7,7 +7,6 @@ import {
   classNames,
 } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
 import Modal from '../Modal/Modal';
 import ActionButton from '../ui/ActionButton';
 import { sectionHeadingClassName } from '../ui/fields';
@@ -50,7 +49,7 @@ export default function PenaltiesPanel({
         : 'home';
 
   return (
-    <CollapsiblePanel title={t('settings:system.screens.penalties')}>
+    <div>
       <div className="mb-4 [--base-size:1.25rem]">
         <PenaltiesBoard
           className="border border-line-strong"
@@ -175,6 +174,6 @@ export default function PenaltiesPanel({
           {t('dashboard:penaltiesPanel.resetConfirmBody')}
         </p>
       </Modal>
-    </CollapsiblePanel>
+    </div>
   );
 }

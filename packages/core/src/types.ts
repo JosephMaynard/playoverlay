@@ -122,9 +122,20 @@ export const themeSettings: readonly ThemeSetting[] = [
   'dark',
 ];
 
+// How large the dashboard is drawn. 'medium' is the design size; 'small'
+// fits more on a 1024px tablet, 'large' suits a 4K touch screen run at
+// 100% scaling, where everything would otherwise be half size.
+export type DashboardScale = 'small' | 'medium' | 'large';
+export const dashboardScales: readonly DashboardScale[] = [
+  'small',
+  'medium',
+  'large',
+];
+
 export interface AppSettings {
   keyColour: string;
   theme?: ThemeSetting;
+  dashboardScale?: DashboardScale;
   autoSwitchScreens: boolean;
   clockFormat?: ClockFormat;
   keyboardShortcuts?: KeyboardShortcuts;
@@ -139,6 +150,10 @@ export interface AppSettings {
   // log). On unless switched off: unset counts as on, since a solo operator
   // gets a goal graphic with no typing ("GOAL | team | minute").
   showGoalBannerAutomatically?: boolean;
+  // After a goal key is tapped for a team with a line-up, ask who scored
+  // before the banner goes out (the score bug updates regardless). On
+  // unless switched off; unset counts as on.
+  askForScorer?: boolean;
   screenRotation?: ScreenRotationSettings;
 }
 

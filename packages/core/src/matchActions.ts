@@ -43,6 +43,11 @@ export type MatchClock = Pick<
   | 'resetClock'
 >;
 
+export interface GoalOptions {
+  // Hold the goal banner back until the scorer has been chosen.
+  awaitScorer?: boolean;
+}
+
 export interface MatchActionOptions {
   // Called at each point where an operator action supersedes the host's
   // offer to restore the match that was in progress when the app last
@@ -300,31 +305,37 @@ export function createMatchActions(
     setScores({ ...prevScores, penalties });
   };
 
-  const incrementHomeTeamScore = () => {
-    captureUndo('undo:actions.homeGoal', ['scores']);
+  // A goal for either team: the score goes up and the goal is logged with
+  // the clock. Returns the new goal's id. With awaitScorer the banner is
+  // held back so the host can ask who scored first and then call
+  // maybeShowGoalBanner itself; a goal from a shortcut, the Stream Deck or
+  // the phone never waits, since nobody may be at the laptop to answer.
+  const scoreGoal = (
+    team: 'home' | 'away',
+    { awaitScorer = false }: GoalOptions = {}
+  ): string => {
+    captureUndo(
+      team === 'home' ? 'undo:actions.homeGoal' : 'undo:actions.awayGoal',
+      ['scores']
+    );
     onOperatorAction();
     const prevScores = useScoresStore.getState().scores;
-    const goal = createGoal(nanoid(), 'home', useTimeStore.getState().time);
+    const goal = createGoal(nanoid(), team, useTimeStore.getState().time);
     setScores({
       ...prevScores,
-      homeTeam: prevScores.homeTeam + 1,
+      [team === 'home' ? 'homeTeam' : 'awayTeam']:
+        prevScores[team === 'home' ? 'homeTeam' : 'awayTeam'] + 1,
       goals: [...(prevScores.goals ?? []), goal],
     });
-    maybeShowGoalBanner(goal.id);
+    if (!awaitScorer) maybeShowGoalBanner(goal.id);
+    return goal.id;
   };
 
-  const incrementAwayTeamScore = () => {
-    captureUndo('undo:actions.awayGoal', ['scores']);
-    onOperatorAction();
-    const prevScores = useScoresStore.getState().scores;
-    const goal = createGoal(nanoid(), 'away', useTimeStore.getState().time);
-    setScores({
-      ...prevScores,
-      awayTeam: prevScores.awayTeam + 1,
-      goals: [...(prevScores.goals ?? []), goal],
-    });
-    maybeShowGoalBanner(goal.id);
-  };
+  const incrementHomeTeamScore = (options?: GoalOptions) =>
+    scoreGoal('home', options);
+
+  const incrementAwayTeamScore = (options?: GoalOptions) =>
+    scoreGoal('away', options);
 
   // Phone-remote goal removal. Clamped at 0 so a stray minus tap can never
   // drive the score negative. Clears any pending restore prompt, exactly like

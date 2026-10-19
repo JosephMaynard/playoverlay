@@ -6,9 +6,9 @@ import {
   defaultMatchSettings,
   defaultScreenRotationSettings,
   MatchSettings,
-  ScreenRotationSettings,
+  ScreenRotationSettings as RotationSettings,
 } from '@playoverlay/core';
-import ScreenRotationPanel from '../Dashboard/ScreenRotationPanel';
+import ScreenRotationSettings from '../Dashboard/ScreenRotationSettings';
 
 const sponsor: CustomScreen = {
   title: 'Sponsor',
@@ -23,7 +23,7 @@ function renderPanel({
 }: {
   matchSettings?: MatchSettings;
   rotating?: boolean;
-  initial?: ScreenRotationSettings;
+  initial?: RotationSettings;
 } = {}) {
   const start = vi.fn();
   const stop = vi.fn();
@@ -32,7 +32,9 @@ function renderPanel({
     const [settings, setSettings] = useState(initial);
     current = settings;
     return (
-      <ScreenRotationPanel
+      <ScreenRotationSettings
+        open
+        setOpen={() => undefined}
         settings={settings}
         updateSettings={setSettings}
         matchSettings={matchSettings}
@@ -47,11 +49,10 @@ function renderPanel({
     );
   }
   render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: /Rotate screens/ }));
   return { start, stop, settings: () => current };
 }
 
-describe('ScreenRotationPanel', () => {
+describe('ScreenRotationSettings', () => {
   it('lists the screens in rotation order, with full-screen graphics last and no overlays', () => {
     renderPanel({
       matchSettings: {
@@ -121,12 +122,9 @@ describe('ScreenRotationPanel', () => {
     expect(settings().autoStartAtHalfTime).toBe(true);
   });
 
-  it('shows a Rotating badge and a Stop button while rotating', () => {
+  it('offers Stop while rotating', () => {
     const { stop } = renderPanel({ rotating: true });
 
-    expect(
-      screen.getByRole('button', { name: /Rotate screens\s*Rotating/ })
-    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Stop rotating' }));
     expect(stop).toHaveBeenCalledTimes(1);
   });

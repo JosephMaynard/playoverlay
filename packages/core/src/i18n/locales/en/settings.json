@@ -26,6 +26,13 @@
       "statusWithError": "Status: {{state}}, {{error}}",
       "title": "OBS Browser Source"
     },
+    "dashboardSize": {
+      "description": "How large the dashboard is drawn. Large suits a 4K touch screen; small fits more on a 1024px tablet.",
+      "large": "Large",
+      "medium": "Medium",
+      "small": "Small",
+      "title": "Dashboard size"
+    },
     "diagnostics": {
       "cancelled": "Export cancelled.",
       "error": "Failed to export diagnostics. Please try again.",
@@ -37,6 +44,13 @@
     "displays": {
       "moveToScreen": "Move to Screen {{n}}",
       "none": "No external displays detected."
+    },
+    "goals": {
+      "askForScorer": "Ask who scored when the team has a line-up",
+      "askForScorerHint": "The score bug updates straight away; the goal banner waits for the pick. Goals from a shortcut, the Stream Deck or the phone never wait.",
+      "bannerAuto": "Put the goal banner on air automatically",
+      "bannerAutoHint": "Off, the banner only goes out when you show it from the goal log.",
+      "title": "Goals and banners"
     },
     "keyColour": "Key Colour",
     "keyboardShortcutRow": {

@@ -38,6 +38,20 @@
   --c-ink: 15 23 42;
   --c-ink-fg: 255 255 255;
   --c-overlay: 15 23 42;
+  /* Keys: the dashboard's buttons are drawn like the keys on a vision
+     mixer, a short top-to-bottom gradient with a hairline and an inset
+     highlight, so a lit one (on air, running) reads at a glance. */
+  --c-key-1: 255 255 255;
+  --c-key-2: 228 232 237;
+  --c-key-line: 167 176 187;
+  --c-key-hi: 255 255 255;
+  --key-hi-alpha: 1;
+  --c-key-go-1: 31 157 75;
+  --c-key-go-2: 22 122 57;
+  --c-key-air-1: 216 38 43;
+  --c-key-air-2: 171 27 32;
+  --c-key-accent-1: 79 70 229;
+  --c-key-accent-2: 67 56 202;
 }
 
 :root[data-theme='dark'] {
@@ -71,6 +85,90 @@
   --c-ink: 2 6 23;
   --c-ink-fg: 255 255 255;
   --c-overlay: 0 0 0;
+  --c-key-1: 58 65 75;
+  --c-key-2: 42 48 56;
+  --c-key-line: 26 30 35;
+  --c-key-hi: 255 255 255;
+  --key-hi-alpha: 0.1;
+  --c-key-go-1: 39 179 90;
+  --c-key-go-2: 26 138 67;
+  --c-key-air-1: 230 56 47;
+  --c-key-air-2: 179 36 28;
+  --c-key-accent-1: 99 102 241;
+  --c-key-accent-2: 79 70 229;
+}
+
+@layer components {
+  /* The base key. Variants only swap the two gradient stops and the
+     hairline, so every key keeps the same depth and pressed state. */
+  .key {
+    border: 1px solid rgb(var(--c-key-line));
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-2))
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(var(--c-key-hi) / var(--key-hi-alpha)),
+      0 1px 1px rgb(0 0 0 / 0.25);
+  }
+  .key:hover:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-1))
+    );
+  }
+  .key:active:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-2)),
+      rgb(var(--c-key-2))
+    );
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.35);
+  }
+  .key-go,
+  .key-air,
+  .key-accent {
+    color: #fff;
+    text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 1px 2px rgb(0 0 0 / 0.35);
+  }
+  .key-go {
+    --c-key-1: var(--c-key-go-1);
+    --c-key-2: var(--c-key-go-2);
+    --c-key-line: var(--c-key-go-2);
+  }
+  .key-air {
+    --c-key-1: var(--c-key-air-1);
+    --c-key-2: var(--c-key-air-2);
+    --c-key-line: var(--c-key-air-2);
+  }
+  .key-accent {
+    --c-key-1: var(--c-key-accent-1);
+    --c-key-2: var(--c-key-accent-2);
+    --c-key-line: var(--c-key-accent-2);
+  }
+  /* A lit key glows in its own colour, the way a bus key does on a
+     switcher, so the screen on air and the phase running are visible from
+     across a touchline. */
+  .key-lit {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 1px rgb(var(--c-key-2)),
+      0 0 18px rgb(var(--c-key-1) / 0.55);
+  }
+  .key-go:hover:not(:disabled),
+  .key-air:hover:not(:disabled),
+  .key-accent:hover:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--c-key-1)),
+      rgb(var(--c-key-1))
+    );
+  }
 }
 
 @layer base {

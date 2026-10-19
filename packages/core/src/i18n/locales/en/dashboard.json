@@ -1,24 +1,28 @@
 {
   "displayControls": {
     "overlays": "Overlays",
+    "screens": "Screens",
     "title": "Display Controls"
   },
   "goalLog": {
     "empty": "No goals yet. Each goal is listed here with its minute as it is scored.",
     "goal": "{{team}} goal",
     "goalWithMinute": "{{team}} goal, {{minute}}",
-    "pickScorer": "Not in the line-up? Just type a name.",
     "remove": "Remove goal",
     "removeAria": "Remove goal: {{goal}}",
     "scorerLabel": "Scorer ({{goal}})",
     "scorerPlaceholder": "Scorer",
-    "showAutomatically": "Show the goal banner on air as soon as a goal is scored",
-    "showBanner": "Show on air",
-    "showBannerAria": "Show on air: {{goal}}",
     "title": "Goals"
   },
+  "goals": {
+    "addScorer": "Add scorer",
+    "key": "Goal",
+    "keyAria": "{{team}} scored"
+  },
   "header": {
+    "darkMode": "Dark mode",
     "graphics": "Graphics",
+    "lightMode": "Light mode",
     "newMatch": "New",
     "openMenu": "Open {{title}} Menu",
     "redo": "Redo",
@@ -61,11 +65,13 @@
     "autoStart": "Start automatically at half-time",
     "autoStartHint": "Starts when the clock is stopped for a break with more of the match to come, never at full time.",
     "description": "The display shows each chosen screen in turn, in the order listed, so you can step away before kick-off or at half-time. Choosing a screen yourself, or starting the clock, stops it.",
+    "keyRotating": "Rotating, {{seconds}} s per screen",
     "needTwo": "Choose at least two screens to rotate.",
     "rotating": "Rotating",
     "screens": "Screens to show",
     "seconds": "Seconds per screen",
     "secondsError": "Enter a whole number of seconds from {{min}} to {{max}}.",
+    "setUp": "Set up screen rotation",
     "start": "Start rotating",
     "stop": "Stop rotating",
     "title": "Rotate screens"
@@ -73,16 +79,27 @@
   "scoreInput": {
     "decreaseScoreAria": "Decrease {{team}} score",
     "editScore": "Edit Score",
-    "editScoreAria": "Edit {{team}} score",
     "increaseScoreAria": "Increase {{team}} score",
-    "scoreLabel": "{{team}} score",
-    "scored": "{{title}} Scored"
+    "scoreLabel": "{{team}} score"
   },
-  "scoresPanel": {
-    "title": "Scores"
+  "scorer": {
+    "bench": "Bench",
+    "hint": "The score bug is already updated. The goal banner goes out once you pick.",
+    "noScorer": "No scorer",
+    "notAGoal": "Not a goal",
+    "onPitch": "On the pitch",
+    "ownGoal": "Own goal",
+    "whoScored": "Who scored?"
+  },
+  "tabs": {
+    "match": "Match",
+    "output": "Output",
+    "screens": "Screens",
+    "substitutions": "Substitutions"
   },
   "timeControl": {
     "addedTime": "Added time",
+    "addedTimeAria": "Added time: {{minutes}} minutes",
     "additionalTimeLabel": "Additional time",
     "additionalTimeMinutes": "{{n}}min",
     "adjustMinutes": "{{sign}}{{n}}m",
@@ -92,6 +109,9 @@
     "autoSwitchLabel": "Auto switch screens on start and stop",
     "clear": "Clear",
     "pause": "Pause",
+    "paused": "Paused",
+    "phasesAndClock": "Phases & clock",
+    "remaining": "Remaining",
     "resume": "Resume",
     "running": "Running",
     "setAdditionalTime": "Set Additional Time",

@@ -1,78 +1,126 @@
-import { PencilIcon } from '@heroicons/react/24/outline';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import {
   Time,
+  Scores,
+  classNames,
   getPhaseById,
   getPhaseTitle,
   MatchSettings,
 } from '@playoverlay/core';
-import IconButton from '../ui/IconButton';
+import { ScoresTeamName } from '@playoverlay/screens';
 
 export interface Props {
   time: Time;
   matchSettings: MatchSettings;
-  openAdjustmentsModal?: () => void;
+  // With scores, the block also shows the score beside the phase; tapping
+  // it opens the score editor (the only place the score is edited by hand).
+  scores?: Scores;
+  onEditScore?: () => void;
 }
 
-// The clock as the operator sees it: large enough to read from arm's
-// length with a camera in the other hand. Always on the ink block, in both
-// themes, so it looks like the on-air clock and not like a form field.
-// The digits scale with the panel's own width (container units) rather
-// than the viewport, because on a 1024px tablet the panel is barely half
-// the screen and viewport-based sizes ran the two clocks into each other.
+// The clock block as the operator sees it: phase, running state, score,
+// the match clock large enough to read from arm's length with a camera in
+// the other hand, and the time remaining, which is what spectators keep
+// asking. Always on the ink block in both themes so it reads like the
+// on-air clock and not like a form field. The digits scale with the
+// block's own width (container units) rather than the viewport, because on
+// a 1024px tablet the block is barely half the screen.
 export default function TimeDisplay({
   time,
   matchSettings,
-  openAdjustmentsModal,
+  scores,
+  onEditScore,
 }: Props) {
   const { t } = useTranslation();
   const currentPhase = time.matchPhase
     ? getPhaseById(matchSettings, time.matchPhase)
     : undefined;
+  const running = time.matchPhase !== undefined;
+  const status = !running
+    ? t('screens:timeDisplay.notRunning')
+    : time.paused
+      ? t('dashboard:timeControl.paused')
+      : t('dashboard:timeControl.running');
+
   return (
-    <div className="relative flex min-h-32 flex-col items-center justify-center bg-ink px-4 py-3 text-ink-fg [container-type:inline-size]">
-      {time.time ? (
-        <div className="grid w-full grid-cols-[minmax(0,6fr)_minmax(0,5fr)] items-center gap-4">
-          <p className="min-w-0 text-center font-semibold tabular-nums leading-none [font-size:clamp(3rem,15cqw,5.5rem)]">
-            {time.time}
-          </p>
-          <div className="flex flex-col items-center justify-center">
-            {currentPhase && (
-              <p className="mb-1 text-center text-sm font-semibold uppercase tracking-wide text-ink-fg/70">
-                {getPhaseTitle(t, currentPhase)}
-              </p>
+    <div className="flex flex-col gap-2 bg-ink px-5 py-4 text-ink-fg [container-type:inline-size]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {currentPhase && (
+            <span className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-ink-fg/70">
+              {getPhaseTitle(t, currentPhase)}
+            </span>
+          )}
+          <span
+            className={classNames(
+              'inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
+              running && !time.paused
+                ? 'bg-live-soft text-live-ink'
+                : 'bg-white/10 text-ink-fg/80'
             )}
-            {time.remainingTime && (
-              <p className="min-w-0 text-center font-normal tabular-nums leading-none [font-size:clamp(1.75rem,9cqw,3.5rem)]">
-                {time.remainingTime}
-              </p>
-            )}
-            {time.additionalTime && (
-              <p className="mt-2 text-center text-sm text-ink-fg/80">
-                <Trans
-                  i18nKey="screens:timeDisplay.additionalTime"
-                  values={{ minutes: time.additionalTime }}
-                  components={{
-                    bold: <span className="font-semibold tabular-nums" />,
-                  }}
-                />
-              </p>
-            )}
-          </div>
+          >
+            {status}
+          </span>
         </div>
-      ) : (
-        <p className="text-center text-3xl font-semibold text-ink-fg/70 sm:text-4xl">
-          {t('screens:timeDisplay.notRunning')}
-        </p>
-      )}
-      {openAdjustmentsModal && time.time && (
-        <IconButton
-          label={t('dashboard:timeControl.adjustTimeModalTitle')}
-          icon={<PencilIcon className="h-6 w-6" aria-hidden="true" />}
-          className="absolute right-2 top-2 text-ink-fg/70 hover:bg-white/10 hover:text-ink-fg"
-          onClick={() => openAdjustmentsModal()}
-        />
-      )}
+        {scores && (
+          <button
+            type="button"
+            className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label={t('dashboard:scoreInput.editScore')}
+            onClick={onEditScore}
+          >
+            <span className="ring-1 ring-black/20 [--base-size:0.875rem]">
+              <ScoresTeamName
+                teamName={matchSettings.homeTeamNameAbbreviated}
+                textColour={matchSettings.homeTeamTextColour}
+                backgroundColour={matchSettings.homeTeamBackgroundColour}
+              />
+            </span>
+            <span className="text-2xl font-bold tabular-nums leading-none">
+              {scores.homeTeam} - {scores.awayTeam}
+            </span>
+            <span className="ring-1 ring-black/20 [--base-size:0.875rem]">
+              <ScoresTeamName
+                teamName={matchSettings.awayTeamNameAbbreviated}
+                textColour={matchSettings.awayTeamTextColour}
+                backgroundColour={matchSettings.awayTeamBackgroundColour}
+              />
+            </span>
+          </button>
+        )}
+      </div>
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <p
+            className={classNames(
+              'min-w-0 font-bold tabular-nums leading-none tracking-tight [font-size:clamp(3rem,22cqw,8rem)]',
+              time.time ? '' : 'text-ink-fg/40'
+            )}
+          >
+            {time.time ?? '0:00'}
+          </p>
+          {time.additionalTime && (
+            <p
+              className="font-bold tabular-nums leading-none text-warn [font-size:clamp(1.25rem,7cqw,2.5rem)]"
+              aria-label={t('dashboard:timeControl.addedTimeAria', {
+                minutes: time.additionalTime,
+              })}
+            >
+              +{time.additionalTime}
+            </p>
+          )}
+        </div>
+        {time.remainingTime && (
+          <div className="flex-shrink-0 pb-1 text-right">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-fg/60">
+              {t('dashboard:timeControl.remaining')}
+            </p>
+            <p className="font-bold tabular-nums leading-none text-ink-fg/90 [font-size:clamp(1.5rem,8cqw,3rem)]">
+              {time.remainingTime}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

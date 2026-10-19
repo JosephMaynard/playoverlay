@@ -1,23 +1,29 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ArrowPathIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import {
   CustomScreen,
   MatchState,
   DisplayScreen,
   screens,
   MatchSettings,
+  ScreenRotationSettings as RotationSettings,
   customScreenKey,
   addCustomScreen,
   removeCustomScreen,
   isScreenOffered,
+  availableRotationEntries,
 } from '@playoverlay/core';
 import ButtonGrid from '../ButtonGrid/ButtonGrid';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import ActionButton from '../ui/ActionButton';
+import IconButton from '../ui/IconButton';
+import ScreenRotationSettings from './ScreenRotationSettings';
 
 // Local i18n key map (rather than translating the `screens` constant
 // directly): the same approach as SystemSettingsMenu's Stream Deck screen
 // buttons and EditCustomScreen's overlay-screen checkboxes, so all three
-// surfaces show the same translated label for a given screen. The dashboard's
-// screen rotation panel shares this one.
+// surfaces show the same translated label for a given screen. The screen
+// rotation set-up shares this one.
 export const screenLabelKeys: Record<DisplayScreen, string> = {
   none: 'settings:system.screens.none',
   matchTitle: 'settings:system.screens.matchTitle',
@@ -39,6 +45,13 @@ export interface Props {
   matchState: MatchState;
   customGraphics: CustomScreen[];
   matchSettings: MatchSettings;
+  // Screen rotation lives here too: one key starts and stops it, and the
+  // gear beside it opens the set-up.
+  rotation: RotationSettings;
+  updateRotation: (settings: RotationSettings) => void;
+  rotating: boolean;
+  startRotation: () => void;
+  stopRotation: () => void;
 }
 
 export default function DisplayControlsPanel({
@@ -47,21 +60,38 @@ export default function DisplayControlsPanel({
   matchState,
   customGraphics,
   matchSettings,
+  rotation,
+  updateRotation,
+  rotating,
+  startRotation,
+  stopRotation,
 }: Props) {
   const { t } = useTranslation();
+  const [rotationOpen, setRotationOpen] = useState(false);
   const customScreens = customGraphics.filter(
     (graphic) => graphic.type === undefined || graphic.type === 'screen'
   );
   const overlays = customGraphics.filter(
     (graphic) => graphic.type === 'overlay'
   );
+  const canRotate =
+    availableRotationEntries(rotation, matchSettings, customGraphics).length >=
+    2;
+  const heading = (text: string) => (
+    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+      {text}
+    </h3>
+  );
+
   return (
-    <CollapsiblePanel title={t('dashboard:displayControls.title')}>
-      {/* Screen switches are the most-pressed buttons in a match after the
-          goal buttons, so they get the large size and two columns. */}
+    <div>
+      {heading(t('dashboard:displayControls.screens'))}
+      {/* Screen switches are the most-pressed keys in a match after the
+          goal keys: large, four across, and the one on air is lit red. */}
       <ButtonGrid
         size="lg"
-        compact
+        columns={4}
+        selectedTone="air"
         buttons={[
           ...(Object.keys(screens) as DisplayScreen[])
             .filter((screen) => screen !== 'custom')
@@ -77,57 +107,97 @@ export default function DisplayControlsPanel({
             })),
         ]}
       />
-      {customScreens?.length > 0 && (
-        <>
-          <h3 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t('settings:system.screens.custom')}
-          </h3>
-          <ButtonGrid
-            size="lg"
-            compact
-            buttons={customScreens?.map((customScreen) => ({
-              label: customScreen.title,
-              onClick: () =>
-                switchScreen({
-                  displayScreen: 'custom',
-                  customScreenImageUrl: customScreen.url ?? undefined,
-                }),
-              selected:
-                matchState.displayScreen === 'custom' &&
-                matchState.customScreenImageUrl ===
-                  (customScreen.url ?? undefined),
-            }))}
-          />
-        </>
+      {(customScreens.length > 0 || overlays.length > 0) && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {customScreens.length > 0 && (
+            <div>
+              {heading(t('settings:system.screens.custom'))}
+              <ButtonGrid
+                size="lg"
+                columns={2}
+                selectedTone="air"
+                buttons={customScreens.map((customScreen) => ({
+                  label: customScreen.title,
+                  onClick: () =>
+                    switchScreen({
+                      displayScreen: 'custom',
+                      customScreenImageUrl: customScreen.url ?? undefined,
+                    }),
+                  selected:
+                    matchState.displayScreen === 'custom' &&
+                    matchState.customScreenImageUrl ===
+                      (customScreen.url ?? undefined),
+                }))}
+              />
+            </div>
+          )}
+          {overlays.length > 0 && (
+            <div>
+              {heading(t('dashboard:displayControls.overlays'))}
+              <ButtonGrid
+                size="lg"
+                columns={2}
+                selectedTone="air"
+                buttons={overlays.map((customScreen) => {
+                  const selected = (matchState.overlays || []).some(
+                    (activeOverlay) =>
+                      customScreenKey(activeOverlay) ===
+                      customScreenKey(customScreen)
+                  );
+                  return {
+                    label: customScreen.title,
+                    onClick: () =>
+                      updateMatchState({
+                        overlays: selected
+                          ? removeCustomScreen(matchState.overlays, customScreen)
+                          : addCustomScreen(matchState.overlays, customScreen),
+                      }),
+                    selected,
+                  };
+                })}
+              />
+            </div>
+          )}
+        </div>
       )}
-      {overlays?.length > 0 && (
-        <>
-          <h3 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-muted">
-            {t('dashboard:displayControls.overlays')}
-          </h3>
-          <ButtonGrid
-            size="lg"
-            compact
-            buttons={overlays?.map((customScreen) => {
-              const selected = (matchState.overlays || []).some(
-                (activeOverlay) =>
-                  customScreenKey(activeOverlay) ===
-                  customScreenKey(customScreen)
-              );
-              return {
-                label: customScreen.title,
-                onClick: () =>
-                  updateMatchState({
-                    overlays: selected
-                      ? removeCustomScreen(matchState.overlays, customScreen)
-                      : addCustomScreen(matchState.overlays, customScreen),
-                  }),
-                selected,
-              };
-            })}
-          />
-        </>
-      )}
-    </CollapsiblePanel>
+      {/* One key for the rotation: lit green while the display is cycling
+          on its own, with the set-up (which screens, how long) behind the
+          gear so the key itself stays a single tap. */}
+      <div className="mt-4 flex items-stretch gap-2">
+        <ActionButton
+          size="lg"
+          className="flex-1"
+          selected={rotating}
+          selectedTone="go"
+          disabled={!rotating && !canRotate}
+          onClick={rotating ? stopRotation : startRotation}
+          icon={<ArrowPathIcon className="h-6 w-6" aria-hidden="true" />}
+        >
+          {rotating
+            ? t('dashboard:rotation.keyRotating', {
+                seconds: rotation.intervalSeconds,
+              })
+            : t('dashboard:rotation.title')}
+        </ActionButton>
+        <IconButton
+          size="lg"
+          className="key text-fg"
+          label={t('dashboard:rotation.setUp')}
+          icon={<Cog6ToothIcon className="h-6 w-6" aria-hidden="true" />}
+          onClick={() => setRotationOpen(true)}
+        />
+      </div>
+      <ScreenRotationSettings
+        open={rotationOpen}
+        setOpen={setRotationOpen}
+        settings={rotation}
+        updateSettings={updateRotation}
+        matchSettings={matchSettings}
+        customGraphics={customGraphics}
+        rotating={rotating}
+        start={startRotation}
+        stop={stopRotation}
+      />
+    </div>
   );
 }

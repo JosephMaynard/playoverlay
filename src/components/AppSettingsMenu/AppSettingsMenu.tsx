@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AppSettings,
+  DashboardScale,
+  dashboardScales,
   Display,
   ThemeSetting,
   themeSettings,
@@ -15,6 +17,7 @@ import {
   LockOpenIcon,
 } from '@heroicons/react/24/outline';
 import SideMenu from '../SideMenu/SideMenu';
+import Toggle from '../ui/Toggle';
 
 export interface Props {
   open: boolean;
@@ -83,6 +86,36 @@ export default function AppSettingsMenu({
             // Unset means "system" for everyone who predates the setting.
             selected: (appSettings.theme ?? 'system') === theme,
           }))}
+        />
+        <h3 className="mb-1 mt-5 text-base font-semibold text-fg">
+          {t('settings:appMenu.dashboardSize.title')}
+        </h3>
+        <p className="mb-3 text-sm text-muted">
+          {t('settings:appMenu.dashboardSize.description')}
+        </p>
+        <ButtonGrid
+          buttons={dashboardScales.map((scale: DashboardScale) => ({
+            label: t(`settings:appMenu.dashboardSize.${scale}`),
+            onClick: () => updateAppSettings({ dashboardScale: scale }),
+            selected: (appSettings.dashboardScale ?? 'medium') === scale,
+          }))}
+        />
+      </CollapsiblePanel>
+      <CollapsiblePanel title={t('settings:appMenu.goals.title')}>
+        <Toggle
+          checked={appSettings.askForScorer !== false}
+          onChange={(askForScorer) => updateAppSettings({ askForScorer })}
+          label={t('settings:appMenu.goals.askForScorer')}
+          description={t('settings:appMenu.goals.askForScorerHint')}
+        />
+        <Toggle
+          className="mt-4"
+          checked={appSettings.showGoalBannerAutomatically !== false}
+          onChange={(showGoalBannerAutomatically) =>
+            updateAppSettings({ showGoalBannerAutomatically })
+          }
+          label={t('settings:appMenu.goals.bannerAuto')}
+          description={t('settings:appMenu.goals.bannerAutoHint')}
         />
       </CollapsiblePanel>
       <CollapsiblePanel title={t('settings:appMenu.keyColour')}>

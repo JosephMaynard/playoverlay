@@ -6,14 +6,14 @@ import {
   MAX_ROTATION_INTERVAL_SECONDS,
   MIN_ROTATION_INTERVAL_SECONDS,
   ScreenRotationEntry,
-  ScreenRotationSettings,
+  ScreenRotationSettings as RotationSettings,
   availableRotationEntries,
   classNames,
   rotationCandidates,
   sameRotationEntry,
   setRotationEntry,
 } from '@playoverlay/core';
-import CollapsiblePanel from '../CollapsiblePanel/CollapsiblePanel';
+import WideModal from '../Modal/WideModal';
 import ActionButton from '../ui/ActionButton';
 import Toggle from '../ui/Toggle';
 import {
@@ -25,8 +25,10 @@ import {
 import { screenLabelKeys } from './DisplayControlsPanel';
 
 export interface Props {
-  settings: ScreenRotationSettings;
-  updateSettings: (settings: ScreenRotationSettings) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  settings: RotationSettings;
+  updateSettings: (settings: RotationSettings) => void;
   matchSettings: MatchSettings;
   customGraphics: CustomScreen[];
   rotating: boolean;
@@ -114,12 +116,14 @@ function SecondsInput({
   );
 }
 
-// "Rotate screens": choose screens for the display to cycle through on its
-// own before kick-off or at half-time, so the operator can put the laptop
-// down. The screens rotate in the order listed. Collapsed by default, and
-// nothing here changes the display until Start (or the half-time option)
-// is used.
-export default function ScreenRotationPanel({
+// Set-up for "Rotate screens": choose the screens the display cycles
+// through on its own before kick-off or at half-time, so the operator can
+// put the laptop down. The screens rotate in the order listed. Opened from
+// the gear beside the Rotate key in Display Controls; nothing here changes
+// the display until Start (or the half-time option) is used.
+export default function ScreenRotationSettings({
+  open,
+  setOpen,
   settings,
   updateSettings,
   matchSettings,
@@ -142,16 +146,10 @@ export default function ScreenRotationPanel({
       : t(screenLabelKeys[entry.screen]);
 
   return (
-    <CollapsiblePanel
+    <WideModal
+      open={open}
+      setOpen={setOpen}
       title={t('dashboard:rotation.title')}
-      defaultOpen={false}
-      badge={
-        rotating ? (
-          <span className="inline-flex items-center rounded-md bg-live-soft px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-ink">
-            {t('dashboard:rotation.rotating')}
-          </span>
-        ) : undefined
-      }
     >
       <p className="mb-4 text-sm text-muted">
         {t('dashboard:rotation.description')}
@@ -236,6 +234,6 @@ export default function ScreenRotationPanel({
           </p>
         )}
       </div>
-    </CollapsiblePanel>
+    </WideModal>
   );
 }

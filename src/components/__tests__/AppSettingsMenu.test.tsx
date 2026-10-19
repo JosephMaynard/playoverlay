@@ -110,3 +110,38 @@ describe('AppSettingsMenu appearance', () => {
     );
   });
 });
+
+describe('AppSettingsMenu dashboard size and goals', () => {
+  it('offers small, medium and large with medium selected by default', async () => {
+    const user = userEvent.setup();
+    const { updateAppSettings } = renderMenu();
+
+    expect(screen.getByRole('button', { name: 'Medium' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    await user.click(screen.getByRole('button', { name: 'Large' }));
+    expect(updateAppSettings).toHaveBeenCalledWith({ dashboardScale: 'large' });
+  });
+
+  it('switches the scorer question and the automatic banner', async () => {
+    const user = userEvent.setup();
+    const { updateAppSettings } = renderMenu();
+
+    const ask = screen.getByRole('switch', {
+      name: 'Ask who scored when the team has a line-up',
+    });
+    expect(ask).toBeChecked();
+    await user.click(ask);
+    expect(updateAppSettings).toHaveBeenCalledWith({ askForScorer: false });
+
+    await user.click(
+      screen.getByRole('switch', {
+        name: 'Put the goal banner on air automatically',
+      })
+    );
+    expect(updateAppSettings).toHaveBeenCalledWith({
+      showGoalBannerAutomatically: false,
+    });
+  });
+});

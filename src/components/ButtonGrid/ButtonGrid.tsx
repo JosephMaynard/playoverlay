@@ -1,6 +1,9 @@
 import Button, { Props as ButtonProps } from './Button';
 import { classNames } from '@playoverlay/core';
-import type { ActionButtonSize } from '../ui/ActionButton';
+import type {
+  ActionButtonSelectedTone,
+  ActionButtonSize,
+} from '../ui/ActionButton';
 
 export interface Props {
   className?: string;
@@ -11,6 +14,8 @@ export interface Props {
   columns?: 1 | 2 | 3 | 4;
   // Applied to every button unless the button sets its own.
   size?: ActionButtonSize;
+  // What a selected button in this grid means (see ActionButton).
+  selectedTone?: ActionButtonSelectedTone;
 }
 
 const columnClasses = {
@@ -26,6 +31,7 @@ export default function ButtonGrid({
   compact,
   columns,
   size,
+  selectedTone,
 }: Props) {
   return (
     <div
@@ -40,6 +46,7 @@ export default function ButtonGrid({
           key={`${button.label}-${index}`}
           {...button}
           size={button.size ?? size}
+          selectedTone={button.selectedTone ?? selectedTone}
         />
       ))}
     </div>

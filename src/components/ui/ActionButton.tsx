@@ -6,9 +6,17 @@ import { classNames } from '@playoverlay/core';
 // tablet, lg and xl are for the handful of controls used during play
 // (goal, start, stop, screen switches), which have to land with a thumb
 // while the other hand is on a camera.
+//
+// The filled variants are drawn as keys (see .key in index.css): a short
+// gradient, a hairline and an inset highlight, so the dashboard reads like
+// the control surface of a vision mixer rather than a web form.
 export type ActionButtonVariant =
   'secondary' | 'primary' | 'live' | 'danger' | 'danger-ghost' | 'ghost';
 export type ActionButtonSize = 'sm' | 'md' | 'lg' | 'xl';
+// What a selected key means: on air (red), running (green) or simply the
+// chosen option (accent). The colour carries the meaning, so a screen on
+// air and a phase that is running can never be confused.
+export type ActionButtonSelectedTone = 'air' | 'go' | 'accent';
 
 const sizeClasses: Record<ActionButtonSize, string> = {
   sm: 'min-h-10 px-3 text-sm',
@@ -18,13 +26,10 @@ const sizeClasses: Record<ActionButtonSize, string> = {
 };
 
 const variantClasses: Record<ActionButtonVariant, string> = {
-  // Filled rather than outlined: a hairline on the dark navy was near
-  // invisible, and a tinted fill is what native buttons do on both platforms.
-  secondary:
-    'bg-surface-2 text-fg ring-1 ring-inset ring-line hover:bg-line/60 hover:ring-line-strong',
-  primary: 'bg-accent text-accent-fg hover:bg-accent-hover',
-  live: 'bg-live text-live-fg hover:bg-live-hover',
-  danger: 'bg-danger text-danger-fg hover:bg-danger-hover',
+  secondary: 'key text-fg',
+  primary: 'key key-accent',
+  live: 'key key-go',
+  danger: 'key key-air',
   // A quiet destructive action (reset, delete from a list): red text and
   // outline only, so it never competes with the live controls beside it.
   'danger-ghost':
@@ -32,15 +37,17 @@ const variantClasses: Record<ActionButtonVariant, string> = {
   ghost: 'text-muted hover:bg-surface-2 hover:text-fg',
 };
 
-// A selected segmented-control button (the screen on air, the phase that is
-// running) uses the live green so it reads the same as the preview badge.
-const selectedClasses =
-  'bg-live-soft text-live-ink ring-2 ring-inset ring-live hover:bg-live-soft';
+const selectedClasses: Record<ActionButtonSelectedTone, string> = {
+  air: 'key key-air key-lit',
+  go: 'key key-go key-lit',
+  accent: 'key key-accent key-lit',
+};
 
 export interface ActionButtonStyle {
   variant?: ActionButtonVariant;
   size?: ActionButtonSize;
   selected?: boolean;
+  selectedTone?: ActionButtonSelectedTone;
   block?: boolean;
 }
 
@@ -48,6 +55,7 @@ export function actionButtonClasses({
   variant = 'secondary',
   size = 'md',
   selected = false,
+  selectedTone = 'accent',
   block = false,
 }: ActionButtonStyle = {}): string {
   return classNames(
@@ -55,7 +63,7 @@ export function actionButtonClasses({
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
     'disabled:cursor-not-allowed disabled:opacity-40',
     sizeClasses[size],
-    selected ? selectedClasses : variantClasses[variant],
+    selected ? selectedClasses[selectedTone] : variantClasses[variant],
     block ? 'w-full' : ''
   );
 }
@@ -72,6 +80,7 @@ export default function ActionButton({
   variant,
   size,
   selected,
+  selectedTone,
   block,
   icon,
   className,
@@ -82,7 +91,7 @@ export default function ActionButton({
     <button
       type="button"
       className={classNames(
-        actionButtonClasses({ variant, size, selected, block }),
+        actionButtonClasses({ variant, size, selected, selectedTone, block }),
         className ?? ''
       )}
       // Only a genuine toggle passes `selected`; plain actions leave it

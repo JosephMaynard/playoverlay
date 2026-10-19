@@ -1,4 +1,5 @@
 import ActionButton, {
+  ActionButtonSelectedTone,
   ActionButtonSize,
   ActionButtonVariant,
 } from '../ui/ActionButton';
@@ -13,6 +14,7 @@ export interface Props {
   color?: string;
   backgroundColor?: string;
   selected?: boolean;
+  selectedTone?: ActionButtonSelectedTone;
   disabled?: boolean;
   icon?: React.ReactNode;
   className?: string;
@@ -40,6 +42,7 @@ export default function Button({
   size,
   backgroundColor,
   selected,
+  selectedTone,
   disabled,
   icon,
   className,
@@ -49,6 +52,7 @@ export default function Button({
       variant={variant ?? variantFromLegacyColour(backgroundColor)}
       size={size}
       selected={selected}
+      selectedTone={selectedTone}
       disabled={disabled}
       icon={icon}
       className={className}
