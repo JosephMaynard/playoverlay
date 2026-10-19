@@ -62,7 +62,7 @@ export const IMAGE_SLOTS = {
     width: 1600,
     height: 1000,
     ratio: "16:10",
-    alt: "The Match Settings panel open beside the dashboard, showing the home team's line-up of numbered players with the Add player and Paste a list buttons",
+    alt: "The Match Settings panel open beside the dashboard, showing the home team's line-up of numbered players, each with a Starts box, and the Add player and Paste a list buttons",
     summary: "Screenshot: the Match Settings panel with a team's line-up",
   },
   "screen-match-title": {
@@ -90,7 +90,7 @@ export const IMAGE_SLOTS = {
     width: 2560,
     height: 1440,
     ratio: "16:9",
-    alt: "The Home Line-up screen: Winchester F.C. above fourteen players in two columns, each with a shirt number in the club's red",
+    alt: "The Home Line-up screen: Winchester F.C. above eleven players on the pitch, each with a shirt number in the club's red, and a smaller Bench group of three beneath",
     summary: "Screenshot: the home line-up screen on the display output",
   },
   "screen-away-lineup": {
@@ -104,15 +104,29 @@ export const IMAGE_SLOTS = {
     width: 1600,
     height: 1000,
     ratio: "16:10",
-    alt: "The Goals panel with a scorer being typed and the hint: Not in the line-up? Just type a name. The goal banner in the preview reads 9 Ali Smith 23'",
-    summary: "Screenshot: the Goals panel with the scorer list open",
+    alt: "The Who scored? question over the dashboard after a Winchester goal: the players on the pitch as large tiles, the bench beneath, and Not a goal, Own goal and No scorer buttons",
+    summary: "Screenshot: the scorer question after a goal key is tapped",
+  },
+  "substitution-modal": {
+    width: 1600,
+    height: 1000,
+    ratio: "16:10",
+    alt: "The substitution picker over the dashboard: Coming off 10 Marcus Lane, Coming on 16 Nathan Brooks chosen from the bench, with Confirm substitution lit green",
+    summary: "Screenshot: a substitution with both players chosen",
+  },
+  "screen-substitution-banner": {
+    width: 2560,
+    height: 1440,
+    ratio: "16:9",
+    alt: "The display output with the score bug and a substitution banner reading SUB, Winchester F.C., 16 Nathan Brooks on, 10 Marcus Lane off, 64'",
+    summary: "Screenshot: the substitution banner on the display output",
   },
   "rotation-panel": {
     width: 1600,
     height: 1000,
     ratio: "16:10",
-    alt: "The dashboard with the Rotate screens panel open under Display Controls, explaining that the display shows each chosen screen in turn until you choose a screen or start the clock",
-    summary: "Screenshot: the Rotate screens panel on the dashboard",
+    alt: "The Rotate screens set-up over the dashboard: the screens to show ticked in rotation order, seconds per screen and the half-time start",
+    summary: "Screenshot: the Rotate screens set-up on the dashboard",
   },
 } satisfies Record<string, ImageSlotDefinition>;
 

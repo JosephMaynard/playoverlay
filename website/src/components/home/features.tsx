@@ -174,17 +174,16 @@ export function Features() {
             label="Goals"
             title="Every goal logged, with a banner on air"
             media={<ImageSlot name="screen-goal-banner" sizes="(min-width: 1216px) 660px, (min-width: 1024px) 55vw, 100vw" />}
-            caption="The goal banner goes on air by itself when a goal is scored. Here it is shown again with the scorer added."
+            caption="The goal banner goes on air when a goal is scored, with the scorer's number and name when you have picked them."
             link={{ href: "/docs/running-a-match#goals", label: "Goals, scorers and the banner" }}
           >
             <p>
-              Press the goal button and PlayOverlay logs the minute (23&apos;, or 45+2&apos; in
-              stoppage time) and puts a goal banner on air with the team and minute. No typing
-              during play.
+              Press the goal key and PlayOverlay updates the score bug, logs the minute (23&apos;,
+              or 45+2&apos; in stoppage time) and puts a goal banner on air. With a line-up
+              entered it asks who scored, one tap on a name. No typing during play.
             </p>
             <p>
-              Add the scorers&apos; names at half-time and the end screen lists who scored and
-              when.
+              The end screen lists who scored and when.
             </p>
           </FeatureRow>
 
@@ -198,13 +197,13 @@ export function Features() {
                 sizes="(min-width: 1216px) 660px, (min-width: 1024px) 55vw, 100vw"
               />
             }
-            caption="The Home Line-up screen, in the club's colours."
+            caption="The Home Line-up screen, in the club's colours, with the bench beneath."
             link={{ href: "/docs/line-ups", label: "Line-ups and rotating screens" }}
           >
             <p>
-              Paste each team sheet into Match Settings and each team gets a line-up screen. When
-              you add the scorers, pick them from the squad and the banner shows their number and
-              name.
+              Paste each team sheet into Match Settings and each team gets a line-up screen.
+              Scorers are picked from the squad with a tap, and substitutions are logged in two
+              taps, with a banner on air and the line-up screen kept up to date.
             </p>
             <p>
               At half-time the display can cycle through the line-ups, the scoreboard and your own

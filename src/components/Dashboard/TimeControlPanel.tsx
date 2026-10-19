@@ -114,7 +114,9 @@ export default function TimeControlPanel({
   return (
     <section
       aria-label={t('dashboard:timeControl.title')}
-      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-sm"
+      // Stretches to the preview's height beside it, with the ink block
+      // taking the spare room, so the two pinned panels share one bottom edge.
+      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-sm lg:h-full"
     >
       <TimeDisplay
         time={time}

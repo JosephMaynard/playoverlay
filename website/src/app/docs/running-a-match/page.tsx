@@ -36,9 +36,9 @@ export default function RunningAMatchPage() {
           for a long injury break or a stoppage the referee stops the watch for.
         </li>
         <li>
-          The pencil icon on the clock opens <strong>Adjust Time</strong>, with buttons to move the
-          clock forwards or back by seconds or minutes. Use it to line up with the referee&apos;s
-          watch.
+          <strong>Phases &amp; clock</strong>, next to Added time, opens a pop-up with buttons to
+          move the clock forwards or back by seconds or minutes. Use it to line up with the
+          referee&apos;s watch. Pause and Resume live there too.
         </li>
         <li>
           <strong>Stop</strong> ends the current phase. Use it at half-time and full time.
@@ -59,14 +59,14 @@ export default function RunningAMatchPage() {
         half without reaching for the mouse.
       </p>
       <p>
-        <strong>Auto switch screens on start and stop</strong>, under the phase buttons, changes
-        the on-air graphic for you: starting a phase puts the score bug on air, and pressing Stop
+        <strong>Auto switch screens on start and stop</strong>, in the Phases &amp; clock pop-up,
+        changes the on-air graphic for you: starting a phase puts the score bug on air, and pressing Stop
         brings back the match title. Turn it off if you&apos;d rather choose every screen yourself.
       </p>
       <p>
-        To keep the display busy during the break, the <strong>Rotate screens</strong> panel can
-        cycle through the match title, line-ups and other screens, and can start by itself when
-        you stop the clock at half-time. See{" "}
+        To keep the display busy during the break, the <strong>Rotate screens</strong> key can
+        cycle the display through the match title, line-ups and other screens, and can start by
+        itself when you stop the clock at half-time. See{" "}
         <Link href="/docs/line-ups#rotating">rotating screens</Link>.
       </p>
 
@@ -80,21 +80,21 @@ export default function RunningAMatchPage() {
 
       <h2 id="goals">Goals and scorers</h2>
       <p>
-        Press <strong>Home Team Scored</strong> or <strong>Away Team Scored</strong> when a goal
-        goes in. PlayOverlay logs the goal and, if the clock is running, its minute: 23&apos; or
-        45+2&apos;. To correct a score without logging a goal, use the pencil icon on that
-        team&apos;s score to raise or lower it.
+        Press a team&apos;s <strong>Goal</strong> key in the Goals tab when a goal goes in. The
+        score bug updates at once, and PlayOverlay logs the goal with its minute if the clock is
+        running: 23&apos; or 45+2&apos;. To correct a score without logging a goal, tap the score
+        in the clock block and raise or lower either team.
       </p>
       <p>
-        The <strong>Goals</strong> panel lists every goal as it happens. When there is a quiet
-        moment, usually at half-time, type each scorer&apos;s name next to their goal. The end
-        screen then lists each team&apos;s scorers with their minutes, like
+        The <strong>Goals</strong> tab lists every goal as it happens, latest first. For a team
+        without a line-up, type each scorer&apos;s name next to their goal when there is a quiet
+        moment. The end screen then lists each team&apos;s scorers with their minutes, like
         &quot;Smith 23&apos;, 67&apos;&quot;. Goals without a name still appear, as bare minutes.
-        You can also remove a goal from the log there.
+        The bin icon removes a goal from the log, and the score with it.
       </p>
       <p>
-        If you have entered the team&apos;s line-up, the scorer field offers its players as you
-        type, by name or shirt number, and you can still type any other name. See{" "}
+        If you have entered the team&apos;s line-up, the goal key asks who scored, with the
+        players as large tiles, before the banner goes out. See{" "}
         <Link href="/docs/line-ups#scorers">picking the scorer</Link>.
       </p>
 
@@ -103,21 +103,20 @@ export default function RunningAMatchPage() {
         <ImageSlot name="screen-goal-banner" sizes="(min-width: 1024px) 768px, 100vw" />
       </Figure>
       <p>
-        Every goal puts a banner on air straight away, with the team and the minute and no typing.
-        To show a banner again later, for a replay or a highlight, press{" "}
-        <strong>Show on air</strong> next to that goal in the Goals panel. Once you have added
-        the scorer, the banner includes their name, with the shirt number if you picked them from
-        the line-up.
+        Every goal puts a banner on air with the team and the minute. For a team without a
+        line-up it goes out straight away, with no typing. For a team with a line-up it waits for
+        you to pick the scorer, then includes their name and shirt number, for example 9 Ali
+        Smith.
       </p>
       <p>
         If you&apos;d rather not show banners automatically, turn off{" "}
-        <strong>Show the goal banner on air as soon as a goal is scored</strong> in the Goals
-        panel. Goals are still logged.
+        <strong>Put goal and substitution banners on air automatically</strong> under Goals and
+        banners in Window Settings. Goals are still logged.
       </p>
 
       <h2 id="penalties">Penalty shootouts</h2>
       <p>
-        The <strong>Penalties</strong> panel tracks a shootout kick by kick. Choose which team goes
+        The <strong>Penalties</strong> tab tracks a shootout kick by kick. Choose which team goes
         first, then press <strong>Score</strong> or <strong>Miss</strong> after each kick.
         PlayOverlay alternates the teams for you and shows whose kick is next.{" "}
         <strong>Undo Last Action</strong> takes back a mistaken entry, and{" "}

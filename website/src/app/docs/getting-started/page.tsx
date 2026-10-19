@@ -84,7 +84,7 @@ export default function GettingStartedPage() {
           they are for the rest of the match.
         </li>
         <li>
-          <strong>Run the Go live check.</strong> The green button under the preview checks the
+          <strong>Run the Go live check.</strong> The tab next to the screen keys checks the
           output window, the second display, team logos and graphics, keyboard shortcuts, the OBS
           source and the phone remote. It only looks and never changes anything.
         </li>

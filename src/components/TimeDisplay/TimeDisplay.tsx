@@ -43,7 +43,7 @@ export default function TimeDisplay({
       : t('dashboard:timeControl.running');
 
   return (
-    <div className="flex flex-col gap-2 bg-ink px-5 py-4 text-ink-fg [container-type:inline-size]">
+    <div className="flex flex-1 flex-col justify-center gap-2 bg-ink px-5 py-4 text-ink-fg [container-type:inline-size]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           {currentPhase && (

@@ -35,7 +35,7 @@ export default function ScreensPage() {
       </p>
       <p>
         To leave the display cycling through several screens before kick-off or at half-time, use
-        the <strong>Rotate screens</strong> panel under Display Controls. See{" "}
+        the <strong>Rotate screens</strong> key under the screen keys. See{" "}
         <Link href="/docs/line-ups#rotating">rotating screens</Link>.
       </p>
       <p>
