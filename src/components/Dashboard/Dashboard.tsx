@@ -504,6 +504,12 @@ export default function Dashboard() {
     ? ((scores.goals ?? []).find((goal) => goal.id === scorerPrompt.goalId) ??
       null)
     : null;
+  // Ctrl+Z still works while the modal is up. A goal undone there ends the
+  // prompt, so redoing the goal does not bring the modal back, and the banner
+  // for a prompt the operator never finished is not shown late.
+  useEffect(() => {
+    if (scorerPrompt && !promptedGoal) setScorerPrompt(null);
+  }, [scorerPrompt, promptedGoal]);
   const finishScorerPrompt = () => {
     if (scorerPrompt?.isNew) maybeShowGoalBanner(scorerPrompt.goalId);
     setScorerPrompt(null);

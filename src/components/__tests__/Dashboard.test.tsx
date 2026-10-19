@@ -1,10 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   defaultAppSettings,
@@ -1055,7 +1049,9 @@ describe('Dashboard match engine', () => {
       const dialog = screen.getByRole('dialog');
       expect(within(dialog).getByText('Who scored?')).toBeInTheDocument();
 
-      fireEvent.click(within(dialog).getByRole('button', { name: /Ali Smith/ }));
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: /Ali Smith/ })
+      );
       const [goal] = stores.scores.getState().scores.goals ?? [];
       expect(goal).toEqual(
         expect.objectContaining({ scorer: 'Ali Smith', scorerNumber: '9' })
@@ -1084,13 +1080,46 @@ describe('Dashboard match engine', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
       expect(stores.scores.getState().scores.homeTeam).toBe(1);
       const dialog = screen.getByRole('dialog');
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Not a goal' }));
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Not a goal' })
+      );
       expect(stores.scores.getState().scores.homeTeam).toBe(0);
       expect(stores.scores.getState().scores.goals).toHaveLength(1);
       // The away banner is still the one on air; the mis-tap never showed one.
       expect(stores.matchState.getState().matchState.goalBanner?.goalId).toBe(
         awayGoal.id
       );
+    });
+
+    it('drops the scorer question when the goal is undone, so redo does not reopen it', async () => {
+      const { stores } = await renderDashboard({
+        matchSettings: {
+          ...defaultMatchSettings,
+          homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+        },
+      });
+
+      const { useUndoStore } = await import('@playoverlay/core');
+      fireEvent.click(screen.getByRole('button', { name: 'Home Team scored' }));
+      expect(screen.getByText('Who scored?')).toBeInTheDocument();
+      // Ctrl+Z is still live under the modal: the goal goes, and the question
+      // with it.
+      act(() => useUndoStore.getState().undo());
+      expect(stores.scores.getState().scores.goals ?? []).toHaveLength(0);
+      act(() => useUndoStore.getState().redo());
+      advance(500);
+      const [goal] = stores.scores.getState().scores.goals ?? [];
+      expect(goal).toBeDefined();
+      // Headless UI keeps a closing dialog in the DOM under fake timers, so
+      // the check is behavioural: a pick now must not land on the restored
+      // goal, and nothing from the old prompt puts a banner up.
+      screen
+        .queryAllByRole('button', { name: /Ali Smith/ })
+        .forEach((button) => fireEvent.click(button));
+      expect(stores.scores.getState().scores.goals?.[0].scorer).toBeUndefined();
+      expect(
+        stores.matchState.getState().matchState.goalBanner
+      ).toBeUndefined();
     });
 
     it('lets the operator switch the scorer question off', async () => {
@@ -1159,9 +1188,9 @@ describe('Dashboard substitutions', () => {
         on: { name: 'Kai Moore', number: '12' },
       })
     );
-    expect(
-      stores.matchState.getState().matchState.substitutionBanner
-    ).toEqual(expect.objectContaining({ substitutionId: substitution.id }));
+    expect(stores.matchState.getState().matchState.substitutionBanner).toEqual(
+      expect.objectContaining({ substitutionId: substitution.id })
+    );
 
     act(() => useUndoStore.getState().undo());
     expect(stores.scores.getState().scores.substitutions).toEqual([]);

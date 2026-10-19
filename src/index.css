@@ -46,8 +46,10 @@
   --c-key-line: 167 176 187;
   --c-key-hi: 255 255 255;
   --key-hi-alpha: 1;
-  --c-key-go-1: 31 157 75;
-  --c-key-go-2: 22 122 57;
+  /* The go keys carry white labels at body size, so both gradient stops
+     stay dark enough for 4.5:1 (the same greens as the live tokens). */
+  --c-key-go-1: 21 128 61;
+  --c-key-go-2: 22 101 52;
   --c-key-air-1: 216 38 43;
   --c-key-air-2: 171 27 32;
   --c-key-accent-1: 79 70 229;
@@ -90,8 +92,8 @@
   --c-key-line: 26 30 35;
   --c-key-hi: 255 255 255;
   --key-hi-alpha: 0.1;
-  --c-key-go-1: 39 179 90;
-  --c-key-go-2: 26 138 67;
+  --c-key-go-1: 24 136 66;
+  --c-key-go-2: 20 108 52;
   --c-key-air-1: 230 56 47;
   --c-key-air-2: 179 36 28;
   --c-key-accent-1: 99 102 241;
