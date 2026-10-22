@@ -4,10 +4,20 @@ name: Release
 # Silicon binaries and attach them to a draft GitHub release. Review the
 # draft on the Releases page and publish it to make it public (the in-app
 # update check reads the latest published release).
+#
+# Run it by hand (Actions > Release > Run workflow) to build the same
+# binaries from any branch and attach them to the run instead, for checking
+# packaging or signing without cutting a release.
+#
+# The macOS builds are signed with the Developer ID certificate and notarised
+# when the repository has the CSC_LINK, CSC_KEY_PASSWORD, APPLE_API_KEY,
+# APPLE_API_KEY_ID and APPLE_API_ISSUER secrets; a fork without them gets
+# the unsigned app this workflow always built.
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 # No workflow-wide grant: each job asks for only what it needs, so the
 # verify job (which runs npm ci, and with it every dependency's install
@@ -34,6 +44,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Check tag matches package.json version
+        if: github.event_name == 'push'
         run: |
           tag_version="${GITHUB_REF_NAME#v}"
           pkg_version="$(node -p "require('./package.json').version")"
@@ -47,6 +58,7 @@ jobs:
 
   create-release:
     needs: verify
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     # Creates the draft release.
     permissions:
@@ -64,7 +76,9 @@ jobs:
                  --draft --title "${{ github.ref_name }}" --generate-notes
 
   build:
-    needs: create-release
+    needs: [verify, create-release]
+    # A manual run skips create-release, so only verify has to have passed.
+    if: ${{ !cancelled() && needs.verify.result == 'success' && (github.event_name != 'push' || needs.create-release.result == 'success') }}
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +100,10 @@ jobs:
     # and checkout doesn't persist it, so npm ci and the build never see it.
     permissions:
       contents: write
+    env:
+      # Whether the macOS app gets signed and notarised. `if:` cannot read
+      # the secrets context directly, so the answer is carried in env.
+      MAC_SIGNING: ${{ secrets.CSC_LINK != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -100,8 +118,54 @@ jobs:
         # MakerRpm shells out to rpmbuild, which Ubuntu runners don't
         # guarantee; MakerDeb needs dpkg/fakeroot (present, but cheap to pin)
         run: sudo apt-get update && sudo apt-get install -y rpm dpkg fakeroot
+      - name: Import the Developer ID certificate and the notarisation key
+        if: runner.os == 'macOS' && env.MAC_SIGNING == 'true'
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        # The certificate goes into a throwaway keychain that only this job
+        # sees, unlocked for codesign so nothing waits on an Allow dialog. The
+        # API key is written to a file because notarytool reads it from one.
+        run: |
+          umask 077
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(openssl rand -base64 24)"
+          printf '%s' "$CSC_LINK" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$CSC_KEY_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/certificate.p12"
+          printf '%s\n' "$APPLE_API_KEY" > "$RUNNER_TEMP/AuthKey.p8"
       - name: Build distributables
+        # Only this step, and only on macOS with the secrets present, sees the
+        # signing material. forge.config.ts reads these four variables.
+        env:
+          PLAYOVERLAY_SIGN_KEYCHAIN: ${{ runner.os == 'macOS' && env.MAC_SIGNING == 'true' && format('{0}/signing.keychain-db', runner.temp) || '' }}
+          APPLE_API_KEY: ${{ runner.os == 'macOS' && env.MAC_SIGNING == 'true' && format('{0}/AuthKey.p8', runner.temp) || '' }}
+          APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && env.MAC_SIGNING == 'true' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ runner.os == 'macOS' && env.MAC_SIGNING == 'true' && secrets.APPLE_API_ISSUER || '' }}
         run: npm run make -- --arch=${{ matrix.arch }}
+      - name: Remove the signing keychain and key
+        if: always() && runner.os == 'macOS' && env.MAC_SIGNING == 'true'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+      - name: Check the signature and the notarisation ticket
+        if: runner.os == 'macOS' && env.MAC_SIGNING == 'true'
+        # Fails the release if the app is not what Gatekeeper will accept:
+        # a valid Developer ID signature, notarised, with the ticket stapled.
+        run: |
+          app="$(find out -maxdepth 2 -name PlayOverlay.app -print -quit)"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv --verbose=2 "$app" 2>&1 | grep '^Authority=Developer ID Application:'
+          spctl -a -vv -t install "$app" 2>&1 | tee /dev/stderr | grep -q 'source=Notarized Developer ID'
+          xcrun stapler validate "$app"
       # Launch the packaged binary on every release platform, not just the
       # Linux one CI covers, so a macOS or Windows packaging fault (e.g. a
       # dependency that isn't bundled and crashes the app on launch) fails
@@ -130,6 +194,7 @@ jobs:
         timeout-minutes: 5
         run: npm run smoke:packaged
       - name: Upload to release
+        if: github.event_name == 'push'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -140,3 +205,13 @@ jobs:
           find out/make -type f \( -name '*.exe' -o -name '*.zip' -o -name '*.deb' -o -name '*.rpm' \) -print0 |
             xargs -0 gh release upload "${{ github.ref_name }}" \
               --repo "${{ github.repository }}" --clobber
+      - name: Attach to the workflow run
+        if: github.event_name != 'push'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playoverlay-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            out/make/**/*.exe
+            out/make/**/*.zip
+            out/make/**/*.deb
+            out/make/**/*.rpm
