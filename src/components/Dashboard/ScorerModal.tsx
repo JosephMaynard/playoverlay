@@ -26,7 +26,10 @@ export interface Props {
   matchSettings: MatchSettings;
   scores: Scores;
   onPick: (player: Player) => void;
+  // Clears any scorer already on the goal, then closes.
   onNoScorer: () => void;
+  // Closes and changes nothing (the close button, Escape, a click outside).
+  onClose: () => void;
   onOwnGoal: () => void;
   onNotAGoal: () => void;
 }
@@ -66,6 +69,7 @@ export default function ScorerModal({
   scores,
   onPick,
   onNoScorer,
+  onClose,
   onOwnGoal,
   onNotAGoal,
 }: Props) {
@@ -99,7 +103,7 @@ export default function ScorerModal({
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onNoScorer}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"
@@ -127,7 +131,7 @@ export default function ScorerModal({
                   <IconButton
                     label={t('close')}
                     icon={<XMarkIcon className="h-6 w-6" aria-hidden="true" />}
-                    onClick={onNoScorer}
+                    onClick={onClose}
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3 pr-12">

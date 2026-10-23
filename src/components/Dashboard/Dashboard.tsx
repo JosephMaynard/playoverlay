@@ -520,6 +520,13 @@ export default function Dashboard() {
     }
     finishScorerPrompt();
   };
+  // For a goal that already has a scorer, "No scorer" is a correction: it
+  // takes the name off. For a fresh goal there is nothing to clear, and
+  // setGoalScorer records nothing.
+  const noScorer = () => {
+    if (scorerPrompt) setGoalScorer(scorerPrompt.goalId, '');
+    finishScorerPrompt();
+  };
   const ownGoal = () => {
     if (scorerPrompt) {
       setGoalScorer(scorerPrompt.goalId, t('dashboard:scorer.ownGoal'));
@@ -710,7 +717,8 @@ export default function Dashboard() {
           matchSettings={matchSettings}
           scores={scores}
           onPick={pickScorer}
-          onNoScorer={finishScorerPrompt}
+          onNoScorer={noScorer}
+          onClose={finishScorerPrompt}
           onOwnGoal={ownGoal}
           onNotAGoal={notAGoal}
         />

@@ -1061,6 +1061,50 @@ describe('Dashboard match engine', () => {
       );
     });
 
+    describe('changing a scorer already in the log', () => {
+      const pickedGoal = async () => {
+        const { stores } = await renderDashboard({
+          matchSettings: {
+            ...defaultMatchSettings,
+            homeTeamPlayers: [{ name: 'Ali Smith', number: '9' }],
+          },
+        });
+        fireEvent.click(
+          screen.getByRole('button', { name: 'Home Team scored' })
+        );
+        fireEvent.click(
+          within(screen.getByRole('dialog')).getByRole('button', {
+            name: /Ali Smith/,
+          })
+        );
+        fireEvent.click(
+          screen.getByRole('button', { name: /Scorer \(Home Team goal/ })
+        );
+        return {
+          dialog: screen.getByRole('dialog'),
+          goal: () => stores.scores.getState().scores.goals?.[0],
+        };
+      };
+
+      it('takes the scorer off with "No scorer"', async () => {
+        const { dialog, goal } = await pickedGoal();
+        fireEvent.click(
+          within(dialog).getByRole('button', { name: 'No scorer' })
+        );
+        expect(goal()?.scorer).toBeUndefined();
+        expect(goal()?.scorerNumber).toBeUndefined();
+      });
+
+      it('keeps the scorer when the picker is closed', async () => {
+        const { dialog, goal } = await pickedGoal();
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+        expect(goal()).toMatchObject({
+          scorer: 'Ali Smith',
+          scorerNumber: '9',
+        });
+      });
+    });
+
     it('never asks for a team without a line-up, and takes a mis-tapped goal back from the modal', async () => {
       const { stores } = await renderDashboard({
         matchSettings: {
