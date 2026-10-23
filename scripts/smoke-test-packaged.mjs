@@ -16,6 +16,11 @@ import path from 'node:path';
 
 const DEBUG_PORT = 9222;
 const STARTUP_TIMEOUT_MS = 45000;
+// The Intel app is cross-built and smoke tested on an Apple Silicon runner,
+// where Rosetta translates every Electron binary ahead of its first launch.
+// That takes well over the normal budget, and the release's own x64 job has
+// timed out on it, so a translated app gets longer to show its window.
+const ROSETTA_STARTUP_TIMEOUT_MS = 240000;
 const POLL_INTERVAL_MS = 1000;
 // Bound for each CDP round trip so a half-open socket cannot hang the poll.
 const CDP_TIMEOUT_MS = 5000;
@@ -101,8 +106,8 @@ async function evaluateInPage(webSocketDebuggerUrl, expression) {
 // which proves the main process started AND the renderer loaded the real app
 // (not a blank page or an error dialog). Throws if the app exits early or the
 // window never renders within the timeout.
-async function waitForRenderedWindow(child) {
-  const deadline = Date.now() + STARTUP_TIMEOUT_MS;
+async function waitForRenderedWindow(child, startupTimeoutMs) {
+  const deadline = Date.now() + startupTimeoutMs;
   while (Date.now() < deadline) {
     // A signal-killed process (e.g. SIGSEGV) has a null exitCode, so check
     // both or the loop would keep polling a dead app until the timeout.
@@ -153,6 +158,14 @@ async function main() {
     process.exit(1);
   }
   console.log(`Launching packaged app: ${binary}`);
+  // An Intel build launched on an Apple Silicon Mac runs through Rosetta.
+  const translated =
+    process.platform === 'darwin' &&
+    process.arch === 'arm64' &&
+    binary.includes('-darwin-x64');
+  const startupTimeoutMs = translated
+    ? ROSETTA_STARTUP_TIMEOUT_MS
+    : STARTUP_TIMEOUT_MS;
 
   const args = [`--remote-debugging-port=${DEBUG_PORT}`];
   // The bundled chrome-sandbox needs a SUID root helper that CI containers do
@@ -183,7 +196,7 @@ async function main() {
 
   try {
     const result = await Promise.race([
-      waitForRenderedWindow(child),
+      waitForRenderedWindow(child, startupTimeoutMs),
       spawnFailed,
     ]);
     console.log(

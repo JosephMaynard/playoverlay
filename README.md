@@ -61,18 +61,13 @@ Grab the latest release from the [Releases page](https://github.com/MagicZebraLt
 | Linux (Debian/Ubuntu) | `playoverlay_….deb`              |
 | Linux (Fedora/RHEL)   | `playoverlay-….rpm`              |
 
-### A note on unsigned builds
+### First launch
 
-The binaries are **not code-signed or notarized** (signing certificates cost money and this is a free project), so your OS will warn you on first launch:
+The macOS builds are code-signed and notarised by Magic Zebra Limited, so they open like any other app: unzip the download and move `PlayOverlay.app` to Applications.
 
-- **Windows**: SmartScreen may show "Windows protected your PC", click **More info**, then **Run anyway**.
-- **macOS**: after unzipping, move `PlayOverlay.app` to Applications. If macOS reports the app is damaged or from an unidentified developer, clear the quarantine flag once from Terminal:
+The Windows installer is not signed yet, so SmartScreen may show "Windows protected your PC" the first time: click **More info**, then **Run anyway**.
 
-  ```bash
-  xattr -cr /Applications/PlayOverlay.app
-  ```
-
-If you'd rather not trust an unsigned binary, build it yourself from source, see [Building from source](#building-from-source) below.
+If you'd rather not run a binary you didn't build, see [Building from source](#building-from-source) below.
 
 ## Using it
 

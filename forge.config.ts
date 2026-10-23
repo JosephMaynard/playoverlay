@@ -6,8 +6,45 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { execSync } from 'node:child_process';
 
+// macOS signing and notarisation. The release workflow imports the Developer
+// ID certificate into a throwaway keychain and names it here, with the App
+// Store Connect API key as a file path (what @electron/notarize wants) and
+// its ids. A build without the keychain (a fork, a local `npm run make`) is
+// left unsigned, as it always was.
+const signKeychain = process.env.PLAYOVERLAY_SIGN_KEYCHAIN;
+const notaryKey = process.env.APPLE_API_KEY;
+const notaryKeyId = process.env.APPLE_API_KEY_ID;
+const notaryIssuer = process.env.APPLE_API_ISSUER;
+if (signKeychain && !(notaryKey && notaryKeyId && notaryIssuer)) {
+  // A signed but unnotarised app is still blocked by Gatekeeper, so this is
+  // a misconfigured release, not a build worth shipping.
+  throw new Error(
+    'PLAYOVERLAY_SIGN_KEYCHAIN is set but APPLE_API_KEY, APPLE_API_KEY_ID or APPLE_API_ISSUER is missing'
+  );
+}
+const macSigning = signKeychain
+  ? {
+      osxSign: {
+        keychain: signKeychain,
+        // Notarisation requires the hardened runtime, and the hardened
+        // runtime needs the entitlements in build/entitlements.mac.plist for
+        // V8 to run. The same file goes on every helper in the bundle.
+        optionsForFile: () => ({
+          hardenedRuntime: true,
+          entitlements: 'build/entitlements.mac.plist',
+        }),
+      },
+      osxNotarize: {
+        appleApiKey: notaryKey as string,
+        appleApiKeyId: notaryKeyId as string,
+        appleApiIssuer: notaryIssuer as string,
+      },
+    }
+  : {};
+
 const config: ForgeConfig = {
   packagerConfig: {
+    ...macSigning,
     asar: true,
     icon: 'src/assets/appIcon',
     appBundleId: 'com.playoverlay.app',
