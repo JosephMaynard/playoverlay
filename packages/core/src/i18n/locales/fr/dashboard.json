@@ -20,9 +20,7 @@
     "keyAria": "But pour {{team}}"
   },
   "header": {
-    "darkMode": "Mode sombre",
     "graphics": "Visuels",
-    "lightMode": "Mode clair",
     "newMatch": "Nouveau",
     "openMenu": "Ouvrir le menu {{title}}",
     "redo": "Rétablir",

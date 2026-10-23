@@ -4,9 +4,7 @@ import {
   Cog6ToothIcon,
   ComputerDesktopIcon,
   DocumentPlusIcon,
-  MoonIcon,
   PhotoIcon,
-  SunIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { ComponentType, SVGProps } from 'react';
@@ -15,8 +13,6 @@ import { useTranslation } from 'react-i18next';
 import logo from '../../assets/playoverlay-logo.svg';
 import {
   SideMenuType,
-  ThemeSetting,
-  classNames,
   selectCanRedo,
   selectCanUndo,
   selectNextRedoLabel,
@@ -24,17 +20,11 @@ import {
   useUndoStore,
 } from '@playoverlay/core';
 import IconButton from '../ui/IconButton';
-import { resolveTheme } from '../../theme';
 
 export interface Props {
   setSideMenu: (sideMenu: SideMenuType) => void;
   // Opens the New match confirmation (the reset itself lives in Dashboard).
   onNewMatch: () => void;
-  // The appearance setting, for the light/dark switch at the foot of the
-  // rail. "System" stays available in Window Settings; the switch forces
-  // one or the other, which is what an operator outdoors wants.
-  theme?: ThemeSetting;
-  setTheme?: (theme: 'light' | 'dark') => void;
 }
 
 // Titles are i18n keys rather than literal strings: three of the four reuse
@@ -81,51 +71,8 @@ interface MatchAction {
 
 const iconClassName = 'h-7 w-7';
 
-export default function DashboardHeader({
-  setSideMenu,
-  onNewMatch,
-  theme,
-  setTheme,
-}: Props) {
+export default function DashboardHeader({ setSideMenu, onNewMatch }: Props) {
   const { t } = useTranslation();
-  const resolvedTheme = resolveTheme(
-    theme,
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
-  const themeSwitch = setTheme && (
-    <div
-      role="group"
-      aria-label={t('settings:appMenu.appearance.title')}
-      className="mt-3 inline-flex overflow-hidden rounded border border-line"
-    >
-      {(['light', 'dark'] as const).map((option) => (
-        <button
-          key={option}
-          type="button"
-          aria-label={t(
-            option === 'light'
-              ? 'dashboard:header.lightMode'
-              : 'dashboard:header.darkMode'
-          )}
-          aria-pressed={resolvedTheme === option}
-          className={classNames(
-            'inline-flex h-9 w-9 items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent',
-            resolvedTheme === option
-              ? 'bg-ink text-ink-fg'
-              : 'text-muted hover:bg-surface-2 hover:text-fg'
-          )}
-          onClick={() => setTheme(option)}
-        >
-          {option === 'light' ? (
-            <SunIcon className="h-5 w-5" aria-hidden="true" />
-          ) : (
-            <MoonIcon className="h-5 w-5" aria-hidden="true" />
-          )}
-        </button>
-      ))}
-    </div>
-  );
-
   const canUndo = useUndoStore(selectCanUndo);
   const canRedo = useUndoStore(selectCanRedo);
   const nextUndoKey = useUndoStore(selectNextUndoLabel);
@@ -236,27 +183,24 @@ export default function DashboardHeader({
               </li>
             ))}
           </ul>
-          <div className="mt-auto flex flex-col items-center gap-1">
-            <ul role="list" className="flex flex-col items-center gap-1">
-              {menuButtons.map((menuButton) => (
-                <li key={menuButton.menu}>
-                  <IconButton
-                    size="lg"
-                    label={t(menuButton.titleKey)}
-                    caption={t(menuButton.captionKey)}
-                    icon={
-                      <menuButton.icon
-                        className={iconClassName}
-                        aria-hidden="true"
-                      />
-                    }
-                    onClick={() => setSideMenu(menuButton.menu as SideMenuType)}
-                  />
-                </li>
-              ))}
-            </ul>
-            {themeSwitch}
-          </div>
+          <ul role="list" className="mt-auto flex flex-col items-center gap-1">
+            {menuButtons.map((menuButton) => (
+              <li key={menuButton.menu}>
+                <IconButton
+                  size="lg"
+                  label={t(menuButton.titleKey)}
+                  caption={t(menuButton.captionKey)}
+                  icon={
+                    <menuButton.icon
+                      className={iconClassName}
+                      aria-hidden="true"
+                    />
+                  }
+                  onClick={() => setSideMenu(menuButton.menu as SideMenuType)}
+                />
+              </li>
+            ))}
+          </ul>
         </nav>
       </div>
     </>

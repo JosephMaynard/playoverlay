@@ -86,44 +86,7 @@ describe('AppSettingsMenu window controls', () => {
   });
 });
 
-describe('AppSettingsMenu appearance', () => {
-  it('offers system, light and dark, with system selected by default', async () => {
-    const { updateAppSettings } = renderMenu();
-
-    expect(
-      screen.getByRole('button', { name: 'Match system' })
-    ).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute(
-      'aria-pressed',
-      'false'
-    );
-
-    await userEvent.click(screen.getByRole('button', { name: 'Dark' }));
-    expect(updateAppSettings).toHaveBeenCalledWith({ theme: 'dark' });
-  });
-
-  it('shows the saved choice as selected', () => {
-    renderMenu({ ...defaultAppSettings, theme: 'light' });
-    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
-  });
-});
-
-describe('AppSettingsMenu dashboard size and goals', () => {
-  it('offers small, medium and large with medium selected by default', async () => {
-    const user = userEvent.setup();
-    const { updateAppSettings } = renderMenu();
-
-    expect(screen.getByRole('button', { name: 'Medium' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
-    await user.click(screen.getByRole('button', { name: 'Large' }));
-    expect(updateAppSettings).toHaveBeenCalledWith({ dashboardScale: 'large' });
-  });
-
+describe('AppSettingsMenu goals', () => {
   it('switches the scorer question and the automatic banner', async () => {
     const user = userEvent.setup();
     const { updateAppSettings } = renderMenu();

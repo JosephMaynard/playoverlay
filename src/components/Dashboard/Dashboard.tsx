@@ -633,8 +633,6 @@ export default function Dashboard() {
         <DashboardHeader
           setSideMenu={openSideMenu}
           onNewMatch={() => setNewMatchOpen(true)}
-          theme={appSettings.theme}
-          setTheme={(theme) => updateAppSettings({ theme })}
         />
         {/* Top row, pinned: what is on air and the clock (with the score),
             the two things the operator looks at all match. Bottom row: two
