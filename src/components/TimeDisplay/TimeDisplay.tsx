@@ -18,13 +18,35 @@ export interface Props {
   onEditScore?: () => void;
 }
 
+// Average advance of a bold tabular digit, and the added time's size, both
+// in ems of the clock. The colon and minus are narrower than a digit, so
+// counting them as one keeps a little to spare.
+const CHARACTER_WIDTH_EM = 0.62;
+const ADDED_TIME_EM = 0.32;
+
+// The clock's font size: as large as fits the width its column has left
+// beside the remaining time, up to 8rem. Sized from the text itself so
+// 105:13 with +5 in extra time still fits where 45:00 did. Never sized for
+// fewer than five characters, so the digits do not shrink at 9:59 -> 10:00
+// and the only step down a match ever sees is at 100 minutes.
+export function clockFontSize(clock: string, additionalTime?: number) {
+  let widthEm = Math.max(clock.length, 5) * CHARACTER_WIDTH_EM;
+  if (additionalTime) {
+    // The gap, the plus sign and the minutes.
+    widthEm +=
+      0.15 +
+      (String(additionalTime).length + 1) * CHARACTER_WIDTH_EM * ADDED_TIME_EM;
+  }
+  return `clamp(2rem, ${(100 / widthEm).toFixed(1)}cqw, 8rem)`;
+}
+
 // The clock block as the operator sees it: phase, running state, score,
 // the match clock large enough to read from arm's length with a camera in
 // the other hand, and the time remaining, which is what spectators keep
 // asking. Always on the ink block in both themes so it reads like the
-// on-air clock and not like a form field. The digits scale with the
-// block's own width (container units) rather than the viewport, because on
-// a 1024px tablet the block is barely half the screen.
+// on-air clock and not like a form field. The digits scale with the width
+// their own column has (container units) rather than the viewport, because
+// on a 1024px tablet the block is barely half the screen.
 export default function TimeDisplay({
   time,
   matchSettings,
@@ -36,6 +58,7 @@ export default function TimeDisplay({
     ? getPhaseById(matchSettings, time.matchPhase)
     : undefined;
   const running = time.matchPhase !== undefined;
+  const clock = time.time ?? '0:00';
   const status = !running
     ? t('screens:timeDisplay.notRunning')
     : time.paused
@@ -89,29 +112,30 @@ export default function TimeDisplay({
           </button>
         )}
       </div>
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex min-w-0 items-baseline gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+        <div className="[container-type:inline-size]">
           <p
             className={classNames(
-              'min-w-0 font-bold tabular-nums leading-none tracking-tight [font-size:clamp(3rem,22cqw,8rem)]',
+              'whitespace-nowrap font-bold tabular-nums leading-none tracking-tight',
               time.time ? '' : 'text-ink-fg/40'
             )}
+            style={{ fontSize: clockFontSize(clock, time.additionalTime) }}
           >
-            {time.time ?? '0:00'}
+            {clock}
+            {!!time.additionalTime && (
+              <span
+                className="ml-[0.15em] text-[0.32em] text-warn"
+                aria-label={t('dashboard:timeControl.addedTimeAria', {
+                  minutes: time.additionalTime,
+                })}
+              >
+                +{time.additionalTime}
+              </span>
+            )}
           </p>
-          {time.additionalTime && (
-            <p
-              className="font-bold tabular-nums leading-none text-warn [font-size:clamp(1.25rem,7cqw,2.5rem)]"
-              aria-label={t('dashboard:timeControl.addedTimeAria', {
-                minutes: time.additionalTime,
-              })}
-            >
-              +{time.additionalTime}
-            </p>
-          )}
         </div>
         {time.remainingTime && (
-          <div className="flex-shrink-0 pb-1 text-right">
+          <div className="pb-1 text-right">
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-fg/60">
               {t('dashboard:timeControl.remaining')}
             </p>
