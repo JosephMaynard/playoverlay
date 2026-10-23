@@ -57,7 +57,14 @@ export function findPlayerRename(
     samePlayer(player, after[index]) ? [] : [index]
   );
   if (changed.length !== 1) return undefined;
-  return { from: before[changed[0]], to: after[changed[0]] };
+  const from = before[changed[0]];
+  // Two players with the same name and number (two Sams with no shirt
+  // numbers) cannot be told apart in the logs, so a rename of one would
+  // rewrite the other's entries too. Those entries are left as they are.
+  if (before.filter((player) => samePlayer(player, from)).length > 1) {
+    return undefined;
+  }
+  return { from, to: after[changed[0]] };
 }
 
 // Carries a rename into everything that names the player: the substitution

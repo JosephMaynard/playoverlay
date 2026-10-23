@@ -201,6 +201,13 @@ describe('findPlayerRename', () => {
       findPlayerRename([smith, lee], [{ name: 'A' }, { name: 'B' }])
     ).toBeUndefined();
   });
+
+  it('ignores a rename of a player who shares their name and number', () => {
+    const sam = { name: 'Sam' };
+    expect(
+      findPlayerRename([sam, smith, sam], [{ name: 'Sam Reid' }, smith, sam])
+    ).toBeUndefined();
+  });
 });
 
 describe('renamePlayerInScores', () => {
