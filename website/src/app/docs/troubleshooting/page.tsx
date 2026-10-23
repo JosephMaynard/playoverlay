@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { DocPage, docMetadata } from '@/components/docs/doc-page';
 import { Callout } from '@/components/docs/callout';
-import { CodeBlock } from '@/components/code-block';
 import { NEW_ISSUE_URL } from '@/lib/github';
 
 const SLUG = 'troubleshooting';
@@ -54,13 +53,14 @@ export default function TroubleshootingPage() {
         to keep running the old copy, click <strong>Done</strong>, open{' '}
         <strong>System Settings &rarr; Privacy &amp; Security</strong>, scroll
         down to the Security section and click <strong>Open Anyway</strong> next
-        to PlayOverlay. If macOS calls the app &quot;damaged&quot; instead, that
-        is the download&apos;s quarantine flag, not a corrupt file. Only for a
-        copy from the official releases page, with <code>PlayOverlay.app</code>{' '}
-        in your Applications folder, open Terminal and run:
+        to PlayOverlay.
       </p>
-      <CodeBlock code="xattr -d com.apple.quarantine /Applications/PlayOverlay.app" />
-      <p>Then open PlayOverlay again.</p>
+      <p>
+        If macOS says the app is &quot;damaged&quot;, don&apos;t try to get
+        round the warning. Delete that copy, download a fresh one from the{' '}
+        <Link href="/download">download page</Link>, which links to the official
+        releases on GitHub, and open that instead.
+      </p>
 
       <h2 id="display">Graphics not showing on the mixer</h2>
       <ul>

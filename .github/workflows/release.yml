@@ -139,8 +139,22 @@ jobs:
             -P "$CSC_KEY_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: \
             -s -k "$keychain_password" "$keychain" > /dev/null
-          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          # Put the new keychain first in the search list and keep the
+          # existing ones, read one per line so a path with a space survives.
+          existing=()
+          while IFS= read -r line; do
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line#\"}"
+            existing+=("${line%\"}")
+          done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$keychain" "${existing[@]}"
           rm "$RUNNER_TEMP/certificate.p12"
+          # Fail here, before a long build, if the certificate did not give a
+          # usable Developer ID identity (a wrong p12 or an expired cert).
+          if ! security find-identity -v -p codesigning "$keychain" | grep -q 'Developer ID Application:'; then
+            echo "No valid Developer ID Application identity in the signing keychain" >&2
+            exit 1
+          fi
           printf '%s\n' "$APPLE_API_KEY" > "$RUNNER_TEMP/AuthKey.p8"
       - name: Build distributables
         # Only this step, and only on macOS with the secrets present, sees the
