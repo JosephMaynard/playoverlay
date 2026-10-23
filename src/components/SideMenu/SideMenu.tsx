@@ -83,7 +83,7 @@ export default function SideMenu({ open, setOpen, title, children }: Props) {
                     <div className="mt-6 flex flex-col items-center gap-2 px-6">
                       <button
                         type="button"
-                        className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded px-3 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                         onClick={() =>
                           window?.electronAPI?.openUrlInBrowser(SUPPORT_URL)
                         }

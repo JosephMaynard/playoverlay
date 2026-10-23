@@ -65,7 +65,7 @@ export default function TimeDisplay({
         {scores && (
           <button
             type="button"
-            className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex flex-shrink-0 items-center gap-2 rounded px-1.5 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label={t('dashboard:scoreInput.editScore')}
             onClick={onEditScore}
           >

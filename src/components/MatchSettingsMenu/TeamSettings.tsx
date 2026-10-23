@@ -166,7 +166,7 @@ export default function TeamSettings({
           <div className="mt-2 flex flex-wrap items-center gap-3">
             {teamLogo && (
               <div
-                className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+                className="h-12 w-12 shrink-0 rounded bg-surface-2 bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
                 style={{ backgroundImage: `url("${teamLogo}")` }}
               />
             )}

@@ -43,7 +43,7 @@ export default function IconButton({
     <button
       type="button"
       className={classNames(
-        'inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-1 transition-colors',
+        'inline-flex flex-col items-center justify-center gap-0.5 rounded px-1 transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted',
         sizeClasses[size],

@@ -36,7 +36,7 @@ export default function ButtonGrid({
   return (
     <div
       className={classNames(
-        'grid w-full auto-rows-fr gap-2',
+        'grid w-full auto-rows-fr gap-1.5',
         columnClasses[columns ?? (compact ? 2 : 3)],
         className ?? ''
       )}

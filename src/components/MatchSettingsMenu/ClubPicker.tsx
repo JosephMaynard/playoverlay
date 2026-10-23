@@ -42,7 +42,7 @@ export default function ClubPicker({
   };
 
   return (
-    <div className="col-span-full rounded-xl bg-surface-2 p-3 ring-1 ring-inset ring-line">
+    <div className="col-span-full rounded-md bg-surface-2 p-3 ring-1 ring-inset ring-line">
       <label htmlFor={selectId} className={labelClassName}>
         {t('settings:matchMenu.clubs.loadLabel')}
       </label>

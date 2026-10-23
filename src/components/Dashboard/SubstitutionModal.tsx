@@ -103,7 +103,7 @@ export default function SubstitutionModal({
   ) => (
     <div
       className={classNames(
-        'flex min-h-16 items-center gap-3 rounded-lg px-3 py-2 ring-1 ring-inset',
+        'flex min-h-16 items-center gap-3 rounded px-3 py-2 ring-1 ring-inset',
         active ? 'bg-surface-2 ring-2 ring-accent' : 'bg-surface-2 ring-line'
       )}
     >
@@ -148,7 +148,7 @@ export default function SubstitutionModal({
     selected: Player | null,
     onPick: (player: Player) => void
   ) => (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
       {players.map((player, index) => (
         <PlayerTile
           key={`${player.number ?? ''}-${player.name}-${index}`}
@@ -185,7 +185,7 @@ export default function SubstitutionModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="relative w-full max-w-3xl transform overflow-hidden rounded-xl bg-surface p-5 text-left text-fg shadow-xl ring-1 ring-line transition-all">
+              <Dialog.Panel className="relative w-full max-w-3xl transform overflow-hidden rounded-md bg-surface p-5 text-left text-fg shadow-xl ring-1 ring-line transition-all">
                 <div className="absolute right-2 top-2">
                   <IconButton
                     label={t('close')}
@@ -203,7 +203,12 @@ export default function SubstitutionModal({
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {stepCard(1, t('dashboard:substitutions.off'), off, !off)}
-                  {stepCard(2, t('dashboard:substitutions.on'), on, !!off && !on)}
+                  {stepCard(
+                    2,
+                    t('dashboard:substitutions.on'),
+                    on,
+                    !!off && !on
+                  )}
                 </div>
                 <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
                   {off
@@ -223,7 +228,10 @@ export default function SubstitutionModal({
                     {t('cancel')}
                   </ActionButton>
                   <span className="flex-1" />
-                  <ActionButton disabled={!off || !on} onClick={() => confirm(true)}>
+                  <ActionButton
+                    disabled={!off || !on}
+                    onClick={() => confirm(true)}
+                  >
                     {t('dashboard:substitutions.confirmAnother')}
                   </ActionButton>
                   <ActionButton

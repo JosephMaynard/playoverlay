@@ -85,7 +85,7 @@ export default function ScorerModal({
     : matchSettings.awayTeamNameFull;
 
   const tiles = (players: Player[], dim?: boolean) => (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
       {players.map((player, index) => (
         <PlayerTile
           key={`${player.number ?? ''}-${player.name}-${index}`}
@@ -122,7 +122,7 @@ export default function ScorerModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="relative w-full max-w-3xl transform overflow-hidden rounded-xl bg-surface p-5 text-left text-fg shadow-xl ring-1 ring-line transition-all">
+              <Dialog.Panel className="relative w-full max-w-3xl transform overflow-hidden rounded-md bg-surface p-5 text-left text-fg shadow-xl ring-1 ring-line transition-all">
                 <div className="absolute right-2 top-2">
                   <IconButton
                     label={t('close')}
@@ -147,7 +147,9 @@ export default function ScorerModal({
                       <ScoresTeamName
                         teamName={matchSettings.homeTeamNameAbbreviated}
                         textColour={matchSettings.homeTeamTextColour}
-                        backgroundColour={matchSettings.homeTeamBackgroundColour}
+                        backgroundColour={
+                          matchSettings.homeTeamBackgroundColour
+                        }
                       />
                     </span>
                     {scores.homeTeam} - {scores.awayTeam}
@@ -155,7 +157,9 @@ export default function ScorerModal({
                       <ScoresTeamName
                         teamName={matchSettings.awayTeamNameAbbreviated}
                         textColour={matchSettings.awayTeamTextColour}
-                        backgroundColour={matchSettings.awayTeamBackgroundColour}
+                        backgroundColour={
+                          matchSettings.awayTeamBackgroundColour
+                        }
                       />
                     </span>
                   </span>
@@ -191,7 +195,9 @@ export default function ScorerModal({
                     <ActionButton
                       variant="danger-ghost"
                       onClick={onNotAGoal}
-                      icon={<XMarkIcon className="h-5 w-5" aria-hidden="true" />}
+                      icon={
+                        <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                      }
                     >
                       {t('dashboard:scorer.notAGoal')}
                     </ActionButton>

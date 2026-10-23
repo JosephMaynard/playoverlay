@@ -140,7 +140,7 @@ export default function KeyboardShortcutRow({
             })}
             onKeyDown={handleKeyDown}
             onBlur={onCancelRecording}
-            className="flex min-h-12 items-center rounded-xl bg-accent-soft px-3 text-sm font-medium text-fg ring-2 ring-inset ring-accent focus:outline-none"
+            className="flex min-h-12 items-center rounded bg-accent-soft px-3 text-sm font-medium text-fg ring-2 ring-inset ring-accent focus:outline-none"
           >
             {externalError ||
               error ||
@@ -148,7 +148,7 @@ export default function KeyboardShortcutRow({
           </div>
         ) : (
           <>
-            <kbd className="rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-sm text-fg ring-1 ring-inset ring-line">
+            <kbd className="rounded bg-surface-2 px-2.5 py-1.5 font-mono text-sm text-fg ring-1 ring-inset ring-line">
               {formatAccelerator(accelerator)}
             </kbd>
             <ActionButton size="md" onClick={onStartRecording}>

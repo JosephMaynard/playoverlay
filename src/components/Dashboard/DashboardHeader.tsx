@@ -96,7 +96,7 @@ export default function DashboardHeader({
     <div
       role="group"
       aria-label={t('settings:appMenu.appearance.title')}
-      className="mt-3 inline-flex overflow-hidden rounded-lg border border-line"
+      className="mt-3 inline-flex overflow-hidden rounded border border-line"
     >
       {(['light', 'dark'] as const).map((option) => (
         <button

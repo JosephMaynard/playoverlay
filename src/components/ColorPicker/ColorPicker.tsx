@@ -33,10 +33,10 @@ export default function ColourPicker({
         )}
       >
         <span className={labelClassName}>{label}</span>
-        <span className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-surface ring-1 ring-inset ring-line focus-within:ring-2 focus-within:ring-accent hover:ring-line-strong">
+        <span className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded bg-surface ring-1 ring-inset ring-line focus-within:ring-2 focus-within:ring-accent hover:ring-line-strong">
           <span
             aria-hidden="true"
-            className="h-8 w-8 rounded-lg ring-1 ring-black/10"
+            className="h-8 w-8 rounded ring-1 ring-black/10"
             style={{ backgroundColor: value }}
           />
           <input

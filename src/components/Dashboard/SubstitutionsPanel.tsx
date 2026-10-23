@@ -56,87 +56,100 @@ export default function SubstitutionsPanel({
     );
   };
 
+  const entries = [...substitutions].reverse().map((substitution) => ({
+    substitution,
+    minute: formatSubstitutionMinute(substitution, matchSettings),
+  }));
+  // As in the goal log: no empty minute column for a log made with no
+  // phase running.
+  const showMinutes = entries.some(({ minute }) => minute !== '');
+
+  // Like the goal keys, the substitution keys stay put and only the log
+  // under them scrolls (a filling tab, see Tabs).
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="grid flex-shrink-0 grid-cols-2 gap-2">
         {teamKey('home')}
         {teamKey('away')}
       </div>
-      <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+      <h3 className="mt-4 flex-shrink-0 border-b border-line pb-2 text-xs font-semibold uppercase tracking-wide text-muted">
         {t('dashboard:substitutions.title')}
       </h3>
-      {substitutions.length === 0 ? (
-        <p className="py-2 text-sm text-muted">
-          {t('dashboard:substitutions.empty')}
-        </p>
-      ) : (
-        <ul role="list" className="divide-y divide-line">
-          {[...substitutions].reverse().map((substitution) => {
-            const isHome = substitution.team === 'home';
-            const teamName = isHome
-              ? matchSettings.homeTeamNameFull
-              : matchSettings.awayTeamNameFull;
-            const minute = formatSubstitutionMinute(substitution, matchSettings);
-            const description = t('dashboard:substitutions.entry', {
-              team: teamName,
-              off: formatPlayer(substitution.off),
-              on: formatPlayer(substitution.on),
-            });
-            return (
-              <li
-                key={substitution.id}
-                className="flex min-h-14 items-center gap-x-3 py-1.5"
-                aria-label={description}
-              >
-                <div className="flex-shrink-0 ring-1 ring-black/10 [--base-size:0.875rem]">
-                  <ScoresTeamName
-                    teamName={
-                      isHome
-                        ? matchSettings.homeTeamNameAbbreviated
-                        : matchSettings.awayTeamNameAbbreviated
-                    }
-                    textColour={
-                      isHome
-                        ? matchSettings.homeTeamTextColour
-                        : matchSettings.awayTeamTextColour
-                    }
-                    backgroundColour={
-                      isHome
-                        ? matchSettings.homeTeamBackgroundColour
-                        : matchSettings.awayTeamBackgroundColour
-                    }
-                  />
-                </div>
-                <span className="w-12 flex-shrink-0 text-lg font-semibold tabular-nums text-fg">
-                  {minute}
-                </span>
-                <span className="flex min-w-0 flex-grow items-center gap-2 text-base">
-                  <span className="truncate font-medium text-danger">
-                    {formatPlayer(substitution.off)}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {entries.length === 0 ? (
+          <p className="py-2 text-sm text-muted">
+            {t('dashboard:substitutions.empty')}
+          </p>
+        ) : (
+          <ul role="list" className="divide-y divide-line">
+            {entries.map(({ substitution, minute }) => {
+              const isHome = substitution.team === 'home';
+              const teamName = isHome
+                ? matchSettings.homeTeamNameFull
+                : matchSettings.awayTeamNameFull;
+              const description = t('dashboard:substitutions.entry', {
+                team: teamName,
+                off: formatPlayer(substitution.off),
+                on: formatPlayer(substitution.on),
+              });
+              return (
+                <li
+                  key={substitution.id}
+                  className="flex min-h-14 items-center gap-x-2 py-1.5"
+                  aria-label={description}
+                >
+                  <div className="flex-shrink-0 ring-1 ring-black/10 [--base-size:0.875rem]">
+                    <ScoresTeamName
+                      teamName={
+                        isHome
+                          ? matchSettings.homeTeamNameAbbreviated
+                          : matchSettings.awayTeamNameAbbreviated
+                      }
+                      textColour={
+                        isHome
+                          ? matchSettings.homeTeamTextColour
+                          : matchSettings.awayTeamTextColour
+                      }
+                      backgroundColour={
+                        isHome
+                          ? matchSettings.homeTeamBackgroundColour
+                          : matchSettings.awayTeamBackgroundColour
+                      }
+                    />
+                  </div>
+                  {showMinutes && (
+                    <span className="w-14 flex-shrink-0 text-center text-lg font-semibold tabular-nums text-fg">
+                      {minute}
+                    </span>
+                  )}
+                  <span className="flex min-w-0 flex-grow items-center gap-2 text-base">
+                    <span className="truncate font-medium text-danger">
+                      {formatPlayer(substitution.off)}
+                    </span>
+                    <ArrowRightIcon
+                      className="h-4 w-4 flex-shrink-0 text-faint"
+                      aria-hidden="true"
+                    />
+                    <span className="truncate font-medium text-live-ink">
+                      {formatPlayer(substitution.on)}
+                    </span>
                   </span>
-                  <ArrowRightIcon
-                    className="h-4 w-4 flex-shrink-0 text-faint"
-                    aria-hidden="true"
+                  <IconButton
+                    tone="danger"
+                    className="flex-shrink-0"
+                    label={t('dashboard:substitutions.removeAria', {
+                      substitution: description,
+                    })}
+                    title={t('dashboard:substitutions.remove')}
+                    icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
+                    onClick={() => removeSubstitution(substitution.id)}
                   />
-                  <span className="truncate font-medium text-live-ink">
-                    {formatPlayer(substitution.on)}
-                  </span>
-                </span>
-                <IconButton
-                  tone="danger"
-                  className="flex-shrink-0"
-                  label={t('dashboard:substitutions.removeAria', {
-                    substitution: description,
-                  })}
-                  title={t('dashboard:substitutions.remove')}
-                  icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
-                  onClick={() => removeSubstitution(substitution.id)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

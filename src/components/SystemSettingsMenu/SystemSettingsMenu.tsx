@@ -51,7 +51,7 @@ import {
 // A URL to paste into OBS or a phone: monospace, scrollable rather than
 // wrapped, so it is copied exactly as shown.
 const urlClassName =
-  'min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-xl bg-surface-2 px-3 py-3 font-mono text-sm text-fg ring-1 ring-inset ring-line';
+  'min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded bg-surface-2 px-3 py-3 font-mono text-sm text-fg ring-1 ring-inset ring-line';
 
 export interface Props {
   open: boolean;
@@ -833,7 +833,7 @@ export default function SystemSettingsMenu({
                   <img
                     src={remoteControlQr}
                     alt={t('settings:appMenu.remoteControl.qrAlt')}
-                    className="h-40 w-40 rounded-lg ring-1 ring-line"
+                    className="h-40 w-40 rounded ring-1 ring-line"
                   />
                 )}
                 <p className="text-sm text-muted">

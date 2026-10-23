@@ -571,6 +571,7 @@ export default function Dashboard() {
     {
       key: 'goals',
       label: t('dashboard:goalLog.title'),
+      fill: true,
       content: (
         <GoalsPanel
           goals={scores.goals ?? []}
@@ -591,6 +592,7 @@ export default function Dashboard() {
           {
             key: 'substitutions',
             label: t('dashboard:tabs.substitutions'),
+            fill: true,
             content: (
               <SubstitutionsPanel
                 substitutions={scores.substitutions ?? []}
