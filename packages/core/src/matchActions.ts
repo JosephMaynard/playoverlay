@@ -22,7 +22,12 @@ import {
 import { getNextPhaseId, getPhaseList, isValidAdditionalTime } from './utils';
 import { createGoal, removeLatestGoal, trimGoalsToScore } from './goalLog';
 import { normalisePlayerNumber } from './lineup';
-import { createSubstitution, samePlayer } from './substitutions';
+import {
+  createSubstitution,
+  findPlayerRename,
+  renamePlayerInScores,
+  samePlayer,
+} from './substitutions';
 import { useScoresStore } from './store/scores';
 import { useMatchSettingsStore } from './store/matchSettings';
 import { useMatchStateStore } from './store/matchState';
@@ -133,11 +138,32 @@ export function createMatchActions(
     }
   };
 
+  // A corrected name or number in a line-up is carried into the goal and
+  // substitution logs, and into the undo history, which name players by
+  // value (see renamePlayerInScores).
+  const reconcileLogsWithSquads = (settingsUpdate: Partial<MatchSettings>) => {
+    const current = useMatchSettingsStore.getState().matchSettings;
+    const squads = [
+      ['home', current.homeTeamPlayers, settingsUpdate.homeTeamPlayers],
+      ['away', current.awayTeamPlayers, settingsUpdate.awayTeamPlayers],
+    ] as const;
+    for (const [team, before, after] of squads) {
+      if (!(`${team}TeamPlayers` in settingsUpdate)) continue;
+      const rename = findPlayerRename(before, after);
+      if (!rename) continue;
+      const rewrite = (scores: Scores) =>
+        renamePlayerInScores(scores, team, rename);
+      setScores(rewrite(useScoresStore.getState().scores));
+      useUndoStore.getState().rewriteScores(rewrite);
+    }
+  };
+
   const updateMatchSettings = (settingsUpdate: Partial<MatchSettings>) => {
     reconcileClockWithSettings({
       ...useMatchSettingsStore.getState().matchSettings,
       ...settingsUpdate,
     });
+    reconcileLogsWithSquads(settingsUpdate);
     useMatchSettingsStore.getState().setMatchSettings(settingsUpdate);
   };
 

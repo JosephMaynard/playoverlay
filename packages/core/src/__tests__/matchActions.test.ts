@@ -353,3 +353,104 @@ describe('substitutions', () => {
     expect(logged()).toEqual([]);
   });
 });
+
+describe('renaming a player in the line-up', () => {
+  const smith = { name: 'Ali Smith', number: '9' };
+  const bloggs = { name: 'Jo Bloggs', number: '10' };
+  const charlie = { name: 'Charlie Day', number: '14', starting: false };
+  const charles = { ...charlie, name: 'Charles Day' };
+
+  beforeEach(() => {
+    useScoresStore.setState({
+      scores: {
+        homeTeam: 1,
+        awayTeam: 0,
+        penalties: [],
+        goals: [
+          { id: 'g1', team: 'home', scorer: 'Charlie Day', scorerNumber: '14' },
+        ],
+        substitutions: [],
+      },
+    });
+    useTimeStore.setState({
+      time: { time: '62:10', matchPhase: 'secondHalf', paused: false },
+    });
+    useMatchStateStore.setState({ matchState: { ...defaultMatchState } });
+    useMatchSettingsStore.setState({
+      matchSettings: {
+        ...defaultMatchSettings,
+        homeTeamPlayers: [smith, bloggs, charlie],
+      },
+    });
+    useAppSettingsStore.setState({ appSettings: { ...defaultAppSettings } });
+    useUndoStore.setState({ undoStack: [], redoStack: [], clockResync: null });
+  });
+
+  const scores = () => useScoresStore.getState().scores;
+  const settings = () => useMatchSettingsStore.getState().matchSettings;
+
+  it('keeps a substituted player on the pitch under the new name, with their goals', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, charlie);
+
+    actions.updateMatchSettings({ homeTeamPlayers: [smith, bloggs, charles] });
+
+    const logged = scores().substitutions ?? [];
+    expect(playersOnPitch(settings(), 'home', logged)).toEqual([
+      { name: 'Charles Day', number: '14' },
+      bloggs,
+    ]);
+    expect(playersOnBench(settings(), 'home', logged)).toEqual([smith]);
+    expect(scores().goals?.[0]).toMatchObject({
+      scorer: 'Charles Day',
+      scorerNumber: '14',
+    });
+  });
+
+  it('keeps the new name when an earlier action is undone and redone', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, charlie);
+    actions.updateMatchSettings({ homeTeamPlayers: [smith, bloggs, charles] });
+
+    useUndoStore.getState().undo();
+    expect(scores().goals?.[0].scorer).toBe('Charles Day');
+    useUndoStore.getState().redo();
+    expect(scores().substitutions?.[0].on).toEqual({
+      name: 'Charles Day',
+      number: '14',
+    });
+  });
+
+  it('leaves the logs alone for anything but a single changed player', () => {
+    const actions = createMatchActions(fakeClock());
+    actions.makeSubstitution('home', smith, charlie);
+    const before = scores();
+
+    // The Starts box alone, a removal, and a whole new squad.
+    actions.updateMatchSettings({
+      homeTeamPlayers: [smith, bloggs, { ...charlie, starting: true }],
+    });
+    actions.updateMatchSettings({ homeTeamPlayers: [smith, charlie] });
+    actions.updateMatchSettings({
+      homeTeamPlayers: [{ name: 'New One' }, { name: 'New Two' }],
+    });
+
+    expect(scores()).toEqual(before);
+  });
+
+  it('only renames within the edited team', () => {
+    const actions = createMatchActions(fakeClock());
+    useScoresStore.setState({
+      scores: {
+        ...scores(),
+        goals: [
+          { id: 'g2', team: 'away', scorer: 'Charlie Day', scorerNumber: '14' },
+        ],
+      },
+    });
+
+    actions.updateMatchSettings({ homeTeamPlayers: [smith, bloggs, charles] });
+
+    expect(scores().goals?.[0].scorer).toBe('Charlie Day');
+  });
+});
