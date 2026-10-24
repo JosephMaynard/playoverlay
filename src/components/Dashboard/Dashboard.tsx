@@ -520,6 +520,13 @@ export default function Dashboard() {
     }
     finishScorerPrompt();
   };
+  // For a goal that already has a scorer, "No scorer" is a correction: it
+  // takes the name off. For a fresh goal there is nothing to clear, and
+  // setGoalScorer records nothing.
+  const noScorer = () => {
+    if (scorerPrompt) setGoalScorer(scorerPrompt.goalId, '');
+    finishScorerPrompt();
+  };
   const ownGoal = () => {
     if (scorerPrompt) {
       setGoalScorer(scorerPrompt.goalId, t('dashboard:scorer.ownGoal'));
@@ -571,6 +578,7 @@ export default function Dashboard() {
     {
       key: 'goals',
       label: t('dashboard:goalLog.title'),
+      fill: true,
       content: (
         <GoalsPanel
           goals={scores.goals ?? []}
@@ -591,6 +599,7 @@ export default function Dashboard() {
           {
             key: 'substitutions',
             label: t('dashboard:tabs.substitutions'),
+            fill: true,
             content: (
               <SubstitutionsPanel
                 substitutions={scores.substitutions ?? []}
@@ -631,8 +640,6 @@ export default function Dashboard() {
         <DashboardHeader
           setSideMenu={openSideMenu}
           onNewMatch={() => setNewMatchOpen(true)}
-          theme={appSettings.theme}
-          setTheme={(theme) => updateAppSettings({ theme })}
         />
         {/* Top row, pinned: what is on air and the clock (with the score),
             the two things the operator looks at all match. Bottom row: two
@@ -710,7 +717,8 @@ export default function Dashboard() {
           matchSettings={matchSettings}
           scores={scores}
           onPick={pickScorer}
-          onNoScorer={finishScorerPrompt}
+          onNoScorer={noScorer}
+          onClose={finishScorerPrompt}
           onOwnGoal={ownGoal}
           onNotAGoal={notAGoal}
         />

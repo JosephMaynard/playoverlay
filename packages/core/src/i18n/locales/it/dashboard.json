@@ -20,9 +20,7 @@
     "keyAria": "Gol di {{team}}"
   },
   "header": {
-    "darkMode": "Modalità scura",
     "graphics": "Grafiche",
-    "lightMode": "Modalità chiara",
     "newMatch": "Nuova",
     "openMenu": "Apri il menu {{title}}",
     "redo": "Ripeti",

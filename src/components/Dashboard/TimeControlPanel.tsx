@@ -116,7 +116,7 @@ export default function TimeControlPanel({
       aria-label={t('dashboard:timeControl.title')}
       // Stretches to the preview's height beside it, with the ink block
       // taking the spare room, so the two pinned panels share one bottom edge.
-      className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-sm lg:h-full"
+      className="flex flex-col overflow-hidden rounded-md border border-line bg-surface shadow-sm lg:h-full"
     >
       <TimeDisplay
         time={time}
@@ -128,7 +128,7 @@ export default function TimeControlPanel({
         {/* The two things that happen at the touchline: start the coming
             phase, stop the running one. Both are always there, one of them
             live, so the thumb learns one place. */}
-        <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
+        <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-2">
           <ActionButton
             variant="live"
             size="xl"
@@ -153,7 +153,7 @@ export default function TimeControlPanel({
             {t('settings:system.stop')}
           </ActionButton>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <ActionButton
             variant="secondary"
             aria-label={t('dashboard:timeControl.setAdditionalTime')}
@@ -176,7 +176,7 @@ export default function TimeControlPanel({
             <PopoverPanel
               anchor="bottom end"
               transition
-              className="z-40 w-[min(32rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-4 shadow-xl transition duration-150 ease-out [--anchor-gap:8px] data-[closed]:scale-95 data-[closed]:opacity-0"
+              className="z-40 w-[min(32rem,calc(100vw-2rem))] rounded-md border border-line bg-surface p-4 shadow-xl transition duration-150 ease-out [--anchor-gap:8px] data-[closed]:scale-95 data-[closed]:opacity-0"
             >
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
                 {t('dashboard:timeControl.allPhases')}
@@ -191,7 +191,7 @@ export default function TimeControlPanel({
               <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
                 {t('dashboard:timeControl.adjustTimeModalTitle')}
               </p>
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+              <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
                 {adjustSteps.map((step) => (
                   <ActionButton
                     key={step.seconds}

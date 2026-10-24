@@ -40,7 +40,7 @@ export default function AppNotification({
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-xl bg-surface text-fg shadow-2xl ring-1 ring-line">
+      <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-md bg-surface text-fg shadow-2xl ring-1 ring-line">
         <div className="p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">{icon}</div>

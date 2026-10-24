@@ -52,8 +52,13 @@
   --c-key-go-2: 22 101 52;
   --c-key-air-1: 216 38 43;
   --c-key-air-2: 171 27 32;
-  --c-key-accent-1: 79 70 229;
-  --c-key-accent-2: 67 56 202;
+  /* The selected-option key (and the primary action) is ink, not a hue:
+     red and green already mean on air and running, and a club's colours
+     can be anything, so a neutral selection never clashes with either. */
+  --c-key-accent-1: 51 65 85;
+  --c-key-accent-2: 30 41 59;
+  --c-key-accent-fg: 255 255 255;
+  --key-accent-text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
 }
 
 :root[data-theme='dark'] {
@@ -96,8 +101,11 @@
   --c-key-go-2: 20 108 52;
   --c-key-air-1: 230 56 47;
   --c-key-air-2: 179 36 28;
-  --c-key-accent-1: 99 102 241;
-  --c-key-accent-2: 79 70 229;
+  /* In the dark a selected key is lit white, like a backlit key. */
+  --c-key-accent-1: 241 245 249;
+  --c-key-accent-2: 203 213 225;
+  --c-key-accent-fg: 15 23 42;
+  --key-accent-text-shadow: none;
 }
 
 @layer components {
@@ -152,6 +160,8 @@
     --c-key-1: var(--c-key-accent-1);
     --c-key-2: var(--c-key-accent-2);
     --c-key-line: var(--c-key-accent-2);
+    color: rgb(var(--c-key-accent-fg));
+    text-shadow: var(--key-accent-text-shadow);
   }
   /* A lit key glows in its own colour, the way a bus key does on a
      switcher, so the screen on air and the phase running are visible from

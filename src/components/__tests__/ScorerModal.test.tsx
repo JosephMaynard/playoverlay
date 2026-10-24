@@ -11,7 +11,12 @@ const matchSettings: MatchSettings = {
     { name: 'Kai Moore', number: '12', starting: false } as never,
   ],
 };
-const goal: Goal = { id: 'g1', team: 'home', time: '63:40', matchPhase: 'secondHalf' };
+const goal: Goal = {
+  id: 'g1',
+  team: 'home',
+  time: '63:40',
+  matchPhase: 'secondHalf',
+};
 
 function renderModal(overrides: Partial<Props> = {}) {
   const props: Props = {
@@ -21,6 +26,7 @@ function renderModal(overrides: Partial<Props> = {}) {
     scores: { homeTeam: 3, awayTeam: 1, penalties: [], goals: [goal] },
     onPick: vi.fn(),
     onNoScorer: vi.fn(),
+    onClose: vi.fn(),
     onOwnGoal: vi.fn(),
     onNotAGoal: vi.fn(),
     ...overrides,
@@ -34,7 +40,9 @@ describe('ScorerModal', () => {
     renderModal();
     const dialog = await screen.findByRole('dialog');
 
-    expect(within(dialog).getByRole('heading', { name: 'Tigers' })).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('heading', { name: 'Tigers' })
+    ).toBeInTheDocument();
     expect(within(dialog).getByText("64'")).toBeInTheDocument();
     const headings = within(dialog).getAllByRole('heading', { level: 4 });
     expect(headings.map((heading) => heading.textContent)).toEqual([
@@ -67,6 +75,15 @@ describe('ScorerModal', () => {
     expect(props.onNotAGoal).toHaveBeenCalledTimes(1);
   });
 
+  it('closes without a choice from the close button', async () => {
+    const props = renderModal();
+    const dialog = await screen.findByRole('dialog');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+    expect(props.onNoScorer).not.toHaveBeenCalled();
+  });
+
   it('hides "not a goal" and the hint when changing a scorer later', async () => {
     renderModal({ isNew: false });
     const dialog = await screen.findByRole('dialog');
@@ -74,6 +91,8 @@ describe('ScorerModal', () => {
     expect(
       within(dialog).queryByRole('button', { name: 'Not a goal' })
     ).not.toBeInTheDocument();
-    expect(within(dialog).queryByText(/already updated/)).not.toBeInTheDocument();
+    expect(
+      within(dialog).queryByText(/already updated/)
+    ).not.toBeInTheDocument();
   });
 });

@@ -180,7 +180,7 @@ const DragAndDropUploader: React.FC<Props> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={classNames(
-              'relative flex w-full flex-col items-center gap-4 rounded-xl border-2 border-dashed p-8 text-center text-base text-fg transition-colors',
+              'relative flex w-full flex-col items-center gap-4 rounded-md border-2 border-dashed p-8 text-center text-base text-fg transition-colors',
               isDragging
                 ? 'border-accent bg-accent-soft'
                 : 'border-line-strong hover:border-accent'
@@ -221,7 +221,7 @@ const DragAndDropUploader: React.FC<Props> = ({
                 backgroundImage: `url(${imageUrl})`,
                 backgroundColor: keyColour,
               }}
-              className="aspect-video w-full rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+              className="aspect-video w-full rounded bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
             />
             <ActionButton
               variant="danger"

@@ -20,9 +20,7 @@
     "keyAria": "{{team}} scored"
   },
   "header": {
-    "darkMode": "Dark mode",
     "graphics": "Graphics",
-    "lightMode": "Light mode",
     "newMatch": "New",
     "openMenu": "Open {{title}} Menu",
     "redo": "Redo",

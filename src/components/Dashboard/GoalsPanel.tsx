@@ -103,7 +103,7 @@ function GoalKey({
   return (
     <button
       type="button"
-      className="key flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-lg px-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+      className="key flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded px-3 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
       style={{
         // The key's own gradient is drawn from the club colour, which the
         // key classes cannot know about.
@@ -125,6 +125,8 @@ function GoalKey({
 // The Goals tab: a goal key per team, then the log of goals scored with
 // their minutes and scorers. A scorer is picked in the modal for a team
 // with a line-up (tapping the row reopens it), or typed for a team without.
+// The keys stay where the thumb expects them however long the log gets:
+// only the log scrolls (the tab is a filling one, see Tabs).
 export default function GoalsPanel({
   goals,
   matchSettings,
@@ -134,112 +136,126 @@ export default function GoalsPanel({
   removeGoal,
 }: Props) {
   const { t } = useTranslation();
+  const entries = [...goals].reverse().map((goal) => ({
+    goal,
+    minute: formatGoalMinute(goal, matchSettings),
+  }));
+  // Goals logged with no phase running have no minute. The column only
+  // takes room once some goal has one, so a log of those is not pushed
+  // right by an empty gap.
+  const showMinutes = entries.some(({ minute }) => minute !== '');
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="grid flex-shrink-0 grid-cols-2 gap-2">
         <GoalKey team="home" matchSettings={matchSettings} onGoal={onGoal} />
         <GoalKey team="away" matchSettings={matchSettings} onGoal={onGoal} />
       </div>
-      <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">
+      <h3 className="mt-4 flex-shrink-0 border-b border-line pb-2 text-xs font-semibold uppercase tracking-wide text-muted">
         {t('dashboard:goalLog.title')}
       </h3>
-      {goals.length === 0 ? (
-        <p className="py-2 text-sm text-muted">{t('dashboard:goalLog.empty')}</p>
-      ) : (
-        <ul role="list" className="divide-y divide-line">
-          {[...goals].reverse().map((goal) => {
-            const isHome = goal.team === 'home';
-            const teamName = isHome
-              ? matchSettings.homeTeamNameFull
-              : matchSettings.awayTeamNameFull;
-            const minute = formatGoalMinute(goal, matchSettings);
-            const description = minute
-              ? t('dashboard:goalLog.goalWithMinute', {
-                  team: teamName,
-                  minute,
-                })
-              : t('dashboard:goalLog.goal', { team: teamName });
-            const scorerLabel = t('dashboard:goalLog.scorerLabel', {
-              goal: description,
-            });
-            const hasLineup = teamPlayers(matchSettings, goal.team).length > 0;
-            return (
-              <li
-                key={goal.id}
-                className="flex min-h-14 items-center gap-x-3 py-1.5"
-                aria-label={description}
-              >
-                <div className="flex-shrink-0 ring-1 ring-black/10 [--base-size:0.875rem]">
-                  <ScoresTeamName
-                    teamName={
-                      isHome
-                        ? matchSettings.homeTeamNameAbbreviated
-                        : matchSettings.awayTeamNameAbbreviated
-                    }
-                    textColour={
-                      isHome
-                        ? matchSettings.homeTeamTextColour
-                        : matchSettings.awayTeamTextColour
-                    }
-                    backgroundColour={
-                      isHome
-                        ? matchSettings.homeTeamBackgroundColour
-                        : matchSettings.awayTeamBackgroundColour
-                    }
-                  />
-                </div>
-                <span className="w-12 flex-shrink-0 text-lg font-semibold tabular-nums text-fg">
-                  {minute}
-                </span>
-                <div className="flex min-w-0 flex-grow items-center">
-                  {hasLineup ? (
-                    <ActionButton
-                      variant="ghost"
-                      className="min-w-0 max-w-full justify-start px-2 text-base font-medium"
-                      aria-label={scorerLabel}
-                      onClick={() => onPickScorer(goal)}
-                      icon={
-                        <PencilSquareIcon
-                          className="h-5 w-5 flex-shrink-0 text-faint"
-                          aria-hidden="true"
-                        />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {entries.length === 0 ? (
+          <p className="py-2 text-sm text-muted">
+            {t('dashboard:goalLog.empty')}
+          </p>
+        ) : (
+          <ul role="list" className="divide-y divide-line">
+            {entries.map(({ goal, minute }) => {
+              const isHome = goal.team === 'home';
+              const teamName = isHome
+                ? matchSettings.homeTeamNameFull
+                : matchSettings.awayTeamNameFull;
+              const description = minute
+                ? t('dashboard:goalLog.goalWithMinute', {
+                    team: teamName,
+                    minute,
+                  })
+                : t('dashboard:goalLog.goal', { team: teamName });
+              const scorerLabel = t('dashboard:goalLog.scorerLabel', {
+                goal: description,
+              });
+              const hasLineup =
+                teamPlayers(matchSettings, goal.team).length > 0;
+              return (
+                <li
+                  key={goal.id}
+                  className="flex min-h-14 items-center gap-x-2 py-1.5"
+                  aria-label={description}
+                >
+                  <div className="flex-shrink-0 ring-1 ring-black/10 [--base-size:0.875rem]">
+                    <ScoresTeamName
+                      teamName={
+                        isHome
+                          ? matchSettings.homeTeamNameAbbreviated
+                          : matchSettings.awayTeamNameAbbreviated
                       }
-                    >
-                      <span
-                        className={classNames(
-                          'truncate',
-                          goal.scorer ? 'text-fg' : 'text-muted'
-                        )}
-                      >
-                        {goal.scorer
-                          ? formatScorer(goal)
-                          : t('dashboard:goals.addScorer')}
-                      </span>
-                    </ActionButton>
-                  ) : (
-                    <ScorerInput
-                      goal={goal}
-                      label={scorerLabel}
-                      placeholder={t('dashboard:goalLog.scorerPlaceholder')}
-                      setScorer={setScorer}
+                      textColour={
+                        isHome
+                          ? matchSettings.homeTeamTextColour
+                          : matchSettings.awayTeamTextColour
+                      }
+                      backgroundColour={
+                        isHome
+                          ? matchSettings.homeTeamBackgroundColour
+                          : matchSettings.awayTeamBackgroundColour
+                      }
                     />
+                  </div>
+                  {showMinutes && (
+                    <span className="w-14 flex-shrink-0 text-center text-lg font-semibold tabular-nums text-fg">
+                      {minute}
+                    </span>
                   )}
-                </div>
-                <IconButton
-                  tone="danger"
-                  className="flex-shrink-0"
-                  label={t('dashboard:goalLog.removeAria', {
-                    goal: description,
-                  })}
-                  title={t('dashboard:goalLog.remove')}
-                  icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
-                  onClick={() => removeGoal(goal.id)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  <div className="flex min-w-0 flex-grow items-center">
+                    {hasLineup ? (
+                      <ActionButton
+                        variant="ghost"
+                        className="min-w-0 max-w-full justify-start px-2 text-base font-medium"
+                        aria-label={scorerLabel}
+                        onClick={() => onPickScorer(goal)}
+                        icon={
+                          <PencilSquareIcon
+                            className="h-5 w-5 flex-shrink-0 text-faint"
+                            aria-hidden="true"
+                          />
+                        }
+                      >
+                        <span
+                          className={classNames(
+                            'truncate',
+                            goal.scorer ? 'text-fg' : 'text-muted'
+                          )}
+                        >
+                          {goal.scorer
+                            ? formatScorer(goal)
+                            : t('dashboard:goals.addScorer')}
+                        </span>
+                      </ActionButton>
+                    ) : (
+                      <ScorerInput
+                        goal={goal}
+                        label={scorerLabel}
+                        placeholder={t('dashboard:goalLog.scorerPlaceholder')}
+                        setScorer={setScorer}
+                      />
+                    )}
+                  </div>
+                  <IconButton
+                    tone="danger"
+                    className="flex-shrink-0"
+                    label={t('dashboard:goalLog.removeAria', {
+                      goal: description,
+                    })}
+                    title={t('dashboard:goalLog.remove')}
+                    icon={<TrashIcon className="h-6 w-6" aria-hidden="true" />}
+                    onClick={() => removeGoal(goal.id)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

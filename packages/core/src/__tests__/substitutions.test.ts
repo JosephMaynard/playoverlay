@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { defaultMatchSettings } from '../constants';
 import {
   createSubstitution,
+  findPlayerRename,
   formatSubstitutionMinute,
   lineupAfterSubstitutions,
   playersOnBench,
   playersOnPitch,
+  renamePlayerInScores,
   samePlayer,
 } from '../substitutions';
 import { Player, Substitution } from '../types';
@@ -177,5 +179,76 @@ describe('formatSubstitutionMinute', () => {
       )
     ).toBe("45+2'");
     expect(formatSubstitutionMinute(base, defaultMatchSettings)).toBe('');
+  });
+});
+
+describe('findPlayerRename', () => {
+  it('finds the one player whose name or number changed', () => {
+    const renamed = { ...lee, name: 'Kim Leigh' };
+    expect(findPlayerRename([smith, lee], [smith, renamed])).toEqual({
+      from: lee,
+      to: renamed,
+    });
+  });
+
+  it('ignores the Starts box, changes in length, and several changes', () => {
+    expect(
+      findPlayerRename([smith, lee], [smith, { ...lee, starting: true }])
+    ).toBeUndefined();
+    expect(findPlayerRename([smith, lee], [smith])).toBeUndefined();
+    expect(findPlayerRename([smith], undefined)).toBeUndefined();
+    expect(
+      findPlayerRename([smith, lee], [{ name: 'A' }, { name: 'B' }])
+    ).toBeUndefined();
+  });
+
+  it('ignores a rename of a player who shares their name and number', () => {
+    const sam = { name: 'Sam' };
+    expect(
+      findPlayerRename([sam, smith, sam], [{ name: 'Sam Reid' }, smith, sam])
+    ).toBeUndefined();
+  });
+});
+
+describe('renamePlayerInScores', () => {
+  it('renames the player in both directions of the log and drops a cleared number', () => {
+    const scores = {
+      homeTeam: 1,
+      awayTeam: 0,
+      penalties: [],
+      goals: [
+        {
+          id: 'g1',
+          team: 'home' as const,
+          scorer: 'Kim Lee',
+          scorerNumber: '14',
+        },
+      ],
+      substitutions: [
+        {
+          id: 's1',
+          team: 'home' as const,
+          off: smith,
+          on: { name: 'Kim Lee', number: '14' },
+        },
+        {
+          id: 's2',
+          team: 'home' as const,
+          off: { name: 'Kim Lee', number: '14' },
+          on: smith,
+        },
+      ],
+    };
+    const result = renamePlayerInScores(scores, 'home', {
+      from: lee,
+      to: { name: 'Kim Leigh', starting: false },
+    });
+    expect(result.substitutions?.[0].on).toEqual({ name: 'Kim Leigh' });
+    expect(result.substitutions?.[1].off).toEqual({ name: 'Kim Leigh' });
+    expect(result.goals?.[0]).toEqual({
+      id: 'g1',
+      team: 'home',
+      scorer: 'Kim Leigh',
+    });
   });
 });

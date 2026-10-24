@@ -22,7 +22,7 @@ import {
 // A radio or checkbox row where the whole 48px row is the label, so the
 // tap does not have to land on the 24px box itself.
 const choiceRowClassName =
-  'flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-2 text-base font-medium text-fg hover:bg-surface-2';
+  'flex min-h-12 cursor-pointer items-center gap-3 rounded px-2 text-base font-medium text-fg hover:bg-surface-2';
 
 // Same local i18n key map as SystemSettingsMenu's Stream Deck screen buttons
 // (duplicated rather than shared: `screens` is also used by
@@ -110,7 +110,7 @@ export default function EditCustomScreen({
           backgroundImage: `url("${customScreenToEdit?.url}")`,
           backgroundColor: keyColour,
         }}
-        className="my-6 aspect-video w-full max-w-sm rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+        className="my-6 aspect-video w-full max-w-sm rounded bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
       />
       <div className="space-y-6">
         <div>

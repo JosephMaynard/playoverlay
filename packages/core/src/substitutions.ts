@@ -1,4 +1,4 @@
-import { homeOrAway, Player, Substitution, Time } from './types';
+import { homeOrAway, Player, Scores, Substitution, Time } from './types';
 import type { MatchSettings } from './zodSchemas';
 import { formatEventMinute } from './goalLog';
 import { isStarter, teamPlayers } from './lineup';
@@ -35,6 +35,73 @@ function playerIdentity({ name, number }: Player): Player {
 // stored player but '' in an editor draft).
 export function samePlayer(a: Player, b: Player): boolean {
   return a.name === b.name && (a.number || '') === (b.number || '');
+}
+
+export interface PlayerRename {
+  from: Player;
+  to: Player;
+}
+
+// The one player whose name or number changed between two versions of a
+// squad, if that is all that changed: the line-up editor commits one row at a
+// time, so a correction to a name arrives as the same list with one entry
+// different. Anything else (a player added, removed or pasted, or a whole
+// club loaded) is not a rename. A change to the Starts box alone keeps the
+// player's identity, so it is not one either.
+export function findPlayerRename(
+  before: Player[] | undefined,
+  after: Player[] | undefined
+): PlayerRename | undefined {
+  if (!before || !after || before.length !== after.length) return undefined;
+  const changed = before.flatMap((player, index) =>
+    samePlayer(player, after[index]) ? [] : [index]
+  );
+  if (changed.length !== 1) return undefined;
+  const from = before[changed[0]];
+  // Two players with the same name and number (two Sams with no shirt
+  // numbers) cannot be told apart in the logs, so a rename of one would
+  // rewrite the other's entries too. Those entries are left as they are.
+  if (before.filter((player) => samePlayer(player, from)).length > 1) {
+    return undefined;
+  }
+  return { from, to: after[changed[0]] };
+}
+
+// Carries a rename into everything that names the player: the substitution
+// log and the goal scorers. Both store the name and number rather than a
+// reference, so without this a corrected name leaves the old one on the
+// pitch and the new one on the bench (see lineupAfterSubstitutions), and the
+// old one beside their goals.
+export function renamePlayerInScores(
+  scores: Scores,
+  team: homeOrAway,
+  { from, to }: PlayerRename
+): Scores {
+  const renamed = playerIdentity(to);
+  const substitutions = scores.substitutions?.map((entry) => {
+    if (entry.team !== team) return entry;
+    const off = samePlayer(entry.off, from) ? renamed : entry.off;
+    const on = samePlayer(entry.on, from) ? renamed : entry.on;
+    return off === entry.off && on === entry.on ? entry : { ...entry, off, on };
+  });
+  const goals = scores.goals?.map((goal) => {
+    if (
+      goal.team !== team ||
+      goal.scorer === undefined ||
+      !samePlayer({ name: goal.scorer, number: goal.scorerNumber }, from)
+    ) {
+      return goal;
+    }
+    const updated = { ...goal, scorer: renamed.name };
+    if (renamed.number) updated.scorerNumber = renamed.number;
+    else delete updated.scorerNumber;
+    return updated;
+  });
+  return {
+    ...scores,
+    ...(substitutions && { substitutions }),
+    ...(goals && { goals }),
+  };
 }
 
 export interface LineupAfterSubstitutions {

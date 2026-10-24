@@ -27,7 +27,7 @@ export default function CollapsiblePanel({
   return (
     <div
       className={classNames(
-        'mx-4 mb-4 overflow-hidden rounded-xl border border-line bg-surface shadow-sm lg:mx-0',
+        'mx-4 mb-4 overflow-hidden rounded-md border border-line bg-surface shadow-sm lg:mx-0',
         className ?? ''
       )}
     >

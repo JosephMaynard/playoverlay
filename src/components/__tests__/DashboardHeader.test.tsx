@@ -106,24 +106,3 @@ describe('DashboardHeader undo/redo controls', () => {
     ).toBeNull();
   });
 });
-
-describe('DashboardHeader theme switch', () => {
-  it('shows which mode is on and forces the other on a tap', () => {
-    const setTheme = vi.fn();
-    render(
-      <DashboardHeader
-        setSideMenu={vi.fn()}
-        onNewMatch={vi.fn()}
-        theme="light"
-        setTheme={setTheme}
-      />
-    );
-
-    expect(screen.getByRole('button', { name: 'Light mode' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Dark mode' }));
-    expect(setTheme).toHaveBeenCalledWith('dark');
-  });
-});

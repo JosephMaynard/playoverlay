@@ -11,6 +11,9 @@ export interface TabItem {
   // Keeps the panel mounted while hidden, for content that does work on
   // mount (the preflight checks) or holds a draft.
   keepMounted?: boolean;
+  // The panel takes the tab group's full height and scrolls its own
+  // content, so keys at its top stay put while a list under them scrolls.
+  fill?: boolean;
   content: ReactNode;
 }
 
@@ -36,7 +39,7 @@ export default function Tabs({ tabs, label, className }: Props) {
     <TabGroup
       as="div"
       className={classNames(
-        'flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-sm',
+        'flex min-h-0 flex-col overflow-hidden rounded-md border border-line bg-surface shadow-sm',
         className ?? ''
       )}
     >
@@ -62,12 +65,17 @@ export default function Tabs({ tabs, label, className }: Props) {
           </Tab>
         ))}
       </TabList>
-      <TabPanels className="min-h-0 flex-1 overflow-y-auto">
+      {/* A flex column, so a filling panel can take the height that is
+          left; any other panel keeps its own height and the group scrolls. */}
+      <TabPanels className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {tabs.map((tab) => (
           <TabPanel
             key={tab.key}
             unmount={!tab.keepMounted}
-            className="p-4 focus:outline-none"
+            className={classNames(
+              'p-4 focus:outline-none',
+              tab.fill ? 'flex min-h-0 flex-1 flex-col' : 'flex-shrink-0'
+            )}
           >
             {tab.content}
           </TabPanel>

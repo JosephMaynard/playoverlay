@@ -59,7 +59,7 @@ export function actionButtonClasses({
   block = false,
 }: ActionButtonStyle = {}): string {
   return classNames(
-    'inline-flex select-none items-center justify-center gap-2 rounded-lg font-semibold leading-tight transition-colors',
+    'inline-flex select-none items-center justify-center gap-2 rounded font-semibold leading-tight transition-colors',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
     'disabled:cursor-not-allowed disabled:opacity-40',
     sizeClasses[size],

@@ -20,9 +20,7 @@
     "keyAria": "Tor für {{team}}"
   },
   "header": {
-    "darkMode": "Dunkler Modus",
     "graphics": "Grafiken",
-    "lightMode": "Heller Modus",
     "newMatch": "Neu",
     "openMenu": "{{title}}-Menü öffnen",
     "redo": "Wiederholen",

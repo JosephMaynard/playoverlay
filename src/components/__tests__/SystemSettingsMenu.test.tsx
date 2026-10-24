@@ -291,3 +291,40 @@ describe('SystemSettingsMenu keyboard shortcuts', () => {
     expect(screen.getByText('Away team scored')).toBeInTheDocument();
   });
 });
+
+describe('SystemSettingsMenu appearance', () => {
+  it('offers system, light and dark, with system selected by default', async () => {
+    const { updateAppSettings } = renderMenu();
+
+    expect(
+      screen.getByRole('button', { name: 'Match system' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dark' }));
+    expect(updateAppSettings).toHaveBeenCalledWith({ theme: 'dark' });
+  });
+
+  it('shows the saved choice as selected', () => {
+    renderMenu({ appSettings: { ...defaultAppSettings, theme: 'light' } });
+    expect(screen.getByRole('button', { name: 'Light' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+
+  it('offers small, medium and large with medium selected by default', async () => {
+    const user = userEvent.setup();
+    const { updateAppSettings } = renderMenu();
+
+    expect(screen.getByRole('button', { name: 'Medium' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    await user.click(screen.getByRole('button', { name: 'Large' }));
+    expect(updateAppSettings).toHaveBeenCalledWith({ dashboardScale: 'large' });
+  });
+});

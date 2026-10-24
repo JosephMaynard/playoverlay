@@ -170,7 +170,7 @@ export default function ScreenRotationSettings({
               <label
                 key={id}
                 htmlFor={id}
-                className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3 ring-1 ring-inset ring-line hover:bg-surface-2"
+                className="flex min-h-12 cursor-pointer items-center gap-3 rounded px-3 ring-1 ring-inset ring-line hover:bg-surface-2"
               >
                 <input
                   id={id}

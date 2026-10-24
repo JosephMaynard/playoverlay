@@ -112,6 +112,11 @@ interface UndoStore {
   // describes a different match, and undoing it would splice that state into
   // this one.
   clearHistory: () => void;
+
+  // Applies the same change to the scores held in every entry on both
+  // stacks. For a correction that has to hold however far back the operator
+  // undoes: a renamed player must not come back under the old name.
+  rewriteScores: (rewrite: (scores: Scores) => Scores) => void;
 }
 
 // Deep clone so a snapshot can never alias live store state (the penalties and
@@ -321,6 +326,23 @@ export const useUndoStore = create<UndoStore>((set, get) => ({
 
   clearHistory: () => {
     set({ undoStack: [], redoStack: [] });
+  },
+
+  rewriteScores: (rewrite) => {
+    const rewriteEntry = (entry: UndoEntry): UndoEntry =>
+      entry.snapshot.scores
+        ? {
+            ...entry,
+            snapshot: {
+              ...entry.snapshot,
+              scores: rewrite(entry.snapshot.scores),
+            },
+          }
+        : entry;
+    set({
+      undoStack: get().undoStack.map(rewriteEntry),
+      redoStack: get().redoStack.map(rewriteEntry),
+    });
   },
 }));
 

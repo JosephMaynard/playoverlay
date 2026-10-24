@@ -28,6 +28,10 @@ import {
   defaultKeyboardShortcuts,
   screens,
   supportedLanguages,
+  DashboardScale,
+  dashboardScales,
+  ThemeSetting,
+  themeSettings,
 } from '@playoverlay/core';
 import Modal from '../Modal/Modal';
 import {
@@ -51,7 +55,7 @@ import {
 // A URL to paste into OBS or a phone: monospace, scrollable rather than
 // wrapped, so it is copied exactly as shown.
 const urlClassName =
-  'min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-xl bg-surface-2 px-3 py-3 font-mono text-sm text-fg ring-1 ring-inset ring-line';
+  'min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded bg-surface-2 px-3 py-3 font-mono text-sm text-fg ring-1 ring-inset ring-line';
 
 export interface Props {
   open: boolean;
@@ -553,6 +557,32 @@ export default function SystemSettingsMenu({
         setOpen={setOpen}
         title={t('settings:system.title')}
       >
+        <CollapsiblePanel title={t('settings:appMenu.appearance.title')}>
+          <p className="mb-3 text-sm text-muted">
+            {t('settings:appMenu.appearance.description')}
+          </p>
+          <ButtonGrid
+            buttons={themeSettings.map((theme: ThemeSetting) => ({
+              label: t(`settings:appMenu.appearance.${theme}`),
+              onClick: () => updateAppSettings({ theme }),
+              // Unset means "system" for everyone who predates the setting.
+              selected: (appSettings.theme ?? 'system') === theme,
+            }))}
+          />
+          <h3 className="mb-1 mt-5 text-base font-semibold text-fg">
+            {t('settings:appMenu.dashboardSize.title')}
+          </h3>
+          <p className="mb-3 text-sm text-muted">
+            {t('settings:appMenu.dashboardSize.description')}
+          </p>
+          <ButtonGrid
+            buttons={dashboardScales.map((scale: DashboardScale) => ({
+              label: t(`settings:appMenu.dashboardSize.${scale}`),
+              onClick: () => updateAppSettings({ dashboardScale: scale }),
+              selected: (appSettings.dashboardScale ?? 'medium') === scale,
+            }))}
+          />
+        </CollapsiblePanel>
         <CollapsiblePanel title={t('settings:language.title')}>
           <p className="mb-3 text-sm text-muted">
             {t('settings:language.description')}
@@ -833,7 +863,7 @@ export default function SystemSettingsMenu({
                   <img
                     src={remoteControlQr}
                     alt={t('settings:appMenu.remoteControl.qrAlt')}
-                    className="h-40 w-40 rounded-lg ring-1 ring-line"
+                    className="h-40 w-40 rounded ring-1 ring-line"
                   />
                 )}
                 <p className="text-sm text-muted">

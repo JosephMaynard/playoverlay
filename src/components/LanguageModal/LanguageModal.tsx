@@ -56,7 +56,7 @@ export default function LanguageModal({ language, onConfirm }: Props) {
             aria-pressed={selected === code}
             onClick={() => setSelected(code)}
             className={classNames(
-              'min-h-12 rounded-xl px-4 py-2 text-left text-base font-medium transition-colors',
+              'min-h-12 rounded px-4 py-2 text-left text-base font-medium transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
               selected === code
                 ? 'bg-accent-soft text-fg ring-2 ring-inset ring-accent'

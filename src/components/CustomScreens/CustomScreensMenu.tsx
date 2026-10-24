@@ -195,7 +195,7 @@ export default function CustomScreensMenu({
                   backgroundImage: `url("${customScreen.url}")`,
                   backgroundColor: keyColour,
                 }}
-                className="aspect-video w-32 shrink-0 rounded-lg bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
+                className="aspect-video w-32 shrink-0 rounded bg-contain bg-center bg-no-repeat ring-1 ring-inset ring-line"
               />
               <div className="flex min-w-0 flex-1 basis-40 flex-col items-start justify-center">
                 <div className="flex max-w-full items-center gap-x-2">
@@ -203,7 +203,7 @@ export default function CustomScreensMenu({
                     {customScreen.title}
                   </p>
                   {isGraphicOnAir(customScreen, matchState) && (
-                    <span className="inline-flex shrink-0 items-center rounded-md bg-live-soft px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-ink">
+                    <span className="inline-flex shrink-0 items-center rounded bg-live-soft px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-ink">
                       {t('settings:customScreens.onAir')}
                     </span>
                   )}

@@ -75,7 +75,7 @@ export default function PreflightChecklist({
         <>
           <div
             className={classNames(
-              'mt-3 rounded-lg px-4 py-2.5 text-base font-semibold',
+              'mt-3 rounded px-4 py-2.5 text-base font-semibold',
               SUMMARY_BANNER_CLASS[result.summary.status]
             )}
           >
