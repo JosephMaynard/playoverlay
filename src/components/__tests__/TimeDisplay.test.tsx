@@ -20,4 +20,16 @@ describe('clockFontSize', () => {
       cqw(clockFontSize('105:13', 5))
     );
   });
+
+  it('makes room for the remaining time, and keeps one size when it goes negative', () => {
+    expect(cqw(clockFontSize('45:00', undefined, '00:00'))).toBeLessThan(
+      cqw(clockFontSize('45:00'))
+    );
+    expect(clockFontSize('44:30', undefined, '00:30')).toBe(
+      clockFontSize('45:30', undefined, '-0:30')
+    );
+    expect(clockFontSize('45:30', undefined, '-0:30')).toBe(
+      clockFontSize('59:47', undefined, '-14:47')
+    );
+  });
 });

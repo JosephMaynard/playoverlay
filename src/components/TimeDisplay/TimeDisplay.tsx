@@ -18,24 +18,40 @@ export interface Props {
   onEditScore?: () => void;
 }
 
-// Average advance of a bold tabular digit, and the added time's size, both
-// in ems of the clock. The colon and minus are narrower than a digit, so
-// counting them as one keeps a little to spare.
+// Average advance of a bold tabular digit, and the added and remaining
+// times' sizes, all in ems of the clock. The colon and minus are narrower
+// than a digit, so counting them as one keeps a little to spare.
 const CHARACTER_WIDTH_EM = 0.62;
 const ADDED_TIME_EM = 0.32;
+const REMAINING_TIME_EM = 0.6;
+const GAP_EM = 0.25;
 
-// The clock's font size: as large as fits the width its column has left
-// beside the remaining time, up to 8rem. Sized from the text itself so
+// The clock's font size: as large as lets the clock and the remaining time
+// share the row, up to 8rem. Both are sized from that one value, so the
+// remaining time stays big enough to read across a pitch rather than
+// taking whatever width the clock leaves. Sized from the text itself so
 // 105:13 with +5 in extra time still fits where 45:00 did. Never sized for
-// fewer than five characters, so the digits do not shrink at 9:59 -> 10:00
+// fewer than five clock characters or six remaining ones, so the digits
+// do not shrink at 9:59 -> 10:00 or when the remaining time goes negative,
 // and the only step down a match ever sees is at 100 minutes.
-export function clockFontSize(clock: string, additionalTime?: number) {
+export function clockFontSize(
+  clock: string,
+  additionalTime?: number,
+  remainingTime?: string
+) {
   let widthEm = Math.max(clock.length, 5) * CHARACTER_WIDTH_EM;
   if (additionalTime) {
     // The gap, the plus sign and the minutes.
     widthEm +=
       0.15 +
       (String(additionalTime).length + 1) * CHARACTER_WIDTH_EM * ADDED_TIME_EM;
+  }
+  if (remainingTime) {
+    widthEm +=
+      GAP_EM +
+      Math.max(remainingTime.length, 6) *
+        CHARACTER_WIDTH_EM *
+        REMAINING_TIME_EM;
   }
   return `clamp(2rem, ${(100 / widthEm).toFixed(1)}cqw, 8rem)`;
 }
@@ -112,14 +128,22 @@ export default function TimeDisplay({
           </button>
         )}
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-        <div className="[container-type:inline-size]">
+      <div className="[container-type:inline-size]">
+        <div
+          className="flex items-end justify-between gap-[0.25em] whitespace-nowrap font-bold tabular-nums leading-none"
+          style={{
+            fontSize: clockFontSize(
+              clock,
+              time.additionalTime,
+              time.remainingTime
+            ),
+          }}
+        >
           <p
             className={classNames(
-              'whitespace-nowrap font-bold tabular-nums leading-none tracking-tight',
+              'tracking-tight',
               time.time ? '' : 'text-ink-fg/40'
             )}
-            style={{ fontSize: clockFontSize(clock, time.additionalTime) }}
           >
             {clock}
             {!!time.additionalTime && (
@@ -133,17 +157,15 @@ export default function TimeDisplay({
               </span>
             )}
           </p>
+          {time.remainingTime && (
+            <div className="text-right">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-fg/60">
+                {t('dashboard:timeControl.remaining')}
+              </p>
+              <p className="text-[0.6em]">{time.remainingTime}</p>
+            </div>
+          )}
         </div>
-        {time.remainingTime && (
-          <div className="pb-1 text-right">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-fg/60">
-              {t('dashboard:timeControl.remaining')}
-            </p>
-            <p className="font-bold tabular-nums leading-none text-ink-fg/90 [font-size:clamp(1.5rem,8cqw,3rem)]">
-              {time.remainingTime}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
